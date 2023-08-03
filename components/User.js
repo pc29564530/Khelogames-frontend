@@ -24,16 +24,16 @@ const styles = StyleSheet.create({
 
   
 
-const User = () => {
+const User = ({navigation}) => {
     const [username, setUsername] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
-    const [otp, setOTP] = useState('');
 
     const handleAccount = async () => {
       try {
         const newAccount = {username, mobileNumber, password};
         const response = await axios.post('http://localhost:8080/users', newAccount)
+        navigation.navigate('Home');
         console.log(response.data);
       } catch (err) {
         console.error('Unable to create account', err);
@@ -43,9 +43,6 @@ const User = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>
-                CREATE ACCOUNT
-            </Text>
             <Text style={styles.label} >Username</Text>
             <TextInput style={styles.input} value={username} onChangeText={setUsername} placeholder="Enter your username" />
             <Text style={styles.label} >Mobile Number</Text>
