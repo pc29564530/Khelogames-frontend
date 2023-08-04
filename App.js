@@ -9,6 +9,7 @@ import Home from './components/Home';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import Thread from './components/Thread';
+import CreateThread from './components/CreateThread';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ export default function App() {
             <Stack.Screen name="User" component={User} />
             <Stack.Screen name="SignIn" component={SignIn} />
             <Stack.Screen name="Header" component={Header} />
+            <Stack.Screen name="CreateThread" component={CreateThread} />
             <Stack.Screen name="Thread" component={Thread} />
             <Stack.Screen name="Footer" component={Footer} />
         </Stack.Navigator>
