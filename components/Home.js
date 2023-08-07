@@ -11,7 +11,7 @@ function Home({navigation}) {
         navigation.navigate('SignIn');
     }
     return (
-        <View style={styles.container}>
+        <View style={styles.container}>``
             <View style={styles.header}> <Header /> </View>
             <View style={styles.content}>
                 <Pressable onPress={()=>navigation.navigate('CreateThread')}><AddCommentIcon /></Pressable>

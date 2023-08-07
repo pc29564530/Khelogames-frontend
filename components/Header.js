@@ -3,22 +3,22 @@ import {Text, View, TextInput, StyleSheet, Pressable, Button} from 'react-native
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import SearchIcon from '@mui/icons-material/Search';
-import HomeIcon from '@mui/icons-material/Home';
+
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Header ({navigation}) {
 
-    const handleLogout =   () => {
-        localStorage.clear()
-        console.log('User logged out');
-        navigation.navigate('SignUp')
-      }
+    // const handleLogout =   () => {
+    //     localStorage.clear()
+    //     console.log('User logged out');
+    //     navigation.navigate('SignUp')
+    //   }
 
     return (
         <View style={styles.header}>
-            <View>
+            {/* <View>
                 <Text style={styles.headerText}><HomeIcon /></Text>
-            </View>
+            </View> */}
             <View>
                 <Text><SearchIcon /></Text>
             </View>
@@ -29,7 +29,7 @@ function Header ({navigation}) {
                 <Text style={styles.headerText}><AccountCircleIcon /></Text>
             </View> 
             <View>
-                <Button style={styles.headerText} onPress={handleLogout} >Logout</Button>
+                <Button style={styles.headerText}  >Logout</Button>
             </View>
         </View>
     )

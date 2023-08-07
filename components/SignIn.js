@@ -33,24 +33,18 @@ const SignIn = ({navigation}) => {
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
 
-    // useEffect(  () =>{
-    //   const loggedInUser =  AsyncStorage.getItem("AccessToken")
-    //   if(loggedInUser){
-    //     const getUser = JSON.parse( JSON.stringify(loggedInUser));
-    //     setUser(getUser);
-    //   }
-    // },[])
-
     const handleSignIn = async() => {
       try {
         const user = {username, password}
         const response = await axios.post('http://localhost:8080/login', user);
         setUser(response.data);
-        console.log(response.data.access_token);
+        // console.log(response.data.access_token);
+        // console.log(response.data.user.username)
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
+        await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
-        await navigation.replace('Home');  
-        console.log(response.data);
+        await navigation.navigate('Home');  
+        // console.log(response.data);
       } catch (err) {
         console.error(err);
       }
