@@ -1,3 +1,4 @@
+
 import {NavigationContainer} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -12,6 +13,7 @@ import Thread from './components/Thread';
 import CreateThread from './components/CreateThread';
 import Community from './components/Community';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import ProfileMenu from './components/ProfileMenu';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -32,6 +34,7 @@ export default function App() {
             <Stack.Screen name="Community" component={Community}/>
             <Stack.Screen name="Thread" component={Thread} />
             <Stack.Screen name="Footer" component={Footer} />
+            {/* <Stack.Screen name="ProfileMenu" component={ProfileMenu} /> */}
         </Stack.Navigator>
     </NavigationContainer>
     

@@ -6,10 +6,7 @@ import Thread from './Thread';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 
 function Home({navigation}) {
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        navigation.navigate('SignIn');
-    }
+    
     return (
         <View style={styles.container}>``
             <View style={styles.header}> <Header /> </View>

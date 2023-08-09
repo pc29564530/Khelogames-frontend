@@ -1,23 +1,25 @@
-import React from 'react';
+import React , {useState} from 'react';
 import {Text, View, TextInput, StyleSheet, Pressable, Button} from 'react-native';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import SearchIcon from '@mui/icons-material/Search';
+import { useNavigation,  } from '@react-navigation/native';
+import ProfileMenu from './ProfileMenu';
 
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function Header ({navigation}) {
+function Header () {
 
-    // const handleLogout =   () => {
-    //     localStorage.clear()
-    //     console.log('User logged out');
-    //     navigation.navigate('SignUp')
-    //   }
+    const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
 
-    return (
+    const handleAccount = () => {
+        setProfileMenuVisible(true);
+    }
+
+    return (    
         <View style={styles.header}>
             {/* <View>
-                <Text style={styles.headerText}><HomeIcon /></Text>
+                <Text style={styles.headerText}>Khelogames</Text>
             </View> */}
             <View>
                 <Text><SearchIcon /></Text>
@@ -26,11 +28,15 @@ function Header ({navigation}) {
                 <Text style={styles.headerText} ><EmailIcon /></Text>
             </View>
             <View>
-                <Text style={styles.headerText}><AccountCircleIcon /></Text>
+                <Pressable style={styles.headerText} onPress={handleAccount}><AccountCircleIcon /></Pressable>
             </View> 
-            <View>
+            <ProfileMenu
+        isVisible={isProfileMenuVisible}
+        onClose={() => setProfileMenuVisible(false)}
+      />
+            {/* <View>
                 <Button style={styles.headerText}  >Logout</Button>
-            </View>
+            </View> */}
         </View>
     )
 }

@@ -8,14 +8,14 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import Community from './Community';
 import HomeIcon from '@mui/icons-material/Home';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation, NavigationContainer } from '@react-navigation/native';
+import { useNavigation,  } from '@react-navigation/native';
 
 
 
 
 
 
-function Footer ({navigation}) {
+function Footer () {
     const navigation = useNavigation();
 
     return (

@@ -1,3 +1,5 @@
+import React, {useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Text, View, StyleSheet, Button, SafeAreaView, Touchable} from 'react-native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Constants from 'expo-constants';
@@ -16,6 +18,19 @@ const styles = StyleSheet.create({
 
 
 const Main = ({navigation}) => {
+    useEffect(() => {
+        const checkIfSignIn = async () => {
+            try {
+                const accessToken = await AsyncStorage.getItem('AccessToken');
+                if(accessToken) {
+                    navigation.navigate('Home');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        checkIfSignIn();
+    },[]);
     return (
         <View>
             <View>
