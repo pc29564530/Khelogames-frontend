@@ -1,61 +1,62 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState} from 'react';
-import {View, Text, Pressable, Modal, StyleSheet} from 'react-native';
-import { useNavigation,  } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, Pressable, Modal, StyleSheet, TouchableOpacity} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 
-function ProfileMenu ({isVisible, onClose}) {
-    const navigation = useNavigation();
-    const handleLogout = async () => {
-        try {
-            await AsyncStorage.removeItem('AccessToken');
-            await AsyncStorage.removeItem("RefreshToken");
-            navigation.navigate('SignIn');
-
-        } catch (err) {
-            console.error(err);
-        }
-    }
+function ProfileMenu({logout}) {
+    // const handleLogout =  () => {
+    //     try {
+    //         // await AsyncStorage.removeItem('AccessToken');
+    //         // await AsyncStorage.removeItem('RefreshToken');
+    //         // // const authToken = await AsyncStorage.getItem('AccessToken');
+    //         // // if(authToken){
+    //         // //  navigation.navigate('SignIn');
+    //         // // }
+    //         console.log("alble to log out");
+    //         console.log(logout)
+    //         logout();
+            
+    //     } catch (err) {
+    //         console.log('Failed to logout', err);
+    //     }
+    // }
     return (
-        <View style={styles.centeredView}>
-            <Modal 
-                animationType='slide'
-                transparent={true}
-                visible={isVisible}
-            >
-            <View style={styles.modalView}>
-                <Pressable>Profile</Pressable>
-                <Pressable onPress={handleLogout}>Logout</Pressable>
-                <Pressable onPress={onClose}>Close</Pressable>
-            </View>
-            </Modal>
+        <View style={styles.container}>
+            <Text style={styles.title}>Profile</Text>
+            <TouchableOpacity onPress={() => handleLogout()} style={styles.logoutButton}>
+                <Text style={styles.logout}>Logout</Text>
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    centeredView: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        margin: 20,
-      },
-      modalView: {
-        marginTop: 70,
-        marginLeft: 30,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 35,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-      },
-});
+    container: {
+      flex: 1,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 22,
+      color: 'grey',
+      fontWeight: '500',
+      marginTop: 30,
+    },
+    logout: {
+      fontSize: 15,
+      color: 'white',
+      fontWeight: '500',
+    },
+    logoutButton: {
+      backgroundColor: 'grey',
+      padding: 12,
+      borderRadius: 20,
+      width: '90%',
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+  });
+  
 
 export default ProfileMenu;

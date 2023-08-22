@@ -1,43 +1,52 @@
 import React from 'react';
-import {Text, View, StyleSheet, Pressable,Item} from 'react-native';
-import ForumIcon from '@mui/icons-material/Forum';
-import RssFeedIcon from '@mui/icons-material/RssFeed';
-import WidgetsIcon from '@mui/icons-material/Widgets';
-import AddCommentIcon from '@mui/icons-material/AddComment'; 
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import Community from './Community';
-import HomeIcon from '@mui/icons-material/Home';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation,  } from '@react-navigation/native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import Foundation from 'react-native-vector-icons/Foundation'
+import Home from './Home';
+import Community from './Community';
+import ProfileMenu from './ProfileMenu';
+import CreateThread from './CreateThread';
 
 
+const Tab = createBottomTabNavigator();
 
-
-
-
-function Footer () {
-    const navigation = useNavigation();
-
+function Footer({logout}) {
     return (
-        <View style={styles.footer}>
-            <Pressable onPress={() => navigation.navigate('Community')} ><ForumIcon /></Pressable>       
-            <Pressable style={styles.footText}><PeopleAltIcon/></Pressable>
-            <Pressable style={styles.footText}><WidgetsIcon /></Pressable>
-        </View>
+        <>  
+            <Tab.Navigator 
+                screenOptions={({route})=> ({
+                    headerTitle: null,
+                    headerTransparent: true,
+                    headerShown: false,
+                    headerLeft: null,
+                    headerBackTitleVisible: false,
+                    tabBarShowLabel: false,
+                    tabBarIcon: () => {
+                      let Icon;
+                      if(route.name === "Home"){
+                        Icon=<Foundation name="home" size={25} />;
+                      } else if(route.name === "Community"){
+                        Icon = <MaterialCommunityIcons name="forum" size={25} />;
+                      } else if(route.name === "CreateThread") {
+                        Icon = <MaterialIcons name="add-box" size={25} />;
+                      } else if(route.name === "ProfileMenu") {
+                        Icon = <MaterialCommunityIcons name="account" size={25} />;
+                      }
+                      return Icon;
+                    }
+                    
+                })}
+            > 
+                <Tab.Screen name="Home" component={Home} />
+                <Tab.Screen name="Community" component={Community} />
+                <Tab.Screen name="ProfileMenu"
+                    component={() => <ProfileMenu logout={logout}/>}
+                />
+                <Tab.Screen name="CreateThread" component={CreateThread} />
+            </Tab.Navigator>
+        </>
     );
 }
-
-const styles = StyleSheet.create({
-    footer: {
-        position: 'relative',
-        top: 20,
-        left: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginEnd:0,
-        width: '100%',
-        padding: 10,
-    },
-});
 
 export default Footer;

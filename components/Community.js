@@ -53,25 +53,30 @@ function Community () {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await axios.get(`http://localhost:8080/get_all_communities/${user}`, {
+            const response = await fetch(`http://localhost:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             })
-            setData(response.data)
-            console.log(response.data)
+            const item = await response.json();
+            // const item = await response.data;
+            setData(item)
+            console.log(item);
         } catch (err) {
             console.error(err);
         }
         
     }
     useEffect(() => {
-        fetchData()
+        if(data.length > 0) {
+            fetchData();
+        }
     },[]);
 
     return (
         <View >
+            
             <CreateCommunity /> 
             <View >
                 {data.map((item,i) => (

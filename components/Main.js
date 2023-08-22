@@ -4,7 +4,8 @@ import {Text, View, StyleSheet, Button, SafeAreaView, Touchable} from 'react-nat
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Constants from 'expo-constants';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-
+import Header from './Header';
+import Footer from './Footer';
 
 const Drawer = createDrawerNavigator();
 
@@ -16,38 +17,13 @@ const styles = StyleSheet.create({
     }
 })
 
-
-const Main = ({navigation}) => {
-    useEffect(() => {
-        const checkIfSignIn = async () => {
-            try {
-                const accessToken = await AsyncStorage.getItem('AccessToken');
-                if(accessToken) {
-                    navigation.navigate('Home');
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        checkIfSignIn();
-    },[]);
+ 
+const Main = ({logout}) => {
     return (
-        <View>
-            <View>
-                <Button 
-                    title="Sign Up"
-                    onPress={() => navigation.navigate('SignUp')} 
-                />
-                {/* <Button 
-                    title="Create Account"
-                    onPress={() => navigation.navigate('Account')}
-                /> */}
-                <Button 
-                    title="Sign In"
-                    onPress={() => navigation.navigate('SignIn')}
-                />
-            </View> 
-        </View>
+        <>
+            <Header logout={logout}/>
+            <Footer/>
+        </>
     )
 }
 
