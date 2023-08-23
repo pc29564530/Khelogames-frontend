@@ -6,8 +6,11 @@ import Constants from 'expo-constants';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Header from './Header';
 import Footer from './Footer';
+import Home from './Home';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
     container: {
@@ -19,10 +22,11 @@ const styles = StyleSheet.create({
 
  
 const Main = ({logout}) => {
+    console.log('Main component rendered');
     return (
-        <>
+        <>  
             <Header logout={logout}/>
-            <Footer/>
+            <Footer logout={logout}/>
         </>
     )
 }

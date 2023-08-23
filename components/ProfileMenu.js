@@ -5,22 +5,22 @@ import { useNavigation } from '@react-navigation/native';
 
 
 function ProfileMenu({logout}) {
-    // const handleLogout =  () => {
-    //     try {
-    //         // await AsyncStorage.removeItem('AccessToken');
-    //         // await AsyncStorage.removeItem('RefreshToken');
-    //         // // const authToken = await AsyncStorage.getItem('AccessToken');
-    //         // // if(authToken){
-    //         // //  navigation.navigate('SignIn');
-    //         // // }
-    //         console.log("alble to log out");
-    //         console.log(logout)
-    //         logout();
+    const handleLogout =  () => {
+        try {
+            // await AsyncStorage.removeItem('AccessToken');
+            // await AsyncStorage.removeItem('RefreshToken');
+            // // const authToken = await AsyncStorage.getItem('AccessToken');
+            // // if(authToken){
+            // //  navigation.navigate('SignIn');
+            // // }
+            console.log("alble to log out");
+            console.log(logout)
+            logout();
             
-    //     } catch (err) {
-    //         console.log('Failed to logout', err);
-    //     }
-    // }
+        } catch (err) {
+            console.log('Failed to logout', err);
+        }
+    }
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Profile</Text>

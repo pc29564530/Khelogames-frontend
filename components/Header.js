@@ -18,14 +18,14 @@ function Header ({logout}) {
     // const handleAccount = () => {
     //     setProfileMenuVisible(true);
     // }
-    const handlelogout = () => {
-        try {
-            console.log(logout)
-            logout();
-        } catch (err) {
-            console.error(err);
-        }
-    }
+    // const handlelogout = () => {
+    //     try {
+    //         console.log(logout)
+    //         logout();
+    //     } catch (err) {
+    //         console.error(err);
+    //     }
+    // }
 
     return (   
         
@@ -45,13 +45,13 @@ function Header ({logout}) {
                     color="grey"
                     style={styles.iconStyles}    
                 />
-                <AntDesign 
+                {/* <AntDesign 
                     onPress={() => handlelogout()}
                     name="logout"
                     size={19}
                     color="black"
                     style={styles.iconStyles}
-                />
+                /> */}
             </View>
         </View> 
     )
