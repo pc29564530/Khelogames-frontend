@@ -3,11 +3,14 @@ import {Pressable, Text, View, Button, TouchableOpacity} from 'react-native';
 import { TextInput, StyleSheet } from 'react-native-web';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
+import { useNavigation} from '@react-navigation/native';
 
 
 
 
-const SignIn = ({navigation}) => {
+
+const SignIn = ({setIsAuthenticated}) => {
+    const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [user, setUser] = useState();
@@ -28,7 +31,7 @@ const SignIn = ({navigation}) => {
         setRefresh(response.data.refresh_token);
         setAccess(response.data.access_token);  
         setExpire(response.data.access_token_expires_at)
-        await navigation.navigate('Home');
+        setIsAuthenticated(true);
        
       } catch (err) {
         console.error(err);
@@ -38,7 +41,11 @@ const SignIn = ({navigation}) => {
 
     return (
       <View style={styles.container}>
+        <View>
+          
+        </View>
         <View style={styles.subContainer}>
+            <Text style={styles.signInHeader}> Sign In</Text>
             <TextInput style={styles.inputBox} value={username} onChangeText={setUsername} placeholder="Enter the Username" />
             <TextInput style={styles.inputBox} value={password} onChangeText={setPassword} placeholder="Enter the Password" />
             <TouchableOpacity onPress={handleSignIn} style={styles.loginButton}>
@@ -57,6 +64,13 @@ export default SignIn;
 
 
 const styles = StyleSheet.create({
+  signInHeader: {
+    fontSize: 24,
+    color: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 30
+  },
   logoStyle: {
     height: 50,
     width: 50,
@@ -66,6 +80,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   subContainer: {
+    marginTop: "20%",
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -97,7 +112,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     width: '95%',
     alignItems: 'center',
-    marginTop: '35%',
+    marginTop: 30,
   },
   newAccountText: {
     color: 'lightgrey',

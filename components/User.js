@@ -59,7 +59,7 @@ export const AllUser = () =>{
 }
   
 
-const User = ({navigation}) => {
+const User = ({navigation, setIsAuthenticated}) => {
     const [username, setUsername] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
@@ -68,6 +68,7 @@ const User = ({navigation}) => {
       try {
         const newAccount = {username, mobileNumber, password};
         const response = await axios.post('http://localhost:8080/users', newAccount)
+        setIsAuthenticated(true);
         navigation.navigate('Home');
         console.log(response.data);
       } catch (err) {

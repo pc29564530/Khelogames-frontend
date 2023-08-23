@@ -28,7 +28,6 @@ const Tab = createBottomTabNavigator();
 
 
 export default function App() {
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const logout = async () => {
@@ -43,6 +42,7 @@ export default function App() {
     const checkAuthStatus = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       if (authToken) {
+        console.log("authToke")
         setIsAuthenticated(true);
       }
     };
@@ -64,9 +64,9 @@ export default function App() {
       >
         {!isAuthenticated ? (
             <>
-               <Stack.Screen name="SignUp" component={() => <SignUp/>} />
-              <Stack.Screen name="User" component={() => <User />}/>
-              <Stack.Screen name="SignIn" component={() => <SignIn />} />
+               <Stack.Screen name="SignUp" component={() => <SignUp setIsAuthentication={setIsAuthenticated}/>} />
+              <Stack.Screen name="User" component={() => <User setIsAuthenticated={setIsAuthenticated}/>}/>
+              <Stack.Screen name="SignIn" component={() => <SignIn setIsAuthenticated={setIsAuthenticated}/>} />
             </>
         ):(
           <>

@@ -11,16 +11,16 @@ import ProfileMenu from './ProfileMenu';
 
 function Home() {
 
-  const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
+  // const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
 
   const navigation = useNavigation();
   useEffect(() => {
     checkTokenExpiration();
   },[]);
 
-  const handleAccount = () => {
-      setProfileMenuVisible(true);
-  }
+  // const handleAccount = () => {
+  //     setProfileMenuVisible(true);
+  // }
 
   const checkTokenExpiration = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
