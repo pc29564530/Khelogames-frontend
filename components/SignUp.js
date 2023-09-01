@@ -1,20 +1,26 @@
 import React, {useState} from 'react';
-import {Text, View,TextInput, StyleSheet, Button, Input } from 'react-native';
+import {Text,Image, View,TextInput, StyleSheet, Button } from 'react-native';
+// import {Input, Icon} from 'native-base';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import { Input, Icon } from '@rneui/themed';
 
 
 
 
-function  SignUp({navigation, setIsAuthentication}) {
+function  SignUp() {
     const [mobileNumber, setMobileNumber] = useState('');
     const [otp, setOTP] = useState('');
-
+    const navigation = useNavigation();
     const handleVerify = async () => {
         try {
             const verifyMobileNumber = {mobileNumber, otp}
+            console.log(verifyMobileNumber.mobileNumber);
+            console.log(verifyMobileNumber.otp);
             const response = await axios.post('http://localhost:8080/signup', verifyMobileNumber)
-            setIsAuthenticated(true);
+            // setIsAuthenticated(true);
             navigation.navigate('User')
             console.log(response.data)
         } catch (err) {
@@ -36,97 +42,108 @@ function  SignUp({navigation, setIsAuthentication}) {
     }
 
     return (
-        // <View style={styles.container}>
-        //     <View>
-        //       <View style={styles.mobileBox}>
-        //           <Text style={styles.label}>Mobile Number</Text>
-        //           <TextInput style={styles.input} type="number" value={mobileNumber} onChangeText={setMobileNumber} placeholder="Enter Mobile Number" />
-        //       </View>
-        //       <View style={styles.otpBox}>
-        //         <Text style={styles.label}>Otp</Text>
-        //         <TextInput style={styles.input} type="number" value={otp} onChangeText={setOTP} placeholder="Enter Otp number" />
-        //         <Button  style={styles.button} onPress={sendOTP}>Send</Button>
-        //       </View>
-        //       <View style={styles.signInButton}>
-        //         <Button style={styles.button} onPress={handleVerify}>Verify</Button>
-        //       </View> 
-        //     </View>
-        // </View>
-        <View style={styles.container}>
-        <View style={styles.formContainer}>
+      <View style={styles.Container}>
+        <Image style={styles.ImageBox} source={require('/home/pawan/projects/golang-project/khelogames-app/assets/images/Khelogames.png')} />
+        <View style={styles.Middle}>
+          <Text style={styles.LoginText}>Sign Up</Text>
+        </View>
+        <View style={styles.singleTextContainer}>
           <View style={styles.inputContainer}>
-            {/* <Text style={styles.label}>Mobile Number</Text> */}
-            <View style={styles.textInputBox}>
-              <PhoneAndroidIcon />
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
+            <Input style={styles.InputBox}
+                leftIcon={ 
+                  <AntDesign name="mobile1" size={24} color="black" />
+                }
+                keyboardType="number"
                 value={mobileNumber}
                 onChangeText={setMobileNumber}
                 placeholder="Enter Mobile Number"
-              />
-            </View>
+            /> 
+            
           </View>
+        </View >
+          
+        <View style={styles.signInButton} >
+          <Button style={styles.button} onPress={sendOTP} title="Send" /> 
+        </View>
+
+        <View style={styles.singleTextContainer}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>OTP</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="number-pad"
+          <Input style={styles.InputBox}
+              leftIcon={ 
+                <AntDesign name="lock" size={24} color="black" />
+              }
+              keyboardType="number"
               value={otp}
               onChangeText={setOTP}
-              placeholder="Enter OTP number"
-            />
-            <Button style={styles.button} onPress={sendOTP} title="Send" />
-          </View>
-          <View style={styles.signInButton}>
-            <Button style={styles.button} onPress={handleVerify} title="Verify" />
+              placeholder="Enter Otp"
+           /> 
           </View>
         </View>
+        
+        <View style={styles.signInButton}>
+          <Button style={styles.button} onPress={handleVerify} title="Verify" />
+        </View>
       </View>
-    )
+    );
 }
 
-export default SignUp;
+
 
 
 const styles = StyleSheet.create({
+  ImageBox: {
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 30,
+    marginRight:30,
+    Width: '40%',
+    height: '30%'
+  },
+  InputBox: {
+    outlineStyle: 'none',
+  },
+  Container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  LoginText: {
+    marginTop:20,
+    fontSize:30,
+    fontWeight:'bold',
+  },
+  Middle:{
+    alignItems:'center',
+    justifyContent:'center',
+  },
+  iconStyles: {
+    padding: 10
+  },
+  singleTextContainer: {
+    marginLeft:15,
+    marginRight:15,
+    paddingRight: 20
+  },
   textInputBox: {
     flexDirection: "row",
   },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  formContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    elevation: 3,
-  },
   inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
+    outlineStyle: 'none',
+    marginTop:10,
+    marginRight:5
   },
   button: {
     marginTop: 10,
-    backgroundColor: '#007bff',
-    color: 'white',
+    marginRight: 20,
+    marginLeft: 20,
   },
   signInButton: {
-    marginTop: 20,
+    justifyContent: 'center',
+    alignItems:'center',
+    marginLeft: 20,
+    width: '15%',
+    height: '10%',
   },
 });
+
+export default SignUp;
 

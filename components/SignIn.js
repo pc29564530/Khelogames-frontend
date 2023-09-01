@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Pressable, Text, View, Button, TouchableOpacity} from 'react-native';
-import { TextInput, StyleSheet } from 'react-native-web';
+import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, Button, TouchableOpacity, SafeAreaView} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
@@ -40,88 +39,117 @@ const SignIn = ({setIsAuthenticated}) => {
     
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
         <View>
-          
+          <Image 
+            style={{width: 150, height: 100, margin: 20}}
+            source={require("/home/pawan/projects/golang-project/khelogames-app/assets/images/Khelogames.png")}
+          />
         </View>
-        <View style={styles.subContainer}>
-            <Text style={styles.signInHeader}> Sign In</Text>
-            <TextInput style={styles.inputBox} value={username} onChangeText={setUsername} placeholder="Enter the Username" />
-            <TextInput style={styles.inputBox} value={password} onChangeText={setPassword} placeholder="Enter the Password" />
-            <TouchableOpacity onPress={handleSignIn} style={styles.loginButton}>
-              <Text style={styles.login}>Log in</Text>
+        <KeyboardAvoidingView >
+            <View style={{alignItems: 'center', marginTop: 20}}>
+              <Text 
+                style={{
+                  fontSize: 20,
+                  fontWeight: 'bold',
+                  marginTop: 12,
+                  color: 'black',
+                }}
+              >
+                  Login
+              </Text>
+            </View>
+            <View style={{marginTop: 50}}> 
+              <View 
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: 'whitesmoke',
+                  color: 'black',
+                  paddingVertical: 5,
+                  paddingLeft: 5,
+                  borderRadius: 5,
+                  marginTop: 30,
+                }}
+              >
+                    <TextInput 
+                      style={{
+                        color: 'gray',
+                        marginVertical: 10,
+                        outlineStyle: 'none',
+                        width: 300,
+                        fontSize: username ? 16 : 16,
+                      }}
+                      value={username} onChangeText={setUsername} placeholder="Enter the Username" />
+              </View>   
+            </View>
+            <View style={{marginTop: 10}}>
+              <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: 'whitesmoke',
+                  paddingVertical: 5,
+                  paddingLeft: 5,
+                  borderRadius: 5,
+                  marginTop: 20,
+                  marginBottom: 20
+              }}>
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    style={{
+                      outlineStyle: 'none',
+                      color: "gray",
+                      marginVertical: 10,
+                      width: 300,
+                      fontSize: password ? 16 : 16,
+                      
+                    }}
+                    placeholder="Enter your Password"
+                  />
+
+              </View>
+            </View>
+
+
+            <TouchableOpacity onPress={handleSignIn} style={{
+                  width: 200,
+                  backgroundColor: "grey",
+                  borderRadius: 6,
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  marginTop: "auto",
+                  padding: 15,
+            }}>
+                <Text style={{
+                  textAlign: "center",
+                  color: "white",
+                  fontSize: 16,
+                  fontWeight: "bold",
+                }}>Login</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.newAccount} onPress={() => navigation.navigate("SignUp")}>
-              <Text style={styles.newAccountText}>Create new account</Text>
+            <TouchableOpacity style={{
+                  width: 200,
+                  backgroundColor: "grey",
+                  borderRadius: 6,
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  marginTop: 20,
+                  padding: 15,
+              }} onPress={() => navigation.navigate("SignUp")}>
+              <Text style={{
+                textAlign: "center",
+                color: "white",
+                fontSize: 16,
+                fontWeight: "bold",
+              }}>Create new account</Text>
             </TouchableOpacity>
-        </View>
-      </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
   );
 }
 
 
 export default SignIn;
-
-
-const styles = StyleSheet.create({
-  signInHeader: {
-    fontSize: 24,
-    color: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 30
-  },
-  logoStyle: {
-    height: 50,
-    width: 50,
-    marginVertical: '20%',
-  },
-  container: {
-    padding: 16,
-  },
-  subContainer: {
-    marginTop: "20%",
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  inputBox: {
-    borderWidth: 1,
-    borderColor: 'borderGrey',
-    padding: 10,
-    borderRadius: 12,
-    width: '95%',
-    marginTop: 12,
-  },
-  loginButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 20,
-    width: '95%',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  login: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  newAccount: {
-    borderColor: 'lightgrey',
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 18,
-    width: '95%',
-    alignItems: 'center',
-    marginTop: 30,
-  },
-  newAccountText: {
-    color: 'lightgrey',
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  metaLogoStyle: {
-    height: 15,
-    width: 70,
-    marginTop: 15,
-  },
-});
