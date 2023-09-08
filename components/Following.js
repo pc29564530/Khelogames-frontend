@@ -46,26 +46,32 @@ function Following() {
 }
 
 const styles = StyleSheet.create({
+    profileData: {
+
+    },
     subcontainer: {
-        margin: 20,
-        flexDirection:'row',
+        width: '100%',
+        height: 50,
+        padding: 20,
         justifyContent: 'left',
+        flexDirection: 'row',
         alignItems: 'left',
+        alignContent: 'center',
+        backgroundColor: 'white',
+        marginBottom: 4
       },
     userAvatar: {
+        marginRight: 10,
         width: 20,
         height: 20,
         borderRadius: 20,
-        marginRight: 8,
         backgroundColor: 'grey',
       },
     container: {
-        paddingTop: '10px',
         flex: 1,
         justifyContent: 'left',
         alignItems: 'left',
       },
-      
   });
 
 export default Following;

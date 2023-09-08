@@ -3,10 +3,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import Foundation from 'react-native-vector-icons/Foundation'
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Home from './Home';
 import Community from './Community';
 import ProfileMenu from './ProfileMenu';
 import CreateThread from './CreateThread';
+import Follow from './Follow';
 
 
 const Tab = createBottomTabNavigator();
@@ -32,6 +34,8 @@ function Footer({logout}) {
                         Icon = <MaterialIcons name="add-box" size={25} />;
                       } else if(route.name === "ProfileMenu") {
                         Icon = <MaterialCommunityIcons name="account" size={25} />;
+                      } else if(route.name === "Follow") {
+                        Icon = <FontAwesome5  name="user-friends" size={25} />;
                       }
                       return Icon;
                     }
@@ -43,6 +47,7 @@ function Footer({logout}) {
                 <Tab.Screen name="ProfileMenu"
                     component={() => <ProfileMenu logout={logout}/>}
                 />
+                <Tab.Screen name="Follow" component={Follow} />
                 <Tab.Screen name="CreateThread" component={CreateThread} />
             </Tab.Navigator>
         </>
