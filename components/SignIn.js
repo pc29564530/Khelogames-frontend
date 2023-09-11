@@ -15,7 +15,8 @@ const SignIn = ({setIsAuthenticated}) => {
     const [user, setUser] = useState();
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
-    const [expire, setExpire] = useState(null);
+    const [aexpire, setAExpire] = useState(null);
+    const [rexpire, setRExpire] = useState(null);
 
     const handleSignIn = async() => {
       try {
@@ -27,10 +28,13 @@ const SignIn = ({setIsAuthenticated}) => {
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
         await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);
+        await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
         setRefresh(response.data.refresh_token);
         setAccess(response.data.access_token);  
-        setExpire(response.data.access_token_expires_at)
+        setAExpire(response.data.access_token_expires_at)
+        setRExpire(response.data.access_token_expires_at)
         setIsAuthenticated(true);
+        navigation.navigate('Main')
        
       } catch (err) {
         console.error(err);

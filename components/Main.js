@@ -1,12 +1,11 @@
 import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Text, View, StyleSheet, Button, SafeAreaView, Touchable} from 'react-native';
+import {Text, View, StyleSheet} from 'react-native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Constants from 'expo-constants';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import Header from './Header';
 import Footer from './Footer';
-import Home from './Home';
+
 import { createStackNavigator } from '@react-navigation/stack';
 
 const Drawer = createDrawerNavigator();

@@ -2,21 +2,27 @@ import React, { useEffect, useState } from 'react';
 import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView} from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
+import ReplyIcon from '@mui/icons-material/Reply';
+import Comment from './Comment';
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import KhelogamesLogo from '../assets/images/Khelogames.png';
 import { useNavigation } from '@react-navigation/native';
 
-const Thread = () => {
-
-  const navigation = useNavigation()
-
+function ThreadComment ({route}) {
+    const { item, itemId } = route.params;
+    const [showComment, setShowComment] = useState({});
     const axiosInstance = useAxiosInterceptor();
+    console.log(axiosInstance);
 
-    const [data, setData] = useState([]);
 
-    const handleThreadComment = (item, id) => {
-      navigation.navigate('ThreadComment', {item: item, itemId: id})
+    const handleError = () => {
+      setImageError(true);
+    }
+
+    const handleComment = (id) => {
+        setShowComment(prevState => ({ ...prevState, [id]: !prevState[id]}));
     }
 
     const handleLikes = async (id) => {
@@ -36,37 +42,10 @@ const Thread = () => {
       }
 
     }
-
-    const fetchData = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        console.log(authToken); 
-        const response = await axiosInstance.get('http://localhost:8080/all_threads', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const item = response.data;
-        if(item.length == 0){
-          navigation.replace('CreateThread');
-        }
-        console.log(item)
-        setData(item);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-  
-    useEffect(() => {
-      fetchData();
-    }, []);
   
     return (
         <View style={styles.container}>
-            {data.map((item,i) => (
-                <View key={i} style={styles.contentContainer}>
+                <View style={styles.contentContainer}>
                     <View style={styles.header}>
                       <Image source={KhelogamesLogo} style={styles.userImage} />
                       <View>
@@ -92,7 +71,7 @@ const Thread = () => {
                            size='21'
                         /> 
                       </Pressable>
-                      <Pressable onPress={() => handleThreadComment(item, item.id)}>
+                      <Pressable onPress={() => handleComment(item.id)}>
                         <FontAwesome 
                            name="comment-o"
                            style={styles.footerButton}
@@ -100,22 +79,22 @@ const Thread = () => {
                         />  
                       </Pressable>
                     </View>
+                    <View>
+                      {showComment[item.id] &&  <Comment  threadId = {item.id} /> }
+                    </View>
               </View>
-              ))}
-        </View>
+             </View>
     );
   };
 
   const styles = StyleSheet.create({
     container: {
-      color: 'lightgrey',
       maxWidth: 500,
       width: '100%',
       alignSelf: 'center',
     },
     contentContainer: {
-      marginTop: '1.5px',
-      marginBottom: '1.5px',
+      marginBottom: '3px',
       backgroundColor: 'white',
     },
     header: {
@@ -155,6 +134,7 @@ const Thread = () => {
       paddingVertical: 10,
       borderTopWidth: 1,
       borderColor: 'lightgray',
+      marginBotom: '10px',
     },
     footerButton: {
       flexDirection: 'row',
@@ -163,4 +143,4 @@ const Thread = () => {
     }
   });
 
-export default Thread;
+export default ThreadComment;
