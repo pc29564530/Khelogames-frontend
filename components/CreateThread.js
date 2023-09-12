@@ -15,6 +15,7 @@ function CreateThread({navigation}) {
     const [content, setContent] = useState('');
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
+    const [likeCount, setLikeCount] = useState(0);
 
     const selectMedia =  async () => {
 
@@ -40,22 +41,10 @@ function CreateThread({navigation}) {
                 console.log('ImagePicker Error: ', response.error);
               } else {
                 let source = { uri: res.assets[0].uri };
-                console.log("india and the world ")
-                console.log(source.uri)
                 setMediaType('image');
                 setMediaURL(source.uri);
+                setLikeCount(0)
               }
-            // if (!res.didCancel && !res.errorCode) {
-            //   if (res.assets.length > 0) {
-            //     console.log("image already");
-            //     // console.log(res.type);
-            //     const mediaType = res.assets[0].type;
-            //     const mediaURL = res.assets[0].uri;
-            //     console.log(mediaURL);
-            //     setMediaType(mediaType);
-            //     setMediaURL(mediaURL);
-            //  }
-            // }
           });
     };
     const handleSubmit = async () => {
@@ -65,6 +54,7 @@ function CreateThread({navigation}) {
                 content: content,
                 mediaType: mediaType,
                 mediaURL: mediaURL,
+                likeCount: likeCount,
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -84,8 +74,12 @@ function CreateThread({navigation}) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Pressable onPress={() => navigation.navigate('Home')}><HomeIcon  /></Pressable>
-                <Pressable><SearchIcon /></Pressable>
+                <Pressable onPress={() => navigation.navigate('Home')}>
+                    <HomeIcon  />
+                </Pressable>
+                <Pressable>
+                    <SearchIcon />
+                </Pressable>
             </View>
             <View style={styles.bodybox}>   
                 <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter Title..."/>
@@ -101,7 +95,9 @@ function CreateThread({navigation}) {
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {/* {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />} */}
             
-            <Text  onPress={selectMedia} ><FileUploadIcon /> </Text>
+            <Text style={styles.fileUploadButton} onPress={selectMedia} >
+                <FileUploadIcon /> 
+            </Text>
             <Button onPress={handleSubmit} >Submit</Button>
             
         </View>
@@ -112,32 +108,44 @@ function CreateThread({navigation}) {
 
 const styles = StyleSheet.create({
     container: {
-        padding:16
-    },
-    header:{
+        flex: 1,
+        padding: 20,
+      },
+      header: {
         flexDirection: 'row',
-        justifyContent:'space-between'
-    },
-    bodybox:{
-        borderwidth: 1,
-        padding: 16,
-        marginBotton: 10, 
-    },
-    input: {
+        justifyContent: 'space-between',
+        marginBottom: 20,
+      },
+      bodybox: {
+        marginBottom: 20,
+      },
+      input: {
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 4,
+        borderRadius: 5,
         padding: 10,
-        marginBottom: 16,
+        marginBottom: 10,
       },
-    bodyInput:{
-        height:100,
-    },
-    threadBtn:{
-        width: 20,
-        padding:10
-    }
-
+      bodyInput: {
+        height: 100,
+      },
+      mediaImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 10,
+        marginBottom: 20,
+      },
+      fileUploadButton: {
+        backgroundColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        alignSelf: 'flex-start',
+        marginBottom: 20,
+      },
+      fileUploadIcon: {
+        fontSize: 20,
+        color: 'white',
+      },
 });
 
 export default CreateThread;

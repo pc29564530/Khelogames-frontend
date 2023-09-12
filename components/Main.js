@@ -1,10 +1,15 @@
-import {Text, View, StyleSheet, Button, SafeAreaView, Touchable} from 'react-native';
+import React, {useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Text, View, StyleSheet} from 'react-native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Constants from 'expo-constants';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import Header from './Header';
+import Footer from './Footer';
 
+import { createStackNavigator } from '@react-navigation/stack';
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
     container: {
@@ -14,25 +19,17 @@ const styles = StyleSheet.create({
     }
 })
 
-
-const Main = ({navigation}) => {
+ 
+const Main = ({logout}) => {
     return (
-        <View>
-            <View>
-                <Button 
-                    title="Sign Up"
-                    onPress={() => navigation.navigate('SignUp')} 
-                />
-                {/* <Button 
-                    title="Create Account"
-                    onPress={() => navigation.navigate('Account')}
-                /> */}
-                <Button 
-                    title="Sign In"
-                    onPress={() => navigation.navigate('SignIn')}
-                />
-            </View> 
-        </View>
+        <>  
+            <Header style={{shadowColor: '#171717',
+                shadowOffset: {width: -2, height: 4},
+                shadowOpacity: 0.2,
+                shadowRadius: 3,}} 
+                logout={logout}/>
+            <Footer logout={logout}/>
+        </>
     )
 }
 

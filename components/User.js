@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Text, View,TextInput, Pressable, StyleSheet, Button } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -21,10 +22,44 @@ const styles = StyleSheet.create({
     },
   });
 
+export const AllUser = () =>{
 
+  const [data, setData] = useState();
+
+  const fetchData = async () => {
+    try {
+      const authtoken = await AsyncStorage.getItem('AccessToken');
+      const response = await axios.get('http://localhost:8080/user_list', {
+        headers:{
+          'Authorization':`Bearer ${authtoken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      console.log(response.data);
+      setData(response.data);
+
+    } catch(err){
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  },[])
+
+  return (
+    <View>
+      {data.map((item,i) => (
+        <View key={i}>
+          <Text>{item.username}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
   
 
-const User = ({navigation}) => {
+const User = ({navigation, setIsAuthenticated}) => {
     const [username, setUsername] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
@@ -33,6 +68,7 @@ const User = ({navigation}) => {
       try {
         const newAccount = {username, mobileNumber, password};
         const response = await axios.post('http://localhost:8080/users', newAccount)
+        setIsAuthenticated(true);
         navigation.navigate('Home');
         console.log(response.data);
       } catch (err) {
@@ -55,3 +91,4 @@ const User = ({navigation}) => {
 };
 
 export default User;
+
