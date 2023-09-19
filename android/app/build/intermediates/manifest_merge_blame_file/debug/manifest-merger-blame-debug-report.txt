@@ -1,0 +1,123 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.khelogamesapp"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="33" />
+10
+11    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+11-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:5:5-77
+11-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:5:22-75
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:3:5-67
+12-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:3:22-64
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:7:5-79
+13-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:7:22-76
+14    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+14-->[com.facebook.flipper:flipper:0.182.0] /home/pawan/.gradle/caches/transforms-3/e13f88164840fe641a466d05cd8edac7/transformed/jetified-flipper-0.182.0/AndroidManifest.xml:16:5-76
+14-->[com.facebook.flipper:flipper:0.182.0] /home/pawan/.gradle/caches/transforms-3/e13f88164840fe641a466d05cd8edac7/transformed/jetified-flipper-0.182.0/AndroidManifest.xml:16:22-73
+15
+16    <application
+16-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:5:5-24:19
+17        android:name="com.khelogamesapp.MainApplication"
+17-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:6:7-38
+18        android:allowBackup="false"
+18-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:10:7-34
+19        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+19-->[androidx.core:core:1.7.0] /home/pawan/.gradle/caches/transforms-3/75e4635b66fa4e4e84e71b52579837ce/transformed/core-1.7.0/AndroidManifest.xml:24:18-86
+20        android:debuggable="true"
+21        android:icon="@mipmap/ic_launcher"
+21-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:8:7-41
+22        android:label="@string/app_name"
+22-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:7:7-39
+23        android:roundIcon="@mipmap/ic_launcher_round"
+23-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:9:7-52
+24        android:theme="@style/AppTheme"
+24-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:11:7-38
+25        android:usesCleartextTraffic="true" >
+25-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:11:9-44
+26        <activity
+26-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:14:9-111
+27            android:name="com.facebook.react.devsupport.DevSettingsActivity"
+27-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:14:19-83
+28            android:exported="false" />
+28-->/home/pawan/projects/Khelogames-frontend/android/app/src/debug/AndroidManifest.xml:14:84-108
+29        <activity
+29-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:12:7-23:18
+30            android:name="com.khelogamesapp.MainActivity"
+30-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:13:9-37
+31            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+31-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:15:9-118
+32            android:exported="true"
+32-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:18:9-32
+33            android:label="@string/app_name"
+33-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:14:9-41
+34            android:launchMode="singleTask"
+34-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:16:9-40
+35            android:windowSoftInputMode="adjustResize" >
+35-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:17:9-51
+36            <intent-filter>
+36-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:19:9-22:25
+37                <action android:name="android.intent.action.MAIN" />
+37-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:20:13-65
+37-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:20:21-62
+38
+39                <category android:name="android.intent.category.LAUNCHER" />
+39-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:21:13-73
+39-->/home/pawan/projects/Khelogames-frontend/android/app/src/main/AndroidManifest.xml:21:23-70
+40            </intent-filter>
+41        </activity>
+42
+43        <provider
+43-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:8:9-16:20
+44            android:name="com.imagepicker.ImagePickerProvider"
+44-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:9:13-63
+45            android:authorities="com.khelogamesapp.imagepickerprovider"
+45-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:10:13-71
+46            android:exported="false"
+46-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:11:13-37
+47            android:grantUriPermissions="true" >
+47-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:12:13-47
+48            <meta-data
+48-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:13:13-15:70
+49                android:name="android.support.FILE_PROVIDER_PATHS"
+49-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:14:17-67
+50                android:resource="@xml/imagepicker_provider_paths" />
+50-->[:react-native-image-picker] /home/pawan/projects/Khelogames-frontend/node_modules/react-native-image-picker/android/build/intermediates/merged_manifest/debug/AndroidManifest.xml:15:17-67
+51        </provider>
+52
+53        <meta-data
+53-->[com.facebook.soloader:soloader:0.10.5] /home/pawan/.gradle/caches/transforms-3/ec3312a013bd7d8a70466a1977a1dba4/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:12:9-14:37
+54            android:name="com.facebook.soloader.enabled"
+54-->[com.facebook.soloader:soloader:0.10.5] /home/pawan/.gradle/caches/transforms-3/ec3312a013bd7d8a70466a1977a1dba4/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:13:13-57
+55            android:value="false" />
+55-->[com.facebook.soloader:soloader:0.10.5] /home/pawan/.gradle/caches/transforms-3/ec3312a013bd7d8a70466a1977a1dba4/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:14:13-34
+56
+57        <provider
+57-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:26:9-34:20
+58            android:name="androidx.startup.InitializationProvider"
+58-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:27:13-67
+59            android:authorities="com.khelogamesapp.androidx-startup"
+59-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:28:13-68
+60            android:exported="false" >
+60-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:29:13-37
+61            <meta-data
+61-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:31:13-33:52
+62                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+62-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:32:17-75
+63                android:value="androidx.startup" />
+63-->[androidx.emoji2:emoji2:1.0.0] /home/pawan/.gradle/caches/transforms-3/223146ef33e3aa619e8b04649706e145/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:33:17-49
+64            <meta-data
+64-->[androidx.lifecycle:lifecycle-process:2.4.0] /home/pawan/.gradle/caches/transforms-3/d5d05479173d466a6bd0989b3b3e5ef4/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:31:13-33:52
+65                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+65-->[androidx.lifecycle:lifecycle-process:2.4.0] /home/pawan/.gradle/caches/transforms-3/d5d05479173d466a6bd0989b3b3e5ef4/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:32:17-78
+66                android:value="androidx.startup" />
+66-->[androidx.lifecycle:lifecycle-process:2.4.0] /home/pawan/.gradle/caches/transforms-3/d5d05479173d466a6bd0989b3b3e5ef4/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:33:17-49
+67        </provider>
+68    </application>
+69
+70</manifest>

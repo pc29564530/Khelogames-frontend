@@ -1,17 +1,18 @@
 import React, {useState} from 'react';
 import {Text,Image, View,TextInput, StyleSheet, Button } from 'react-native';
-// import {Input, Icon} from 'native-base';
-import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { Input, Icon } from '@rneui/themed';
-
-
+import { useSelector, useDispatch } from 'react-redux';
+import { sendOTP, verifyOTP } from '../redux/actions/actions';
+import { setMobileNumber } from '../redux/actions/actions'; 
 
 
 function  SignUp() {
+    const dispatch = useDispatch();
     const [mobileNumber, setMobileNumber] = useState('');
+    // const mobileNumber = useSelector((state) => state.mobileNumber);
     const [otp, setOTP] = useState('');
     const navigation = useNavigation();
     const handleVerify = async () => {
@@ -19,23 +20,25 @@ function  SignUp() {
             const verifyMobileNumber = {mobileNumber, otp}
             console.log(verifyMobileNumber.mobileNumber);
             console.log(verifyMobileNumber.otp);
-            const response = await axios.post('http://localhost:8080/signup', verifyMobileNumber)
-            // setIsAuthenticated(true);
+            const response = await axios.post('http://localhost:8080/signup', verifyMobileNumber);
+            dispatch({type: 'VERIFY_OTP', payload:response.data})
+            console.log("line no 23")
+            // setMobileNumber(verifyMobileNumber.mobileNumber)
+            // dispatch(setMobileNumber(verifyMobileNumber.mobileNumber))
+            dispatch({ type: 'SET_MOBILE_NUMBER_VERIFIED', payload: true });
             navigation.navigate('User')
-            console.log(response.data)
         } catch (err) {
-            console.error(err);
+            console.error('Failed to verify OTP:', err);
         }
     }
 
-    const sendOTP = async () => {
+    const handleSendOTP = async () => {
       try {
         var data = {mobileNumber}
         console.log(data.mobileNumber)
         const response = await axios.post('http://localhost:8080/send_otp', data)
-        console.log("Hello India what are you doing")
         console.log(response.data)
-        
+        dispatch({type: 'SEND_OTP', payload:response.data})
       } catch (err) {
         console.error("Unable to send the otp from ui: ", err);
       }
@@ -43,7 +46,7 @@ function  SignUp() {
 
     return (
       <View style={styles.Container}>
-        <Image style={styles.ImageBox} source={require('/home/pawan/projects/golang-project/khelogames-app/assets/images/Khelogames.png')} />
+        {/* <Image style={styles.ImageBox} source={require('/home/pawan/projects/khelogames-frontend/assets/images/Khelogames.png')} /> */}
         <View style={styles.Middle}>
           <Text style={styles.LoginText}>Sign Up</Text>
         </View>
@@ -55,7 +58,7 @@ function  SignUp() {
                 }
                 keyboardType="number"
                 value={mobileNumber}
-                onChangeText={setMobileNumber}
+                onChangeText={(text) => setMobileNumber(text)}
                 placeholder="Enter Mobile Number"
             /> 
             
@@ -63,7 +66,7 @@ function  SignUp() {
         </View >
           
         <View style={styles.signInButton} >
-          <Button style={styles.button} onPress={sendOTP} title="Send" /> 
+          <Button style={styles.button} onPress={handleSendOTP} title="Send" /> 
         </View>
 
         <View style={styles.singleTextContainer}>
@@ -74,7 +77,7 @@ function  SignUp() {
               }
               keyboardType="number"
               value={otp}
-              onChangeText={setOTP}
+              onChangeText={(text) => setOTP(text)}
               placeholder="Enter Otp"
            /> 
           </View>
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
     height: '30%'
   },
   InputBox: {
-    outlineStyle: 'none',
+    // outlineStyle: 'none',
   },
   Container: {
     flex: 1,
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   inputContainer: {
-    outlineStyle: 'none',
+    // outlineStyle: 'none',
     marginTop:10,
     marginRight:5
   },

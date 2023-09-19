@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView} from 'react-native';
+import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, TouchableOpacity} from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from './axios_config';
@@ -9,10 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 
 const Thread = () => {
 
-  const navigation = useNavigation()
-
+    const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
-
     const [data, setData] = useState([]);
 
     const handleThreadComment = (item, id) => {
@@ -62,6 +60,16 @@ const Thread = () => {
     useEffect(() => {
       fetchData();
     }, []);
+
+    const handleUser = async (username) => {
+      try {
+        const response = await axios.get(`http://localhost:8080/user/${username}` )
+        console.log(response)
+        navigation.navigate('ProfileMenu', { username: response.data.username });
+      } catch (err) {
+        console.error(err);
+      }
+    }
   
     return (
         <View style={styles.container}>
@@ -70,7 +78,7 @@ const Thread = () => {
                     <View style={styles.header}>
                       <Image source={KhelogamesLogo} style={styles.userImage} />
                       <View>
-                        <Text style={styles.userName}>{item.username}</Text>
+                        <TouchableOpacity onPress={() => {handleUser(item.username)}}><Text style={styles.userName}>{item.username}</Text></TouchableOpacity>
                         <Text style={styles.position}>{item.timestamp}</Text>
                       </View>
                     </View>

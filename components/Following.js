@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Image, ScrollView} from 'react-native';
-// import {FollowingData} from '../data/following';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -35,8 +34,7 @@ function Following() {
                     <View key={i} style={styles.subcontainer}>
                         <Image style={styles.userAvatar} source={'/home/pawan'}  />
                         <View  style={styles.profileData}>
-                            {/* <Text>{item.name}</Text> */}
-                            <Text>{item}</Text>
+                            <Text>Deepak Kumar</Text>
                         </View>
                     </View>
                 ))}

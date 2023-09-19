@@ -21,13 +21,15 @@ const styles = StyleSheet.create({
 
  
 const Main = ({logout}) => {
+    // console.log(route)
+    // const {logout} = route.params;
+    // console.log(logout)
     return (
         <>  
             <Header style={{shadowColor: '#171717',
                 shadowOffset: {width: -2, height: 4},
                 shadowOpacity: 0.2,
-                shadowRadius: 3,}} 
-                logout={logout}/>
+                shadowRadius: 3,}} />
             <Footer logout={logout}/>
         </>
     )

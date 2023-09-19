@@ -1,25 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView} from 'react-native';
-import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
-import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
-import ReplyIcon from '@mui/icons-material/Reply';
 import Comment from './Comment';
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import KhelogamesLogo from '../assets/images/Khelogames.png';
-import { useNavigation } from '@react-navigation/native';
 
 function ThreadComment ({route}) {
     const { item, itemId } = route.params;
     const [showComment, setShowComment] = useState({});
     const axiosInstance = useAxiosInterceptor();
-    console.log(axiosInstance);
-
-
-    const handleError = () => {
-      setImageError(true);
-    }
 
     const handleComment = (id) => {
         setShowComment(prevState => ({ ...prevState, [id]: !prevState[id]}));

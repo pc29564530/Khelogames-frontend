@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "khelogames-app",
-    "slug": "khelogames-app",
+    "name": "KhelogamesApp",
+    "slug": "KhelogamesApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

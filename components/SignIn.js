@@ -5,7 +5,9 @@ import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
 
 
-
+const api = axios.create({
+  baseURL: 'http://localhost:8080', // Update with your backend URL
+});
 
 
 const SignIn = ({setIsAuthenticated}) => {
@@ -21,7 +23,8 @@ const SignIn = ({setIsAuthenticated}) => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        const response = await axios.post('http://localhost:8080/login', user);
+        console.log(user);
+        const response = await api.post('/login', user);
         console.log(response.data); 
         setUser(response.data);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
@@ -43,13 +46,13 @@ const SignIn = ({setIsAuthenticated}) => {
     
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
-        <View>
+      <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
+        {/* <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require("/home/pawan/projects/golang-project/khelogames-app/assets/images/Khelogames.png")}
+            source={require('/home/pawan/projects/khelogames-frontend/assets/images/Khelogames.png')}
           />
-        </View>
+        </View> */}
         <KeyboardAvoidingView >
             <View style={{alignItems: 'center', marginTop: 20}}>
               <Text 
@@ -81,7 +84,7 @@ const SignIn = ({setIsAuthenticated}) => {
                       style={{
                         color: 'gray',
                         marginVertical: 10,
-                        outlineStyle: 'none',
+                        // outlineStyle: 'none',
                         width: 300,
                         fontSize: username ? 16 : 16,
                       }}
@@ -104,7 +107,7 @@ const SignIn = ({setIsAuthenticated}) => {
                     value={password}
                     onChangeText={setPassword}
                     style={{
-                      outlineStyle: 'none',
+                      // outlineStyle: 'none',
                       color: "gray",
                       marginVertical: 10,
                       width: 300,
@@ -151,7 +154,7 @@ const SignIn = ({setIsAuthenticated}) => {
               }}>Create new account</Text>
             </TouchableOpacity>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
   );
 }
 

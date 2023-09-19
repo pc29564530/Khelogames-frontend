@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {View, Text, Image, StyleSheet,ScrollView } from 'react-native';
-import {FollowerData} from '../data/follwer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 

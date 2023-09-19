@@ -4,7 +4,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import {launchImageLibrary} from 'react-native-image-picker';
-import * as ImagePicker from 'expo-image-picker';
+// import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 

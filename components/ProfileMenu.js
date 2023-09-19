@@ -1,33 +1,88 @@
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Avatar } from '@mui/material';
+import { useRoute } from '@react-navigation/native';
+import useAxiosInterceptor from './axios_config';
+import axios from 'axios';
+import FollowButton from './FollowButton';
+// import { Avatar } from '@mui/material';
 
 
-function ProfileMenu({logout}) {
+function ProfileMenu({logout}){
+
+  const [follow, setFollow] = useState(false);
+  const axiosInstance = useAxiosInterceptor();
+
+    const [showLogoutButton, setShowLogoutButton] = useState(false)
+    const [currentUser, setCurrentUser] = useState('');
+    
+    const route = useRoute();
+    const user  = route.params?.username
     const handleLogout =  () => {
         try {
-            // await AsyncStorage.removeItem('AccessToken');
-            // await AsyncStorage.removeItem('RefreshToken');
-            // // const authToken = await AsyncStorage.getItem('AccessToken');
-            // // if(authToken){
-            // //  navigation.navigate('SignIn');
-            // // }
-            console.log("alble to log out");
-            console.log(logout)
             logout();
             
         } catch (err) {
             console.log('Failed to logout', err);
         }
     }
+
+    const handleFollow = async () => {
+      try {
+        console.log('Starting server')
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        //when connection exists there is no button 
+        const response = await axiosInstance.post(`http://localhost:8080/create_follow/${user}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        setFollow(true);
+        console.log(response.data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    const handleUnFollow = async () => {
+      try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.delete(`http://localhost:8080/unFollow/${user}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        setFollow(false);
+        console.log(response.data);
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    useEffect(() =>{     
+        const verifyUser = async () => {
+        const authUser = await AsyncStorage.getItem("User");
+        if(user===undefined) {
+          setShowLogoutButton(true);
+          setCurrentUser(authUser);
+        } else {
+          setCurrentUser(user);
+        }
+      }
+      verifyUser();
+    }, [user])
+
+    
     return (
         <View style={styles.container}>
               <View style={styles.profileHeader}>
                 <Image style={styles.userAvatar} source='/home/pawan/Pictures' />
-                <Text style={styles.fullName}>Deepak Kumar</Text>
-                <Text style={styles.username}>@deepak</Text>
+                <Text style={styles.fullName}>{currentUser}</Text>
+                <Text style={styles.username}>@{currentUser}</Text>
                 <View style={styles.followRow}>
                   <Text style={styles.followRowText}>0 Followers</Text>
                   <Text style={styles.followRowText}> | </Text>
@@ -39,10 +94,14 @@ function ProfileMenu({logout}) {
                   />
                 </View>
               </View>
+              { showLogoutButton?(
                 <TouchableOpacity onPress={() => handleLogout()} style={styles.logoutButton}>
                   <Text style={styles.logout}>Logout</Text>
-              </TouchableOpacity>
-            
+                </TouchableOpacity>
+                 ):(
+                  <FollowButton isFollowing={follow} onPress={follow ? handleUnFollow : handleFollow} />
+                )
+              } 
         </View>
     );
 }
@@ -97,6 +156,14 @@ const styles = StyleSheet.create({
       width: '90%',
       alignItems: 'center',
       marginBottom: 30,
+    },
+    followButton: {
+      backgroundColor: 'grey',
+      padding: 12,
+      borderRadius: 20,
+      width: '34%',
+      alignItems: 'center',
+      // marginBottom: 30,
     },
     userAvatar: {
       width: 40,

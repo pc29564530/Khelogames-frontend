@@ -1,12 +1,12 @@
 import React, {useEffect, useState  } from 'react';
 import {View, Pressable, Button, StyleSheet, ScrollView} from 'react-native'
-import Header from './Header';
-import Footer from './Footer';
+// import Header from './Header';
+// import Footer from './Footer';
 import Thread from './Thread';
-import AddCommentIcon from '@mui/icons-material/AddComment';
+// import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ProfileMenu from './ProfileMenu';
+// import ProfileMenu from './ProfileMenu';
 
 
 function Home() {
