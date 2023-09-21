@@ -62,4 +62,18 @@ export const checkExpireTime = () => {
         console.error('Error in checkExpireTime:', error);
       }
     };
-  };
+};
+
+export const setThreads = (threads) => {
+    return { 
+        type: 'SET_THREADS',
+        payload: threads
+    }
+}
+
+export const setLikes = (userId, threadId) => {
+    return {
+        type: 'SET_LIKES',
+        payload: {userId, threadId}
+    }
+}

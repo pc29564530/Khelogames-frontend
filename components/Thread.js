@@ -6,12 +6,16 @@ import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import KhelogamesLogo from '../assets/images/Khelogames.png';
 import { useNavigation } from '@react-navigation/native';
+import {useSelector, useDispatch} from 'react-redux';
+import {setThreads, setLikes} from '../redux/actions/actions';
 
 const Thread = () => {
 
     const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
-    const [data, setData] = useState([]);
+    const dispatch = useDispatch();
+    const threads = useSelector((state) => state.threads.threads)
+    console.log(threads)
 
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
@@ -50,8 +54,7 @@ const Thread = () => {
         if(item.length == 0){
           navigation.replace('CreateThread');
         }
-        console.log(item)
-        setData(item);
+        dispatch(setThreads(response.data))
       } catch (err) {
         console.error(err);
       }
@@ -60,6 +63,7 @@ const Thread = () => {
     useEffect(() => {
       fetchData();
     }, []);
+    console.log(threads);
 
     const handleUser = async (username) => {
       try {
@@ -73,7 +77,7 @@ const Thread = () => {
   
     return (
         <View style={styles.container}>
-            {data.map((item,i) => (
+            {threads.map((item,i) => (
                 <View key={i} style={styles.contentContainer}>
                     <View style={styles.header}>
                       <Image source={KhelogamesLogo} style={styles.userImage} />

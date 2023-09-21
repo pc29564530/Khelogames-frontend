@@ -7,3 +7,7 @@ export const SET_MOBILE_NUMBER_VERIFIED = 'SET_MOBILE_NUMBER_VERIFIED';
 export const SET_USER = 'SET_USER';
 export const LOGOUT = 'LOGOUT';
 export const CHECK_EXPIRE_TIME = 'CHECK_EXPIRE_TIME';
+export const SET_LIKES = 'SET_LIKES';
+export const SET_UNLINKES = 'SET_UNLINKES';
+export const SET_COMMENT = 'SET_COMMENT';
+export const SET_THREADS = 'SET_THREADS';
