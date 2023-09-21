@@ -3,6 +3,8 @@ import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, B
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import {setAuthenticated, setUser} from '../redux/actions/actions';
 
 
 const api = axios.create({
@@ -10,11 +12,16 @@ const api = axios.create({
 });
 
 
-const SignIn = ({setIsAuthenticated}) => {
+const SignIn = () => {
+    
+  const dispatch = useDispatch();
+
+    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const user = useSelector((state) => state.auth.user);
     const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [user, setUser] = useState();
+    // const [user, setUser] = useState();
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
     const [aexpire, setAExpire] = useState(null);
@@ -26,7 +33,6 @@ const SignIn = ({setIsAuthenticated}) => {
         console.log(user);
         const response = await api.post('/login', user);
         console.log(response.data); 
-        setUser(response.data);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -36,7 +42,8 @@ const SignIn = ({setIsAuthenticated}) => {
         setAccess(response.data.access_token);  
         setAExpire(response.data.access_token_expires_at)
         setRExpire(response.data.access_token_expires_at)
-        setIsAuthenticated(true);
+        dispatch(setAuthenticated(true));
+        dispatch(setUser(response.data.user));
         navigation.navigate('Main')
        
       } catch (err) {

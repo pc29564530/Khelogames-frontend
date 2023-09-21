@@ -2,17 +2,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import useAxiosInterceptor from './axios_config';
 import axios from 'axios';
 import FollowButton from './FollowButton';
+import {useDispatch} from 'react-redux';
+import {logout,setAuthenticated} from '../redux/actions/actions';
 // import { Avatar } from '@mui/material';
 
 
-function ProfileMenu({logout}){
+function ProfileMenu(){
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const [follow, setFollow] = useState(false);
-  const axiosInstance = useAxiosInterceptor();
+  // const axiosInstance = useAxiosInterceptor();
 
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
@@ -21,7 +25,8 @@ function ProfileMenu({logout}){
     const user  = route.params?.username
     const handleLogout =  () => {
         try {
-            logout();
+            dispatch(logout());
+            navigation.navigate('SignIn');
             
         } catch (err) {
             console.log('Failed to logout', err);
@@ -33,7 +38,7 @@ function ProfileMenu({logout}){
         console.log('Starting server')
         const authToken = await AsyncStorage.getItem('AccessToken');
         //when connection exists there is no button 
-        const response = await axiosInstance.post(`http://localhost:8080/create_follow/${user}`, {
+        const response = await axios.post(`http://localhost:8080/create_follow/${user}`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',

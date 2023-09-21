@@ -7,7 +7,7 @@ import mobileNumberReducers from "./mobileNumberReducers";
 const rootReducer = combineReducers({
     signup: signUpReducers,
     auth: authReducers,
-    user: createUserReducers,
+    newuser: createUserReducers,
     mobilenumber: mobileNumberReducers,
 });
 

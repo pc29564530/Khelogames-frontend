@@ -1,32 +1,65 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as actionTypes from '../types/actionTypes';
 
-
 export const sendOTP = (mobileNumber) => ({
-    type: actionTypes.SEND_OTP,
+    type: 'SEND_OTP',
     payload: mobileNumber
 });
 
 export const verifyOTP = (mobileNumber, otp) => ({
-    type: actionTypes.VERIFY_OTP,
+    type: 'VERIFY_OTP',
     payload: {mobileNumber, otp}
 });
 
 export const createUser = (mobileNumber) => ({
-    type: actionTypes.CREATE_USER,
+    type: 'CREATE_USER',
     payload: {mobileNumber}
 });
 
-export const setAuthStatus = (mobileNumber, isAuthenticated) => ({
-    type: actionTypes.SET_AUTHENTICATED,
-    payload: {mobileNumber, isAuthenticated}
+export const setAuthenticated = (isAuthenticated) => ({
+    type: 'SET_AUTHENTICATED',
+    payload: isAuthenticated
 });
 
-export const setMobileNumber = (mobileNumber) => ({
-    type: actionTypes.SET_MOBILE_NUMBER,
-    payload: mobileNumber
-});
+// export const setMobileNumber = (mobileNumber) => ({
+//     type: 'SET_MOBILE_NUMBER',
+//     payload: mobileNumber
+// });
 
 export const setMobileNumberVerified = (isVerified) => ({
-    type: actionTypes.SET_MOBILE_NUMBER_VERIFIED,
+    type: 'SET_MOBILE_NUMBER_VERIFIED',
     payload: isVerified,
 });
+
+export const setUser = (user) => ({
+    type: 'SET_USER',
+    payload: user
+})
+
+// export const checkExpirationTime = (time) => ({
+//     type: 'CHECK_EXPIRE_TIME',
+//     payload: time,
+// })
+
+export const logout = () => {
+    return {
+        type: actionTypes.LOGOUT
+    }  
+}
+
+export const checkExpireTime = () => {
+    return async (dispatch) => {
+      try {
+        const currentTime = new Date().getTime();
+        const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
+        console.log(currentTime)
+        console.log(refreshTokenExpireTime)
+  
+        if (refreshTokenExpireTime && currentTime.toString() > refreshTokenExpireTime) {
+          dispatch(logout());
+        }
+      } catch (error) {
+        console.error('Error in checkExpireTime:', error);
+      }
+    };
+  };

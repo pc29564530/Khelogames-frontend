@@ -44,9 +44,7 @@ function useAxiosInterceptor() {
                 return Promise.reject(error)
             }
         )
-
         
-
     }, [navigation]);
     return axiosInstance;
 }
