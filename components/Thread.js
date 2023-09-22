@@ -15,7 +15,6 @@ const Thread = () => {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
-    console.log(threads)
 
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
@@ -24,15 +23,17 @@ const Thread = () => {
     const handleLikes = async (id) => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await fetch(`http://localhost:8080/update_like/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        } );
-        const item = response.json();
-        console.log(item);
+        const headers = {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        }
+
+        const response = await axios.put(`http://localhost:8080/update_like/${id}`, null, {headers} );
+        console.log(response.data.like_count);
+        if(response.status === 200) {
+          const newLikesCount = response.data.like_count;
+          dispatch(setLikes(id, newLikesCount))
+        }
       } catch (error) {
         console.error(error);
       }
@@ -49,7 +50,6 @@ const Thread = () => {
             'Content-Type': 'application/json',
           },
         });
-
         const item = response.data;
         if(item.length == 0){
           navigation.replace('CreateThread');
@@ -63,7 +63,6 @@ const Thread = () => {
     useEffect(() => {
       fetchData();
     }, []);
-    console.log(threads);
 
     const handleUser = async (username) => {
       try {

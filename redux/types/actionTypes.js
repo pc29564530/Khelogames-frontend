@@ -11,3 +11,5 @@ export const SET_LIKES = 'SET_LIKES';
 export const SET_UNLINKES = 'SET_UNLINKES';
 export const SET_COMMENT = 'SET_COMMENT';
 export const SET_THREADS = 'SET_THREADS';
+export const TOGGLE_LIKES = 'TOGGLE_LIKES';
+export const SET_COMMENTS = 'SET_COMMENTS';

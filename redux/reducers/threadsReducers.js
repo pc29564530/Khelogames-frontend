@@ -10,37 +10,53 @@ const threadsReducers = (state=initialState, action) => {
         case actionTypes.SET_THREADS:
             return {
                 ...state,
-                threads: action.payload
+                threads: action.payload 
             }
         case actionTypes.SET_LIKES:
+            const threadId = action.payload.threadId;
+            const newLikesCount = action.payload.newLikesCount;
+
+            const updateLikes = state.threads.map(thread => {
+                if(thread.id === threadId) {
+                   return {
+                    ...thread,
+                    like_count: newLikesCount,
+                   };
+                }
+                return thread;
+            })
             return {
                 ...state,
-                threads: state.threads.map(thread => {
-                    if(thread._id === action.threadId) {
-                        return {
-                            ...thread,
-                            likes: !!thread.likes ? thread.likes.concat(thread.userId) : [action.userId]
-                        }
-                    }
-                    return thread
-                })
+                threads: updateLikes,
             }
-        case actionTypes.SET_UNLINKES:
-            return {
-                ...state,
-                threads: state.threads.map(thread => {
-                    if(thread._id === action.threadId) {
-                        return {
-                            ...thread,
-                            likes: thread.likes.filter(userId => userId !== action.userId)
-                        }
-                    }
-                    return thread
-                })
-            }
+        // to work on toggle likes
+        // case actionTypes.TOGGLE_LIKES:
+        //     const checkLiked = state.threads.map(thread => {
+        //         if(thread.id === actionTypes.payload.threadId) {
+        //             return {
+        //                 ...thread,
+        //                 isLikes: action.payload.isLikes
+        //             }
+        //         }
+        //     })
+        // case actionTypes.SET_COMMENTS:
+        //     const comment = state.comments.map(comment => {
+        //         if(comment.thread_id === actionTypes.payload.threadId) {
+        //             console.log(comment.thread_id)
+        //             console.log(action.payload.threadId)
+        //             return {
+        //                 ...comment,
+        //                 comments: action.payload
+        //             }
+        //         }
+        //         return comment
+        //     })
+        //     return {
+        //         ...state,
+        //         comments: comment
+        //     }
         default: 
             return state
-
     }
 }
 

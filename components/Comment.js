@@ -20,7 +20,7 @@ function Comment({threadId}) {
                     'content-type': 'application/json'
                 }
             })
-            setCommentText(response.data);
+            setCommentText(response.data.comment_text);
         } catch (e) {
             console.error(e);
         }
