@@ -85,9 +85,17 @@ export const toggleLikes = (threadId, isLikes) => {
     }
 }
 
-export const setComments = (threadId, comments) => {
+export const setComments = (comments) => {
     return {
         type: 'SET_COMMENTS',
-        payload: {threadId, comments}
+        payload: comments
+    }
+}
+
+export const addComments = (comment) => {
+    console.log(comment)
+    return {
+        type: 'ADD_COMMENT',
+        payload: comment
     }
 }

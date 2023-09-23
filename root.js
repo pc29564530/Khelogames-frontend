@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './redux/store';
 import rootReducer from './redux/reducers';
 // import { applyMiddleware, useSelector } from 'react-redux';
-import {checkExpireTime,setAuthenticated} from './redux/actions/actions';
+import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 
 
 const Stack = createStackNavigator();
@@ -42,9 +42,11 @@ export default function Root() {
     
     const checkAuthStatus = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
+      const user = await AsyncStorage.getItem('User');
       if (authToken) {
         console.log("authToken")
         dispatch(setAuthenticated(true));
+        dispatch(setUser(user))
       }
     };  
     console.log("line no 49")
