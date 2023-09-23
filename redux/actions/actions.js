@@ -36,11 +36,6 @@ export const setUser = (user) => ({
     payload: user
 })
 
-// export const checkExpirationTime = (time) => ({
-//     type: 'CHECK_EXPIRE_TIME',
-//     payload: time,
-// })
-
 export const logout = () => {
     return {
         type: actionTypes.LOGOUT
@@ -52,8 +47,6 @@ export const checkExpireTime = () => {
       try {
         const currentTime = new Date().getTime();
         const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
-        console.log(currentTime)
-        console.log(refreshTokenExpireTime)
   
         if (refreshTokenExpireTime && currentTime.toString() > refreshTokenExpireTime) {
           dispatch(logout());
@@ -92,10 +85,16 @@ export const setComments = (comments) => {
     }
 }
 
-export const addComments = (comment) => {
-    console.log(comment)
+export const addComments = (comments) => {
     return {
-        type: 'ADD_COMMENT',
-        payload: comment
+        type: 'ADD_COMMENTS',
+        payload: comments
+    }
+}
+
+export const setCommentText = (text) => {
+    return {
+        type: 'SET_COMMENT_TEXT',
+        payload: text
     }
 }

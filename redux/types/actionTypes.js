@@ -14,3 +14,4 @@ export const SET_THREADS = 'SET_THREADS';
 export const TOGGLE_LIKES = 'TOGGLE_LIKES';
 export const SET_COMMENTS = 'SET_COMMENTS';
 export const ADD_COMMENTS = 'ADD_COMMENTS';
+export const SET_COMMENT_TEXT = 'SET_COMMENT_TEXT';

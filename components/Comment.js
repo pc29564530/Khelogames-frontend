@@ -2,70 +2,30 @@ import React, {useState, useEffect} from 'react';
 import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native-web';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addComments, setComments } from '../redux/actions/actions';
+import { addComments, setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 
 function Comment({threadId}) {
     const dispatch = useDispatch();
-    const [commentText, setCommentText] = useState('');
-    // const [threadComment, setThreadComment] = useState([]);
     const comments = useSelector((state) => state.comments.comments)
-    // console.log(comments)
-    const handleSubmit = async () => {
-        try {
+    const commentText = useSelector((state) => state.comments.commentText)
 
-            const text = {
-                commentText: commentText,
-            }
-            const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://localhost:8080/createComment/${threadId}`,text, {
-                headers: { 
-                    'Authorization': `Bearer ${authToken}`,
-                    'content-type': 'application/json'
-                }
-            })
-            setCommentText(response.data.comment_text);
-        } catch (e) {
-            console.error(e);
-        }
-    }
 
     const handleReduxSubmit = async () => {
         try {
-            const text = comments.comment_text;
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://localhost:8080/createComment/${threadId}`,text, {
+            const response = await axios.post(`http://localhost:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
                 }
             })
-            dispatch(addComments(response.data))
+            dispatch(addComments(response.data));
 
         } catch (e) {
             console.error(e);
         }
     }
-
-    // const fetchThreadComment = async () => {
-    //     try {
-    //         const authToken = await AsyncStorage.getItem('AccessToken');
-    //         const response = await axios.get(`http://localhost:8080/getComment/${threadId}`, {
-    //             headers: {
-    //                 'Authorization': `Bearer ${authToken}`,
-    //                 'Content-Type': 'application/json'
-    //             }
-    //         })
-    //         if(response.data === null) {
-    //             setThreadComment([]);
-    //         } else {
-    //             setThreadComment(response.data);
-    //         }
-            
-    //     } catch (e) {
-    //         console.error(e);
-    //     }
-    // }
 
     //Implementing redux
     const fetchThreadComments = async () => {
@@ -99,7 +59,7 @@ function Comment({threadId}) {
             <View style={styles.subcontainerEdit}>
                 <TextInput 
                     value={commentText}
-                    onChangeText={setCommentText}
+                    onChangeText={(text) => dispatch(setCommentText(text))}
                     placeholder="Write a comment..."
                 />
                 <Button title="Submit" onPress={handleReduxSubmit}/>
@@ -137,17 +97,20 @@ const styles = StyleSheet.create({
       aspectRatio: 10/3,
       justifyContent: 'space-between',
       alignItems: 'left',
+      paddingBottom: '40px'
     },
     subcontainerEdit: {
         paddingTop: '20px',
         alignItems: 'left',
         paddingBottom: '20px',
+        
     },
     subcontainerDisplay:{
         flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
         paddingBottom: '20px',
+        paddingTop: '20px',
     },
     userAvatar: {
         width: 40,

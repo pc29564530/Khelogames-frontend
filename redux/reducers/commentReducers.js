@@ -2,7 +2,8 @@ import * as actionTypes from '../types/actionTypes';
 
 
 const initialState = {
-   comments: [] 
+   comments: [],
+   commentText: ''
 }
 
 const commentsReducers = (state=initialState, action) => {
@@ -13,10 +14,14 @@ const commentsReducers = (state=initialState, action) => {
                 comments: action.payload
             };
         case actionTypes.ADD_COMMENTS:
-            commentData = action.payload;
             return {
                 ...state,
-                comments: commentData
+                comments: [...state.comments, action.payload]
+            }
+        case actionTypes.SET_COMMENT_TEXT:
+            return {
+                ...state,
+                commentText: action.payload
             }
         default: 
             return state
