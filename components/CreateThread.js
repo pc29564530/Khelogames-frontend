@@ -4,13 +4,15 @@ import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import {launchImageLibrary} from 'react-native-image-picker';
-// import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
+import {addThreads} from '../redux/actions/actions';
+import { useSelector, useDispatch } from 'react-redux';
 
 
 function CreateThread({navigation}) {
 
+    const dispatch = useDispatch();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [mediaType, setMediaType] = useState('');
@@ -47,6 +49,7 @@ function CreateThread({navigation}) {
               }
           });
     };
+
     const handleSubmit = async () => {
         try {
             const thread = {
@@ -64,7 +67,9 @@ function CreateThread({navigation}) {
                     'Content-Type': 'application/json',
                 },
             });
+            dispatch(addThreads(response.data));
             console.log(response.data)
+            navigation.navigate('Home');
         } catch (e) {
             console.error(e);
         }
@@ -73,14 +78,6 @@ function CreateThread({navigation}) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Pressable onPress={() => navigation.navigate('Home')}>
-                    <HomeIcon  />
-                </Pressable>
-                <Pressable>
-                    <SearchIcon />
-                </Pressable>
-            </View>
             <View style={styles.bodybox}>   
                 <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter Title..."/>
                 <TextInput

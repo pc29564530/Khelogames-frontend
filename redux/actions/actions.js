@@ -98,3 +98,10 @@ export const setCommentText = (text) => {
         payload: text
     }
 }
+
+export const addThreads = (threads) => {
+    return {
+        type: 'ADD_THREADS',
+        payload: threads
+    }
+}

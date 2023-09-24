@@ -29,6 +29,11 @@ const threadsReducers = (state=initialState, action) => {
                 ...state,
                 threads: updateLikes,
             }
+        case actionTypes.ADD_THREADS:
+            return {
+                ...state,
+                threads: [...state.threads, action.payload]
+            }
         // to work on toggle likes
         // case actionTypes.TOGGLE_LIKES:
         //     const checkLiked = state.threads.map(thread => {
