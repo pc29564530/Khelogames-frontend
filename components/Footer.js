@@ -6,14 +6,13 @@ import Foundation from 'react-native-vector-icons/Foundation'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Home from './Home';
 import Community from './Community';
-import ProfileMenu from './ProfileMenu';
 import CreateThread from './CreateThread';
 import Follow from './Follow';
 
 
 const Tab = createBottomTabNavigator();
 
-function Footer({logout}) {
+function Footer() {
     return (
         <>  
             <Tab.Navigator 
@@ -32,8 +31,6 @@ function Footer({logout}) {
                         Icon = <MaterialCommunityIcons name="forum" size={25} />;
                       } else if(route.name === "CreateThread") {
                         Icon = <MaterialIcons name="add-box" size={25} />;
-                      } else if(route.name === "ProfileMenu") {
-                        Icon = <MaterialCommunityIcons name="account" size={25} />;
                       } else if(route.name === "Follow") {
                         Icon = <FontAwesome5  name="user-friends" size={25} />;
                       }
@@ -44,9 +41,6 @@ function Footer({logout}) {
             > 
                 <Tab.Screen name="Home" component={Home} />
                 <Tab.Screen name="Community" component={Community} />
-                <Tab.Screen name="ProfileMenu"
-                    component={() => <ProfileMenu logout={logout}/>}
-                />
                 <Tab.Screen name="Follow" component={Follow} />
                 <Tab.Screen name="CreateThread" component={CreateThread} />
             </Tab.Navigator>

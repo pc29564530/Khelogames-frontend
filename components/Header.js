@@ -1,31 +1,14 @@
 import React , {useState} from 'react';
-import {Image,Text, View, TextInput, StyleSheet, Pressable, Button} from 'react-native';
-// import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-// import EmailIcon from '@mui/icons-material/Email';
-// import SearchIcon from '@mui/icons-material/Search';
-// import { useNavigation,  } from '@react-navigation/native';
-// import ProfileMenu from './ProfileMenu';
-// import { ScrollView } from 'react-native-gesture-handler';
-// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import {Image,Text, View, TextInput, StyleSheet, Pressable, Button, TouchableOpacity} from 'react-native';
+import { useNavigation,  } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function Header ({logout}) {
-
-    // const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
-
-    // const handleAccount = () => {
-    //     setProfileMenuVisible(true);
-    // }
-    // const handlelogout = () => {
-    //     try {
-    //         console.log(logout)
-    //         logout();
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    // }
+function Header () {
+    const navigation = useNavigation()
+    const handleAccount = () => {
+        navigation.navigate('ProfileMenu')
+    }
 
     return (   
         
@@ -45,13 +28,9 @@ function Header ({logout}) {
                     color="grey"
                     style={styles.iconStyles}    
                 />
-                {/* <AntDesign 
-                    onPress={() => handlelogout()}
-                    name="logout"
-                    size={19}
-                    color="black"
-                    style={styles.iconStyles}
-                /> */}
+                <TouchableOpacity style={styles.userAvatar}  onPress={handleAccount}>
+                    <Image src='/home/pawan/' />
+                </TouchableOpacity>
             </View>
         </View> 
     )
@@ -66,7 +45,6 @@ const styles = StyleSheet.create({
         width: 130,
     },
     iconStyles: {
-        backgroundColor: 'lightgrey',
         height: 35,
         width: 35,
         borderRadius: 50,
@@ -83,16 +61,13 @@ const styles = StyleSheet.create({
     headerIcon: {
         flexDirection: 'row',
     },
-    // headerText: {
-    //     fontSize: 20,
-    //     height:30,
-    //     width: 110,
-    //     color: 'white',
-    // },
-    // iconStyles:{
-    //     paddingHorizontal: 20,
-    //     marginTop:1,
-    // }
+    userAvatar: {
+        marginRight: 10,
+        width: 35,
+        height: 35,
+        borderRadius: 50,
+        backgroundColor: 'grey',
+      },
 });
 
 export default Header;

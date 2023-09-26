@@ -12,6 +12,7 @@ import ThreadComment from './components/ThreadComment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './redux/store';
 import rootReducer from './redux/reducers';
+import ProfileMenu from './components/ProfileMenu';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 
@@ -20,23 +21,7 @@ const Stack = createStackNavigator();
 
 export default function Root() {
   const dispatch = useDispatch();
-  console.log('startyging')
-  
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  console.log("what are you doing ")
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  console.log("line no 27")
-  console.log(isAuthenticated)
-  console.log("line no 28")
-
-  // const navigationRef = useRef();
-
-  // const logout = async () => {
-  //   console.log("Before logout:", await AsyncStorage.getItem('AccessToken'));
-  //   await AsyncStorage.removeItem('AccessToken');
-  //   await AsyncStorage.removeItem('RefreshToken');
-  //   console.log("After logout:", await AsyncStorage.getItem('AccessToken')); 
-  // };
 
   useEffect(() => {
     
@@ -44,28 +29,25 @@ export default function Root() {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const user = await AsyncStorage.getItem('User');
       if (authToken) {
-        console.log("authToken")
         dispatch(setAuthenticated(true));
         dispatch(setUser(user))
       }
-    };  
-    console.log("line no 49")
+    };
   
     checkAuthStatus();
     dispatch(checkExpireTime())
-    console.log("line no 50")
   }, []);
 
   return (  
       <NavigationContainer>
         <Stack.Navigator 
-            initialRouteName={'SignIn'}
+            initialRouteName={isAuthenticated?'Main':'SignIn'}
             screenOptions={{
               headerTitle: null,
               headerTransparent: false,
               headerShown: false,
               headerLeft: null,
-              headerBackTitleVisible: true,
+              headerBackTitleVisible: false,
             }}  
         >
           {!isAuthenticated ? (
@@ -80,8 +62,6 @@ export default function Root() {
                     headerBackTitleVisible: false,
                   }}
                 />
-                  {/* {(props) => <User {...props} setIsAuthenticated={setIsAuthenticated} />}
-                </Stack.Screen> */}
                 <Stack.Screen name="SignIn" component={SignIn}
                     options={{
                     headerTitle: null,
@@ -91,13 +71,10 @@ export default function Root() {
                     headerBackTitleVisible: false,
                   }}
                 />
-                    {/* {(props) => <SignIn {...props} setIsAuthenticated={setIsAuthenticated} />}
-                </Stack.Screen> */}
               </>
             ):(
             <>
-                <Stack.Screen name="Main" 
-                  // initialParams={{logout: logout}} 
+                <Stack.Screen name="Main"
                   component={Main}
                   options={{
                     headerTitle: null,
@@ -107,9 +84,22 @@ export default function Root() {
                     headerBackTitleVisible: false,
                   }}
                />
-                  {/* {(props) => <Main {...props} logout={logout} />} 
-                </Stack.Screen> */}
                 <Stack.Screen name="ThreadComment" component={ThreadComment} 
+                options={({ navigation }) => ({
+                headerShown: true,
+                headerTitle: null,
+                headerBackTitleVisible: false,
+                headerLeft: () => (
+                  <Ionicons
+                    name="arrow-back"
+                    size={30}
+                    style={{ marginLeft: 10 }}
+                    onPress={() => navigation.goBack()}
+                  />
+                ),
+              })}
+                  />
+                  <Stack.Screen name="ProfileMenu" component={ProfileMenu} 
                 options={({ navigation }) => ({
                 headerShown: true,
                 headerTitle: null,
