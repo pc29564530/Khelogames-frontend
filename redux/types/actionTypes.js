@@ -16,3 +16,7 @@ export const SET_COMMENTS = 'SET_COMMENTS';
 export const ADD_COMMENTS = 'ADD_COMMENTS';
 export const SET_COMMENT_TEXT = 'SET_COMMENT_TEXT';
 export const ADD_THREADS = 'ADD_THREADS';
+export const USER_PROFILE = 'USER_PROFILE';
+export const FOLLOW_USER = 'FOLLOW_USER';
+export const UNFOLLOW_USER = 'UNFOLLOW_USER';
+export const GET_FOLLOW_USER = 'GET_FOLLOW_USER';

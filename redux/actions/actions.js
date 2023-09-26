@@ -79,6 +79,7 @@ export const toggleLikes = (threadId, isLikes) => {
 }
 
 export const setComments = (comments) => {
+    console.log(comments)
     return {
         type: 'SET_COMMENTS',
         payload: comments
@@ -103,5 +104,34 @@ export const addThreads = (threads) => {
     return {
         type: 'ADD_THREADS',
         payload: threads
+    }
+}
+
+export const userProfile = (user) => {
+    return {
+        type: 'USER_PROFILE',
+        payload: user
+    }
+}
+
+export const setFollowUser = (user) => {
+    return {
+        type: 'FOLLOW_USER',
+        payload: user
+    }
+}
+
+export const setUnFollowUser = (user) => {
+    console.log(user)
+    return {
+        type: 'UNFOLLOW_USER',
+        payload: user
+    }
+}
+
+export const getFollowingUser = (users) => {
+    return {
+        type: 'GET_FOLLOW_USER',
+        payload: users
     }
 }

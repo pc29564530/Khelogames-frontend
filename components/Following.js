@@ -2,12 +2,14 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Image, ScrollView} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {useSelector,useDispatch} from 'react-redux';
+import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 
 function Following() {
-    const [following, setFollowing] = useState([]);
+    const dispatch = useDispatch()
+    const following = useSelector(state => state.user.following)
 
     const fetchFollowing = async () => {
-
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axios.get('http://localhost:8080/getFollowing', {
@@ -17,8 +19,11 @@ function Following() {
                 }
             })
             const item = response.data;
-            console.log(item);
-            setFollowing(item);
+            if(item === null) {
+               dispatch(getFollowingUser([]));
+            } else {
+                dispatch(getFollowingUser(item));
+            }
         } catch (e) {
             console.error(e);
         }
@@ -34,7 +39,7 @@ function Following() {
                     <View key={i} style={styles.subcontainer}>
                         <Image style={styles.userAvatar} source={'/home/pawan'}  />
                         <View  style={styles.profileData}>
-                            <Text>Deepak Kumar</Text>
+                            <Text>{item}</Text>
                         </View>
                     </View>
                 ))}

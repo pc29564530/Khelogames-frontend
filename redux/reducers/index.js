@@ -5,6 +5,7 @@ import signUpReducers from "./signUpReducers";
 import mobileNumberReducers from "./mobileNumberReducers";
 import threadsReducers from "./threadsReducers";
 import commentsReducers from "./commentReducers";
+import userReducers from "./userReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
     mobilenumber: mobileNumberReducers,
     threads: threadsReducers,
     comments: commentsReducers,
+    user: userReducers
 });
 
 export default rootReducer;
