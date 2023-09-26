@@ -15,7 +15,7 @@ function ProfileMenu(){
     const following_owner  = route.params?.username
 
     const following = useSelector((state) => state.user.following);
-    const isFollowing = following.some((item) => item === following_owner);
+    const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
      
@@ -77,6 +77,7 @@ function ProfileMenu(){
      } else {
         handleReduxFollow();
      }
+     
     }
     const fetchFollowing = async () => {
       try {
@@ -99,6 +100,7 @@ function ProfileMenu(){
     }
     useEffect(() =>{
         fetchFollowing(); 
+        setIsFollowing(following.some((item) => item === following_owner))
         const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
         if(following_owner===undefined || following_owner === null) {
@@ -109,7 +111,7 @@ function ProfileMenu(){
         }
       }
       verifyUser();
-    }, [following_owner])
+    }, [following, following_owner])
 
     
     return (
