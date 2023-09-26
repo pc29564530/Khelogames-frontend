@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Image, Input, TextInput, Button} from 'react-native';
+import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView} from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 
 
 
@@ -31,14 +32,21 @@ function CreateCommunity () {
     
     return (
         <View>
-            <Text>Create a New Community</Text>
-            <Text>This is place where a people with similar thought connect with each other.</Text>
+            <View style={styles.description}>
+                <Text>Create a New Community</Text>
+                <Text>This is place where a people with similar field area connect with each other.</Text>
+            </View>
+            
             {/* <Image src=""/> */}
-            <input  type="file" palceholder="Upload Image"/>
-            <TextInput type="input" value={communityName} onChangeText={setCommunityName} placeholder="Community Name"/>
-            <TextInput type="input" value={description} onChangeText={setDescription} placeholder="Description" />
-            <TextInput type="input" value={communityType} onChangeText={setCommunityType} placeholder="Community Type" />
-            <Button type="button" onPress={handleCreateCommunity}>Create Community</Button>
+            {/* <input  type="file" palceholder="Upload Image"/> */}
+            <View style={styles.inputBoxContainer}>
+                <TextInput  style={styles.textInputBox} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Community Name"/>
+                <TextInput style={styles.textInputBox} type="input" value={description} onChangeText={setDescription} placeholder="Description" />
+                <TextInput style={styles.textInputBox} type="input" value={communityType} onChangeText={setCommunityType} placeholder="Community Type" />
+                <TouchableOpacity style={styles.inputButton} onPress={handleCreateCommunity}>
+                    <Text>Create Community</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -69,28 +77,98 @@ function Community () {
         
     }
     useEffect(() => {
-        if(data.length > 0) {
+        // if(data.length > 0) {
             fetchData();
-        }
+        // }
     },[]);
 
     return (
-        <View >
-            
-            <CreateCommunity /> 
-            <View >
+        <ScrollView  style={styles.container}>
+            <View style={styles.inputContainer}>
+                <CreateCommunity /> 
+            </View>
+            <View style={styles.viewContainer}>
                 {data.map((item,i) => (
-                    <View key={i}>
-                        <Text>{item.communities_name}</Text>
-                        <Text>{item.description}</Text>
-                        <Text>{item.community_type}</Text>
+                    <View style={styles.subViewBox} key={i}>
+                        <Image style={styles.displayImage} src='/home/pawan/' />
+                        <View style={styles.viewBox}>
+                            <Text style={styles.communityName}>{item.communities_name}</Text>
+                            <Text style={styles.communityDescription}>{item.description}</Text>
+                            <Text style={styles.communityTypeBox}>{item.community_type}</Text>
+                        </View>
                     </View>
                 ))}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        
+    },
+    inputContainer: {
+        marginTop: 10,
+        marginBottom: 10,
+        alignContent: 'center',
+        alignSelf: 'center',
+        backgroundColor: 'white',
+        gap: 10
+    },
+    viewContainer:{
+        alignContent: 'center',
+        alignSelf: 'center',
+        width: '100%',
+        backgroundColor: 'white',
+        padding: 10,
+        gap: 10
+    },
+    description: {
+        gap: 10,
+        margin: 10,
+    },
+    inputBoxContainer: {
+        alignContent: 'center',
+        alignItems: 'center', 
+        backgroundColor: 'white',
+        gap: 20,  
+    },
+    textInputBox: {
+        padding: 10,
+        marign: 10,
+        backgroundColor: 'whitesmoke',
+        width: '60%',
+        fontSize: '15',
+        borderRadius: '5px',
+        gap: 40,
+        justifyContent: 'space-between',
+    },
+    inputButton: {
+        padding: 10,
+        backgroundColor: "whitesmoke",
+        marginBottom: 10,
 
+    },
+    subViewBox: {
+        backgroundColor: 'whitesmoke',
+        padding: 10,
+        flexDirection: 'row'
+    },
+    displayImage: {
+        marginRight: 10,
+        width: 50,
+        height: 50,
+        borderRadius: 5,
+        backgroundColor: 'red',
+        color: 'red',
+    },
+    viewBox: {
+        flexDirection: 'column'
+    },
+    communityName: {
+
+    }
+})
 
 export default Community;
