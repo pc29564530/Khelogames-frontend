@@ -9,8 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
 
-const Thread = () => {
 
+const Thread = () => {
     const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
@@ -28,7 +28,7 @@ const Thread = () => {
           'Content-Type': 'application/json',
         }
 
-        const response = await axios.put(`http://localhost:8080/update_like/${id}`, null, {headers} );
+        const response = await axiosInstance.put(`http://192.168.0.105:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;
@@ -44,17 +44,19 @@ const Thread = () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log(authToken); 
-        const response = await axiosInstance.get('http://localhost:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.105:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         });
         const item = response.data;
-        if(item.length == 0){
-          navigation.replace('CreateThread');
+        if(item === null){
+          dispatch(setThreads([]))
+
+        } else {
+          dispatch(setThreads(response.data))
         }
-        dispatch(setThreads(response.data))
       } catch (err) {
         console.error(err);
       }
@@ -66,48 +68,49 @@ const Thread = () => {
 
     const handleUser = async (username) => {
       try {
-        const response = await axios.get(`http://localhost:8080/user/${username}` )
+        const response = await axiosInstance.get(`http://192.168.0.105:8080/user/${username}` )
         console.log(response)
         navigation.navigate('ProfileMenu', { username: response.data.username });
       } catch (err) {
         console.error(err);
       }
     }
+    const iconSize = 25
   
     return (
-        <View style={styles.container}>
+      <View style={styles.Container} vertical={true}>
             {threads.map((item,i) => (
-                <View key={i} style={styles.contentContainer}>
-                    <View style={styles.header}>
-                      <Image source={KhelogamesLogo} style={styles.userImage} />
+                <View key={i} style={styles.ContentContainer}>
+                    <View style={styles.Header}>
+                      <Image source={KhelogamesLogo} style={styles.UserImage} />
                       <View>
-                        <TouchableOpacity onPress={() => {handleUser(item.username)}}><Text style={styles.userName}>{item.username}</Text></TouchableOpacity>
-                        <Text style={styles.position}>{item.timestamp}</Text>
+                        <TouchableOpacity onPress={() => {handleUser(item.username)}}><Text style={styles.UserName}>{item.username}</Text></TouchableOpacity>
+                        <Text style={styles.Position}>{item.timestamp}</Text>
                       </View>
                     </View>
-                    <Text style={styles.content}>{item.content}</Text>
+                    <Text style={styles.Content}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
-                        style={styles.postImage}
-                        source={{ uri: item.media_url }}
+                      style={styles.PostImage}
+                        source={{uri:item.media_url}}
                       />
                     )}
-                    <View style={styles.likeCount}>
+                    <View style={styles.LikeCount}>
                       <Text style={styles.likeText}>{item.like_count} Likes</Text>
                     </View>
-                    <View style={styles.footer}>
+                    <View style={styles.Footer}>
                       <Pressable  onPress={() => handleLikes(item.id)}>
                       <FontAwesome 
                            name="thumbs-o-up"
-                           style={styles.footerButton}
-                           size='21'
+                           style={styles.FooterButton}
+                           size={iconSize}
                         /> 
                       </Pressable>
                       <Pressable onPress={() => handleThreadComment(item, item.id)}>
                         <FontAwesome 
                            name="comment-o"
-                           style={styles.footerButton}
-                           size='21'
+                           style={styles.FooterButton}
+                           size={iconSize}
                         />  
                       </Pressable>
                     </View>
@@ -118,56 +121,57 @@ const Thread = () => {
   };
 
   const styles = StyleSheet.create({
-    container: {
+    Container: {
       color: 'lightgrey',
       maxWidth: 500,
       width: '100%',
       alignSelf: 'center',
+      flex: 1,
     },
-    contentContainer: {
+    ContentContainer: {
       marginTop: '1.5px',
       marginBottom: '1.5px',
       backgroundColor: 'white',
     },
-    header: {
+    Header: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 10,
     },
-    userImage: {
+    UserImage: {
       width: 50,
       aspectRatio: 1,
       borderRadius: 25,
       backgroundColor: 'red'
     },
-    userName: {
+    UserName: {
       fontWeight: '600',
       marginBottom: 5,
       padding: 10
     },
-    position: {
+    Position: {
       fontSize: 12,
       color: 'grey',
     },
-    content: {
+    Content: {
       margin: 10,
       marginTop: 0,
     },
-    postImage: {
+    PostImage: {
       width: '100%',
       aspectRatio: 1,
     },
-    likeCount: {
+    LikeCount: {
       padding: 10,
     },
-    footer: {
+    Footer: {
       flexDirection: 'row',
       justifyContent: 'space-around',
       paddingVertical: 10,
       borderTopWidth: 1,
       borderColor: 'lightgray',
     },
-    footerButton: {
+    FooterButton: {
       flexDirection: 'row',
       alignItems: 'center',
       fontSize: 18

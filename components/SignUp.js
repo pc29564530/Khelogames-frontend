@@ -20,7 +20,7 @@ function  SignUp() {
             const verifyMobileNumber = {mobileNumber, otp}
             console.log(verifyMobileNumber.mobileNumber);
             console.log(verifyMobileNumber.otp);
-            const response = await axios.post('http://localhost:8080/signup', verifyMobileNumber);
+            const response = await axios.post('http://192.168.0.105:8080/signup', verifyMobileNumber);
             dispatch({type: 'VERIFY_OTP', payload:response.data})
             console.log("line no 23")
             // setMobileNumber(verifyMobileNumber.mobileNumber)
@@ -36,7 +36,7 @@ function  SignUp() {
       try {
         var data = {mobileNumber}
         console.log(data.mobileNumber)
-        const response = await axios.post('http://localhost:8080/send_otp', data)
+        const response = await axios.post('http://192.168.0.105:8080/send_otp', data)
         console.log(response.data)
         dispatch({type: 'SEND_OTP', payload:response.data})
       } catch (err) {
@@ -46,12 +46,12 @@ function  SignUp() {
 
     return (
       <View style={styles.Container}>
-        {/* <Image style={styles.ImageBox} source={require('/home/pawan/projects/khelogames-frontend/assets/images/Khelogames.png')} /> */}
+        <Image style={styles.ImageBox} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
         <View style={styles.Middle}>
           <Text style={styles.LoginText}>Sign Up</Text>
         </View>
-        <View style={styles.singleTextContainer}>
-          <View style={styles.inputContainer}>
+        <View style={styles.SingleTextContainer}>
+          <View style={styles.InputContainer}>
             <Input style={styles.InputBox}
                 leftIcon={ 
                   <AntDesign name="mobile1" size={24} color="black" />
@@ -65,12 +65,12 @@ function  SignUp() {
           </View>
         </View >
           
-        <View style={styles.signInButton} >
-          <Button style={styles.button} onPress={handleSendOTP} title="Send" /> 
+        <View style={styles.SignInButton} >
+          <Button style={styles.Button} onPress={handleSendOTP} title="Send" /> 
         </View>
 
-        <View style={styles.singleTextContainer}>
-          <View style={styles.inputContainer}>
+        <View style={styles.SingleTextContainer}>
+          <View style={styles.InputContainer}>
           <Input style={styles.InputBox}
               leftIcon={ 
                 <AntDesign name="lock" size={24} color="black" />
@@ -83,8 +83,8 @@ function  SignUp() {
           </View>
         </View>
         
-        <View style={styles.signInButton}>
-          <Button style={styles.button} onPress={handleVerify} title="Verify" />
+        <View style={styles.SignInButton}>
+          <Button style={styles.Button} onPress={handleVerify} title="Verify" />
         </View>
       </View>
     );
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 30,
     marginRight:30,
-    Width: '40%',
+    width: '40%',
     height: '30%'
   },
   InputBox: {
@@ -118,28 +118,28 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
   },
-  iconStyles: {
+  IconStyles: {
     padding: 10
   },
-  singleTextContainer: {
+  SingleTextContainer: {
     marginLeft:15,
     marginRight:15,
     paddingRight: 20
   },
-  textInputBox: {
+  TextInputBox: {
     flexDirection: "row",
   },
-  inputContainer: {
+  InputContainer: {
     // outlineStyle: 'none',
     marginTop:10,
     marginRight:5
   },
-  button: {
+  Button: {
     marginTop: 10,
     marginRight: 20,
     marginLeft: 20,
   },
-  signInButton: {
+  SignInButton: {
     justifyContent: 'center',
     alignItems:'center',
     marginLeft: 20,

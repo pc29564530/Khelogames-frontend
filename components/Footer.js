@@ -1,9 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import Foundation from 'react-native-vector-icons/Foundation'
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Home from './Home';
 import Community from './Community';
 import CreateThread from './CreateThread';
@@ -13,6 +11,7 @@ import Follow from './Follow';
 const Tab = createBottomTabNavigator();
 
 function Footer() {
+  const iconSize = 25
     return (
         <>  
             <Tab.Navigator 
@@ -26,13 +25,13 @@ function Footer() {
                     tabBarIcon: () => {
                       let Icon;
                       if(route.name === "Home"){
-                        Icon=<Foundation name="home" size={25} />;
+                        Icon=<FontAwesome name="home" size={iconSize} />;
                       } else if(route.name === "Community"){
-                        Icon = <MaterialCommunityIcons name="forum" size={25} />;
+                        Icon = <MaterialIcons name="forum" size={iconSize} />;
                       } else if(route.name === "CreateThread") {
-                        Icon = <MaterialIcons name="add-box" size={25} />;
+                        Icon = <MaterialIcons name="add-box" size={iconSize} />;
                       } else if(route.name === "Follow") {
-                        Icon = <FontAwesome5  name="user-friends" size={25} />;
+                        Icon = <MaterialIcons  name="connect-without-contact" size={iconSize} />;
                       }
                       return Icon;
                     }

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.khelogamesapp-mergeDebugResources-30:/values-land/values-land.xml",
+            "outputFile": "com.khelogamesapp-mergeDebugResources-31:/values-land/values-land.xml",
             "map": [
                 {
                     "source": "/home/pawan/.gradle/caches/transforms-3/9300c7fc5aff0974f1ee709fb212c45e/transformed/material-1.1.0/res/values-land/values-land.xml",

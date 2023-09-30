@@ -31,7 +31,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axios.post(
-            `http://localhost:8080/create_follow/${following_owner}`,
+            `http://192.168.0.105:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -53,7 +53,7 @@ function ProfileMenu(){
         console.log("line no 790")
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axios.delete(
-          `http://localhost:8080/unFollow/${following_owner}`,
+          `http://192.168.0.105:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -81,7 +81,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axios.get('http://localhost:8080/getFollowing', {
+        const response = await axios.get('http://192.168.0.105:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -114,28 +114,28 @@ function ProfileMenu(){
 
     
     return (
-        <View style={styles.container}>
-              <View style={styles.profileHeader}>
-                <Image style={styles.userAvatar} source='/home/pawan/Pictures' />
-                <Text style={styles.fullName}>{currentUser}</Text>
-                <Text style={styles.username}>@{currentUser}</Text>
-                <View style={styles.followRow}>
-                  <Text style={styles.followRowText}>0 Followers</Text>
-                  <Text style={styles.followRowText}> | </Text>
-                  <Text style={styles.followRowText}>0  Following</Text>
+        <View style={styles.Container}>
+              <View style={styles.ProfileHeader}>
+                <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                <Text style={styles.FullName}>{currentUser}</Text>
+                <Text style={styles.Username}>@{currentUser}</Text>
+                <View style={styles.FollowRow}>
+                  <Text style={styles.FollowRowText}>0 Followers</Text>
+                  <Text style={styles.FollowRowText}> | </Text>
+                  <Text style={styles.FollowRowText}>0  Following</Text>
                   <Text style={{
                       borderBottomColor: 'black',
-                      borderBottomWidth: 'StyleSheet.hairlineWidth',
+                      borderBottomWidth: 10,  
                     }}
                   />
                 </View>
               </View>
               { showLogoutButton?(
-                  <TouchableOpacity onPress={() => handleLogout()} style={styles.logoutButton}>
-                    <Text style={styles.logout}>Logout</Text>
+                  <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
+                    <Text style={styles.Logout}>Logout</Text>
                   </TouchableOpacity>
                  ):(
-                  <TouchableOpacity style={styles.followButton} onPress={handleFollowButton} >
+                  <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
                     <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
                   </TouchableOpacity>
                 )
@@ -145,49 +145,49 @@ function ProfileMenu(){
 }
 
 const styles = StyleSheet.create({
-    fullName: {
+    FullName: {
       paddingTop: 20,
       fontSize: 24, 
       fontWeight: 'bold',
     },
-    username: {
+    Username: {
       fontSize: 20,
       paddingBottom: 20
     },
-    profileHeader: {
+    ProfileHeader: {
       paddingBotton: 20,
       marginBottom: 20
     },
-    followRowText: {
+    FollowRowText: {
       fontSize: 16
     },
-    profileHeaderText: {
+    ProfileHeaderText: {
       fontSize: 20
     },
-    followRow: {
+    FollowRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignContent: 'center',
       alignItems: 'center',
 
     },
-    container: {
+    Container: {
       flex: 1,
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    title: {
+    Title: {
       fontSize: 22,
       color: 'grey',
       fontWeight: '500',
       marginTop: 30,
     },
-    logout: {
+    Logout: {
       fontSize: 15,
       color: 'white',
       fontWeight: '500',
     },
-    logoutButton: {
+    LogoutButton: {
       backgroundColor: 'grey',
       padding: 12,
       borderRadius: 20,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginBottom: 30,
     },
-    followButton: {
+    FollowButton: {
       backgroundColor: 'grey',
       color: 'white',
       padding: 12,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       // marginBottom: 30,
     },
-    userAvatar: {
+    UserAvatar: {
       width: 40,
       height: 40,
       borderRadius: 20,

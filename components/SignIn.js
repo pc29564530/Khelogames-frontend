@@ -8,7 +8,7 @@ import {setAuthenticated, setUser} from '../redux/actions/actions';
 
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // Update with your backend URL
+  baseURL: 'http://192.168.0.105:8080', // Update with your backend URL
 });
 
 
@@ -31,7 +31,7 @@ const SignIn = () => {
       try {
         const user = {username, password}
         console.log(user);
-        const response = await api.post('/login', user);
+        const response = await axios.post('http://192.168.0.105:8080/login', user);
         console.log(response.data); 
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
@@ -42,8 +42,9 @@ const SignIn = () => {
         setAccess(response.data.access_token);  
         setAExpire(response.data.access_token_expires_at)
         setRExpire(response.data.access_token_expires_at)
-        dispatch(setAuthenticated(true));
+        dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(response.data.user));
+        console.log("is login happen")
         navigation.navigate('Main')
        
       } catch (err) {
@@ -54,12 +55,12 @@ const SignIn = () => {
 
     return (
       <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
-        {/* <View>
+        <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require('/home/pawan/projects/khelogames-frontend/assets/images/Khelogames.png')}
+            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}
           />
-        </View> */}
+        </View>
         <KeyboardAvoidingView >
             <View style={{alignItems: 'center', marginTop: 20}}>
               <Text 

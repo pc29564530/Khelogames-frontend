@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.khelogamesapp-mergeDebugResources-30:/values-pl/values-pl.xml",
+            "outputFile": "com.khelogamesapp-mergeDebugResources-31:/values-pl/values-pl.xml",
             "map": [
                 {
                     "source": "/home/pawan/.gradle/caches/transforms-3/75e4635b66fa4e4e84e71b52579837ce/transformed/core-1.7.0/res/values-pl/values-pl.xml",

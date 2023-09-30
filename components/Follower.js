@@ -14,7 +14,7 @@ function Follower() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axios.get(`http://localhost:8080/getFollower`, {
+            const response = await axios.get(`http://192.168.0.105:8080/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -22,6 +22,9 @@ function Follower() {
             })
 
             const item = response.data;
+            if(item === null){
+                return null;
+            }
             console.log(item);
             setFollower(item);
 
@@ -34,15 +37,13 @@ function Follower() {
         fetchFollower();
     },[])
 
-    // console.log("follower are created")
-    // console.log(FollowerData)
     return (
         <ScrollView>
-            <View style={styles.container}>
+            <View style={styles.Container}>
                 {follower.map((item, i) => (
-                    <View key={i} style={styles.subcontainer}>
-                        <Image style={styles.userAvatar} source={'/home/pawan'}  />
-                        <View  style={styles.profileData}>
+                    <View key={i} style={styles.Subcontainer}>
+                        <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}  />
+                        <View  style={styles.ProfileData}>
                             {/* <Text>{item.name}</Text> */}
                             <Text>{item}</Text>
                         </View>
@@ -55,10 +56,10 @@ function Follower() {
 
 
 const styles = StyleSheet.create({
-    profileData: {
+    ProfileData: {
 
     },
-    subcontainer: {
+    Subcontainer: {
         width: '100%',
         height: 50,
         padding: 20,
@@ -69,14 +70,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         marginBottom: '4'
       },
-    userAvatar: {
+    UserAvatar: {
         marginRight: 10,
         width: 20,
         height: 20,
         borderRadius: 20,
         backgroundColor: 'grey',
       },
-    container: {
+    Container: {
         flex: 1,
         justifyContent: 'left',
         alignItems: 'left',

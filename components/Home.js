@@ -39,9 +39,9 @@ function Home() {
 
     
     return (
-        <ScrollView  stickyHeaderIndices={[0,1,3]} showsVerticalScrollIndicator={false} style={styles.container}>
+        <ScrollView vertical={true} style={styles.Container}>
             {/* <View style={styles.header}> <Header /></View> */}
-            <View style={styles.content}>
+            <View style={styles.Content}>
                 {/* <Pressable onPress={()=>navigation.navigate('CreateThread')}><AddCommentIcon /></Pressable> */}
                 <Thread />
                 {/* <ProfileMenu
@@ -57,29 +57,29 @@ function Home() {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    Container: {
       flex: 1,
     },
-    header: {
-      backgroundColor: '#f0f0f0',
-      padding: 10,
-    },
-    headerText: {
-      fontSize: 20,
-      fontWeight: 'bold',
-    },
-    content: {
+    // header: {
+    //   backgroundColor: '#f0f0f0',
+    //   padding: 10,
+    // },
+    // headerText: {
+    //   fontSize: 20,
+    //   fontWeight: 'bold',
+    // },
+    Content: {
       backgroundColor: '#ffffff',
       padding: 10,
     },
-    footer: {
-      backgroundColor: '#f0f0f0',
-      padding: 10,
-      justifyContent: 'flex-end',
-    },
-    footerText: {
-      fontSize: 16,
-    },
+    // footer: {
+    //   backgroundColor: '#f0f0f0',
+    //   padding: 10,
+    //   justifyContent: 'flex-end',
+    // },
+    // footerText: {
+    //   fontSize: 16,
+    // },
   });
   
 

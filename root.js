@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 // import {View} from 'react-native';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Main from './components/Main';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
@@ -22,14 +22,14 @@ const Stack = createStackNavigator();
 export default function Root() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-
+  const iconSize = 30
   useEffect(() => {
     
     const checkAuthStatus = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const user = await AsyncStorage.getItem('User');
       if (authToken) {
-        dispatch(setAuthenticated(true));
+        dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(user))
       }
     };
@@ -90,9 +90,9 @@ export default function Root() {
                 headerTitle: null,
                 headerBackTitleVisible: false,
                 headerLeft: () => (
-                  <Ionicons
-                    name="arrow-back"
-                    size={30}
+                  <FontAwesome
+                    name="long-arrow-left"
+                    size={iconSize}
                     style={{ marginLeft: 10 }}
                     onPress={() => navigation.goBack()}
                   />
@@ -105,9 +105,9 @@ export default function Root() {
                 headerTitle: null,
                 headerBackTitleVisible: false,
                 headerLeft: () => (
-                  <Ionicons
-                    name="arrow-back"
-                    size={30}
+                  <FontAwesome
+                    name="long-arrow-left"
+                    size={iconSize}
                     style={{ marginLeft: 10 }}
                     onPress={() => navigation.goBack()}
                   />

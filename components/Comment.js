@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native-web';
+import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
@@ -14,7 +14,7 @@ function Comment({threadId}) {
     const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://localhost:8080/createComment/${threadId}`, {commentText}, {
+            const response = await axios.post(`http://192.168.0.105:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -31,7 +31,7 @@ function Comment({threadId}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get(`http://localhost:8080/getComment/${threadId}`, {
+            const response = await axios.get(`http://192.168.0.105:8080/getComment/${threadId}`, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -39,8 +39,9 @@ function Comment({threadId}) {
             });
       
             const commentsData = response.data;
+            console.log(commentsData)
             if(commentsData === null || commentsData === undefined){
-                return null;
+                dispatch(setComments([]));
             } else {
                 dispatch(setComments(response.data));
             }
@@ -55,8 +56,8 @@ function Comment({threadId}) {
     }, []);
 
     return (
-        <View style={styles.container}>
-            <View style={styles.subcontainerEdit}>
+        <View style={styles.Container}>
+            <View style={styles.SubcontainerEdit}>
                 <TextInput 
                     value={commentText}
                     onChangeText={(text) => dispatch(setCommentText(text))}
@@ -64,15 +65,15 @@ function Comment({threadId}) {
                 />
                 <Button title="Submit" onPress={handleReduxSubmit}/>
             </View>
-            <View style={styles.subcontainerDisplay}>
+            <View style={styles.SubcontainerDisplay}>
                 {comments.map((item, i) => (
-                    <View  style={styles.commentBox} key={i}>
-                        <View style={styles.commentHeader}> 
-                            <Image style={styles.userAvatar} source='/home/pawan/Pictures' />
+                    <View  style={styles.CommentBox} key={i}>
+                        <View style={styles.CommentHeader}> 
+                            <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
                             <Text>{item.owner}</Text>
                         </View>
-                        <View style={styles.comment}>
-                            <Text style={styles.commentText}>{item.comment_text}</Text>
+                        <View style={styles.Comment}>
+                            <Text style={styles.CommentText}>{item.comment_text}</Text>
                         </View>
                     </View>
                 ))}
@@ -82,16 +83,16 @@ function Comment({threadId}) {
 }
 
 const styles = StyleSheet.create({
-    commentBox: {
+    CommentBox: {
         padding: 10,
 
     },
-    commentHeader: {
+    CommentHeader: {
         flexDirection: 'column',
         justifyContent: 'space-between'
     },
 
-    container: {
+    Container: {
       paddingTop: '10px',
       width: '100%',
       aspectRatio: 10/3,
@@ -99,20 +100,20 @@ const styles = StyleSheet.create({
       alignItems: 'left',
       paddingBottom: '40px'
     },
-    subcontainerEdit: {
+    SubcontainerEdit: {
         paddingTop: '20px',
         alignItems: 'left',
         paddingBottom: '20px',
         
     },
-    subcontainerDisplay:{
+    SubcontainerDisplay:{
         flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
         paddingBottom: '20px',
         paddingTop: '20px',
     },
-    userAvatar: {
+    UserAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
