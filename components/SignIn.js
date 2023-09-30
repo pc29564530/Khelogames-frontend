@@ -3,16 +3,25 @@ import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, B
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import {setAuthenticated, setUser} from '../redux/actions/actions';
 
 
+const api = axios.create({
+  baseURL: 'http://192.168.0.105:8080', // Update with your backend URL
+});
 
 
+const SignIn = () => {
+    
+  const dispatch = useDispatch();
 
-const SignIn = ({setIsAuthenticated}) => {
+    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const user = useSelector((state) => state.auth.user);
     const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [user, setUser] = useState();
+    // const [user, setUser] = useState();
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
     const [aexpire, setAExpire] = useState(null);
@@ -21,9 +30,9 @@ const SignIn = ({setIsAuthenticated}) => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        const response = await axios.post('http://localhost:8080/login', user);
+        console.log(user);
+        const response = await axios.post('http://192.168.0.105:8080/login', user);
         console.log(response.data); 
-        setUser(response.data);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -33,7 +42,9 @@ const SignIn = ({setIsAuthenticated}) => {
         setAccess(response.data.access_token);  
         setAExpire(response.data.access_token_expires_at)
         setRExpire(response.data.access_token_expires_at)
-        setIsAuthenticated(true);
+        dispatch(setAuthenticated(!isAuthenticated));
+        dispatch(setUser(response.data.user));
+        console.log("is login happen")
         navigation.navigate('Main')
        
       } catch (err) {
@@ -43,11 +54,11 @@ const SignIn = ({setIsAuthenticated}) => {
     
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
+      <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
         <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require("/home/pawan/projects/golang-project/khelogames-app/assets/images/Khelogames.png")}
+            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}
           />
         </View>
         <KeyboardAvoidingView >
@@ -81,7 +92,7 @@ const SignIn = ({setIsAuthenticated}) => {
                       style={{
                         color: 'gray',
                         marginVertical: 10,
-                        outlineStyle: 'none',
+                        // outlineStyle: 'none',
                         width: 300,
                         fontSize: username ? 16 : 16,
                       }}
@@ -104,7 +115,7 @@ const SignIn = ({setIsAuthenticated}) => {
                     value={password}
                     onChangeText={setPassword}
                     style={{
-                      outlineStyle: 'none',
+                      // outlineStyle: 'none',
                       color: "gray",
                       marginVertical: 10,
                       width: 300,
@@ -151,7 +162,7 @@ const SignIn = ({setIsAuthenticated}) => {
               }}>Create new account</Text>
             </TouchableOpacity>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
   );
 }
 

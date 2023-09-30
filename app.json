@@ -1,7 +1,7 @@
 {
-  "expo": {
-    "name": "khelogames-app",
-    "slug": "khelogames-app",
+ "react-native": {
+    "name": "khelogamesAapp",
+    "slug": "khelogamesAapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

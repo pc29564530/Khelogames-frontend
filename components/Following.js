@@ -1,25 +1,29 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Image, ScrollView} from 'react-native';
-// import {FollowingData} from '../data/following';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {useSelector,useDispatch} from 'react-redux';
+import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 
 function Following() {
-    const [following, setFollowing] = useState([]);
+    const dispatch = useDispatch()
+    const following = useSelector(state => state.user.following)
 
     const fetchFollowing = async () => {
-
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get('http://localhost:8080/getFollowing', {
+            const response = await axios.get('http://192.168.0.105:8080/getFollowing', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 }
             })
             const item = response.data;
-            console.log(item);
-            setFollowing(item);
+            if(item === null) {
+               dispatch(getFollowingUser([]));
+            } else {
+                dispatch(getFollowingUser(item));
+            }
         } catch (e) {
             console.error(e);
         }
@@ -30,12 +34,11 @@ function Following() {
     }, []);
     return (
         <ScrollView>
-             <View style={styles.container}>
+             <View style={styles.Container}>
                 {following.map((item, i) => (
-                    <View key={i} style={styles.subcontainer}>
-                        <Image style={styles.userAvatar} source={'/home/pawan'}  />
-                        <View  style={styles.profileData}>
-                            {/* <Text>{item.name}</Text> */}
+                    <View key={i} style={styles.Subcontainer}>
+                        <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}  />
+                        <View  style={styles.ProfileData}>
                             <Text>{item}</Text>
                         </View>
                     </View>
@@ -46,10 +49,10 @@ function Following() {
 }
 
 const styles = StyleSheet.create({
-    profileData: {
+    ProfileData: {
 
     },
-    subcontainer: {
+    Subcontainer: {
         width: '100%',
         height: 50,
         padding: 20,
@@ -60,14 +63,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         marginBottom: 4
       },
-    userAvatar: {
+    UserAvatar: {
         marginRight: 10,
         width: 20,
         height: 20,
         borderRadius: 20,
         backgroundColor: 'grey',
       },
-    container: {
+    Container: {
         flex: 1,
         justifyContent: 'left',
         alignItems: 'left',

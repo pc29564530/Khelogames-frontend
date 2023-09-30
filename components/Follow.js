@@ -11,9 +11,6 @@ const TopTab = createMaterialTopTabNavigator();
 
 function Follow() {
 
-    // const [followerData, setFollowerData] = useState([]);
-    // const [followingData, setFollowingData] = useState([]);
-
 
     return (
         <TopTab.Navigator>
@@ -26,44 +23,7 @@ function Follow() {
                 component={Following}
             />
         </TopTab.Navigator>
-        // <View style={styles.container}>
-        //     <View style={styles.followHeader}>
-        //         <TouchableOpacity style={styles.followBlock} onPress={() => handleFollower()}>
-        //             <Text>0 </Text>
-        //             <Text>Followers</Text>
-        //         </TouchableOpacity>
-        //         <TouchableOpacity style={styles.followBlock} onPress={() => handleFollowing()}>
-        //             <Text>0 </Text>
-        //             <Text>Following</Text>
-        //         </TouchableOpacity>
-        //     </View>
-        //     <Text style={{
-        //         borderBottomColor: 'black',
-        //         borderBottomWidth: 'StyleSheet.hairlineWidth',
-        //         }}
-        //     />
-        // </View>
     );
 }
-
-const styles = StyleSheet.create({
-    followHeader: {
-        flexDirection: 'row',
-    }, 
-    followBlock: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignContent: 'center',
-      alignItems: 'center',
-
-    },
-    container: {
-      paddingTop: '10px',
-      flex: 1,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    
-  });
 
 export default Follow;

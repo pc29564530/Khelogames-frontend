@@ -1,86 +1,82 @@
 import React, { useEffect, useState } from 'react';
 import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView} from 'react-native';
-import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
-import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
-import ReplyIcon from '@mui/icons-material/Reply';
 import Comment from './Comment';
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import KhelogamesLogo from '../assets/images/Khelogames.png';
-import { useNavigation } from '@react-navigation/native';
+import {useSelector, useDispatch} from 'react-redux';
+import {setThreads, setLikes} from '../redux/actions/actions';
+import axios from 'axios';
 
 function ThreadComment ({route}) {
     const { item, itemId } = route.params;
-    const [showComment, setShowComment] = useState({});
     const axiosInstance = useAxiosInterceptor();
-    console.log(axiosInstance);
-
-
-    const handleError = () => {
-      setImageError(true);
-    }
-
-    const handleComment = (id) => {
-        setShowComment(prevState => ({ ...prevState, [id]: !prevState[id]}));
-    }
+    const dispatch = useDispatch();
 
     const handleLikes = async (id) => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await fetch(`http://localhost:8080/update_like/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        } );
-        const item = response.json();
-        console.log(item);
+        const headers = {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        }
+
+        const response = await axios.put(`http://192.168.0.105:8080/update_like/${id}`, null, {headers} );
+        console.log(response.data.like_count);
+        if(response.status === 200) {
+          const newLikesCount = response.data.like_count;
+          console.log(newLikesCount);
+          dispatch(setLikes(id, newLikesCount))
+        }
+        const item = response.data;
+        console.log(item)
       } catch (error) {
         console.error(error);
       }
 
     }
+
+    const iconSize = 30
   
     return (
-        <View style={styles.container}>
-                <View style={styles.contentContainer}>
-                    <View style={styles.header}>
-                      <Image source={KhelogamesLogo} style={styles.userImage} />
+        <View style={styles.Container}>
+                <View style={styles.ContentContainer}>
+                    <View style={styles.Header}>
+                      <Image source={KhelogamesLogo} style={styles.UserImage} />
                       <View>
-                        <Text style={styles.userName}>{item.username}</Text>
-                        <Text style={styles.position}>{item.timestamp}</Text>
+                        <Text style={styles.UserName}>{item.username}</Text>
+                        <Text style={styles.Position}>{item.timestamp}</Text>
                       </View>
                     </View>
-                    <Text style={styles.content}>{item.content}</Text>
+                    <Text style={styles.Content}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
-                        style={styles.postImage}
+                        style={styles.PostImage}
                         source={{ uri: item.media_url }}
                       />
                     )}
-                    <View style={styles.likeCount}>
+                    <View style={styles.LikeCount}>
                       <Text style={styles.likeText}>{item.like_count} Likes</Text>
                     </View>
-                    <View style={styles.footer}>
+                    <View style={styles.Footer}>
                       <Pressable  onPress={() => handleLikes(item.id)}>
                       <FontAwesome 
                            name="thumbs-o-up"
-                           style={styles.footerButton}
-                           size='21'
+                           style={styles.FooterButton}
+                           size={iconSize}
                         /> 
                       </Pressable>
                       <Pressable onPress={() => handleComment(item.id)}>
                         <FontAwesome 
                            name="comment-o"
-                           style={styles.footerButton}
-                           size='21'
+                           style={styles.FooterButton}
+                           size={iconSize}
                         />  
                       </Pressable>
                     </View>
-                    <View>
-                      {showComment[item.id] &&  <Comment  threadId = {item.id} /> }
+                    <View style={{marginTop: 20}}>
+                      <Comment  threadId = {item.id} />
                     </View>
               </View>
              </View>
@@ -88,55 +84,57 @@ function ThreadComment ({route}) {
   };
 
   const styles = StyleSheet.create({
-    container: {
+    Container: {
+      color: 'lightgrey',
       maxWidth: 500,
       width: '100%',
       alignSelf: 'center',
+      flex: 1,
     },
-    contentContainer: {
-      marginBottom: '3px',
+    ContentContainer: {
+      marginTop: '1.5px',
+      marginBottom: '1.5px',
       backgroundColor: 'white',
     },
-    header: {
+    Header: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 10,
     },
-    userImage: {
+    UserImage: {
       width: 50,
       aspectRatio: 1,
       borderRadius: 25,
       backgroundColor: 'red'
     },
-    userName: {
+    UserName: {
       fontWeight: '600',
       marginBottom: 5,
       padding: 10
     },
-    position: {
+    Position: {
       fontSize: 12,
       color: 'grey',
     },
-    content: {
+    Content: {
       margin: 10,
       marginTop: 0,
     },
-    postImage: {
+    PostImage: {
       width: '100%',
       aspectRatio: 1,
     },
-    likeCount: {
+    LikeCount: {
       padding: 10,
     },
-    footer: {
+    Footer: {
       flexDirection: 'row',
       justifyContent: 'space-around',
       paddingVertical: 10,
       borderTopWidth: 1,
       borderColor: 'lightgray',
-      marginBotom: '10px',
     },
-    footerButton: {
+    FooterButton: {
       flexDirection: 'row',
       alignItems: 'center',
       fontSize: 18

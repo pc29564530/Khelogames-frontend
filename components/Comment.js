@@ -1,74 +1,79 @@
 import React, {useState, useEffect} from 'react';
-import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native-web';
+import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addComments, setComments, setCommentText } from '../redux/actions/actions';
+import { useSelector, useDispatch } from 'react-redux';
 
 function Comment({threadId}) {
-    const [commentText, setCommentText] = useState('');
-    const [threadComment, setThreadComment] = useState([]);
+    const dispatch = useDispatch();
+    const comments = useSelector((state) => state.comments.comments)
+    const commentText = useSelector((state) => state.comments.commentText)
 
-    const handleSubmit = async () => {
+
+    const handleReduxSubmit = async () => {
         try {
-
-            const text = {
-                commentText: commentText,
-            }
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://localhost:8080/createComment/${threadId}`,text, {
+            const response = await axios.post(`http://192.168.0.105:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
                 }
             })
-            setCommentText(response.data);
+            dispatch(addComments(response.data));
+
         } catch (e) {
             console.error(e);
         }
     }
 
-    const fetchThreadComment = async () => {
-        try {
+    //Implementing redux
+    const fetchThreadComments = async () => {
+          try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get(`http://localhost:8080/getComment/${threadId}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            if(response.data === null) {
-                setThreadComment([]);
+            const response = await axios.get(`http://192.168.0.105:8080/getComment/${threadId}`, {
+              headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
+            });
+      
+            const commentsData = response.data;
+            console.log(commentsData)
+            if(commentsData === null || commentsData === undefined){
+                dispatch(setComments([]));
             } else {
-                setThreadComment(response.data);
+                dispatch(setComments(response.data));
             }
-            
-        } catch (e) {
-            console.error(e);
-        }
-    }
+          } catch (error) {
+            console.error('Error fetching comments:', error);
+          }
+      };
+      
 
     useEffect(() => {
-            fetchThreadComment();   
+            fetchThreadComments();   
     }, []);
 
     return (
-        <View style={styles.container}>
-            <View style={styles.subcontainerEdit}>
+        <View style={styles.Container}>
+            <View style={styles.SubcontainerEdit}>
                 <TextInput 
                     value={commentText}
-                    onChangeText={setCommentText}
+                    onChangeText={(text) => dispatch(setCommentText(text))}
                     placeholder="Write a comment..."
                 />
-                <Button title="Submit" onPress={handleSubmit}/>
+                <Button title="Submit" onPress={handleReduxSubmit}/>
             </View>
-            <View style={styles.subcontainerDisplay}>
-                {threadComment.map((item, i) => (
-                    <View  style={styles.commentBox} key={i}>
-                        <View style={styles.commentHeader}> 
-                            <Image style={styles.userAvatar} source='/home/pawan/Pictures' />
+            <View style={styles.SubcontainerDisplay}>
+                {comments.map((item, i) => (
+                    <View  style={styles.CommentBox} key={i}>
+                        <View style={styles.CommentHeader}> 
+                            <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
                             <Text>{item.owner}</Text>
                         </View>
-                        <View style={styles.comment}>
-                            <Text style={styles.commentText}>{item.comment_text}</Text>
+                        <View style={styles.Comment}>
+                            <Text style={styles.CommentText}>{item.comment_text}</Text>
                         </View>
                     </View>
                 ))}
@@ -78,34 +83,37 @@ function Comment({threadId}) {
 }
 
 const styles = StyleSheet.create({
-    commentBox: {
+    CommentBox: {
         padding: 10,
 
     },
-    commentHeader: {
+    CommentHeader: {
         flexDirection: 'column',
         justifyContent: 'space-between'
     },
 
-    container: {
+    Container: {
       paddingTop: '10px',
       width: '100%',
       aspectRatio: 10/3,
       justifyContent: 'space-between',
       alignItems: 'left',
+      paddingBottom: '40px'
     },
-    subcontainerEdit: {
+    SubcontainerEdit: {
         paddingTop: '20px',
         alignItems: 'left',
         paddingBottom: '20px',
+        
     },
-    subcontainerDisplay:{
+    SubcontainerDisplay:{
         flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
         paddingBottom: '20px',
+        paddingTop: '20px',
     },
-    userAvatar: {
+    UserAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
