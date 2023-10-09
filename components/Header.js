@@ -4,6 +4,7 @@ import { useNavigation,  } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 function Header () {
     const navigation = useNavigation()
@@ -31,7 +32,7 @@ function Header () {
                     style={styles.IconStyles}    
                 />
                 <TouchableOpacity style={styles.UserAvatar}  onPress={handleAccount}>
-                    <Image style={styles.UserAvatar}    source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                    <Image style={styles.UserAvatar}    source={logoPath} />
                 </TouchableOpacity>
             </View>
         </View> 

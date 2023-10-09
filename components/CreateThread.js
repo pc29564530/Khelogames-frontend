@@ -10,7 +10,7 @@ import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native'
-import Video from 'react-native-video';
+// import Video from 'react-native-video';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);

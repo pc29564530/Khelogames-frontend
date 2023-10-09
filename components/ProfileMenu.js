@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 function ProfileMenu(){
     const dispatch = useDispatch();
@@ -18,9 +19,12 @@ function ProfileMenu(){
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
      
-    const handleLogout =  () => {
+    const handleLogout =  async () => {
         try {
             dispatch(logout());
+            await AsyncStorage.removeItem('AccessToken');
+            await AsyncStorage.removeItem('RefreshToken');
+            
             navigation.navigate('SignIn'); 
         } catch (err) {
             console.log('Failed to logout', err);
@@ -116,7 +120,7 @@ function ProfileMenu(){
     return (
         <View style={styles.Container}>
               <View style={styles.ProfileHeader}>
-                <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                <Image style={styles.UserAvatar} source={logoPath} />
                 <Text style={styles.FullName}>{currentUser}</Text>
                 <Text style={styles.Username}>@{currentUser}</Text>
                 <View style={styles.FollowRow}>
