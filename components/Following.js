@@ -4,6 +4,10 @@ import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+<<<<<<< Updated upstream
+=======
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+>>>>>>> Stashed changes
 
 function Following() {
     const dispatch = useDispatch()

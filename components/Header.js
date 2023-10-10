@@ -4,6 +4,10 @@ import { useNavigation,  } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
+<<<<<<< Updated upstream
+=======
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+>>>>>>> Stashed changes
 
 function Header () {
     const navigation = useNavigation()

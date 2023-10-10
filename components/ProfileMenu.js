@@ -5,7 +5,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+<<<<<<< Updated upstream
 
+=======
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+>>>>>>> Stashed changes
 function ProfileMenu(){
     const dispatch = useDispatch();
     const navigation = useNavigation();

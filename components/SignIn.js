@@ -5,7 +5,11 @@ import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
+<<<<<<< Updated upstream
 
+=======
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+>>>>>>> Stashed changes
 
 const api = axios.create({
   baseURL: 'http://192.168.0.105:8080', // Update with your backend URL
