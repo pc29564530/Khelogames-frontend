@@ -58,7 +58,7 @@ const SignIn = () => {
         <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}
+            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}	
           />
         </View>
         <KeyboardAvoidingView >

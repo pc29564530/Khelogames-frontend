@@ -28,7 +28,7 @@ const Thread = () => {
           'Content-Type': 'application/json',
         }
 
-        const response = await axiosInstance.put(`http://192.168.0.105:8080/update_like/${id}`, null, {headers} );
+        const response = await axios.put(`http://192.168.0.105:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;
@@ -44,12 +44,13 @@ const Thread = () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log(authToken); 
-        const response = await axiosInstance.get('http://192.168.0.105:8080/all_threads', {
+        const response = await axios.get('http://192.168.0.105:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         });
+        console.log(response.data)
         const item = response.data;
         if(item === null){
           dispatch(setThreads([]))
@@ -71,6 +72,7 @@ const Thread = () => {
         const response = await axiosInstance.get(`http://192.168.0.105:8080/user/${username}` )
         console.log(response)
         navigation.navigate('ProfileMenu', { username: response.data.username });
+
       } catch (err) {
         console.error(err);
       }

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, Pressable, TouchableOpacity, Image, Video} from 'react-native';
+import {View, Text, TextInput, Button, StyleSheet, Pressable, TouchableOpacity, Image} from 'react-native';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -8,6 +8,36 @@ import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
+import  RFNS from 'react-native-fs';
+import {PermissionsAndroid} from 'react-native'
+// import Video from 'react-native-video';
+
+function getMediaTypeFromURL(url) {
+  const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
+  if (fileExtensionMatch) {
+    const fileExtension = fileExtensionMatch[1].toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
+    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+
+    if (imageExtensions.includes(fileExtension)) {
+      return 'image';
+    } else if (videoExtensions.includes(fileExtension)) {
+      return 'video';
+    }
+  }
+}
+
+
+const fileToBase64 = async (filePath) => {
+  try {
+    const fileContent = await RFNS.readFile(filePath, 'base64');
+    return fileContent;
+  } catch (error) {
+    console.error('Error converting image to Base64:', error);
+    return null;
+  }
+};
+
 function CreateThread({navigation}) {
 
     const dispatch = useDispatch();
@@ -20,41 +50,38 @@ function CreateThread({navigation}) {
 
     const SelectMedia =  async () => {
 
-        // const response = await ImagePicker.launchImageLibraryAsync({
-        //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        //     allowsEditing: false,
-        //   });
-    
-        //   if (!response.canceled) {
-        //     setMediaType('image');
-        //     setMediaURL(response.uri);
-        //   }
-
-        // console.log("line no 19")
         let options = { 
             noData: true,
-            mediaType: 'photo',
+            mediaType: 'mixed',
         }
         
-        launchImageLibrary(options, res => {
+         launchImageLibrary(options, async (res) => {
+          console.log("lin no 82 created image library")
+          
             if (res.didCancel) {
                 console.log('User cancelled photo picker');
               } else if (res.error) {
                 console.log('ImagePicker Error: ', response.error);
               } else {
-                let source = {uri: res.assets[0].uri};
-                const dataType = GetDataTypeFromDataURI(source.uri);
-                console.log(dataType)
-                if(dataType === 'image') {
-                  setMediaType('image');
-                  setMediaURL(source.uri);
-                }  else if(dataType === 'video') {
-                  console.log(source.uri)
-                  setMediaType('video');
-                  setMediaURL(source.uri);
-                  console.log("hello India")
+                console.log(res.assets[0].uri);
+                const type = getMediaTypeFromURL(res.assets[0].uri);
+                console.log(type)
+                // const base64Image = await fileToBase64(res.assets[0].uri);
+                console.log("line no 89 create thread")
+                // console.log(base64Image)
+
+                if(type === 'image' || type === 'video') {
+                  const base64File = await fileToBase64(res.assets[0].uri);
+                  setMediaURL(base64File)
+                  setMediaType(type);
+                } else {
+                  console.log('unsupported media type:', type);
                 }
-                setLikeCount(0)
+
+                
+                // console.log(type)
+                // setMediaType(type);
+                setLikeCount(0) 
               }
           });
     };
@@ -69,15 +96,16 @@ function CreateThread({navigation}) {
                 likeCount: likeCount,
             };
 
+            // console.log(thread);
+            // console.log("line no 74 create thread")
+
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axios.post('http://192.168.0.105:8080/create_thread', thread, {
+            await axios.post('http://192.168.0.105:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             });
-            dispatch(addThreads(response.data));
-            console.log(response.data)
             navigation.navigate('Home');
         } catch (e) {
             console.error(e);
@@ -97,29 +125,20 @@ function CreateThread({navigation}) {
                     placeholder="Enter body..."
                 />
             </View>
-            
-            {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
-            {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
-            
             <Text style={styles.FileUploadButton} onPress={SelectMedia} >
                 <FontAwesome name="upload" size={25} color="#900" /> 
             </Text>
+            
+            {mediaType === 'image' && 
+              <Image source={{uri: mediaURL}} />
+            }
+            {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
+            
+            
             <Button onPress={HandleSubmit} title="Submit"/>
             
         </View>
     );
-}
-
-function GetDataTypeFromDataURI(dataURI) {
-  // Regular expression to match the data type in the Data URI
-  const regex = /^data:(image|video)\/[a-zA-Z]+;/;
-  const match = dataURI.match(regex);
-
-  if (match && match[1]) {
-    return match[1]; // Returns "image" or "video" if matched
-  }
-
-  return null; // If no match is found or if the match is invalid
 }
 
 

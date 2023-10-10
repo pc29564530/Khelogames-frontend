@@ -4,6 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 function Comment({threadId}) {
     const dispatch = useDispatch();
@@ -69,7 +70,7 @@ function Comment({threadId}) {
                 {comments.map((item, i) => (
                     <View  style={styles.CommentBox} key={i}>
                         <View style={styles.CommentHeader}> 
-                            <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                            <Image style={styles.UserAvatar} source={logoPath} />
                             <Text>{item.owner}</Text>
                         </View>
                         <View style={styles.Comment}>

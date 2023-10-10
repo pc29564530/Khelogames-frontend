@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {View, Text, Image, StyleSheet,ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-
-
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 function Follower() {
 
@@ -42,7 +40,7 @@ function Follower() {
             <View style={styles.Container}>
                 {follower.map((item, i) => (
                     <View key={i} style={styles.Subcontainer}>
-                        <Image style={styles.UserAvatar} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}  />
+                        <Image style={styles.UserAvatar} source={logoPath}  />
                         <View  style={styles.ProfileData}>
                             {/* <Text>{item.name}</Text> */}
                             <Text>{item}</Text>
