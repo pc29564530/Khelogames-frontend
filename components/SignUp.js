@@ -7,7 +7,8 @@ import { Input, Icon } from '@rneui/themed';
 import { useSelector, useDispatch } from 'react-redux';
 import { sendOTP, verifyOTP } from '../redux/actions/actions';
 import { setMobileNumber } from '../redux/actions/actions'; 
-import logoPath from '~/Khelogames/assets/images/Khelogames.png';
+
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function  SignUp() {
     const dispatch = useDispatch();

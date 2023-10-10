@@ -4,7 +4,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
-import logoPath from '~/Khelogames/assets/images/Khelogames.png';
+
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Comment({threadId}) {
     const dispatch = useDispatch();

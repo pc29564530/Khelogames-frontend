@@ -5,7 +5,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
-import logoPath from '~/Khelogames/assets/images/Khelogames.png';
+
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function ProfileMenu(){
     const dispatch = useDispatch();

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {View, Text, Image, StyleSheet,ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import logoPath from '~/Khelogames/assets/images/Khelogames.png';
+
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Follower() {
 

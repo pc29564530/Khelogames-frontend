@@ -4,7 +4,8 @@ import { useNavigation,  } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
-import logoPath from '~/Khelogames/assets/images/Khelogames.png';
+
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Header () {
     const navigation = useNavigation()
