@@ -4,10 +4,8 @@ import { useNavigation,  } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
-<<<<<<< Updated upstream
-=======
+
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
 
 function Header () {
     const navigation = useNavigation()
@@ -35,7 +33,7 @@ function Header () {
                     style={styles.IconStyles}    
                 />
                 <TouchableOpacity style={styles.UserAvatar}  onPress={handleAccount}>
-                    <Image style={styles.UserAvatar}    source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                    <Image style={styles.UserAvatar}    source={logoPath} />
                 </TouchableOpacity>
             </View>
         </View> 

@@ -2,12 +2,9 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
-<<<<<<< Updated upstream
 
-
-=======
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
+
 
 function CreateCommunity () {
     const [communityName, setCommunityName] = useState('');
@@ -71,8 +68,11 @@ function Community () {
                 },
             })
             const item = await response.json();
-            // const item = await response.data;
-            setData(item)
+            if(item == null) {
+                setData([]);
+            } else {
+                setData(item);
+            }
             console.log(item);
         } catch (err) {
             console.error(err);
@@ -93,7 +93,7 @@ function Community () {
             <View style={styles.ViewContainer}>
                 {data.map((item,i) => (
                     <View style={styles.SubViewBox} key={i}>
-                        <Image style={styles.DisplayImage} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+                        <Image style={styles.DisplayImage} source={logoPath} />
                         <View style={styles.ViewBox}>
                             <Text style={styles.CommunityName}>{item.communities_name}</Text>
                             <Text style={styles.CommunityDescription}>{item.description}</Text>

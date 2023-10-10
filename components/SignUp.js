@@ -7,11 +7,8 @@ import { Input, Icon } from '@rneui/themed';
 import { useSelector, useDispatch } from 'react-redux';
 import { sendOTP, verifyOTP } from '../redux/actions/actions';
 import { setMobileNumber } from '../redux/actions/actions'; 
-<<<<<<< Updated upstream
 
-=======
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
 
 function  SignUp() {
     const dispatch = useDispatch();
@@ -50,7 +47,7 @@ function  SignUp() {
 
     return (
       <View style={styles.Container}>
-        <Image style={styles.ImageBox} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+        <Image style={styles.ImageBox} source={logoPath} />
         <View style={styles.Middle}>
           <Text style={styles.LoginText}>Sign Up</Text>
         </View>
