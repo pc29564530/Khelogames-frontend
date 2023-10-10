@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 
 const api = axios.create({
@@ -58,7 +59,7 @@ const SignIn = () => {
         <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}	
+            source={logoPath}	
           />
         </View>
         <KeyboardAvoidingView >

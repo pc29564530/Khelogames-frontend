@@ -6,7 +6,8 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { Input, Icon } from '@rneui/themed';
 import { useSelector, useDispatch } from 'react-redux';
 import { sendOTP, verifyOTP } from '../redux/actions/actions';
-import { setMobileNumber } from '../redux/actions/actions'; 
+import { setMobileNumber } from '../redux/actions/actions';
+import logoPath from '~/Khelogames/assets/images/Khelogames.png';
 
 
 function  SignUp() {
@@ -46,7 +47,7 @@ function  SignUp() {
 
     return (
       <View style={styles.Container}>
-        <Image style={styles.ImageBox} source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')} />
+        <Image style={styles.ImageBox} source={logoPath} />
         <View style={styles.Middle}>
           <Text style={styles.LoginText}>Sign Up</Text>
         </View>
