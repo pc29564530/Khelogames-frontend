@@ -34,32 +34,7 @@ const threadsReducers = (state=initialState, action) => {
                 ...state,
                 threads: [...state.threads, action.payload]
             }
-        // to work on toggle likes
-        // case actionTypes.TOGGLE_LIKES:
-        //     const checkLiked = state.threads.map(thread => {
-        //         if(thread.id === actionTypes.payload.threadId) {
-        //             return {
-        //                 ...thread,
-        //                 isLikes: action.payload.isLikes
-        //             }
-        //         }
-        //     })
-        // case actionTypes.SET_COMMENTS:
-        //     const comment = state.comments.map(comment => {
-        //         if(comment.thread_id === actionTypes.payload.threadId) {
-        //             console.log(comment.thread_id)
-        //             console.log(action.payload.threadId)
-        //             return {
-        //                 ...comment,
-        //                 comments: action.payload
-        //             }
-        //         }
-        //         return comment
-        //     })
-        //     return {
-        //         ...state,
-        //         comments: comment
-        //     }
+        // to be implemented likes array size instead of count that will contain the username only one user can like at one time a post
         default: 
             return state
     }

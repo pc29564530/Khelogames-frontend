@@ -16,7 +16,7 @@ function Comment({threadId}) {
     const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://192.168.0.105:8080/createComment/${threadId}`, {commentText}, {
+            const response = await axios.post(`http://192.168.0.107:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -33,7 +33,7 @@ function Comment({threadId}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get(`http://192.168.0.105:8080/getComment/${threadId}`, {
+            const response = await axios.get(`http://192.168.0.107:8080/getComment/${threadId}`, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',

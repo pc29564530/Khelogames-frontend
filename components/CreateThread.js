@@ -10,7 +10,7 @@ import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native'
-// import Video from 'react-native-video';
+import Video from 'react-native-video';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -46,7 +46,7 @@ function CreateThread({navigation}) {
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [likeCount, setLikeCount] = useState(0);
-    // const [videoURL, setVideoURL] = useState('');
+    const threads = useSelector(state => state.threads.threads)
 
     const SelectMedia =  async () => {
 
@@ -63,13 +63,8 @@ function CreateThread({navigation}) {
               } else if (res.error) {
                 console.log('ImagePicker Error: ', response.error);
               } else {
-                console.log(res.assets[0].uri);
                 const type = getMediaTypeFromURL(res.assets[0].uri);
-                console.log(type)
-                // const base64Image = await fileToBase64(res.assets[0].uri);
-                console.log("line no 89 create thread")
-                // console.log(base64Image)
-
+                
                 if(type === 'image' || type === 'video') {
                   const base64File = await fileToBase64(res.assets[0].uri);
                   setMediaURL(base64File)
@@ -77,10 +72,6 @@ function CreateThread({navigation}) {
                 } else {
                   console.log('unsupported media type:', type);
                 }
-
-                
-                // console.log(type)
-                // setMediaType(type);
                 setLikeCount(0) 
               }
           });
@@ -96,16 +87,18 @@ function CreateThread({navigation}) {
                 likeCount: likeCount,
             };
 
-            // console.log(thread);
-            // console.log("line no 74 create thread")
-
             const authToken = await AsyncStorage.getItem('AccessToken');
-            await axios.post('http://192.168.0.105:8080/create_thread', thread, {
+            const response = await axios.post('http://192.168.0.107:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             });
+            if(response.data === null || response.data === undefined) {
+              dispatch(addThreads([]));
+            } else {
+              dispatch(addThreads(response.data));
+            }
             navigation.navigate('Home');
         } catch (e) {
             console.error(e);
@@ -129,12 +122,8 @@ function CreateThread({navigation}) {
                 <FontAwesome name="upload" size={25} color="#900" /> 
             </Text>
             
-            {mediaType === 'image' && 
-              <Image source={{uri: mediaURL}} />
-            }
+            {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
-            
-            
             <Button onPress={HandleSubmit} title="Submit"/>
             
         </View>

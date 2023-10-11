@@ -12,7 +12,6 @@ const axiosInstance = axios.create();
 
 function useAxiosInterceptor() {
     const navigation = useNavigation();
-    console.log("line no 15")
     useEffect(() => {
 
         axiosInstance.interceptors.request.use(
@@ -22,8 +21,6 @@ function useAxiosInterceptor() {
                 if (accessToken) {
                     config.headers['Authorization'] =  `Bearer ${accessToken}`;
                 }
-                console.log(accessToken)
-                // console.log(config);
         
                 return config;
             },
@@ -39,23 +36,10 @@ function useAxiosInterceptor() {
             
         
             async (error) => {
-                console.log("line no 42")
                 if (error.response && error.response.status === 401){
-                    console.log("line no 44")
                     try {
-                        console.log("line no 46")
                         const autoData = await AsyncStorage.getItem('RefreshToken');
-                        console.log("line no 48");
-                        // const refresh_token = refreshToken
-                        // console.log(refresh_token)
-                        // const authToken = await AsyncStorage.getItem('AccessToken');
-                        // const headers = {
-                        // 'Authorization': `Bearer ${authToken}`,
-                        // 'Content-Type': 'application/json',
-                        // }
-                        console.log(autoData)
-                        const response  = await axios.post('http://192.168.0.105:8080/tokens/renew_access', {'refresh_token': autoData} );
-                        console.log(response.data.access_token)
+                        const response  = await axios.post('http://1192.168.0.107:8080/tokens/renew_access', {'refresh_token': autoData} );
 
                         if(response.data.access_token) {
                             await AsyncStorage.setItem('AccessToken', response.data.access_token)

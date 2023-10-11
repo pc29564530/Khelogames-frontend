@@ -58,7 +58,7 @@ function ProfileMenu(){
         console.log("line no 790")
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axios.delete(
-          `http://192.168.0.105:8080/unFollow/${following_owner}`,
+          `http://10.0.2.2:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -86,7 +86,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axios.get('http://192.168.0.105:8080/getFollowing', {
+        const response = await axios.get('http://192.168.0.107:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
