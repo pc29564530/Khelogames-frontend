@@ -22,7 +22,6 @@ const SignIn = () => {
     const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    // const [user, setUser] = useState();
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
     const [aexpire, setAExpire] = useState(null);
@@ -31,9 +30,7 @@ const SignIn = () => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        console.log(user);
         const response = await axios.post('http://192.168.0.107:8080/login', user);
-        console.log(response.data); 
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -45,7 +42,6 @@ const SignIn = () => {
         setRExpire(response.data.access_token_expires_at)
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(response.data.user));
-        console.log("is login happen")
         navigation.navigate('Main')
        
       } catch (err) {

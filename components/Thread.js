@@ -50,7 +50,6 @@ const Thread = () => {
             'Content-Type': 'application/json',
           },
         });
-        console.log(response.data)
         const item = response.data;
         if(item === null){
           dispatch(setThreads([]))
