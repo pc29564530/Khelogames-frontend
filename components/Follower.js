@@ -13,7 +13,7 @@ function Follower() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axios.get(`http://192.168.0.105:8080/getFollower`, {
+            const response = await axios.get(`http://192.168.0.107:8080/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

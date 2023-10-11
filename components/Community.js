@@ -17,7 +17,7 @@ function CreateCommunity () {
         try {
             const community = {communityName, description, communityType};
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axios.post('http://192.168.0.105:8080/communities', community, {
+            const response  = await axios.post('http://192.168.0.107:8080/communities', community, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ function Community () {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await fetch(`http://192.168.0.105:8080/get_all_communities/${user}`, {
+            const response = await fetch(`http://192.168.0.107:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

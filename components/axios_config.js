@@ -54,7 +54,7 @@ function useAxiosInterceptor() {
                         // 'Content-Type': 'application/json',
                         // }
                         console.log(autoData)
-                        const response  = await axios.post('http://192.168.0.105:8080/tokens/renew_access', {'refresh_token': autoData} );
+                        const response  = await axios.post('http://1192.168.0.107:8080/tokens/renew_access', {'refresh_token': autoData} );
                         console.log(response.data.access_token)
 
                         if(response.data.access_token) {

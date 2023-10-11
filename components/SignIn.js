@@ -32,7 +32,7 @@ const SignIn = () => {
       try {
         const user = {username, password}
         console.log(user);
-        const response = await axios.post('http://192.168.0.105:8080/login', user);
+        const response = await axios.post('http://192.168.0.107:8080/login', user);
         console.log(response.data); 
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);

@@ -10,7 +10,7 @@ import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native'
-// import Video from 'react-native-video';
+import Video from 'react-native-video';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -63,7 +63,7 @@ function CreateThread({navigation}) {
               } else if (res.error) {
                 console.log('ImagePicker Error: ', response.error);
               } else {
-                console.log(res.assets[0].uri);
+                // console.log(res.assets[0].uri);
                 const type = getMediaTypeFromURL(res.assets[0].uri);
                 console.log(type)
                 // const base64Image = await fileToBase64(res.assets[0].uri);
@@ -100,7 +100,7 @@ function CreateThread({navigation}) {
             // console.log("line no 74 create thread")
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            await axios.post('http://192.168.0.105:8080/create_thread', thread, {
+            const response = await axios.post('http://192.168.0.107:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

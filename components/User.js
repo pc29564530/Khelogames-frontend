@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
         try {
           const newAccount = {username, mobileNumber, password};
           console.log(newAccount)
-          const response = await axios.post('http://192.168.0.105:8080/users', newAccount)
+          const response = await axios.post('http://192.168.0.107:8080/users', newAccount)
           setIsAuthenticated(true);
           navigation.navigate('Home');
           console.log(response.data);

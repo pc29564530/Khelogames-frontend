@@ -14,7 +14,7 @@ function Following() {
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get('http://192.168.0.105:8080/getFollowing', {
+            const response = await axios.get('http://192.168.0.107:8080/getFollowing', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
