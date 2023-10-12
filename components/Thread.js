@@ -28,7 +28,7 @@ const Thread = () => {
           'Content-Type': 'application/json',
         }
 
-        const response = await axios.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
+        const response = await axiosInstance.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;
@@ -44,7 +44,7 @@ const Thread = () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log(authToken); 
-        const response = await axios.get('http://192.168.0.107:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.107:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',

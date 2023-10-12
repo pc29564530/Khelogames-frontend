@@ -4,10 +4,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
-
+import useAxiosInterceptor from './axios_config';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Comment({threadId}) {
+    const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const comments = useSelector((state) => state.comments.comments)
     const commentText = useSelector((state) => state.comments.commentText)
@@ -16,7 +17,7 @@ function Comment({threadId}) {
     const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`http://192.168.0.107:8080/createComment/${threadId}`, {commentText}, {
+            const response = await axiosInstance.post(`http://192.168.0.107:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -33,7 +34,7 @@ function Comment({threadId}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get(`http://192.168.0.107:8080/getComment/${threadId}`, {
+            const response = await axiosInstance.get(`http://192.168.0.107:8080/getComment/${threadId}`, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal, StyleSheet, TouchableOpacity, Image, Button} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
+import useAxiosInterceptor from './axios_config';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 
@@ -11,7 +12,7 @@ const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/image
 function ProfileMenu(){
     const dispatch = useDispatch();
     const navigation = useNavigation();
-
+    const axiosInstance = useAxiosInterceptor();
     const route = useRoute();
     const following_owner  = route.params?.username
 
@@ -22,10 +23,12 @@ function ProfileMenu(){
      
     const handleLogout =  async () => {
         try {
+            const username = await AsyncStorage.getItem('User')
+            await axiosInstance.delete(`http://192.168.0.107:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
-            
+            await AsyncStorage.removeItem('User');
             navigation.navigate('SignIn'); 
         } catch (err) {
             console.log('Failed to logout', err);
@@ -35,8 +38,8 @@ function ProfileMenu(){
     const handleReduxFollow = async () => {
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axios.post(
-            `http://192.168.0.105:8080/create_follow/${following_owner}`,
+          const response = await axiosInstance.post(
+            `http://192.168.0.107:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -55,10 +58,9 @@ function ProfileMenu(){
     }
     const handleReduxUnFollow = async () => {
       try {
-        console.log("line no 790")
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axios.delete(
-          `http://10.0.2.2:8080/unFollow/${following_owner}`,
+        const response = await axiosInstance.delete(
+          `http://192.168.0.107:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -86,7 +88,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axios.get('http://192.168.0.107:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.107:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',

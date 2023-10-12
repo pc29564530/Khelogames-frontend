@@ -22,7 +22,7 @@ function ThreadComment ({route}) {
           'Content-Type': 'application/json',
         }
 
-        const response = await axios.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
+        const response = await axiosInstance.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;

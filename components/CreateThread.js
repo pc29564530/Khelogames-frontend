@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native'
 import Video from 'react-native-video';
+import useAxiosInterceptor from './axios_config';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -39,7 +40,7 @@ const fileToBase64 = async (filePath) => {
 };
 
 function CreateThread({navigation}) {
-
+    const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -88,7 +89,7 @@ function CreateThread({navigation}) {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post('http://192.168.0.107:8080/create_thread', thread, {
+            const response = await axiosInstance.post('http://192.168.0.107:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
