@@ -2,21 +2,21 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Image, ScrollView} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import useAxiosInterceptor from './axios_config';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
-<<<<<<< Updated upstream
-=======
+
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
 
 function Following() {
     const dispatch = useDispatch()
     const following = useSelector(state => state.user.following)
+    const axiosInstance = useAxiosInterceptor();
 
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get('http://192.168.0.105:8080/getFollowing', {
+            const response = await axiosInstance.get('http://192.168.0.107:8080/getFollowing', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

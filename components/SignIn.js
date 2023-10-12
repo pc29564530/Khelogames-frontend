@@ -5,16 +5,8 @@ import axios from 'axios';
 import { useNavigation} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
-<<<<<<< Updated upstream
 
-=======
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
-
-const api = axios.create({
-  baseURL: 'http://192.168.0.105:8080', // Update with your backend URL
-});
-
 
 const SignIn = () => {
     
@@ -25,7 +17,6 @@ const SignIn = () => {
     const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    // const [user, setUser] = useState();
     const [refresh, setRefresh] = useState(null);
     const [access, setAccess] = useState(null);
     const [aexpire, setAExpire] = useState(null);
@@ -34,9 +25,7 @@ const SignIn = () => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        console.log(user);
         const response = await axios.post('http://192.168.0.105:8080/login', user);
-        console.log(response.data); 
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -45,10 +34,9 @@ const SignIn = () => {
         setRefresh(response.data.refresh_token);
         setAccess(response.data.access_token);  
         setAExpire(response.data.access_token_expires_at)
-        setRExpire(response.data.access_token_expires_at)
+        setRExpire(response.data.refresh_token_expires_at)
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(response.data.user));
-        console.log("is login happen")
         navigation.navigate('Main')
        
       } catch (err) {
@@ -62,7 +50,7 @@ const SignIn = () => {
         <View>
           <Image 
             style={{width: 150, height: 100, margin: 20}}
-            source={require('/home/pawan/projects/Khelogames-frontend/assets/images/Khelogames.png')}
+            source={logoPath}
           />
         </View>
         <KeyboardAvoidingView >

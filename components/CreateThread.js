@@ -8,8 +8,39 @@ import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
 import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
-function CreateThread({navigation}) {
+import  RFNS from 'react-native-fs';
+import {PermissionsAndroid} from 'react-native'
+import Video from 'react-native-video';
+import useAxiosInterceptor from './axios_config';
 
+function getMediaTypeFromURL(url) {
+  const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
+  if (fileExtensionMatch) {
+    const fileExtension = fileExtensionMatch[1].toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
+    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+
+    if (imageExtensions.includes(fileExtension)) {
+      return 'image';
+    } else if (videoExtensions.includes(fileExtension)) {
+      return 'video';
+    }
+  }
+}
+
+
+const fileToBase64 = async (filePath) => {
+  try {
+    const fileContent = await RFNS.readFile(filePath, 'base64');
+    return fileContent;
+  } catch (error) {
+    console.error('Error converting image to Base64:', error);
+    return null;
+  }
+};
+
+function CreateThread({navigation}) {
+    const axiosInstance = useAxiosInterceptor()
     const dispatch = useDispatch();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -70,7 +101,7 @@ function CreateThread({navigation}) {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axios.post('http://192.168.0.105:8080/create_thread', thread, {
+            const response = await axiosInstance.post('http://192.168.0.107:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

@@ -2,14 +2,12 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
-<<<<<<< Updated upstream
+import useAxiosInterceptor from './axios_config';
 
-
-=======
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
->>>>>>> Stashed changes
 
 function CreateCommunity () {
+    const axiosInstance = useAxiosInterceptor();
     const [communityName, setCommunityName] = useState('');
     const [description, setDescription] = useState('');
     const [communityType, setCommunityType] = useState('');
@@ -20,7 +18,7 @@ function CreateCommunity () {
         try {
             const community = {communityName, description, communityType};
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axios.post('http://192.168.0.105:8080/communities', community, {
+            const response  = await axiosInstance.post('http://192.168.0.107:8080/communities', community, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -58,21 +56,24 @@ function CreateCommunity () {
 function Community () {
 
     const [data, setData] = useState([]);
-
+    const axiosInstance = useAxiosInterceptor();
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await fetch(`http://192.168.0.105:8080/get_all_communities/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.107:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             })
-            const item = await response.json();
-            // const item = await response.data;
-            setData(item)
+            const item = response.data;
+            if(item == null) {
+                setData([]);
+            } else {
+                setData(item);
+            }
             console.log(item);
         } catch (err) {
             console.error(err);

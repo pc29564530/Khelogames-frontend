@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, TouchableOpacity} from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from './axios_config';
@@ -8,6 +8,8 @@ import KhelogamesLogo from '../assets/images/Khelogames.png';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
+import Video from 'react-native-video';
+
 
 
 const Thread = () => {
@@ -28,7 +30,7 @@ const Thread = () => {
           'Content-Type': 'application/json',
         }
 
-        const response = await axiosInstance.put(`http://192.168.0.105:8080/update_like/${id}`, null, {headers} );
+        const response = await axiosInstance.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;
@@ -44,7 +46,7 @@ const Thread = () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log(authToken); 
-        const response = await axiosInstance.get('http://192.168.0.105:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.107:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -68,9 +70,10 @@ const Thread = () => {
 
     const handleUser = async (username) => {
       try {
-        const response = await axiosInstance.get(`http://192.168.0.105:8080/user/${username}` )
+        const response = await axiosInstance.get(`http://192.168.0.107:8080/user/${username}` )
         console.log(response)
         navigation.navigate('ProfileMenu', { username: response.data.username });
+
       } catch (err) {
         console.error(err);
       }
@@ -94,6 +97,10 @@ const Thread = () => {
                       style={styles.PostImage}
                         source={{uri:item.media_url}}
                       />
+                    )}
+                    {item.media_type === 'video' && (
+                      <Video style={styles.PostImage}
+                      source={{uri:item.media_url}} controls={true} />
                     )}
                     <View style={styles.LikeCount}>
                       <Text style={styles.likeText}>{item.like_count} Likes</Text>
