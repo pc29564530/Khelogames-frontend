@@ -24,12 +24,11 @@ function ProfileMenu(){
     const handleLogout =  async () => {
         try {
             const username = await AsyncStorage.getItem('User')
-            await axiosInstance.delete(`http://192.168.0.107:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
             await AsyncStorage.removeItem('User');
-            navigation.navigate('SignIn'); 
         } catch (err) {
             console.log('Failed to logout', err);
         }
@@ -117,7 +116,7 @@ function ProfileMenu(){
         }
       }
       verifyUser();
-    }, [following, following_owner])
+    }, [])
 
     
     return (
