@@ -45,10 +45,12 @@ export const logout = () => {
 export const checkExpireTime = () => {
     return async (dispatch) => {
       try {
-        const currentTime = new Date().getTime();
+
+        const currentTime = new Date();
         const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
+        const expiresAt = new Date(refreshTokenExpireTime)
   
-        if (refreshTokenExpireTime && currentTime.toString() > refreshTokenExpireTime) {
+        if (expiresAt > currentTime) {
           dispatch(logout());
         }
       } catch (error) {
