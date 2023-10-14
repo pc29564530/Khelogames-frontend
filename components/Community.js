@@ -56,7 +56,7 @@ function CreateCommunity () {
 function Community () {
 
     const [data, setData] = useState([]);
-
+    const axiosInstance = useAxiosInterceptor();
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
