@@ -4,17 +4,19 @@ import AsyncStorage  from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+import useAxiosInterceptor from './axios_config';
 
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Following() {
+    const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch()
     const following = useSelector(state => state.user.following)
 
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get('http://192.168.0.107:8080/getFollowing', {
+            const response = await axiosInstance.get('http://192.168.0.107:8080/getFollowing', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

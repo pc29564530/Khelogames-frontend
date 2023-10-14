@@ -59,7 +59,7 @@ const Thread = () => {
     const fetchData = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axios.get('http://192.168.0.107:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.107:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',

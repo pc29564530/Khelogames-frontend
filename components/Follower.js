@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import {View, Text, Image, StyleSheet,ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import useAxiosInterceptor from './axios_config';
 
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Follower() {
-
+    const axiosInstance = useAxiosInterceptor();
     const [follower, setFollower] = useState([]);
 
     const fetchFollower = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axios.get(`http://192.168.0.107:8080/getFollower`, {
+            const response = await axiosInstance.get(`http://192.168.0.107:8080/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
