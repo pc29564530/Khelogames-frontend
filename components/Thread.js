@@ -22,17 +22,33 @@ const Thread = () => {
 
     const handleLikes = async (id) => {
       try {
+        const authUser = await AsyncStorage.getItem('User');
         const authToken = await AsyncStorage.getItem('AccessToken');
         const headers = {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         }
 
-        const response = await axios.put(`http://192.168.0.107:8080/update_like/${id}`, null, {headers} );
-        console.log(response.data.like_count);
-        if(response.status === 200) {
-          const newLikesCount = response.data.like_count;
-          dispatch(setLikes(id, newLikesCount))
+        // here when click on like icon call api createLike
+        const userCount = await axiosInstance.get(`http://192.168.0.107:8080/checkLikeByUser/${id}`, {headers});
+        console.log("Usercount: ", userCount.data)
+        if(userCount.data == 0) {
+          const response = await axiosInstance.post(`http://192.168.0.107:8080/createLikeThread/${id}`,null, {headers} );
+          if(response.status === 200) {
+            try {
+              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.107:8080/countLike/${id}`,null,{headers});
+              const updateLikeData = {
+                like_count: updatedLikeCount.data,
+                id: id
+              }
+
+              const newLikeCount = await axiosInstance.put(`http://192.168.0.0107:8080/update_like`, updateLikeData, {headers});
+              dispatch(setLikes(id, newLikeCount.data.like_count))
+            } catch (err) {
+              console.error(err);
+            }
+
+          }
         }
       } catch (error) {
         console.error(error);
@@ -43,7 +59,6 @@ const Thread = () => {
     const fetchData = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        console.log(authToken); 
         const response = await axios.get('http://192.168.0.107:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -68,8 +83,7 @@ const Thread = () => {
 
     const handleUser = async (username) => {
       try {
-        const response = await axiosInstance.get(`http://192.168.0.107:8080/user/${username}` )
-        console.log(response)
+        const response = await axiosInstance.get(`http://192.168.0.107:8080/user/${username}`);
         navigation.navigate('ProfileMenu', { username: response.data.username });
 
       } catch (err) {
