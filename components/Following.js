@@ -54,12 +54,13 @@ function Following() {
 
 const styles = StyleSheet.create({
     ProfileData: {
-
+        fontSize: 16
     },
     Subcontainer: {
+        flex:1,
         width: '100%',
-        height: 50,
-        padding: 20,
+        height: 45,
+        padding: 10,
         justifyContent: 'left',
         flexDirection: 'row',
         alignItems: 'left',

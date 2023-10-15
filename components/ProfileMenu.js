@@ -23,7 +23,7 @@ function ProfileMenu(){
      
     const handleLogout =  async () => {
         try {
-            const username = await AsyncStorage.getItem('User')
+            const username = await AsyncStorage.getItem('User') 
             await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
