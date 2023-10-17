@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
               setRExpire(response.data.access_token_expires_at);
               dispatch(setAuthenticated(!isAuthenticated));
               dispatch(setUser(response.data.user));
-              navigation.navigate('Main');
+              navigation.navigate('JoinCommunity');
               console.log(response.data);
             } else {
               console.error('Invalid response data');
