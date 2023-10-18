@@ -1,18 +1,20 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity } from 'react-native';
+import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+import ModalDropdown from 'react-native-modal-dropdown';
 
+const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 function CreateCommunity () {
     const axiosInstance = useAxiosInterceptor();
     const [communityName, setCommunityName] = useState('');
     const [description, setDescription] = useState('');
-    const [communityType, setCommunityType] = useState('');
-  
+    const [communityType, setCommunityType] = useState('Community Type');
     const [community, setCommunity] = useState();
+
 
     const handleCreateCommunity = async () => {
         try {
@@ -37,13 +39,20 @@ function CreateCommunity () {
                 <Text>Create a New Community</Text>
                 <Text>This is place where a people with similar field area connect with each other.</Text>
             </View>
-            
-            {/* <Image src=""/> */}
-            {/* <input  type="file" palceholder="Upload Image"/> */}
+           
             <View style={styles.InputBoxContainer}>
                 <TextInput  style={styles.TextInputBox} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Community Name"/>
                 <TextInput style={styles.TextInputBox} type="input" value={description} onChangeText={setDescription} placeholder="Description" />
-                <TextInput style={styles.TextInputBox} type="input" value={communityType} onChangeText={setCommunityType} placeholder="Community Type" />
+                <ModalDropdown
+                    options={mainCommunities}
+                    dropdownStyle={styles.DropDown}
+                    dropdownTextStyle={styles.DropDownText}
+                    onSelect={(index,value) => setCommunityType(value)}
+                >
+                    <View style={styles.DropDownButton}>
+                        <Text>{communityType}</Text>
+                    </View>
+                </ModalDropdown>
                 <TouchableOpacity style={styles.InputButton} onPress={handleCreateCommunity}>
                     <Text>Create Community</Text>
                 </TouchableOpacity>
@@ -134,7 +143,7 @@ const styles = StyleSheet.create({
     },
     InputBoxContainer: {
         alignContent: 'center',
-        alignItems: 'center', 
+        alignItems: 'center',
         backgroundColor: 'white',
         gap: 20,  
     },
@@ -166,11 +175,26 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: 'red',
     },
-    ViewBox: {
-        flexDirection: 'column'
+    DropDownButton: {
+        padding: 10,
+        width: '100%',
+        alignItems: 'left',
+        backgroundColor: 'whitesmoke',
+        borderColor: 'black',
+        borderRadius: 5,
+        marginBottom: 10,
     },
-    CommunityName: {
-
+    DropDown: {
+        width: '60%',
+        justifyContent: 'left',
+        height: 200,
+        borderColor: 'black',
+        borderWidth: 1,
+        borderRadius: 5,
+    },
+    DropDownText: {
+        fontSize: 16,
+        padding: 5,
     }
 })
 
