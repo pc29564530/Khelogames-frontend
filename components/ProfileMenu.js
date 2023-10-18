@@ -165,33 +165,35 @@ function ProfileMenu(){
                 </View>
               </View>
               {/* creating new my community for having my own community  */}
-              <>
-              {showLogoutButton && 
-              <View style={styles.MyCommunity}>
-                    <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
-                        <Text style={styles.CommunityToggle}>My Community</Text>
-                        <FontAwesome name={showMyCommunity?'angle-up':'angle-down'} size={20} color="black"/>
-                    </TouchableOpacity>
-                    {showMyCommunity && (
-                      <View style={styles.CommunityList} > 
-                        {myCommunityData.map((item,index)=> (
-                          <Text>{item.community_name}</Text>
-                        ))}
-                      </View>
-                    )}
+              <View>
+                {showLogoutButton && 
+                <View style={styles.MyCommunity}>
+                      <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
+                          <Text style={styles.CommunityToggle}>My Community</Text>
+                          <FontAwesome name={showMyCommunity?'angle-up':'angle-down'} size={20} color="black"/>
+                      </TouchableOpacity>
+                      {showMyCommunity && (
+                        <View style={styles.CommunityList} > 
+                          {myCommunityData.map((item,index)=> (
+                            <Text style={styles.CommunityListItem}>{item.community_name}</Text>
+                          ))}
+                        </View>
+                      )}
+                  </View>
+                  }
                 </View>
-                }
-                </>
-              { showLogoutButton?(
-                  <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
-                    <Text style={styles.Logout}>Logout</Text>
-                  </TouchableOpacity>
-                 ):(
-                  <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
-                    <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
-                  </TouchableOpacity>
-                )
-              } 
+                <View>
+                  { showLogoutButton?(
+                      <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
+                        <Text style={styles.Logout}>Logout</Text>
+                      </TouchableOpacity>
+                    ):(
+                      <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
+                        <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
+                      </TouchableOpacity>
+                    )
+                  }
+              </View>
         </View>
     );
 }
@@ -207,6 +209,9 @@ const styles = StyleSheet.create({
       paddingBottom: 20
     },
     ProfileHeader: {
+      borderBottomEndRadius: 5,
+      borderBottomWidth: 1,
+      borderBlockEndColor: 'black',
       paddingBotton: 20,
       marginBottom: 20
     },
@@ -226,7 +231,8 @@ const styles = StyleSheet.create({
     Container: {
       flex: 1,
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'left',
+      margin:20
     },
     Title: {
       fontSize: 22,
@@ -262,6 +268,26 @@ const styles = StyleSheet.create({
       borderRadius: 20,
       marginRight: 8,
       backgroundColor: 'grey',
+    },
+    MyCommunity: {
+      marginVertical: 20,
+      alignItems: 'left',
+    },
+    ToggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    CommunityToggle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginRight: 10,
+    },
+    CommunityList: {
+        marginTop: 20,
+    },
+    CommunityListItem: {
+        fontSize: 20,
+        marginVertical: 0,
     },
   });
   
