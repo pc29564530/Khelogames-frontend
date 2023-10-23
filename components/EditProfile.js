@@ -3,13 +3,46 @@ import React, {useState} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity} from 'react-native';
 import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
-
+import axios from 'axios';
 
 export default function EditProfile() {
     const [fullName, setFullName] = useState('');
-    const [bio, setBio] = useState();
+    const [bio, setBio] = useState('');
+    const [followingOwner, setFollowingOwner] = useState(0)
+    const [followerOwner, setFollowerOwner] = useState(0)
     const [avatarUrl, setAvatarUrl] = useState('');
-    const axiosInstance = useAxiosInterceptor()
+    const [profiles, setProfile] = useState()
+    const axiosInstance = useAxiosInterceptor();
+
+    //to create the username for personal use no one can change the user after creation
+    const handleSaveButton = async () => {
+        
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
+            const profile = {
+                full_name: fullName,
+                bio: bio,
+                following_owner: followingOwner,
+                follower_owner: followerOwner,
+                avatar_url: avatarUrl
+            }
+            
+            const response = await axiosInstance.post('http://192.168.0.102:8080/createProfile', profile, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log(response.data)
+            setProfile(response.data);
+
+        } catch (e) {
+            console.error("unable to update username: ", e)
+        }
+    }
+
+
     const updateAvatar =  async () => {
 
         try {
@@ -57,11 +90,12 @@ export default function EditProfile() {
                 </Pressable>
             </View>
             <View style={styles.EditDetails}>
-                <TextInput style={styles.EditTextInput} name="fullName" value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name'/>
-                <TextInput style={styles.EditTextInput} name="bio" value={bio} onChangeText={setBio} placeholder='Enter About you' />
+                {/* <TextInput style={styles.EditTextInput} name="username" value={username}  onChangeText={setUsername} placeholder='Update the Username'/> */}
+                <TextInput style={styles.EditTextInput}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name'/>
+                <TextInput style={styles.EditTextInput}  value={bio} onChangeText={setBio} placeholder='Enter About you' />
             </View>
             <View style={styles.SubmitButtonContainer} >
-                <Pressable style={styles.ButtonIcon}>
+                <Pressable style={styles.ButtonIcon} onPress={handleSaveButton}>
                     <Text style={styles.TextContainer}>Save</Text>
                 </Pressable>
             </View>

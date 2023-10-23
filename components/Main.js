@@ -33,6 +33,24 @@ const Main =  () => {
         console.log(accessTime)
         console.log(refreshExpiresAt)
         }
+        const createProfile = async () => {
+            const user = await AsyncStorage.getItem('User')
+            const getUser = await axios.get(`http://192.168.0.102:8080/user/${user}`);
+
+            //added new profile creation funcitonality
+            if(getUser.data == undefined || getUser.data == null) {
+                try {
+                    await axiosInstance.post(`http://192.168.0.102.8080/createProfile`, {username: username}, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                } catch (e) {
+                    console.error("unable to create a profile: ", e)
+                }
+            }
+        }
         frun();
         
     }, [])
