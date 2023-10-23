@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
+import axios from 'axios';
 
 function ProfilePage() {
 
@@ -18,6 +19,7 @@ function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
 
     const username = route.params?.name;
+    console.log(username)
     const handleEditProfile = () => {
         console.log("Linte no 18")
       navigation.navigate('EditProfile') // Set the state to indicate that editing mode is active
@@ -67,16 +69,21 @@ function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
         try {
-          const authToken = await AsyncStorage.getItem('AccessToken')
-          const user = await AsyncStorage.getItem('User')
-          const response = await axios.get('http://192.168.0.102:8080/getProfile/')
+          const owner = await AsyncStorage.getItem('User')
+          if (!owner) {
+            console.log("User not found in AsyncStorage.");
+            return;
+        }
+          console.log("User: ", owner)
+          const response = await axios.get(`http://192.168.0.102:8080/getProfile/${owner}`)
+          console.log(response.data)
           setProfileData(response.data);
         } catch(e) {
           console.error("unable to fetch the profile details", e)
         }
     }
     fetchData();
-  })
+  }, [])
 
     return(
         <View style={styles.Container}>
@@ -91,7 +98,6 @@ function ProfilePage() {
                     </Pressable>
                   </View>
                         <Text>{profileData.full_name}</Text>
-                        <Text>{username}</Text>
                         <Text>{profileData.username}</Text>
                         <Text>{profileData.bio}</Text>
                 </View>
