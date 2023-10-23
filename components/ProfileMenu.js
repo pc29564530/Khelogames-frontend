@@ -141,8 +141,8 @@ function ProfileMenu(){
                 </View>
               </View>
               <View>
-                <Pressable onPress={handleProfilePage}>
-                  <Text>Profile</Text>
+                <Pressable style={styles.ProfileTextButton} onPress={handleProfilePage}>
+                  <Text  style={styles.ProfileText}>Profile</Text>
                 </Pressable>
               </View>
               { showLogoutButton?(
@@ -162,19 +162,27 @@ function ProfileMenu(){
 const styles = StyleSheet.create({
     FullName: {
       paddingTop: 20,
-      fontSize: 24, 
+      paddingLeft:20,
+      fontSize: 24,
       fontWeight: 'bold',
+      textAlign: 'left',
     },
     Username: {
+      paddingLeft:20,
       fontSize: 20,
-      paddingBottom: 20
+      paddingBottom: 20,
+      textAlign: 'left',
+      color: 'gray',
     },
     ProfileHeader: {
-      paddingBotton: 20,
-      marginBottom: 20
+      paddingBottom: 20,
+      marginBottom: 20,
+      paddingLeft:20,
+      alignItems: 'left',
     },
     FollowRowText: {
-      fontSize: 16
+      fontSize: 16,
+      color: 'gray',
     },
     ProfileHeaderText: {
       fontSize: 20
@@ -188,12 +196,14 @@ const styles = StyleSheet.create({
     },
     Container: {
       flex: 1,
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      margin:10,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      backgroundColor: '#f8f8f8',
     },
     Title: {
       fontSize: 22,
-      color: 'grey',
+      color: 'gray',
       fontWeight: '500',
       marginTop: 30,
     },
@@ -203,6 +213,7 @@ const styles = StyleSheet.create({
       fontWeight: '500',
     },
     LogoutButton: {
+      paddingLeft:20,
       backgroundColor: 'grey',
       padding: 12,
       borderRadius: 20,
@@ -211,21 +222,27 @@ const styles = StyleSheet.create({
       marginBottom: 30,
     },
     FollowButton: {
-      backgroundColor: 'grey',
+      backgroundColor: '#007AFF',
       color: 'white',
       padding: 12,
       borderRadius: 20,
       width: '34%',
       alignItems: 'center',
-      // marginBottom: 30,
     },
     UserAvatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 8,
-      backgroundColor: 'grey',
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 10,
     },
+    ProfileTextButton:{
+      padding:20
+      
+    },
+    ProfileText: {
+      fontSize: 20,
+      color: 'blue',
+    }
   });
   
 
