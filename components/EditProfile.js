@@ -1,17 +1,42 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity} from 'react-native';
 import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
+import  RFNS from 'react-native-fs';
+
+
+function getMediaTypeFromURL(url) {
+    const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
+    if (fileExtensionMatch) {
+      const fileExtension = fileExtensionMatch[1].toLowerCase();
+      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
+      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+  
+      if (imageExtensions.includes(fileExtension)) {
+        return 'image';
+      } else if (videoExtensions.includes(fileExtension)) {
+        return 'video';
+      }
+    }
+  }
+
+  const fileToBase64 = async (filePath) => {
+    try {
+      const fileContent = await RFNS.readFile(filePath, 'base64');
+      return fileContent;
+    } catch (error) {
+      console.error('Error converting image to Base64:', error);
+      return null;
+    }
+  };
 
 export default function EditProfile() {
     const [fullName, setFullName] = useState('');
     const [bio, setBio] = useState('');
-    const [followingOwner, setFollowingOwner] = useState(0)
-    const [followerOwner, setFollowerOwner] = useState(0)
     const [avatarUrl, setAvatarUrl] = useState('');
-    const [profiles, setProfile] = useState()
+    const [profile, setProfile] = useState()
     const axiosInstance = useAxiosInterceptor();
 
     //to create the username for personal use no one can change the user after creation
@@ -20,15 +45,14 @@ export default function EditProfile() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const profile = {
+            const profileData = {
+                ...profile,
                 full_name: fullName,
                 bio: bio,
-                following_owner: followingOwner,
-                follower_owner: followerOwner,
                 avatar_url: avatarUrl
             }
             
-            const response = await axiosInstance.post('http://192.168.0.102:8080/createProfile', profile, {
+            const response = await axiosInstance.post('http://192.168.0.102:8080/createProfile', profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -43,57 +67,69 @@ export default function EditProfile() {
     }
 
 
-    const updateAvatar =  async () => {
-
+    const uploadAvatarimage =  async () => {
         try {
-            const authToken = AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.put('http://192.168.0.102:8080/updateAvatarUrl', {avatar_url: avatarUrl}, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-
             let options = { 
                 noData: true,
                 mediaType: 'image',
-            }
-        
-                launchImageLibrary(options, async (res) => {
+            };
+    
+            const res = await launchImageLibrary(options);
+    
+            if (res.didCancel) {
+                console.log('User cancelled photo picker');
+            } else if (res.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else {
+                const type = getMediaTypeFromURL(res.assets[0].uri);
                 
-                    if (res.didCancel) {
-                        console.log('User cancelled photo picker');
-                    } else if (res.error) {
-                        console.log('ImagePicker Error: ', response.error);
-                    } else {
-                        const type = getMediaTypeFromURL(res.assets[0].uri);
-                        
-                        if(type === 'image') {
-                        const base64File = await fileToBase64(res.assets[0].uri);
-                        setMediaURL(base64File)
-                        setMediaType(type);
-                        } else {
-                        console.log('unsupported media type:', type);
-                        }
-                    }
-                });
+                if(type === 'image') {
+                    const base64File = await fileToBase64(res.assets[0].uri);
+                    console.log('base64File:', base64File); 
+                    setAvatarUrl(base64File);
+                } else {
+                    console.log('unsupported media type:', type);
+                }
+            }
         } catch (e) {
-            console.error("unable to load image");
+            console.error("unable to load image", e);
         }
-        
-    }
+    };
+
+    const fetchUserProfile = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
+
+            const response = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${user}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            setProfile(response.data);
+            setFullName(response.data.full_name);
+            setBio(response.data.bio);
+            setAvatarUrl(response.data.avatar_url);
+        } catch (e) {
+            console.error("Unable to fetch user profile: ", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+    
     return (
         <View style={styles.Container} >
             <View style = {styles.UploadContainer}>
-                <Pressable style={styles.UpdateAvatar} onPress={() => updateAvatar}>
+                <Pressable style={styles.UpdateAvatar} onPress={uploadAvatarimage}>
                     <Text>Upload Image</Text>
                 </Pressable>
             </View>
-            <View style={styles.EditDetails}>
-                {/* <TextInput style={styles.EditTextInput} name="username" value={username}  onChangeText={setUsername} placeholder='Update the Username'/> */}
                 <TextInput style={styles.EditTextInput}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name'/>
                 <TextInput style={styles.EditTextInput}  value={bio} onChangeText={setBio} placeholder='Enter About you' />
-            </View>
             <View style={styles.SubmitButtonContainer} >
                 <Pressable style={styles.ButtonIcon} onPress={handleSaveButton}>
                     <Text style={styles.TextContainer}>Save</Text>

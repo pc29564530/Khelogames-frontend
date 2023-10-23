@@ -90,15 +90,10 @@ function ProfilePage() {
             <View style={styles.SubContainer}>
                 <View style={styles.UserDetailsLeft}>
                   <View>
-                    <Pressable style={styles.UpdateAvatar} onPress={() => updateAvatar}>
-                        <Image style={styles.UserAvatar}  source={profileData.avatar_url}/>
-                        <View style={styles.AddAvatar}>
-                          <FontAwesome name="plus"  />
-                        </View>
-                    </Pressable>
+                        <Image style={styles.UserAvatar}  source={profileData.avatar_url}/> 
                   </View>
                         <Text>{profileData.full_name}</Text>
-                        <Text>{profileData.username}</Text>
+                        <Text>{profileData.owner}</Text>
                         <Text>{profileData.bio}</Text>
                 </View>
                 <View style={styles.UserDetailsRight}>
@@ -115,45 +110,61 @@ function ProfilePage() {
     );
 }
 const styles = StyleSheet.create({
-    Container: {
-      flex: 1,
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      padding: 20,
-    },
-    SubContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    UserDetailsLeft: {
-      flex: 1,
-      alignItems: 'flex-start',
-    },
-    UserDetailsRight: {
-      flex: 1,
-      alignItems: 'flex-end',
-    },
-    UserAvatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 8,
-      backgroundColor: 'grey',
-    },
-    Title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 10,
-    },
-    Text: {
-      fontSize: 16,
-      marginBottom: 5,
-    },
-    EditButton: {
-      fontSize: 18,
-      color: 'blue',
-    },
+  Container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f8f8f8',
+},
+SubContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+},
+UserDetailsLeft: {
+    flex: 1,
+    alignItems: 'flex-start',
+},
+UserDetailsRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+},
+UserAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginRight: 8,
+    backgroundColor: 'orange'
+},
+Title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+},
+Text: {
+    fontSize: 20,
+    marginBottom: 5,
+},
+EditButton: {
+    fontSize: 18,
+    color: 'blue',
+},
+UpdateAvatar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+},
+AddAvatar: {
+  margin: 5,
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: 25,
+  height: 25,
+  color: "grey",
+  borderRadius:50,
+  borderWidth:1,
+  padding:5,
+  backgroundColor: 'whitesmoke'
+}
 });
 
 export default ProfilePage
