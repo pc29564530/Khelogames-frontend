@@ -21,10 +21,14 @@ function ProfileMenu(){
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
      
+    const handleProfilePage = () => {
+      navigation.navigate('Profile');
+    }
+
     const handleLogout =  async () => {
         try {
             const username = await AsyncStorage.getItem('User')
-            await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.102:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -38,7 +42,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.107:8080/create_follow/${following_owner}`,
+            `http://192.168.0.102:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -59,7 +63,7 @@ function ProfileMenu(){
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.107:8080/unFollow/${following_owner}`,
+          `http://192.168.0.102:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -87,7 +91,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.107:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -135,6 +139,11 @@ function ProfileMenu(){
                     }}
                   />
                 </View>
+              </View>
+              <View>
+                <Pressable onPress={handleProfilePage}>
+                  <Text>Profile</Text>
+                </Pressable>
               </View>
               { showLogoutButton?(
                   <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
