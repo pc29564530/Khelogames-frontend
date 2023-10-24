@@ -14,6 +14,7 @@ import store from './redux/store';
 import rootReducer from './redux/reducers';
 import ProfileMenu from './components/ProfileMenu';
 import Profile from './components/Profile';
+import JoinCommunity from './components/JoinCommunity';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 import EditProfile from './components/EditProfile';
@@ -117,6 +118,7 @@ export default function Root() {
               })}
                   />
 
+
               <Stack.Screen name="Profile" component={Profile}
                   options={({ navigation }) => ({
                   headerShown: true,
@@ -147,6 +149,15 @@ export default function Root() {
                   ),
                 })}
               />
+
+                <Stack.Screen name="JoinCommunity" component={JoinCommunity}
+                  options={() => ({
+                  headerShown: false,
+                  headerTitle: null,
+                  headerBackTitleVisible: false,
+                  headerLeft: false
+                  })}
+                  />
             </>
           )}
         </Stack.Navigator>

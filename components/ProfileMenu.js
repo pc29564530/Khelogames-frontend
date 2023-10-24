@@ -6,6 +6,7 @@ import axios from 'axios';
 import useAxiosInterceptor from './axios_config';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
@@ -20,15 +21,43 @@ function ProfileMenu(){
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
+    const [showMyCommunity, setShowMyCommunity] = useState(false);
+    const [myCommunityData, setMyCommunityData] = useState([]);
      
+
     const handleProfilePage = () => {
       navigation.navigate('Profile');
+    }
+
+    const toggleMyCommunity = async () => {
+        try {
+          const user = await AsyncStorage.getItem('User')
+          const authToken = await AsyncStorage.getItem('AccessToken')
+          const response = await axios.get(`http://192.168.0.107:8080/getCommunityByUser`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          console.log(response.data);
+          if(response.data){
+            setMyCommunityData(response.data);
+            
+          } else {
+            setMyCommunityData([]);
+          }
+          setShowMyCommunity(!showMyCommunity)
+        } catch(err) {
+
+        }
     }
 
     const handleLogout =  async () => {
         try {
             const username = await AsyncStorage.getItem('User')
-            await axios.delete(`http://192.168.0.102:8080/removeSession/${username}`)
+
+            await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -140,21 +169,36 @@ function ProfileMenu(){
                   />
                 </View>
               </View>
+              {/* creating new my community for having my own community  */}
               <View>
-                <Pressable style={styles.ProfileTextButton} onPress={handleProfilePage}>
-                  <Text  style={styles.ProfileText}>Profile</Text>
-                </Pressable>
+                {showLogoutButton && 
+                <View style={styles.MyCommunity}>
+                      <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
+                          <Text style={styles.CommunityToggle}>My Community</Text>
+                          <FontAwesome name={showMyCommunity?'angle-up':'angle-down'} size={20} color="black"/>
+                      </TouchableOpacity>
+                      {showMyCommunity && (
+                        <View style={styles.CommunityList} > 
+                          {myCommunityData.map((item,index)=> (
+                            <Text style={styles.CommunityListItem}>{item.community_name}</Text>
+                          ))}
+                        </View>
+                      )}
+                  </View>
+                  }
+                </View>
+                <View>
+                  { showLogoutButton?(
+                      <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
+                        <Text style={styles.Logout}>Logout</Text>
+                      </TouchableOpacity>
+                    ):(
+                      <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
+                        <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
+                      </TouchableOpacity>
+                    )
+                  }
               </View>
-              { showLogoutButton?(
-                  <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
-                    <Text style={styles.Logout}>Logout</Text>
-                  </TouchableOpacity>
-                 ):(
-                  <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
-                    <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
-                  </TouchableOpacity>
-                )
-              } 
         </View>
     );
 }
@@ -242,7 +286,27 @@ const styles = StyleSheet.create({
     ProfileText: {
       fontSize: 20,
       color: 'blue',
-    }
+    },
+    MyCommunity: {
+      marginVertical: 20,
+      alignItems: 'left',
+    },
+    ToggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    CommunityToggle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginRight: 10,
+    },
+    CommunityList: {
+        marginTop: 20,
+    },
+    CommunityListItem: {
+        fontSize: 20,
+        marginVertical: 0,
+    },
   });
   
 

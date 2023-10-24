@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, TextInput, Button, StyleSheet, Image, Text} from 'react-native';
+import {View, TextInput, Button, StyleSheet, Image, Text, KeyboardAvoidingView} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
@@ -60,14 +60,6 @@ function Comment({threadId}) {
 
     return (
         <View style={styles.Container}>
-            <View style={styles.SubcontainerEdit}>
-                <TextInput 
-                    value={commentText}
-                    onChangeText={(text) => dispatch(setCommentText(text))}
-                    placeholder="Write a comment..."
-                />
-                <Button title="Submit" onPress={handleReduxSubmit}/>
-            </View>
             <View style={styles.SubcontainerDisplay}>
                 {comments.map((item, i) => (
                     <View  style={styles.CommentBox} key={i}>
@@ -87,42 +79,53 @@ function Comment({threadId}) {
 
 const styles = StyleSheet.create({
     CommentBox: {
+        flex:1,
         padding: 10,
+        margin:5,
+        width: '100%',
+        backgroundColor: 'lightgrey'
 
     },
     CommentHeader: {
-        flexDirection: 'column',
-        justifyContent: 'space-between'
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     Container: {
-      paddingTop: '10px',
-      width: '100%',
-      aspectRatio: 10/3,
-      justifyContent: 'space-between',
-      alignItems: 'left',
-      paddingBottom: '40px'
+        flex:1,
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'left',
+        paddingTop: 10,
     },
     SubcontainerEdit: {
-        paddingTop: '20px',
-        alignItems: 'left',
-        paddingBottom: '20px',
-        
+        position:'static',
+      alignItems: 'left',
+      paddingBottom: 20,
+      paddingTop: 20,
+      bottom: 0,
+      width: '100%',
+      height: 50, 
+      zIndex: 10,  
     },
     SubcontainerDisplay:{
         flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
-        paddingBottom: '20px',
-        paddingTop: '20px',
+        paddingBottom: 20,
+        paddingTop: 20,
     },
     UserAvatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
         marginRight: 8,
-        backgroundColor: 'grey',
-      },
+    },
+    CommentText: {
+        fontSize: 16,
+        color: 'black',
+    }
     
   });
 
