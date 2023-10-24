@@ -169,6 +169,11 @@ function ProfileMenu(){
                   />
                 </View>
               </View>
+              <View>
+                <Pressable onPress={handleProfilePage}>
+                  <Text>Profile</Text>
+                </Pressable>
+              </View>
               {/* creating new my community for having my own community  */}
               <View>
                 {showLogoutButton && 
