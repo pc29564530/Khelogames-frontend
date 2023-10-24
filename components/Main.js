@@ -1,25 +1,9 @@
 import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Text, View, StyleSheet, Platform} from 'react-native';
-import {createDrawerNavigator} from '@react-navigation/drawer';
 import Header from './Header';
 import Footer from './Footer';
 
-
-import { createStackNavigator } from '@react-navigation/stack';
-
-const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
-
-// const styles = StyleSheet.create({
-//     container: {
-//         marginTop: Constants.statusBarHeight,
-//         flexGrow: 1,
-//         flexShrink:1,
-//     }
-// })
-
- 
 const Main =  () => {
     const statusBarHeight = Platform.OS === 'android' ? 0 : 20;
    
@@ -35,12 +19,12 @@ const Main =  () => {
         }
         const createProfile = async () => {
             const user = await AsyncStorage.getItem('User')
-            const getUser = await axios.get(`http://192.168.0.102:8080/user/${user}`);
+            const getUser = await axios.get(`http://192.168.0.102:8080/getProfile/${user}`);
 
             //added new profile creation funcitonality
             if(getUser.data == undefined || getUser.data == null) {
                 try {
-                    await axiosInstance.post(`http://192.168.0.102.8080/createProfile`, {username: username}, {
+                    await axiosInstance.post(`http://192.168.0.102.8080/createProfile`, {username: user}, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json'
@@ -51,11 +35,11 @@ const Main =  () => {
                 }
             }
         }
+        createProfile();
         frun();
         
     }, [])
     return (
-        // <View style={{ paddingTop: statusBarHeight }}> 
         <>
             <Header style={{shadowColor: '#171717',
                 shadowOffset: {width: -2, height: 4},
