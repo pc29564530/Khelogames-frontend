@@ -85,23 +85,18 @@ const styles = StyleSheet.create({
             if (response.data) {
               if (response.data.access_token) {
                 await AsyncStorage.setItem("AccessToken", response.data.access_token);
-                console.log("Access line no 88: ", response.data.access_token);
               }
               if (response.data.user && response.data.user.username) {
                 await AsyncStorage.setItem("User", response.data.user.username);
-                console.log("User line no 90: ", response.data.user.username);
               }
               if (response.data.refresh_token) {
                 await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
-                console.log("User line no 92: ", response.data.refresh_token);
               }
               if (response.data.access_token_expires_at) {
                 await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);
-                console.log("User line no 94: ", response.data.access_token_expires_at);
               }
               if (response.data.refresh_token_expires_at) {
                 await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
-                console.log("User line no 96: ", response.data.refresh_token_expires_at);
               }
               setRefresh(response.data.refresh_token);
               setAccess(response.data.access_token);
