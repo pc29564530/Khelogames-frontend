@@ -12,12 +12,9 @@ function getMediaTypeFromURL(url) {
     if (fileExtensionMatch) {
       const fileExtension = fileExtensionMatch[1].toLowerCase();
       const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
-      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
   
       if (imageExtensions.includes(fileExtension)) {
         return 'image';
-      } else if (videoExtensions.includes(fileExtension)) {
-        return 'video';
       }
     }
   }
