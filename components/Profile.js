@@ -5,68 +5,107 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
+import {useSelector,useDispatch} from 'react-redux';
+import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 
 function ProfilePage() {
 
     const route = useRoute();
     const navigation = useNavigation();
-    // const [fullName, setFullName] = useState('');
-    // const [bio, setBio] = useState();
-    // const [followerCount, setFollowerCount] = useState();
-    // const [followingCount, setFollowingCount] = useState();
-    const [avatarUrl, setAvatarUrl] = useState('');
     const [profileData, setProfileData] = useState([]);
-    const [isEditing, setIsEditing] = useState(false);
-
-    const username = route.params?.name;
-    console.log(username)
+    const [currentUser, setCurrentUser] = useState('');
+    const following = useSelector((state) => state.user.following);
+    const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
+    const [showEditProfileButton,setShowEditProfileButton] = useState(false);
+    const following_owner  = route.params?.username
     const handleEditProfile = () => {
-        console.log("Linte no 18")
       navigation.navigate('EditProfile') // Set the state to indicate that editing mode is active
-      console.log("line no 20")
     };
 
-    const updateAvatar =  async () => {
-
+    const handleReduxFollow = async () => {
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.put('http://192.168.0.102:8080/updateAvatarUrl', {avatar_url: avatarUrl}, {
+          const response = await axiosInstance.post(
+            `http://192.168.0.102:8080/create_follow/${following_owner}`,
+            {},
+            {
               headers: {
-                  'Authorization': `Bearer ${authToken}`,
-                  'Content-Type': 'application/json'
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
               }
-          })
-
-          let options = { 
-              noData: true,
-              mediaType: 'image',
+            }
+          );
+          if(response.statusCode === 200 ) {
+            dispatch(setFollowUser(response.data));
           }
-      
-              launchImageLibrary(options, async (res) => {
-              
-                  if (res.didCancel) {
-                      console.log('User cancelled photo picker');
-                  } else if (res.error) {
-                      console.log('ImagePicker Error: ', response.error);
-                  } else {
-                      const type = getMediaTypeFromURL(res.assets[0].uri);
-                      
-                      if(type === 'image') {
-                      const base64File = await fileToBase64(res.assets[0].uri);
-                      setMediaURL(base64File)
-                      setMediaType(type);
-                      } else {
-                      console.log('unsupported media type:', type);
-                      }
-                  }
-              });
-      } catch (e) {
-          console.error("unable to load image");
+      } catch (err) {
+          console.error(err);
       }
-      
+     
+    }
+    const handleReduxUnFollow = async () => {
+      try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.delete(
+          `http://192.168.0.102:8080/unFollow/${following_owner}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if(response.statusCode === 200 ) {
+          dispatch(setUnFollowUser(response.data));
+        } 
+    } catch(e){
+      console.error('Unable to unfollow agian', e);
+    }
   }
 
+    const handleFollowButton = async () => {
+     if(isFollowing) {
+        handleReduxUnFollow();
+     } else {
+        handleReduxFollow();
+     }
+     
+    }
+    const fetchFollowing = async () => {
+      try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            }
+        })
+        const item = response.data;
+        if(item === null) {
+           dispatch(getFollowingUser([]));
+        } else {
+            dispatch(getFollowingUser(item));
+        }
+    } catch (e) {
+        console.error(e);
+    }
+    }
+
+
   useEffect(() => {
+    fetchFollowing();
+    setIsFollowing(following.some((item) => item === following_owner))
+    const verifyUser = async () => {
+      const authUser = await AsyncStorage.getItem("User");
+      if(following_owner===undefined || following_owner === null) {
+        setShowEditProfileButton(true);
+        setCurrentUser(authUser);
+      } else {
+        setCurrentUser(following_owner);
+      }
+    }
+
     const fetchData = async () => {
         try {
           const owner = await AsyncStorage.getItem('User')
@@ -74,15 +113,25 @@ function ProfilePage() {
             console.log("User not found in AsyncStorage.");
             return;
         }
-          console.log("User: ", owner)
-          const response = await axios.get(`http://192.168.0.102:8080/getProfile/${owner}`)
-          console.log(response.data)
-          setProfileData(response.data);
+
+        var response;
+        if(owner != following_owner){
+           response = await axios.get(`http://192.168.0.102:8080/getProfile/${threadUsername}`)
+        }
+          if( response.data == null ){
+            setProfileData([])
+          } else {
+            console.log(response.data)
+            setProfileData(response.data);
+          }
+          
         } catch(e) {
           console.error("unable to fetch the profile details", e)
         }
     }
+    verifyUser();
     fetchData();
+    
   }, [])
 
     return(
@@ -96,15 +145,21 @@ function ProfilePage() {
                         <Text>{profileData.owner}</Text>
                         <Text>{profileData.bio}</Text>
                 </View>
+                {showEditProfileButton ? (
                 <View style={styles.UserDetailsRight}>
-                    <Pressable>
-                        <Text>Follow</Text>
-                    </Pressable>
-                    <Pressable onPress={handleEditProfile}>
-                        <Text style={styles.EditButton} >Edit Profile</Text>
-                    </Pressable>
-                </View>
+                     <Pressable onPress={handleEditProfile}>
+                         <Text style={styles.EditButton}>Edit Profile</Text>
+                     </Pressable>
+                 </View>
+                ) : 
+                 null
+                }
             </View>
+            {!showEditProfileButton && (
+                     <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
+                        <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
+                     </TouchableOpacity>
+                 )}
             
         </View>
     );
@@ -164,7 +219,15 @@ AddAvatar: {
   borderWidth:1,
   padding:5,
   backgroundColor: 'whitesmoke'
-}
+},
+FollowButton: {
+  backgroundColor: '#007AFF',
+  color: 'white',
+  padding: 12,
+  borderRadius: 20,
+  width: '34%',
+  alignItems: 'center',
+},
 });
 
 export default ProfilePage
