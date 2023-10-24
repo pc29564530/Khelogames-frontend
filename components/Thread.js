@@ -85,13 +85,13 @@ const Thread = () => {
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
       try {
-        const user = await AsyncStorage.getItem('AccessToken');
-        if(user !== username) {
+        const user = await AsyncStorage.getItem('User');
+        if(username === undefined || username === null) {
           const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${user}`);
           navigation.navigate('Profile', { username: response.data.username });
         } else {
           const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${username}`);
-          navigation.navigate('ProfileMenu', { username: response.data.username });
+          navigation.navigate('Profile', { username: response.data.username });
         }
 
       } catch (err) {

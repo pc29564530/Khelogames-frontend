@@ -7,13 +7,14 @@ import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
+import useAxiosInterceptor from './axios_config';
 
 function ProfilePage() {
-
+    const axiosInstance = useAxiosInterceptor();
+    const dispatch = useDispatch()
     const route = useRoute();
     const navigation = useNavigation();
     const [profileData, setProfileData] = useState([]);
-    const [currentUser, setCurrentUser] = useState('');
     const following = useSelector((state) => state.user.following);
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
@@ -113,10 +114,22 @@ function ProfilePage() {
             console.log("User not found in AsyncStorage.");
             return;
         }
-
-        var response;
-        if(owner != following_owner){
-           response = await axios.get(`http://192.168.0.102:8080/getProfile/${threadUsername}`)
+        if(following_owner === null || following_owner === undefined){
+           const response = await axios.get(`http://192.168.0.102:8080/getProfile/${owner}`)
+           if( response.data == null ){
+            setProfileData([])
+          } else {
+            console.log(response.data)
+            setProfileData(response.data);
+          }
+        } else {
+          const response = await axios.get(`http://192.168.0.102:8080/getProfile/${following_owner}`)
+           if( response.data == null ){
+            setProfileData([])
+          } else {
+            console.log(response.data)
+            setProfileData(response.data);
+          }
         }
           if( response.data == null ){
             setProfileData([])
