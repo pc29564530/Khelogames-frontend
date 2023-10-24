@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './redux/store';
 import rootReducer from './redux/reducers';
 import ProfileMenu from './components/ProfileMenu';
+import JoinCommunity from './components/JoinCommunity';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 
@@ -113,6 +114,14 @@ export default function Root() {
                   />
                 ),
               })}
+                  />
+                <Stack.Screen name="JoinCommunity" component={JoinCommunity}
+                  options={() => ({
+                  headerShown: false,
+                  headerTitle: null,
+                  headerBackTitleVisible: false,
+                  headerLeft: false
+                  })}
                   />
             </>
           )}
