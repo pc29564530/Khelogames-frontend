@@ -173,8 +173,6 @@ function ProfileMenu(){
       verifyUser();
     }, [])
 
-    console.log("Display Text: ", displayText)
-    console.log("Line no 181: ", profileData.avatar_url)
     return (
         <View style={styles.Container}>
               <View style={styles.ProfileHeader}>
@@ -199,14 +197,16 @@ function ProfileMenu(){
                     }}
                   />
                 </View>
+                <View style={styles.BottomLine}></View>
               </View>
-              <View>
+              <View style={styles.MiddleContainer}>
                 <Pressable onPress={handleProfilePage}>
-                  <Text>Profile</Text>
+                  <Text style={styles.ProfileText}>Profile</Text>
                 </Pressable>
+                <View style={styles.BottomLine}></View>
               </View>
               {/* creating new my community for having my own community  */}
-              <View>
+              <View style={styles.BottomContainer}>
                 {showLogoutButton && 
                 <View style={styles.MyCommunity}>
                       <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
@@ -223,7 +223,7 @@ function ProfileMenu(){
                 </View>
                   }
                 </View>
-                <View>
+                <View >
                   { showLogoutButton?(
                       <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
                         <Text style={styles.Logout}>Logout</Text>
@@ -240,28 +240,42 @@ function ProfileMenu(){
 }
 
 const styles = StyleSheet.create({
+  
+  FooterButton: {
+    position: 'absolute',
+    alignItems:'center',
+    paddingLeft:10
+  },
+  LogoutButton: {
+
+  },
+  MiddleContainer: {
+    height: 200
+   },
     FullName: {
-      paddingTop: 20,
-      paddingLeft:20,
+      paddingTop: 10,
+      paddingLeft:10,
       fontSize: 24,
       fontWeight: 'bold',
       textAlign: 'left',
     },
     Username: {
-      paddingLeft:20,
-      fontSize: 20,
-      paddingBottom: 20,
+      paddingLeft:10,
+      fontSize: 18,
+      paddingBottom: 10,
       textAlign: 'left',
       color: 'gray',
     },
     ProfileHeader: {
       paddingBottom: 20,
       marginBottom: 20,
-      paddingLeft:20,
+      paddingLeft:10,
       alignItems: 'left',
+      marginTop: 10
+
     },
     FollowRowText: {
-      fontSize: 16,
+      fontSize: 20,
       color: 'gray',
     },
     ProfileHeaderText: {
@@ -272,11 +286,11 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       alignContent: 'center',
       alignItems: 'center',
+      paddingLeft: 10
 
     },
     Container: {
       flex: 1,
-      margin:10,
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
       backgroundColor: '#f8f8f8',
@@ -294,11 +308,13 @@ const styles = StyleSheet.create({
     },
     LogoutButton: {
       paddingLeft:20,
+      position: 'absolute',
       backgroundColor: 'grey',
       padding: 12,
       borderRadius: 20,
-      width: '90%',
+      width: '80%',
       alignItems: 'center',
+      alignContent: 'center',
       marginBottom: 30,
     },
     FollowButton: {
@@ -321,7 +337,8 @@ const styles = StyleSheet.create({
     },
     ProfileText: {
       fontSize: 20,
-      color: 'blue',
+      fontWeight: 'bold',
+      paddingLeft:10
     },
     MyCommunity: {
       marginVertical: 20,
@@ -364,6 +381,14 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       alignContent: 'center',
       backgroundColor: 'lightblue',
+    },
+    BottomLine: {
+      position: 'absolute',
+      bottom: 0,
+      width: '80%',
+      borderBottomWidth: 0.2,
+      borderBottomColor: 'lightblack',
+      marginTop:10
     },
   });
   
