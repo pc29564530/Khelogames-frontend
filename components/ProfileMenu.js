@@ -23,6 +23,8 @@ function ProfileMenu(){
     const [currentUser, setCurrentUser] = useState('');
     const [showMyCommunity, setShowMyCommunity] = useState(false);
     const [myCommunityData, setMyCommunityData] = useState([]);
+    const [profileData, setProfileData] = useState([]);
+    const [displayText, setDisplayText] = useState('');
      
 
     const handleProfilePage = () => {
@@ -33,7 +35,7 @@ function ProfileMenu(){
         try {
           const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axios.get(`http://192.168.0.107:8080/getCommunityByUser`, {
+          const response = await axios.get(`http://192.168.0.102:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -57,7 +59,7 @@ function ProfileMenu(){
         try {
             const username = await AsyncStorage.getItem('User')
 
-            await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.102:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -136,6 +138,25 @@ function ProfileMenu(){
         console.error(e);
     }
     }
+    const fetchProfileData = async () => {
+      try {
+        const authUser = await AsyncStorage.getItem("User");
+        console.log(authUser)
+        const response = await axios.get(`http://192.168.0.102:8080/getProfile/${authUser}`);
+        console.log("response data: ", response.data)
+        console.log("Avatar Url: ", response.data.avatar_url)
+        if (!response.data.avatar_url || response.data.avatar_url === '') {
+          const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+          setDisplayText(usernameInitial.toUpperCase());
+        } else {
+          setDisplayText(''); // Reset displayText if the avatar is present
+        }
+       
+        setProfileData(response.data)
+      } catch (err) {
+        console.error("unable to fetch the profile data: ", err);
+      }
+    }
     useEffect(() =>{
         fetchFollowing(); 
         setIsFollowing(following.some((item) => item === following_owner))
@@ -148,15 +169,25 @@ function ProfileMenu(){
           setCurrentUser(following_owner);
         }
       }
+      fetchProfileData()
       verifyUser();
     }, [])
 
-    
+    console.log("Display Text: ", displayText)
+    console.log("Line no 181: ", profileData.avatar_url)
     return (
         <View style={styles.Container}>
               <View style={styles.ProfileHeader}>
-                <Image style={styles.UserAvatar} source={logoPath} />
-                <Text style={styles.FullName}>{currentUser}</Text>
+                {profileData.avatar_url ? (
+                  <Image style={styles.UserAvatar} source={profileData.avatar_url} />
+                ) : (
+                  <View style={styles.UserAvatarContainer}>
+                    <Text style={styles.UserAvatarText}>
+                      {displayText}
+                    </Text>
+                  </View>
+                )}
+                <Text style={styles.FullName}>{profileData.full_name}</Text>
                 <Text style={styles.Username}>@{currentUser}</Text>
                 <View style={styles.FollowRow}>
                   <Text style={styles.FollowRowText}>0 Followers</Text>
@@ -189,7 +220,7 @@ function ProfileMenu(){
                           ))}
                         </View>
                       )}
-                  </View>
+                </View>
                   }
                 </View>
                 <View>
@@ -311,6 +342,28 @@ const styles = StyleSheet.create({
     CommunityListItem: {
         fontSize: 20,
         marginVertical: 0,
+    },
+    UserAvatarText: {
+      borderRadius: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      position: 'absolute',
+      fontSize: 46,
+      top: '30%',
+      left: '48%',
+      transform: [{ translateX: -13 }, { translateY: -13 }],
+      color: 'red',
+    },
+    UserAvatarContainer: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      backgroundColor: 'lightblue',
     },
   });
   
