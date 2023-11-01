@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, TouchableOpacity} from 'react-native';
-import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -42,7 +41,7 @@ const Thread = () => {
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://192.168.0.0107:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`http://192.168.0.102:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
             } catch (err) {
               console.error(err);

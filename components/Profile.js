@@ -18,6 +18,7 @@ function ProfilePage() {
     const following = useSelector((state) => state.user.following);
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
+    const [currentUser, setCurrentUser] = useState('');
     const following_owner  = route.params?.username
     const handleEditProfile = () => {
       navigation.navigate('EditProfile') // Set the state to indicate that editing mode is active
@@ -25,6 +26,7 @@ function ProfilePage() {
 
     const handleReduxFollow = async () => {
       try {
+          setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
             `http://192.168.0.102:8080/create_follow/${following_owner}`,
@@ -46,6 +48,7 @@ function ProfilePage() {
     }
     const handleReduxUnFollow = async () => {
       try {
+        setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
           `http://192.168.0.102:8080/unFollow/${following_owner}`,
@@ -65,14 +68,14 @@ function ProfilePage() {
     }
   }
 
-    const handleFollowButton = async () => {
-     if(isFollowing) {
-        handleReduxUnFollow();
-     } else {
-        handleReduxFollow();
-     }
-     
+  const handleFollowButton = async () => {
+    if(isFollowing) {
+       handleReduxUnFollow();
+    } else {
+       handleReduxFollow();
     }
+    
+   }
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
