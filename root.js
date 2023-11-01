@@ -13,9 +13,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './redux/store';
 import rootReducer from './redux/reducers';
 import ProfileMenu from './components/ProfileMenu';
+import Profile from './components/Profile';
 import JoinCommunity from './components/JoinCommunity';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
+import EditProfile from './components/EditProfile';
 
 
 const Stack = createStackNavigator();
@@ -115,6 +117,39 @@ export default function Root() {
                 ),
               })}
                   />
+
+
+              <Stack.Screen name="Profile" component={Profile}
+                  options={({ navigation }) => ({
+                  headerShown: true,
+                  headerTitle: null,
+                  headerBackTitleVisible: false,
+                  headerLeft: () => (
+                    <FontAwesome
+                      name="close"
+                      size={iconSize}
+                      style={{ marginLeft: 10 }}
+                      onPress={() => navigation.goBack()}
+                    />
+                  ),
+                })}
+              />
+              <Stack.Screen name="EditProfile" component={EditProfile}
+                  options={({ navigation }) => ({
+                  headerShown: true,
+                  headerTitle: null,
+                  headerBackTitleVisible: false,
+                  headerLeft: () => (
+                    <FontAwesome
+                      name="close"
+                      size={iconSize}
+                      style={{ marginLeft: 10 }}
+                      onPress={() => navigation.goBack()}
+                    />
+                  ),
+                })}
+              />
+
                 <Stack.Screen name="JoinCommunity" component={JoinCommunity}
                   options={() => ({
                   headerShown: false,

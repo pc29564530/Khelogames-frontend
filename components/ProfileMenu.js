@@ -23,12 +23,19 @@ function ProfileMenu(){
     const [currentUser, setCurrentUser] = useState('');
     const [showMyCommunity, setShowMyCommunity] = useState(false);
     const [myCommunityData, setMyCommunityData] = useState([]);
+    const [profileData, setProfileData] = useState([]);
+    const [displayText, setDisplayText] = useState('');
      
+
+    const handleProfilePage = () => {
+      navigation.navigate('Profile');
+    }
+
     const toggleMyCommunity = async () => {
         try {
           const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axios.get(`http://192.168.0.107:8080/getCommunityByUser`, {
+          const response = await axios.get(`http://192.168.0.102:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -51,8 +58,8 @@ function ProfileMenu(){
     const handleLogout =  async () => {
         try {
             const username = await AsyncStorage.getItem('User')
-            console.log("Username: ", username)
-            await axios.delete(`http://192.168.0.107:8080/removeSession/${username}`)
+
+            await axios.delete(`http://192.168.0.102:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -66,7 +73,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.107:8080/create_follow/${following_owner}`,
+            `http://192.168.0.102:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -87,7 +94,7 @@ function ProfileMenu(){
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.107:8080/unFollow/${following_owner}`,
+          `http://192.168.0.102:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -115,7 +122,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.107:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -131,6 +138,25 @@ function ProfileMenu(){
         console.error(e);
     }
     }
+    const fetchProfileData = async () => {
+      try {
+        const authUser = await AsyncStorage.getItem("User");
+        console.log(authUser)
+        const response = await axios.get(`http://192.168.0.102:8080/getProfile/${authUser}`);
+        console.log("response data: ", response.data)
+        console.log("Avatar Url: ", response.data.avatar_url)
+        if (!response.data.avatar_url || response.data.avatar_url === '') {
+          const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+          setDisplayText(usernameInitial.toUpperCase());
+        } else {
+          setDisplayText(''); // Reset displayText if the avatar is present
+        }
+       
+        setProfileData(response.data)
+      } catch (err) {
+        console.error("unable to fetch the profile data: ", err);
+      }
+    }
     useEffect(() =>{
         fetchFollowing(); 
         setIsFollowing(following.some((item) => item === following_owner))
@@ -143,15 +169,23 @@ function ProfileMenu(){
           setCurrentUser(following_owner);
         }
       }
+      fetchProfileData()
       verifyUser();
     }, [])
 
-    
     return (
         <View style={styles.Container}>
               <View style={styles.ProfileHeader}>
-                <Image style={styles.UserAvatar} source={logoPath} />
-                <Text style={styles.FullName}>{currentUser}</Text>
+                {profileData.avatar_url ? (
+                  <Image style={styles.UserAvatar} source={profileData.avatar_url} />
+                ) : (
+                  <View style={styles.UserAvatarContainer}>
+                    <Text style={styles.UserAvatarText}>
+                      {displayText}
+                    </Text>
+                  </View>
+                )}
+                <Text style={styles.FullName}>{profileData.full_name}</Text>
                 <Text style={styles.Username}>@{currentUser}</Text>
                 <View style={styles.FollowRow}>
                   <Text style={styles.FollowRowText}>0 Followers</Text>
@@ -163,9 +197,16 @@ function ProfileMenu(){
                     }}
                   />
                 </View>
+                <View style={styles.BottomLine}></View>
+              </View>
+              <View style={styles.MiddleContainer}>
+                <Pressable onPress={handleProfilePage}>
+                  <Text style={styles.ProfileText}>Profile</Text>
+                </Pressable>
+                <View style={styles.BottomLine}></View>
               </View>
               {/* creating new my community for having my own community  */}
-              <View>
+              <View style={styles.BottomContainer}>
                 {showLogoutButton && 
                 <View style={styles.MyCommunity}>
                       <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
@@ -179,10 +220,10 @@ function ProfileMenu(){
                           ))}
                         </View>
                       )}
-                  </View>
+                </View>
                   }
                 </View>
-                <View>
+                <View >
                   { showLogoutButton?(
                       <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
                         <Text style={styles.Logout}>Logout</Text>
@@ -199,24 +240,43 @@ function ProfileMenu(){
 }
 
 const styles = StyleSheet.create({
+  
+  FooterButton: {
+    position: 'absolute',
+    alignItems:'center',
+    paddingLeft:10
+  },
+  LogoutButton: {
+
+  },
+  MiddleContainer: {
+    height: 200
+   },
     FullName: {
-      paddingTop: 20,
-      fontSize: 24, 
+      paddingTop: 10,
+      paddingLeft:10,
+      fontSize: 24,
       fontWeight: 'bold',
+      textAlign: 'left',
     },
     Username: {
-      fontSize: 20,
-      paddingBottom: 20
+      paddingLeft:10,
+      fontSize: 18,
+      paddingBottom: 10,
+      textAlign: 'left',
+      color: 'gray',
     },
     ProfileHeader: {
-      borderBottomEndRadius: 5,
-      borderBottomWidth: 1,
-      borderBlockEndColor: 'black',
-      paddingBotton: 20,
-      marginBottom: 20
+      paddingBottom: 20,
+      marginBottom: 20,
+      paddingLeft:10,
+      alignItems: 'left',
+      marginTop: 10
+
     },
     FollowRowText: {
-      fontSize: 16
+      fontSize: 20,
+      color: 'gray',
     },
     ProfileHeaderText: {
       fontSize: 20
@@ -226,17 +286,18 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       alignContent: 'center',
       alignItems: 'center',
+      paddingLeft: 10
 
     },
     Container: {
       flex: 1,
-      justifyContent: 'space-between',
-      alignItems: 'left',
-      margin:20
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      backgroundColor: '#f8f8f8',
     },
     Title: {
       fontSize: 22,
-      color: 'grey',
+      color: 'gray',
       fontWeight: '500',
       marginTop: 30,
     },
@@ -246,28 +307,38 @@ const styles = StyleSheet.create({
       fontWeight: '500',
     },
     LogoutButton: {
+      paddingLeft:20,
+      position: 'absolute',
       backgroundColor: 'grey',
       padding: 12,
       borderRadius: 20,
-      width: '90%',
+      width: '80%',
       alignItems: 'center',
+      alignContent: 'center',
       marginBottom: 30,
     },
     FollowButton: {
-      backgroundColor: 'grey',
+      backgroundColor: '#007AFF',
       color: 'white',
       padding: 12,
       borderRadius: 20,
       width: '34%',
       alignItems: 'center',
-      // marginBottom: 30,
     },
     UserAvatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 8,
-      backgroundColor: 'grey',
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 10,
+    },
+    ProfileTextButton:{
+      padding:20
+      
+    },
+    ProfileText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      paddingLeft:10
     },
     MyCommunity: {
       marginVertical: 20,
@@ -288,6 +359,36 @@ const styles = StyleSheet.create({
     CommunityListItem: {
         fontSize: 20,
         marginVertical: 0,
+    },
+    UserAvatarText: {
+      borderRadius: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      position: 'absolute',
+      fontSize: 46,
+      top: '30%',
+      left: '48%',
+      transform: [{ translateX: -13 }, { translateY: -13 }],
+      color: 'red',
+    },
+    UserAvatarContainer: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      backgroundColor: 'lightblue',
+    },
+    BottomLine: {
+      position: 'absolute',
+      bottom: 0,
+      width: '80%',
+      borderBottomWidth: 0.2,
+      borderBottomColor: 'lightblack',
+      marginTop:10
     },
   });
   
