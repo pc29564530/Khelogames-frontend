@@ -8,8 +8,6 @@ import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
-
 function ProfileMenu(){
     const dispatch = useDispatch();
     const navigation = useNavigation();
@@ -35,7 +33,7 @@ function ProfileMenu(){
         try {
           const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axios.get(`http://192.168.0.102:8080/getCommunityByUser`, {
+          const response = await axiosInstance.get(`http://192.168.0.102:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -162,6 +160,7 @@ function ProfileMenu(){
         setIsFollowing(following.some((item) => item === following_owner))
         const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
+        console.log("Current User:", authUser)
         if(following_owner===undefined || following_owner === null) {
           setShowLogoutButton(true);
           setCurrentUser(authUser);
@@ -224,16 +223,9 @@ function ProfileMenu(){
                   }
                 </View>
                 <View >
-                  { showLogoutButton?(
-                      <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
-                        <Text style={styles.Logout}>Logout</Text>
-                      </TouchableOpacity>
-                    ):(
-                      <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
-                        <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
-                      </TouchableOpacity>
-                    )
-                  }
+                    <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
+                      <Text style={styles.Logout}>Logout</Text>
+                    </TouchableOpacity>
               </View>
         </View>
     );
