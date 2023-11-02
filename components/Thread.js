@@ -9,11 +9,17 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
 import Video from 'react-native-video';
 
+
 const Thread = () => {
+
+    const [profileData, setProfileData] = useState(null);
     const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
+    const [username,setUsername] = useState('');
+    const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
+    const [displayText, setDisplayText] = useState('');
 
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
@@ -66,9 +72,21 @@ const Thread = () => {
         });
         const item = response.data;
         if(item === null){
-          dispatch(setThreads([]))
-
+          setThreadWithUserProfile([]);
+          dispatch(setThreads([]));
         } else {
+          const threadUser = item.map(async (item,index) => {
+            const profileResponse = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${item.username}`);
+            if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+              const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+              setDisplayText(usernameInitial.toUpperCase());
+            } else {
+              setDisplayText(''); // Reset displayText if the avatar is present
+            }
+            return {...item, profile: profileResponse.data}
+          });
+          const threadsWithUserData = await Promise.all(threadUser);
+          setThreadWithUserProfile(threadsWithUserData);
           dispatch(setThreads(response.data))
         }
       } catch (err) {
@@ -101,14 +119,27 @@ const Thread = () => {
   
     return (
       <View style={styles.Container} vertical={true}>
-            {threads.map((item,i) => (
+            {threadWithUserProfile.map((item,i) => (
                 <View key={i} style={styles.ContentContainer}>
-                    <View style={styles.Header}>
-                      <Image source={KhelogamesLogo} style={styles.UserImage} />
-                      <View>
-                        <TouchableOpacity onPress={() => {handleUser(item.username)}}><Text style={styles.UserName}>{item.username}</Text></TouchableOpacity>
+                    <View >
+                        <TouchableOpacity style={styles.Header} onPress={() => {handleUser(item.username)}}>
+                          {item.profile.avatar_url ? (
+                              <Image source={item.profile.avatar_url} style={styles.UserImage} />
+                            ):(
+                              <View style={styles.UserAvatarContainer}>
+                                <Text style={styles.UserAvatarText}>
+                                  {displayText}
+                                </Text>
+                              </View>
+                            )
+                          }
+                          
+                          <View style={styles.UserDetails}>
+                            <Text style={styles.FullName}>{item.profile.full_name}</Text>
+                            <Text style={styles.UserName}>@{item.username}</Text>
+                          </View>
+                        </TouchableOpacity>
                         <Text style={styles.Position}>{item.timestamp}</Text>
-                      </View>
                     </View>
                     <Text style={styles.Content}>{item.content}</Text>
                     {item.media_type === 'image' && (
@@ -130,7 +161,7 @@ const Thread = () => {
                            name="thumbs-o-up"
                            style={styles.FooterButton}
                            size={iconSize}
-                        /> 
+                      /> 
                       </Pressable>
                       <Pressable onPress={() => handleThreadComment(item, item.id)}>
                         <FontAwesome 
@@ -163,6 +194,7 @@ const Thread = () => {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 10,
+      gap:10
     },
     UserImage: {
       width: 50,
@@ -171,9 +203,8 @@ const Thread = () => {
       backgroundColor: 'red'
     },
     UserName: {
-      fontWeight: '600',
+      fontWeight: '400',
       marginBottom: 5,
-      padding: 10
     },
     Position: {
       fontSize: 12,
@@ -201,7 +232,29 @@ const Thread = () => {
       flexDirection: 'row',
       alignItems: 'center',
       fontSize: 18
-    }
+    },
+    UserAvatarContainer: {
+      width: 50,
+      height: 50,
+      borderRadius: 50,
+      marginBottom: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      backgroundColor: 'lightblue',
+    },
+    UserAvatarText: {
+      borderRadius: 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignContent: 'center',
+      position: 'absolute',
+      fontSize: 26,
+      top: '30%',
+      left: '48%',
+      transform: [{ translateX: -7 }, { translateY: -11 }],
+      color: 'red',
+    },
   });
 
 export default Thread;
