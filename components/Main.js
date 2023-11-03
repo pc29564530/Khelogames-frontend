@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Text, View, StyleSheet, Platform} from 'react-native';
 import Header from './Header';
 import Footer from './Footer';
+import tailwind from 'twrnc'
 
 const Main =  () => {
     const statusBarHeight = Platform.OS === 'android' ? 0 : 20;
@@ -19,12 +20,12 @@ const Main =  () => {
         }
         const createProfile = async () => {
             const user = await AsyncStorage.getItem('User')
-            const getUser = await axios.get(`http://192.168.0.102:8080/getProfile/${user}`);
+            const getUser = await axios.get(`http://192.168.0.101:8080/getProfile/${user}`);
 
             //added new profile creation funcitonality
             if(getUser.data == undefined || getUser.data == null) {
                 try {
-                    await axiosInstance.post(`http://192.168.0.102.8080/createProfile`, {username: user}, {
+                    await axiosInstance.post(`http://192.168.0.101.8080/createProfile`, {username: user}, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json'
@@ -36,15 +37,11 @@ const Main =  () => {
             }
         }
         createProfile();
-        frun();
-        
+        frun(); 
     }, [])
     return (
         <>
-            <Header style={{shadowColor: '#171717',
-                shadowOffset: {width: -2, height: 4},
-                shadowOpacity: 0.2,
-                shadowRadius: 3,}} />
+            <Header/>
             <Footer/>
         </>
     )

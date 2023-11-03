@@ -1,17 +1,14 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Pressable, TouchableOpacity, Image} from 'react-native';
-import HomeIcon from '@mui/icons-material/Home';
-import SearchIcon from '@mui/icons-material/Search';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
-import axios from 'axios';
 import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
-import {PermissionsAndroid} from 'react-native'
 import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
+import tailwind from 'twrnc';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -89,7 +86,7 @@ function CreateThread({navigation}) {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post('http://192.168.0.107:8080/create_thread', thread, {
+            const response = await axiosInstance.post('http://192.168.0.101:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -108,24 +105,25 @@ function CreateThread({navigation}) {
     }
 
     return (
-        <View style={styles.Container}>
-            <View style={styles.Bodybox}>   
-                <TextInput style={styles.Input} value={title} onChangeText={setTitle} placeholder="Enter Title..."/>
+        <View style={tailwind`flex-1 p-10`}>
+            <View style={tailwind`mb-5`}>   
+                <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg`} value={title} onChangeText={setTitle} placeholder="Enter Title..."/>
                 <TextInput
-                    style={[styles.Input, styles.BodyInput]}
+                    style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg h-24`}
                     multiline 
                     value={content} 
                     onChangeText={setContent} 
-                    placeholder="Enter body..."
+                    placeholder="Enter description..."
                 />
             </View>
-            <Text style={styles.FileUploadButton} onPress={SelectMedia} >
-                <FontAwesome name="upload" size={25} color="#900" /> 
-            </Text>
+            <View style={tailwind`flex mb-10`} onPress={SelectMedia} >
+                <FontAwesome name="upload" size={25} color="white"  style={tailwind`bg-gray-400 h-10 w-10 p-2`}/>
+                <Text>Please upload media</Text> 
+            </View>
             
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
-            <Button onPress={HandleSubmit} title="Submit"/>
+            <Button onPress={HandleSubmit} title="Submit" color="gray"/>
             
         </View>
     );
