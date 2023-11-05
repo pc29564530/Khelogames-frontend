@@ -14,18 +14,24 @@ function Header () {
     }
     const iconSize = 25
 
+    const handleSearch = () => {
+        navigation.navigate('Search');
+    }
+
     return (   
         
         <View style={styles.Container}>
             <Image source={KhelogamesLogo} style={styles.KgLogoStyle} />
             
             <View style={styles.HeaderIcon}>
-                <FontAwesome  
-                    name="search"
-                    size={iconSize}
-                    color="grey"
-                    style={styles.IconStyles}
-                />
+                <TouchableOpacity onPress={handleSearch}>
+                    <FontAwesome  
+                        name="search"
+                        size={iconSize}
+                        color="grey"
+                        style={styles.IconStyles}
+                    />
+                </TouchableOpacity>
                 <MaterialIcons 
                     name="message"
                     size={iconSize}

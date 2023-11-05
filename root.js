@@ -15,6 +15,7 @@ import rootReducer from './redux/reducers';
 import ProfileMenu from './components/ProfileMenu';
 import Profile from './components/Profile';
 import JoinCommunity from './components/JoinCommunity';
+import Search from  './components/Search';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 import EditProfile from './components/EditProfile';
@@ -157,6 +158,14 @@ export default function Root() {
                   headerBackTitleVisible: false,
                   headerLeft: false
                   })}
+                  />
+                   <Stack.Screen name="Search" component={Search}
+                    options={() => ({
+                    headerShown: false,
+                    headerTitle: null,
+                    headerBackTitleVisible: false,
+                    headerLeft: false
+                    })}
                   />
             </>
           )}
