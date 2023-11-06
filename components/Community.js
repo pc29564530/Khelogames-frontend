@@ -1,77 +1,30 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import {Pressable, View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import axios from 'axios';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import ModalDropdown from 'react-native-modal-dropdown';
-
+import tailwind from 'twrnc';
+import { useNavigation } from '@react-navigation/native';
+import CreateCommunity from './CreateCommunity';
+import Header from './Header'
 const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
-
-function CreateCommunity () {
-    const axiosInstance = useAxiosInterceptor();
-    const [communityName, setCommunityName] = useState('');
-    const [description, setDescription] = useState('');
-    const [communityType, setCommunityType] = useState('Community Type');
-    const [community, setCommunity] = useState();
-
-
-    const handleCreateCommunity = async () => {
-        try {
-            const community = {communityName, description, communityType};
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axiosInstance.post('http://192.168.0.107:8080/communities', community, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            console.log(response.data)
-            setCommunity(response.data);
-        } catch (err) {
-            console.error(err);
-        }
-    }
-    
-    return (
-        <View>
-            <View style={styles.Description}>
-                <Text>Create a New Community</Text>
-                <Text>This is place where a people with similar field area connect with each other.</Text>
-            </View>
-           
-            <View style={styles.InputBoxContainer}>
-                <TextInput  style={styles.TextInputBox} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Community Name"/>
-                <TextInput style={styles.TextInputBox} type="input" value={description} onChangeText={setDescription} placeholder="Description" />
-                <ModalDropdown
-                    options={mainCommunities}
-                    dropdownStyle={styles.DropDown}
-                    dropdownTextStyle={styles.DropDownText}
-                    onSelect={(index,value) => setCommunityType(value)}
-                >
-                    <View style={styles.DropDownButton}>
-                        <Text>{communityType}</Text>
-                    </View>
-                </ModalDropdown>
-                <TouchableOpacity style={styles.InputButton} onPress={handleCreateCommunity}>
-                    <Text>Create Community</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-}
 
 
 function Community () {
 
     const [data, setData] = useState([]);
     const axiosInstance = useAxiosInterceptor();
+    const navigation = useNavigation();
+    const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
+
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await axiosInstance.get(`http://192.168.0.107:8080/get_all_communities/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -95,107 +48,60 @@ function Community () {
         // }
     },[]);
 
+    //community list by community type 
+
     return (
-        <ScrollView  style={styles.Container}>
-            <View style={styles.InputContainer}>
-                <CreateCommunity /> 
+      <>
+         
+        <ScrollView  style={tailwind`flex-1 bg-black`}>
+          {createCommunityScreen ? (
+            <CreateCommunity />
+          ):(
+            <>
+             <Header/>
+            <View style={tailwind`mt-1 mb-5 bg-yellow-800 rounded-md h-70`}>
+                <View style={tailwind`m-5`}>
+                    <Text style={tailwind`text-xl text-white`} >Create a New Community</Text>
+                    <Text style={tailwind`mb-5 text-white`}>This is place where a people with similar field area connect with each other.</Text>
+                </View>
+                <Pressable onPress={() => {setCreateCommunityScreen(!createCommunityScreen)}} style={tailwind` bg-blue-500 h-10 items-center ml-10 mr-10 rounded-md pt-2`}>
+                  <Text style={tailwind`font-bold text-white`}>Getting Start</Text> 
+                </Pressable>
+                {/* <Button name="Getting Start" onPress={() => {setCreateCommunityScreen(!createCommunityScreen)}}/> */}
+                {createCommunityScreen? <CreateCommunity /> : null }
             </View>
-            <View style={styles.ViewContainer}>
+            <View style={tailwind`w-full bg-white rounded-md`}>
                 {data.map((item,i) => (
-                    <View style={styles.SubViewBox} key={i}>
-                        <Image style={styles.DisplayImage} source={logoPath} />
-                        <View style={styles.ViewBox}>
-                            <Text style={styles.CommunityName}>{item.communities_name}</Text>
-                            <Text style={styles.CommunityDescription}>{item.description}</Text>
-                            <Text style={styles.CommunityTypeBox}>{item.community_type}</Text>
+                    <View style={tailwind`flex-row bg-gray-200 mb-1 p-1 rounded-md h-20`} key={i}>
+                        <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
+                        <View style={tailwind`w-4/5 pl-3`}>
+                            <Text style={tailwind`font-bold text-base`}>{item.communities_name}</Text>
+                            <Text style={tailwind`text-base`}>{item.description}</Text>
+                            <Text style={tailwind`text-base`}>{item.community_type}</Text>
                         </View>
                     </View>
                 ))}
             </View>
+            </>
+          )}
+            
         </ScrollView>
+      </>
     );
 }
 
 const styles = StyleSheet.create({
-    Container: {
-        flex: 1,
-        
-    },
-    InputContainer: {
-        marginTop: 10,
-        marginBottom: 10,
-        alignContent: 'center',
-        alignSelf: 'center',
-        backgroundColor: 'white',
-        gap: 10
-    },
-    ViewContainer:{
-        alignContent: 'center',
-        alignSelf: 'center',
-        width: '100%',
-        backgroundColor: 'white',
-        padding: 10,
-        gap: 10
-    },
-    Description: {
-        gap: 10,
-        margin: 10,
-    },
-    InputBoxContainer: {
-        alignContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        gap: 20,  
-    },
-    TextInputBox: {
-        padding: 10,
-        margin: 10,
-        backgroundColor: 'whitesmoke',
-        width: '60%',
-        fontSize: 15,
-        borderRadius: 5,
-        gap: 40,
-        textAlign: 'justify',
-    },
-    InputButton: {
-        padding: 10,
-        backgroundColor: "whitesmoke",
-        marginBottom: 10,
+  dropdownText: {
+    fontSize: 16,
+    padding: 5,
+    color: 'blue', // Set the color of the dropdown text here
+  },
+});
 
-    },
-    SubViewBox: {
-        backgroundColor: 'whitesmoke',
-        padding: 10,
-        flexDirection: 'row'
-    },
-    DisplayImage: {
-        marginRight: 10,
-        width: 50,
-        height: 50,
-        borderRadius: 5,
-        backgroundColor: 'red',
-    },
-    DropDownButton: {
-        padding: 10,
-        width: '100%',
-        alignItems: 'left',
-        backgroundColor: 'whitesmoke',
-        borderColor: 'black',
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    DropDown: {
-        width: '60%',
-        justifyContent: 'left',
-        height: 200,
-        borderColor: 'black',
-        borderWidth: 1,
-        borderRadius: 5,
-    },
-    DropDownText: {
-        fontSize: 16,
-        padding: 5,
-    }
-})
+Community.navigationOptions = ({ navigation }) => {
+  return {
+    headerShown: false, // Hides the header
+  };
+};
 
 export default Community;

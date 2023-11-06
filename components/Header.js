@@ -15,22 +15,22 @@ function Header () {
     }
 
     return (   
-        <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4`}>
+        <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-black`}>
             <Image source={KhelogamesLogo} style={tailwind`h-30 w-25`} />
             
             <View style={ tailwind`flex-row items-center`}>
                 <FontAwesome  
                     name="search"
                     size={24}
-                    color="black"
+                    color="white"
                 />
                 <MaterialIcons 
                     name="message"
                     size={24}
-                    color="black"   
+                    color="white"   
                 />
                 <TouchableOpacity  onPress={handleAccount}>
-                    <FontAwesome name="bars" color="black" size={24} />
+                    <FontAwesome name="bars" color="white" size={24} />
                 </TouchableOpacity>
             </View>
         </View> 
