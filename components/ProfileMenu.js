@@ -7,6 +7,7 @@ import useAxiosInterceptor from './axios_config';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import tailwind from 'twrnc';
 
 function ProfileMenu(){
     const dispatch = useDispatch();
@@ -23,7 +24,8 @@ function ProfileMenu(){
     const [myCommunityData, setMyCommunityData] = useState([]);
     const [profileData, setProfileData] = useState([]);
     const [displayText, setDisplayText] = useState('');
-     
+    const [followerCount, setFollowerCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
 
     const handleProfilePage = () => {
       navigation.navigate('Profile');
@@ -155,6 +157,9 @@ function ProfileMenu(){
         console.error("unable to fetch the profile data: ", err);
       }
     }
+    const handleClose = () => {
+      navigation.navigate('Main')
+    }
     useEffect(() =>{
         fetchFollowing(); 
         setIsFollowing(following.some((item) => item === following_owner))
@@ -172,217 +177,101 @@ function ProfileMenu(){
       verifyUser();
     }, [])
 
+    useEffect( () => {
+      const followerCount = async () => {
+          const authToken = await AsyncStorage.getItem('AccessToken');
+          const currentUser = await AsyncStorage.getItem("User");
+          const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollower`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            }
+          });
+
+          const item = response.data;
+          if(item.length > 0) {
+            setFollowerCount(item.length);
+          }
+      }
+      const followingCount = async () => {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const currentUser = await AsyncStorage.getItem("User");
+        const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollowing`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const item = response.data;
+        if(item.length > 0) {
+          setFollowingCount(item.length);
+        }
+    }
+      followerCount();
+      followingCount()
+    })
+
     return (
-        <View style={styles.Container}>
-              <View style={styles.ProfileHeader}>
+        <View style={tailwind`flex-1 justify-start items-start bg-black`}>
+                <View style={tailwind`h-20 flex-row items-end p-2 justify-between`}>
+                  <Text style={tailwind`pl-30 font-bold text-lg text-white`}>Profile Menu</Text>
+                  <Pressable onPress={handleClose} style={tailwind`pl-4`}>
+                      <FontAwesome name="close" color="white" size={24} />
+                  </Pressable>
+                  
+              </View> 
+              <View style={tailwind`mb-5 pl-5 items-left mt-5`}>
                 {profileData.avatar_url ? (
-                  <Image style={styles.UserAvatar} source={profileData.avatar_url} />
+                  <Image style={tailwind`w-100 h-100 mb-10 rounded-md`} source={profileData.avatar_url} />
                 ) : (
-                  <View style={styles.UserAvatarContainer}>
-                    <Text style={styles.UserAvatarText}>
+                  <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-cente`}>
+                    <Text style={tailwind`text-red-500 text-12x2`}>
                       {displayText}
                     </Text>
                   </View>
                 )}
-                <Text style={styles.FullName}>{profileData.full_name}</Text>
-                <Text style={styles.Username}>@{currentUser}</Text>
-                <View style={styles.FollowRow}>
-                  <Text style={styles.FollowRowText}>0 Followers</Text>
-                  <Text style={styles.FollowRowText}> | </Text>
-                  <Text style={styles.FollowRowText}>0  Following</Text>
-                  <Text style={{
-                      borderBottomColor: 'black',
-                      borderBottomWidth: 10,  
-                    }}
-                  />
+                <Text style={tailwind`pt-5 pl-2 text-2xl font-bold text-left text-white`}>{profileData.full_name}</Text>
+                <Text style={tailwind`pl-2 text-2xl`}>@{currentUser}</Text>
+                <View style={tailwind`flex-row justify-between content-center pl-2 pt-5 text-white`}>
+                  <Text style={tailwind`flex-row font-bold text-lg text-white`}>{followerCount} Followers</Text>
+                  <Text style={tailwind`flex-row font-bold text-lg text-white`}> | </Text>
+                  <Text style={tailwind`flex-row font-bold text-lg text-white`}>{followingCount}  Following</Text>
                 </View>
-                <View style={styles.BottomLine}></View>
+                <View style={tailwind`border-b border-white mt-2`}></View>
               </View>
-              <View style={styles.MiddleContainer}>
-                <Pressable onPress={handleProfilePage}>
-                  <Text style={styles.ProfileText}>Profile</Text>
+              <View style={tailwind`mb-5 pl-5 items-left mt-5`}>
+                <Pressable onPress={handleProfilePage} style={tailwind`pt-5 pl-2 font-bold text-left pb-2 `}>
+                  <Text style={tailwind`text-2xl text-white`}>Profile</Text>
                 </Pressable>
-                <View style={styles.BottomLine}></View>
+                <View style={tailwind`border-b border-white`}></View>
               </View>
+              
               {/* creating new my community for having my own community  */}
-              <View style={styles.BottomContainer}>
+              <View >
                 {showLogoutButton && 
-                <View style={styles.MyCommunity}>
-                      <TouchableOpacity style={styles.ToggleContainer} onPress={toggleMyCommunity}>
-                          <Text style={styles.CommunityToggle}>My Community</Text>
-                          <FontAwesome name={showMyCommunity?'angle-up':'angle-down'} size={20} color="black"/>
-                      </TouchableOpacity>
+                <View style={tailwind` pl-6 items-left mt-5`}>
+                      <Pressable style={tailwind`flex-row items-center`} onPress={toggleMyCommunity}>
+                          <Text style={tailwind`text-2xl font-bold mr-10 text-white`}>My Community</Text>
+                          <FontAwesome name={showMyCommunity?'angle-up':'angle-down'} size={20} color="white"/>
+                      </Pressable>
                       {showMyCommunity && (
-                        <View style={styles.CommunityList} > 
+                        <View style={tailwind`mt-5`} > 
                           {myCommunityData.map((item,index)=> (
-                            <Text style={styles.CommunityListItem}>{item.community_name}</Text>
+                            <Text style={tailwind`text-2xl my-0 text-white`}>{item.community_name}</Text>
                           ))}
                         </View>
                       )}
                 </View>
                   }
                 </View>
-                <View >
-                    <TouchableOpacity onPress={() => handleLogout()} style={styles.LogoutButton}>
-                      <Text style={styles.Logout}>Logout</Text>
+                <View style={tailwind`pl-5 mt-20`} >
+                    <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-20 bg-gray-500 p-4 rounded-2xl w-80 items-center`}>
+                      <Text style={tailwind`text-white text-lg font-medium `}>Logout</Text>
                     </TouchableOpacity>
               </View>
         </View>
     );
-}
-
-const styles = StyleSheet.create({
-  
-  FooterButton: {
-    position: 'absolute',
-    alignItems:'center',
-    paddingLeft:10
-  },
-  LogoutButton: {
-
-  },
-  MiddleContainer: {
-    height: 200
-   },
-    FullName: {
-      paddingTop: 10,
-      paddingLeft:10,
-      fontSize: 24,
-      fontWeight: 'bold',
-      textAlign: 'left',
-    },
-    Username: {
-      paddingLeft:10,
-      fontSize: 18,
-      paddingBottom: 10,
-      textAlign: 'left',
-      color: 'gray',
-    },
-    ProfileHeader: {
-      paddingBottom: 20,
-      marginBottom: 20,
-      paddingLeft:10,
-      alignItems: 'left',
-      marginTop: 10
-
-    },
-    FollowRowText: {
-      fontSize: 20,
-      color: 'gray',
-    },
-    ProfileHeaderText: {
-      fontSize: 20
-    },
-    FollowRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignContent: 'center',
-      alignItems: 'center',
-      paddingLeft: 10
-
-    },
-    Container: {
-      flex: 1,
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
-      backgroundColor: '#f8f8f8',
-    },
-    Title: {
-      fontSize: 22,
-      color: 'gray',
-      fontWeight: '500',
-      marginTop: 30,
-    },
-    Logout: {
-      fontSize: 15,
-      color: 'white',
-      fontWeight: '500',
-    },
-    LogoutButton: {
-      paddingLeft:20,
-      position: 'absolute',
-      backgroundColor: 'grey',
-      padding: 12,
-      borderRadius: 20,
-      width: '80%',
-      alignItems: 'center',
-      alignContent: 'center',
-      marginBottom: 30,
-    },
-    FollowButton: {
-      backgroundColor: '#007AFF',
-      color: 'white',
-      padding: 12,
-      borderRadius: 20,
-      width: '34%',
-      alignItems: 'center',
-    },
-    UserAvatar: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 10,
-    },
-    ProfileTextButton:{
-      padding:20
-      
-    },
-    ProfileText: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      paddingLeft:10
-    },
-    MyCommunity: {
-      marginVertical: 20,
-      alignItems: 'left',
-    },
-    ToggleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    CommunityToggle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginRight: 10,
-    },
-    CommunityList: {
-        marginTop: 20,
-    },
-    CommunityListItem: {
-        fontSize: 20,
-        marginVertical: 0,
-    },
-    UserAvatarText: {
-      borderRadius: 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignContent: 'center',
-      position: 'absolute',
-      fontSize: 46,
-      top: '30%',
-      left: '48%',
-      transform: [{ translateX: -13 }, { translateY: -13 }],
-      color: 'red',
-    },
-    UserAvatarContainer: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 10,
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignContent: 'center',
-      backgroundColor: 'lightblue',
-    },
-    BottomLine: {
-      position: 'absolute',
-      bottom: 0,
-      width: '80%',
-      borderBottomWidth: 0.2,
-      borderBottomColor: 'lightblack',
-      marginTop:10
-    },
-  });
-  
+} 
 
 export default ProfileMenu;
