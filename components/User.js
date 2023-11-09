@@ -5,25 +5,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
-const styles = StyleSheet.create({
-    Container: {
-      flex: 1,
-      padding: 20,
-      justifyContent: 'center',
-    },
-    Label: {
-      fontSize: 16,
-      marginBottom: 5,
-    },
-    Input: {
-      height: 40,
-      borderColor: 'gray',
-      borderWidth: 1,
-      borderRadius: 5,
-      paddingHorizontal: 10,
-      marginBottom: 20,
-    },
-  });
+import tailwind from 'twrnc';
 
 // export const AllUser = () =>{
 
@@ -82,7 +64,7 @@ const styles = StyleSheet.create({
           try {
             const newAccount = {username, mobileNumber, password};
             console.log(newAccount)
-            const response = await axios.post('http://192.168.0.107:8080/users', newAccount)
+            const response = await axios.post('http://192.168.0.100:8080/users', newAccount)
             if (response.data) {
               if (response.data.access_token) {
                 await AsyncStorage.setItem("AccessToken", response.data.access_token);
@@ -105,6 +87,7 @@ const styles = StyleSheet.create({
               setRExpire(response.data.access_token_expires_at);
               dispatch(setAuthenticated(!isAuthenticated));
               dispatch(setUser(response.data.user));
+              // dispatch(setMobileNumber(response.data.user.mobile_number))
               navigation.navigate('JoinCommunity');
               console.log(response.data);
             } else {
@@ -121,15 +104,18 @@ const styles = StyleSheet.create({
     }
 
     return (
-        <View style={styles.Container}>
-            <Text style={styles.Label} >Username</Text>
-            <TextInput style={styles.Input} value={username} onChangeText={setUsername} placeholder="Enter your username" />
-            <Text style={styles.Label} >Mobile Number</Text>
-            <TextInput style={styles.Input} value={mobileNumber} onChangeText={setMobileNumber} />
-            <Text style={styles.Label} >Password</Text>
-            <TextInput style={styles.Input} value={password} onChangeText={setPassword} placeholder="Enter your password" />
-            <Pressable onPress={handleAccount}>
-              <Text>Submit</Text>
+        <View style={tailwind`flex-1 bg-black p-4`}>
+            <View style={tailwind`h-30 items-center `}>
+              <Text style={tailwind`text-white font-bold text-xl `}>User Details</Text>
+            </View>
+            <Text style={tailwind`text-white font-bold text-lg pb-4`} >Username</Text>
+            <TextInput style={tailwind`text-black border border-b-2 border-white rounded-md mb-4 pl-4`} value={username} onChangeText={setUsername} placeholder="Enter your username" placeholderTextColor="white" />
+            <Text style={tailwind`text-white font-bold text-lg pb-4`} >Mobile Number</Text>
+            <TextInput style={tailwind`text-white border border-b-2 border-white rounded-md mb-4 pl-4`} value={mobileNumber} onChangeText={setMobileNumber} placeholder="Enter the Mobile Number" placeholderTextColor="white"  />
+            <Text style={tailwind`text-white font-bold text-lg pb-4`} >Password</Text>
+            <TextInput style={tailwind`text-white border border-b-2 border-white rounded-md mb-4 pl-4`} value={password} onChangeText={setPassword} placeholder="Enter your password" placeholderTextColor="white"/>
+            <Pressable  style={tailwind`border border-b-2 border-white items-center ml-55 p-2 rounded-md mt-42`} onPress={handleAccount}>
+              <Text style={tailwind`text-white font-bold text-xl`}>Next</Text>
             </Pressable>
         </View>
     )
