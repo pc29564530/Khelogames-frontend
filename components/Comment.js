@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import useAxiosInterceptor from './axios_config';
+import tailwind from 'twrnc';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Comment({threadId}) {
@@ -17,7 +18,7 @@ function Comment({threadId}) {
     const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`http://192.168.0.107:8080/createComment/${threadId}`, {commentText}, {
+            const response = await axiosInstance.post(`http://192.168.0.100:8080/createComment/${threadId}`, {commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -34,7 +35,7 @@ function Comment({threadId}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://192.168.0.107:8080/getComment/${threadId}`, {
+            const response = await axiosInstance.get(`http://192.168.0.100:8080/getComment/${threadId}`, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -59,17 +60,18 @@ function Comment({threadId}) {
     }, []);
 
     return (
-        <View style={styles.Container}>
-            <View style={styles.SubcontainerDisplay}>
+        <View style={tailwind`flex-1 bg-black`}>
+            <View style={tailwind`flex-1 items-center p-1`}>
                 {comments.map((item, i) => (
-                    <View  style={styles.CommentBox} key={i}>
-                        <View style={styles.CommentHeader}> 
-                            <Image style={styles.UserAvatar} source={logoPath} />
-                            <Text>{item.owner}</Text>
+                    <View  style={tailwind`p-4 m-2 w-full bg-black`} key={i}>
+                        <View style={tailwind`flex-row items-center`}> 
+                            <Image style={tailwind`w-10 h-10 rounded-full mr-2 bg-white`} source={logoPath} />
+                            <Text style={tailwind`text-white font-bold`}>@{item.owner}</Text>
                         </View>
-                        <View style={styles.Comment}>
-                            <Text style={styles.CommentText}>{item.comment_text}</Text>
+                        <View style={tailwind`p-2 pl-10`}>
+                            <Text style={tailwind`text-base text-white`}>{item.comment_text}</Text>
                         </View>
+                        <View style={tailwind`border-b border-white mt-2`}></View>
                     </View>
                 ))}
             </View>

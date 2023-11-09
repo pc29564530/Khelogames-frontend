@@ -41,12 +41,12 @@ function AuthStack() {
               />
               <Stack.Screen name="ThreadComment" component={ThreadComment} 
               options={({ navigation }) => ({
-              headerShown: true,
+              headerShown: false,
               headerTitle: null,
               headerBackTitleVisible: false,
               headerLeft: () => (
                 <FontAwesome
-                  name="long-arrow-left"
+                  name="close"
                   size={24}
                   style={{ marginLeft: 10 }}
                   onPress={() => navigation.goBack()}
@@ -56,12 +56,13 @@ function AuthStack() {
                 />
         <Stack.Screen name="Profile" component={Profile}
             options={({ navigation }) => ({
-              headerShown: true,
+              headerShown: false,
               headerTitle: null,
               headerBackTitleVisible: false,
               headerLeft: () => (
                 <FontAwesome
                   name="close"
+                  color="white"
                   size={24}
                   style={{ marginLeft: 10 }}
                   onPress={() => navigation.goBack()}
@@ -113,7 +114,14 @@ function AuthStack() {
 function UnAuthStack () {
   return (
     <Stack.Navigator>
-        <Stack.Screen name="SignUp" component={SignUp}/>
+        <Stack.Screen name="SignUp" component={SignUp}
+            options={() => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: false
+            })}
+        />
         <Stack.Screen name="User" component={User}
           options={{
             headerTitle: null,

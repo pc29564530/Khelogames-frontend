@@ -34,7 +34,7 @@ function ProfilePage() {
           setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.102:8080/create_follow/${following_owner}`,
+            `http://192.168.0.100:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -56,7 +56,7 @@ function ProfilePage() {
         setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.102:8080/unFollow/${following_owner}`,
+          `http://192.168.0.100:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -84,7 +84,7 @@ function ProfilePage() {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.100:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -123,20 +123,21 @@ function ProfilePage() {
             return;
         }
         if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`http://192.168.0.102:8080/getProfile/${owner}`)
+           const response = await axios.get(`http://192.168.0.100:8080/getProfile/${owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
             setProfileData(response.data);
             if(response.data.avatar_url || response.avatar_url === '') {
               const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+              console.log("display Text: ", usernameInitial.toUpperCase())
               setDisplayText(usernameInitial.toUpperCase());
             } else {
               setDisplayText('')
             }
           }
         } else {
-          const response = await axios.get(`http://192.168.0.102:8080/getProfile/${following_owner}`)
+          const response = await axios.get(`http://192.168.0.100:8080/getProfile/${following_owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -164,7 +165,7 @@ function ProfilePage() {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollower`, {
+        const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -179,7 +180,7 @@ function ProfilePage() {
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const currentUser = await AsyncStorage.getItem("User");
-      const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollowing`, {
+      const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -197,7 +198,18 @@ function ProfilePage() {
 
     return(
       <View style={tailwind`flex-1 bg-black`}>
-        {/* <StatusBar style={tailwind`bg-gray`} /> */}
+        <View style={tailwind`p-4 gap-30 items-left flex-row`}>
+            <Pressable>
+                <FontAwesome
+                    name="close"
+                    color="white"
+                    size={24}
+                    style={{ marginLeft: 10 }}
+                    onPress={() => navigation.goBack()}
+                />
+            </Pressable>
+            <Text style={tailwind`text-white font-bold text-lg`}>Profile</Text>
+        </View>
         <View style={tailwind`w-full`}>
             <Image
                 style={tailwind`h-60 w-full object-cover bg-yellow-500`}
@@ -209,7 +221,7 @@ function ProfilePage() {
         <View style={tailwind`flex-1 p-4`}>
             {profileData.avatar_url ? (
                 <Image
-                    style={tailwind`h-24 w-24 rounded-full border-2 border-white -mt-12`}
+                    style={tailwind`h-24 w-24 rounded-full border-2 border-white bg-white -mt-12`}
                     source={profileData.avatar_url}
                 />
             ) : (

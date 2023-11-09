@@ -24,7 +24,7 @@ function Community () {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.100:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -58,17 +58,16 @@ function Community () {
             <CreateCommunity />
           ):(
             <>
-             <Header/>
             <View style={tailwind`mt-1 mb-5 bg-yellow-800 rounded-md h-70`}>
                 <View style={tailwind`m-5`}>
                     <Text style={tailwind`text-xl text-white`} >Create a New Community</Text>
                     <Text style={tailwind`mb-5 text-white`}>This is place where a people with similar field area connect with each other.</Text>
                 </View>
-                <Pressable onPress={() => {setCreateCommunityScreen(!createCommunityScreen)}} style={tailwind` bg-blue-500 h-10 items-center ml-10 mr-10 rounded-md pt-2`}>
+                <Pressable onPress={() => {navigation.navigate('CreateCommunity')}} style={tailwind` bg-blue-500 h-10 items-center ml-10 mr-10 rounded-md pt-2`}>
                   <Text style={tailwind`font-bold text-white`}>Getting Start</Text> 
                 </Pressable>
                 {/* <Button name="Getting Start" onPress={() => {setCreateCommunityScreen(!createCommunityScreen)}}/> */}
-                {createCommunityScreen? <CreateCommunity /> : null }
+                {/* {createCommunityScreen? onPress{}: null } */}
             </View>
             <View style={tailwind`w-full bg-white rounded-md`}>
                 {data.map((item,i) => (
@@ -97,11 +96,5 @@ const styles = StyleSheet.create({
     color: 'blue', // Set the color of the dropdown text here
   },
 });
-
-Community.navigationOptions = ({ navigation }) => {
-  return {
-    headerShown: false, // Hides the header
-  };
-};
 
 export default Community;
