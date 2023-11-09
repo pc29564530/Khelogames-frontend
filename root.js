@@ -47,7 +47,7 @@ function AuthStack() {
               headerLeft: () => (
                 <FontAwesome
                   name="long-arrow-left"
-                  size={iconSize}
+                  size={24}
                   style={{ marginLeft: 10 }}
                   onPress={() => navigation.goBack()}
                 />
@@ -56,28 +56,29 @@ function AuthStack() {
                 />
         <Stack.Screen name="Profile" component={Profile}
             options={({ navigation }) => ({
-            headerShown: true,
-            headerTitle: null,
-            headerBackTitleVisible: false,
-            headerLeft: () => (
-              <FontAwesome
-                name="close"
-                size={iconSize}
-                style={{ marginLeft: 10 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          })}
+              headerShown: true,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: () => (
+                <FontAwesome
+                  name="close"
+                  size={24}
+                  style={{ marginLeft: 10 }}
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+            })}
         />
         <Stack.Screen name="EditProfile" component={EditProfile}
             options={({ navigation }) => ({
-            headerShown: true,
+            headerShown: false,
             headerTitle: null,
             headerBackTitleVisible: false,
             headerLeft: () => (
               <FontAwesome
                 name="close"
-                size={iconSize}
+                size={24}
+                color="white"
                 style={{ marginLeft: 10 }}
                 onPress={() => navigation.goBack()}
               />
@@ -93,12 +94,13 @@ function AuthStack() {
           headerLeft: false
           })}
           />
-          <Stack.Screen name="ProfileMenu" component={AppDrawer} 
+          {/* <Stack.Screen name="AppDrawer" component={AppDrawer} />  */}
+          <Stack.Screen name="ProfileMenu" component={ProfileMenu} 
             options={() => ({
               headerShown: false,
               headerTitle: null,
               headerBackTitleVisible: false,
-              headerLeft:false
+              headerLeft: false
             })}
           />
           <Stack.Screen name="CreateCommunity" component={CreateCommunity}

@@ -5,7 +5,9 @@ import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
 import  RFNS from 'react-native-fs';
-
+import tailwind from 'twrnc';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import { useNavigation } from '@react-navigation/native';
 
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -36,6 +38,7 @@ export default function EditProfile() {
     const [profile, setProfile] = useState()
     const axiosInstance = useAxiosInterceptor();
 
+    const navigation = useNavigation();
     //to create the username for personal use no one can change the user after creation
     const handleSaveButton = async () => {
         
@@ -49,7 +52,7 @@ export default function EditProfile() {
                 avatar_url: avatarUrl
             }
             
-            const response = await axiosInstance.post('http://192.168.0.102:8080/createProfile', profileData, {
+            const response = await axiosInstance.post('http://192.168.0.100:8080/createProfile', profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -98,7 +101,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.100:8080/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -119,68 +122,66 @@ export default function EditProfile() {
     }, []);
     
     return (
-        <View style={styles.Container} >
-            <View style = {styles.UploadContainer}>
-                <Pressable style={styles.UpdateAvatar} onPress={uploadAvatarimage}>
-                    <Text>Upload Image</Text>
+        <View style={tailwind`flex-1 bg-black`} >
+            <View style={tailwind`flex-row h-15  gap-30 p-5`}>
+            <FontAwesome
+                name="close"
+                size={24}
+                color="white"
+                style={{ marginLeft: 5 }}
+                onPress={() => navigation.goBack()}
+              />
+              <Text style={tailwind`text-white font-bold text-lg`}>Edit Profile</Text>
+            </View>
+            <View style={tailwind`w-full h-60`}>
+                <Image
+                    style={tailwind`h-60 object-cover bg-yellow-500`}
+                    source={{
+                        uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
+                    }}
+                />
+                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`}>
+                    <FontAwesome  name="upload" size={24} color="white" />
                 </Pressable>
             </View>
-                <TextInput style={styles.EditTextInput}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name'/>
-                <TextInput style={styles.EditTextInput}  value={bio} onChangeText={setBio} placeholder='Enter About you' />
-            <View style={styles.SubmitButtonContainer} >
-                <Pressable style={styles.ButtonIcon} onPress={handleSaveButton}>
-                    <Text style={styles.TextContainer}>Save</Text>
+            <View style={tailwind`flex-1 p-4`}>
+                <Image
+                    style={tailwind`h-24 w-24 rounded-full border-2 bg-white -mt-12`}
+                    source={{
+                        uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
+                    }}
+                />
+                <Pressable  style={tailwind` -mt-12 ml-18 rounded-full bg-red-500 w-8 h-8 p-1 items-center` } onPress={uploadAvatarimage}>
+                    <FontAwesome name="upload" size={20} color="white" />
+                </Pressable>
+
+                {/* {profileData.avatar_url ? (
+                    <Image
+                        style={tailwind`h-24 w-24 rounded-full border-2 border-white -mt-12`}
+                        source={profileData.avatar_url}
+                    />
+                ) : (
+                <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-cente -mt-12`}>
+                    <Text style={tailwind`text-red-500 text-12x2`}>
+                    {displayText}
+                    </Text>
+                </View>
+                )} */}
+            </View>
+            {/* <View style = {tailwind`flex flex-row justify-between p-4 h-60 bg-blue-200`}>
+                <Pressable style={tailwind`p-4 w-36 bg-green-500`} onPress={uploadAvatarimage}>
+                    <Text style={tailwind`font-bold text-lg text-center pt-10`}>Upload Image</Text>
+                </Pressable>
+            </View> */}
+            <View style={tailwind`flex-1 -mt-20 flex-column gap-10 p-4`}>
+                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name' placeholderTextColor="white"/>
+                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={bio} onChangeText={setBio} placeholder='Enter About you' placeholderTextColor="white" />
+            </View>
+            <View style={tailwind`items-center mb-8 mt-10`} >
+                <Pressable style={tailwind`justify-center items-center bg-gray-500 w-1/2 rounded p-4`} onPress={handleSaveButton}>
+                    <Text style={tailwind`text-lg text-white`}>Save</Text>
                 </Pressable>
             </View>
         </View>
     );
-}
-
-
-
-const styles = StyleSheet.create({
-    Container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'space-between'
-    },
-    UploadContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 20,
-        height: 200,
-        backgroundColor: 'lightblue'
-    },
-    EditDetails:{
-        padding: 20,
-        gap: 20
-
-    },
-    UpdateAvatar: {
-        padding: 20,
-        backgroundColor: 'green',
-        width: 150
-    },
-    EditTextInput: {
-        padding:10,
-        backgroundColor: 'whitesmoke',
-        borderRadius: 5,
-        borderWidth: 1,
-    },
-    SubmitButtonContainer: {
-        alignContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20
-    },
-    ButtonIcon:{
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'grey',
-        width: '50%',
-        borderRadius: 5,
-        padding: 20
-    },
-    TextContainer: {
-        fontSize: 20,
-    }
-})
+};
