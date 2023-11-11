@@ -35,7 +35,7 @@ function ProfileMenu(){
         try {
           const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axiosInstance.get(`http://192.168.0.100:8080/getCommunityByUser`, {
+          const response = await axiosInstance.get(`http://192.168.0.102:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -59,7 +59,7 @@ function ProfileMenu(){
         try {
             const username = await AsyncStorage.getItem('User')
 
-            await axios.delete(`http://192.168.0.100:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.102:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -73,7 +73,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.100:8080/create_follow/${following_owner}`,
+            `http://192.168.0.102:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -94,7 +94,7 @@ function ProfileMenu(){
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.100:8080/unFollow/${following_owner}`,
+          `http://192.168.0.102:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -122,7 +122,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.100:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ function ProfileMenu(){
       try {
         const authUser = await AsyncStorage.getItem("User");
         console.log(authUser)
-        const response = await axios.get(`http://192.168.0.100:8080/getProfile/${authUser}`);
+        const response = await axios.get(`http://192.168.0.102:8080/getProfile/${authUser}`);
         console.log("response data: ", response.data)
         console.log("Avatar Url: ", response.data.avatar_url)
         if (!response.data.avatar_url || response.data.avatar_url === '') {
@@ -181,7 +181,7 @@ function ProfileMenu(){
       const followerCount = async () => {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const currentUser = await AsyncStorage.getItem("User");
-          const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollower`, {
+          const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollower`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ function ProfileMenu(){
       const followingCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollowing`, {
+        const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollowing`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -213,17 +213,16 @@ function ProfileMenu(){
     }, [])
 
     return (
-        <View style={tailwind`flex-1 justify-start items-start bg-black`}>
+        <View style={tailwind`flex-1 bg-black`}>
                 <View style={tailwind`h-20 flex-row items-end p-2 justify-between`}>
                   <Text style={tailwind`pl-30 font-bold text-lg text-white`}>Profile Menu</Text>
                   <Pressable onPress={handleClose} style={tailwind`pl-4`}>
                       <FontAwesome name="close" color="white" size={24} />
                   </Pressable>
-                  
               </View> 
               <View style={tailwind`mb-5 pl-5 items-left mt-5`}>
                 {profileData.avatar_url ? (
-                  <Image style={tailwind`w-100 h-100 mb-10 rounded-md`} source={profileData.avatar_url} />
+                  <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white`} source={profileData.avatar_url} />
                 ) : (
                   <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-cente`}>
                     <Text style={tailwind`text-red-500 text-12x2`}>
@@ -232,7 +231,7 @@ function ProfileMenu(){
                   </View>
                 )}
                 <Text style={tailwind`pt-5 pl-2 text-2xl font-bold text-left text-white`}>{profileData.full_name}</Text>
-                <Text style={tailwind`pl-2 text-2xl`}>@{currentUser}</Text>
+                <Text style={tailwind`pl-2 text-2xl text-white`}>@{currentUser}</Text>
                 <View style={tailwind`flex-row justify-between content-center pl-2 pt-5 text-white`}>
                   <Text style={tailwind`flex-row font-bold text-lg text-white`}>{followerCount} Followers</Text>
                   <Text style={tailwind`flex-row font-bold text-lg text-white`}> | </Text>

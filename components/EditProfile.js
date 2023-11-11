@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity} from 'react-native';
+import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView} from 'react-native';
 import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
 import axios from 'axios';
@@ -8,6 +8,8 @@ import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
+
+const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -52,7 +54,7 @@ export default function EditProfile() {
                 avatar_url: avatarUrl
             }
             
-            const response = await axiosInstance.post('http://192.168.0.100:8080/createProfile', profileData, {
+            const response = await axiosInstance.put('http://192.168.0.102:8080/editProfile', profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -101,7 +103,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`http://192.168.0.100:8080/getProfile/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -122,7 +124,7 @@ export default function EditProfile() {
     }, []);
     
     return (
-        <View style={tailwind`flex-1 bg-black`} >
+        <KeyboardAvoidingView style={tailwind`flex-1 bg-black`} >
             <View style={tailwind`flex-row h-15  gap-30 p-5`}>
             <FontAwesome
                 name="close"
@@ -136,11 +138,9 @@ export default function EditProfile() {
             <View style={tailwind`w-full h-60`}>
                 <Image
                     style={tailwind`h-60 object-cover bg-yellow-500`}
-                    source={{
-                        uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
-                    }}
+                    source={CoverImage}
                 />
-                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`}>
+                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`} onPress={uploadAvatarimage}>
                     <FontAwesome  name="upload" size={24} color="white" />
                 </Pressable>
             </View>
@@ -173,15 +173,13 @@ export default function EditProfile() {
                     <Text style={tailwind`font-bold text-lg text-center pt-10`}>Upload Image</Text>
                 </Pressable>
             </View> */}
-            <View style={tailwind`flex-1 -mt-20 flex-column gap-10 p-4`}>
+            <View style={tailwind`mt-20 gap-10`}>
                 <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name' placeholderTextColor="white"/>
                 <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={bio} onChangeText={setBio} placeholder='Enter About you' placeholderTextColor="white" />
-            </View>
-            <View style={tailwind`items-center mb-8 mt-10`} >
                 <Pressable style={tailwind`justify-center items-center bg-gray-500 w-1/2 rounded p-4`} onPress={handleSaveButton}>
                     <Text style={tailwind`text-lg text-white`}>Save</Text>
                 </Pressable>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 };

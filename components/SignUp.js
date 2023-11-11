@@ -13,36 +13,35 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function SignUp() {
-  const dispatch = useDispatch();
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [otp, setOTP] = useState('');
-  const navigation = useNavigation();
-  const handleVerify = async () => {
-    try {
-      const verifyMobileNumber = { mobileNumber, otp };
-      const response = await axios.post('http://192.168.0.101:8080/signup', verifyMobileNumber);
-      dispatch(verifyOTP(response.data));
-      dispatch(setMobileNumberVerified(true));
-      navigation.navigate("User");
-    } catch (err) {
-      console.error('Failed to verify OTP:', err);
+    const dispatch = useDispatch();
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [otp, setOTP] = useState('');
+    const navigation = useNavigation();
+    const handleVerify = async () => {
+        try {
+            const verifyMobileNumber = {mobile_number: mobileNumber, otp: otp}
+            const response = await axios.post('http://192.168.0.102:8080/signup', verifyMobileNumber);
+            dispatch(verifyOTP(response.data))
+            dispatch(setMobileNumberVerified(true))
+            navigation.navigate("User")
+        } catch (err) {
+            console.error('Failed to verify OTP:', err);
+        }
     }
-  };
 
-  const handleSendOTP = async () => {
-    try {
-      var data = { mobileNumber };
-      const response = await axios.post('http://192.168.0.101:8080/send_otp', data);
-      console.log(response.data);
-      dispatch({ type: 'SEND_OTP', payload: response.data });
-    } catch (err) {
-      console.error("Unable to send the otp from ui: ", err);
+    const handleSendOTP = async () => {
+      try {
+        console.log("MobileNumber: ", data)
+        const response = await axios.post('http://192.168.0.102:8080/send_otp', {mobile_number: mobileNumber})
+        console.log(response.data)
+        dispatch({type: 'SEND_OTP', payload:response.data})
+      } catch (err) {
+        console.error("Unable to send the otp from ui: ", err);
+      }
     }
-  };
-
-  const handleNavigateLogin = () => {
-    navigation.navigate('SignIn')
-  }
+    const handleNavigateLogin = () => {
+      navigation.navigate('SignIn')
+    }
 
   return (
     <View style={tailwind`flex-1 justify-center bg-black`}>
