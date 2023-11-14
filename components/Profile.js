@@ -10,6 +10,8 @@ import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUse
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 
+const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
+
 function ProfilePage() {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch()
@@ -34,7 +36,7 @@ function ProfilePage() {
           setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.100:8080/create_follow/${following_owner}`,
+            `http://192.168.0.101:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -56,7 +58,7 @@ function ProfilePage() {
         setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.100:8080/unFollow/${following_owner}`,
+          `http://192.168.0.101:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -84,7 +86,7 @@ function ProfilePage() {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.100:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.101:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ function ProfilePage() {
     } catch (e) {
         console.error(e);
     }
-    }
+  }
 
 
   useEffect(() => {
@@ -122,11 +124,15 @@ function ProfilePage() {
             console.log("User not found in AsyncStorage.");
             return;
         }
+        console.log("Profile Username: ", owner)
         if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`http://192.168.0.100:8080/getProfile/${owner}`)
+           const response = await axios.get(`http://192.168.0.101:8080/getProfile/${owner}`)
+           console.log("AvatarUrl: ", response.data.avatar_url)
+           console.log("CoverUrl: ", response.data.cover_url)
            if( response.data == null ){
             setProfileData([])
           } else {
+            console.log("FullOutput: ",response.data)
             setProfileData(response.data);
             if(response.data.avatar_url || response.avatar_url === '') {
               const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
@@ -137,7 +143,7 @@ function ProfilePage() {
             }
           }
         } else {
-          const response = await axios.get(`http://192.168.0.100:8080/getProfile/${following_owner}`)
+          const response = await axios.get(`http://192.168.0.101:8080/getProfile/${following_owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -145,12 +151,6 @@ function ProfilePage() {
             setProfileData(response.data);
           }
         }
-          if( response.data == null ){
-            setProfileData([])
-          } else {
-            console.log(response.data)
-            setProfileData(response.data);
-          }
           
         } catch(e) {
           console.error("unable to fetch the profile details", e)
@@ -165,7 +165,7 @@ function ProfilePage() {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollower`, {
+        const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -180,13 +180,12 @@ function ProfilePage() {
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const currentUser = await AsyncStorage.getItem("User");
-      const response = await axiosInstance.get(`http://192.168.0.100:8080/getFollowing`, {
+      const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         }
       });
-
       const item = response.data;
       if(item.length > 0) {
         setFollowingCount(item.length);
@@ -211,19 +210,22 @@ function ProfilePage() {
             <Text style={tailwind`text-white font-bold text-lg`}>Profile</Text>
         </View>
         <View style={tailwind`w-full`}>
-            <Image
-                style={tailwind`h-60 w-full object-cover bg-yellow-500`}
-                source={{
-                    uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
-                }}
-            />
+            {profileData.cover_url ? (
+                <Image
+                    style={tailwind`h-60 w-full bg-yellow-500`}
+                    source={{uri: profileData.cover_url}}
+                />
+            ):(
+              <Image 
+                style={tailwind`h-60 w-full bg-yellow-500`}
+                source={CoverImage}
+              />
+            )}
+            
         </View> 
         <View style={tailwind`flex-1 p-4`}>
             {profileData.avatar_url ? (
-                <Image
-                    style={tailwind`h-24 w-24 rounded-full border-2 border-white bg-white -mt-12`}
-                    source={profileData.avatar_url}
-                />
+                <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white -mt-12`} source={{uri: profileData.avatar_url}} />
             ) : (
               <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-cente -mt-12`}>
                 <Text style={tailwind`text-red-500 text-12x2`}>
