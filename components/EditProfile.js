@@ -3,13 +3,10 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView} from 'react-native';
 import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
-import axios from 'axios';
 import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
-
-const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -37,24 +34,109 @@ export default function EditProfile() {
     const [fullName, setFullName] = useState('');
     const [bio, setBio] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
-    const [profile, setProfile] = useState()
+    const [profile, setProfile] = useState();
+    const [coverUrl, setCoverUrl] = useState('');
+    
     const axiosInstance = useAxiosInterceptor();
-
     const navigation = useNavigation();
+
     //to create the username for personal use no one can change the user after creation
+    const handleAvatar = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.put('http://192.168.0.101:8080/updateAvatar',{avatar_url: avatarUrl}, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            } );
+            setAvatarUrl(response.data);
+        } catch (e) {
+            console.error("unable to update the avatar: ", err)
+        }
+    }
+
+    const handleCover = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.put('http://192.168.0.101:8080/updateCover',{cover_url: coverUrl}, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            } );
+            setCoverUrl(response.data);
+        } catch (e) {
+            console.error("unable to update the cover: ", err)
+        }
+    }
+
+    const handleFullName = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+    
+            const profileData = {
+                full_name: fullName,
+            };
+    
+            const response = await axiosInstance.put(`http://192.168.0.101:8080/updateFullName`, profileData, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            console.log(response.data);
+            setFullName(response.data);
+        } catch (e) {
+            console.error("Unable to update full name: ", e);
+        }
+    };
+
+    const handleBio = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+    
+            const profileData = {
+                bio: bio,
+            };
+    
+            const response = await axiosInstance.put(`http://192.168.0.101:8080/updateBio`, profileData, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            console.log(response.data);
+            setBio(response.data);
+        } catch (e) {
+            console.error("Unable to update Bio: ", e);
+        }
+    };
+
     const handleSaveButton = async () => {
         
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
             const profileData = {
                 ...profile,
                 full_name: fullName,
-                bio: bio,
-                avatar_url: avatarUrl
+                bio: bio
+            }
+            // console.log("Avatar Url: ", avatarUrl)
+            // console.log("Cover Url: ", coverUrl)
+
+            if (avatarUrl !== '') {
+                console.log(avatarUrl)
+                profileData.avatar_url = avatarUrl
+            }
+
+            if (coverUrl !== '') {
+                profileData.cover_url = coverUrl
             }
             
-            const response = await axiosInstance.put('http://192.168.0.102:8080/editProfile', profileData, {
+            const response = await axiosInstance.put('http://192.168.0.101:8080/editProfile', profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -64,7 +146,7 @@ export default function EditProfile() {
             setProfile(response.data);
 
         } catch (e) {
-            console.error("unable to update username: ", e)
+            console.error("unable to update profile: ", e)
         }
     }
 
@@ -87,14 +169,44 @@ export default function EditProfile() {
                 
                 if(type === 'image') {
                     const base64File = await fileToBase64(res.assets[0].uri);
-                    console.log('base64File:', base64File); 
+                    // console.log('base64File:', base64File); 
                     setAvatarUrl(base64File);
+                    handleAvatar();
                 } else {
-                    console.log('unsupported media type:', type);
+                    console.log('unsupported media type: ', type);
                 }
             }
         } catch (e) {
-            console.error("unable to load image", e);
+            console.error("unable to load avatar image", e);
+        }
+    };
+
+    const uploadCoverimage =  async () => {
+        try {
+            let options = { 
+                noData: true,
+                mediaType: 'image',
+            };
+    
+            const res = await launchImageLibrary(options);
+    
+            if (res.didCancel) {
+                console.log('User cancelled photo picker');
+            } else if (res.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else {
+                const type = getMediaTypeFromURL(res.assets[0].uri);
+                
+                if(type === 'image') {
+                    const base64File = await fileToBase64(res.assets[0].uri);
+                    setCoverUrl(base64File);
+                    handleCover();
+                } else {
+                    console.log('unsupported media type: ', type);
+                }
+            }
+        } catch (e) {
+            console.error("unable to load cover image", e);
         }
     };
 
@@ -103,7 +215,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -120,8 +232,24 @@ export default function EditProfile() {
     };
 
     useEffect(() => {
-        fetchUserProfile();
-    }, []);
+        const fetchDataAndUpload = async () => {
+            await fetchUserProfile();
+            console.log("AvatarUrl: ", avatarUrl)
+            if (avatarUrl !== '') {
+                await handleAvatar();
+            }
+            console.log("CoverUrl: ", coverUrl)
+            if (coverUrl !== '') {
+                await handleCover();
+            }
+        };
+    
+        fetchDataAndUpload();
+    }, [])
+
+    // useEffect(() => {
+    //     fetchUserProfile();
+    // }, []);
     
     return (
         <KeyboardAvoidingView style={tailwind`flex-1 bg-black`} >
@@ -138,9 +266,9 @@ export default function EditProfile() {
             <View style={tailwind`w-full h-60`}>
                 <Image
                     style={tailwind`h-60 object-cover bg-yellow-500`}
-                    source={CoverImage}
+                    source={{uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',}}
                 />
-                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`} onPress={uploadAvatarimage}>
+                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`} onPress={uploadCoverimage}>
                     <FontAwesome  name="upload" size={24} color="white" />
                 </Pressable>
             </View>
@@ -174,8 +302,8 @@ export default function EditProfile() {
                 </Pressable>
             </View> */}
             <View style={tailwind`mt-20 gap-10`}>
-                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name' placeholderTextColor="white"/>
-                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={bio} onChangeText={setBio} placeholder='Enter About you' placeholderTextColor="white" />
+                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name' placeholderTextColor="white" onEndEditing={handleFullName}/>
+                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={bio} onChangeText={setBio} placeholder='Enter About you' placeholderTextColor="white" onEndEditing={handleBio}/>
                 <Pressable style={tailwind`justify-center items-center bg-gray-500 w-1/2 rounded p-4`} onPress={handleSaveButton}>
                     <Text style={tailwind`text-lg text-white`}>Save</Text>
                 </Pressable>
