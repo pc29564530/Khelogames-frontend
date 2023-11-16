@@ -16,6 +16,7 @@ function ThreadComment ({route}) {
     const navigation = useNavigation();
     const commentInputRef = useRef();
     const { item, itemId } = route.params;
+    console.log("ThreadComment Item: ", item)
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
@@ -25,7 +26,7 @@ function ThreadComment ({route}) {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
             console.log("threadId: ", itemId)
-            const response = await axiosInstance.post(`http://192.168.0.100:8080/createComment/${itemId}`, {commentText}, {
+            const response = await axiosInstance.post(`http://192.168.0.103:8080/createComment/${itemId}`, {comment_text: commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -33,6 +34,7 @@ function ThreadComment ({route}) {
             })
             dispatch(addComments(response.data));
             dispatch(addComments([]));
+
 
         } catch (e) {
             console.error(e);
@@ -48,7 +50,7 @@ function ThreadComment ({route}) {
           'Content-Type': 'application/json',
         }
 
-        const response = await axiosInstance.put(`http://192.168.0.100:8080/update_like/${id}`, null, {headers} );
+        const response = await axiosInstance.put(`http://192.168.0.103:8080/update_like/${id}`, null, {headers} );
         console.log(response.data.like_count);
         if(response.status === 200) {
           const newLikesCount = response.data.like_count;
@@ -70,10 +72,6 @@ function ThreadComment ({route}) {
     const handleClose = () => {
       navigation.navigate('Thread')
     }
-
-    
-
-    const iconSize = 30
   
     return (
         <View style={tailwind`flex-1 bg-black`}>
@@ -89,10 +87,10 @@ function ThreadComment ({route}) {
               </View>
               <ScrollView style={tailwind`flex-1`}>
               <View  style={tailwind`bg-black mt-1`}>
-                    <View  style={tailwind`p-4`}>
+                    <View  style={tailwind`p-2`}>
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
                           {item.profile.avatar_url ? (
-                              <Image source={item.profile.avatar_url} style={tailwind`w-24 h-24 rounded-full`} />
+                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-24 h-24 rounded-full`} />
                             ):(
                               <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
@@ -109,15 +107,15 @@ function ThreadComment ({route}) {
                         </Pressable>
                         {/* <Text style={styles.Position}>{item.timestamp}</Text> */}
                     </View>
-                    <Text style={tailwind`text-white p-7 text-xl`}>{item.content}</Text>
+                    <Text style={tailwind`text-white p-5 text-xl`}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
-                      style={tailwind`w-full aspect-w-1 aspect-h-1`}
+                      style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1`}
                         source={{uri:item.media_url}}
                       />
                     )}
                     {item.media_type === 'video' && (
-                      <Video style={tailwind`w-full aspect-w-1 aspect-h-1`}
+                      <Video style={tailwind`w-full aspect-w-1 aspect-h-1 -mt-7`}
                       source={{uri:item.media_url}} controls={true} />
                     )}
                     <View style={tailwind`p-2`}>
@@ -144,7 +142,7 @@ function ThreadComment ({route}) {
                     </View>
                     <View style={tailwind`border-b border-white mt-2`}></View>
                     <View>
-                      <Comment  threadId = {item.id} />
+                      <Comment  thread = {item} />
                   </View>
               </View>
                   {/* <View style={tailwind`flex-row items-center p-10`}>

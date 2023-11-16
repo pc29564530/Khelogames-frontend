@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, Touc
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import KhelogamesLogo from '../assets/images/Khelogames.png';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
@@ -35,49 +34,48 @@ const Thread = () => {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`http://192.168.0.102:8080/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`http://192.168.0.103:8080/checkLikeByUser/${id}`, {headers});
         console.log("Usercount: ", userCount.data)
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`http://192.168.0.102:8080/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`http://192.168.0.103:8080/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.102:8080/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.103:8080/countLike/${id}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://192.168.0.102:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`http://192.168.0.103:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
             } catch (err) {
               console.error(err);
             }
-
           }
         }
       } catch (error) {
         console.error(error);
       }
-
     }
 
     const fetchData = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.102:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.103:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         });
         const item = response.data;
-        console.log("Item Thread: ", item)
+        console.log("AllThread: ", item)
         if(item === null){
           setThreadWithUserProfile([]);
           dispatch(setThreads([]));
         } else {
           const threadUser = item.map(async (item,index) => {
-            const profileResponse = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${item.username}`);
+            console.log("Item: ", item)
+            const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`);
             if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
               const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
               setDisplayText(usernameInitial.toUpperCase());
@@ -86,8 +84,19 @@ const Thread = () => {
             }
             return {...item, profile: profileResponse.data}
           });
-          console.log("threadUserL ", threadUser)
+          console.log("Threaduser: ", threadUser)
+        //   const followingProfile = item.map(async (item, index) => {
+        //     const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`);
+        //     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+        //     const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+        //     setDisplayText(usernameInitial.toUpperCase());
+        //     } else {
+        //     setDisplayText(''); // Reset displayText if the avatar is present
+        //     }
+        //     return {...item, profile: profileResponse.data}
+        // })
           const threadsWithUserData = await Promise.all(threadUser);
+          console.log("ThreadsWithUserData: ", threadsWithUserData)
           setThreadWithUserProfile(threadsWithUserData);
           dispatch(setThreads(response.data))
         }
@@ -100,16 +109,15 @@ const Thread = () => {
       fetchData();
     }, []);
 
-
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
       try {
         const user = await AsyncStorage.getItem('User');
         if(username === undefined || username === null) {
-          const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${user}`);
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/user/${user}`);
           navigation.navigate('Profile', { username: response.data.username });
         } else {
-          const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${username}`);
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/user/${username}`);
           navigation.navigate('Profile', { username: response.data.username });
         }
 
@@ -117,7 +125,6 @@ const Thread = () => {
         console.error(err);
       }
     }
-    const iconSize = 25
   
     return (
       <View style={tailwind`flex-1 bg-black`} vertical={true}>
@@ -126,7 +133,7 @@ const Thread = () => {
                     <View >
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
                           {item.profile.avatar_url ? (
-                              <Image source={item.profile.avatar_url} style={tailwind`w-12 h-12 rounded-full bg-white`} />
+                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-white`} />
                             ):(
                               <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
@@ -146,12 +153,12 @@ const Thread = () => {
                     <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
-                      style={tailwind`w-full aspect-w-1 aspect-h-1`}
+                      style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                         source={{uri:item.media_url}}
                       />
                     )}
                     {item.media_type === 'video' && (
-                      <Video style={tailwind`w-full aspect-w-1 aspect-h-1`}
+                      <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                       source={{uri:item.media_url}} controls={true} />
                     )}
                     <View style={tailwind`p-2`}>
