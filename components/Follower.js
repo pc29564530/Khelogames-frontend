@@ -7,8 +7,6 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFollowerUser } from '../redux/actions/actions';
 
-const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
-
 function Follower() {
     const dispatch = useDispatch()
     const axiosInstance = useAxiosInterceptor();
@@ -73,7 +71,7 @@ function Follower() {
                                 </Text>
                             </View>
                         ) : (
-                            <Image style={tailwind`w-10 h-10 rounded-full`} source={item.profile.avatar_url}  />
+                            <Image style={tailwind`w-10 h-10 rounded-full`} source={{uri: item.profile.avatar_url}}  />
                         )}
                         <View  style={tailwind`text-white p-2 mb-1`}>
                             <Text style={tailwind`text-white font-bold text-xl `}>{item.profile.full_name}</Text>
