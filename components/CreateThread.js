@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Pressable, TouchableOpacity, Image} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -6,9 +6,11 @@ import AsyncStorage  from '@react-native-async-storage/async-storage'
 import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
+import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
+import Header from './Header';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -54,7 +56,7 @@ function CreateThread({navigation}) {
         }
         
          launchImageLibrary(options, async (res) => {
-          console.log("lin no 82 created image library")
+          //console.log("lin no 82 created image library")
           
             if (res.didCancel) {
                 console.log('User cancelled photo picker');
@@ -86,17 +88,30 @@ function CreateThread({navigation}) {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post('http://192.168.0.101:8080/create_thread', thread, {
+            const response = await axiosInstance.post('http://192.168.0.103:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             });
-            if(response.data === null || response.data === undefined) {
+
+            const item = response.data;
+            const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`, null, {
+              headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
+            })
+            const threadItem = {
+              item,
+              profile: profileResponse.data
+            }
+            if(item === null || !item) {
               dispatch(addThreads([]));
             } else {
-              dispatch(addThreads(response.data));
+              dispatch(addThreads(item));
             }
+            
             navigation.navigate('Home');
         } catch (e) {
             console.error(e);
@@ -105,21 +120,22 @@ function CreateThread({navigation}) {
     }
 
     return (
-        <View style={tailwind`flex-1 p-10`}>
+        <View style={tailwind`flex-1 p-10 bg-black`}>
             <View style={tailwind`mb-5`}>   
-                <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg`} value={title} onChangeText={setTitle} placeholder="Enter Title..."/>
+                <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg text-white`} value={title} onChangeText={setTitle} placeholder="Enter Title..." placeholderTextColor="white"/>
                 <TextInput
-                    style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg h-24`}
+                    style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg h-24 text-white`}
                     multiline 
                     value={content} 
                     onChangeText={setContent} 
                     placeholder="Enter description..."
+                    placeholderTextColor="white"
                 />
             </View>
-            <View style={tailwind`flex mb-10`} onPress={SelectMedia} >
+            <Pressable style={tailwind`flex mb-10`} onPress={SelectMedia} >
                 <FontAwesome name="upload" size={25} color="white"  style={tailwind`bg-gray-400 h-10 w-10 p-2`}/>
-                <Text>Please upload media</Text> 
-            </View>
+                <Text style={tailwind`text-white`}>Please upload media</Text> 
+            </Pressable>
             
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
@@ -128,50 +144,5 @@ function CreateThread({navigation}) {
         </View>
     );
 }
-
-
-const styles = StyleSheet.create({
-    Container: {
-        flex: 1,
-        padding: 20,
-      },
-      Header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-      },
-      Bodybox: {
-        marginBottom: 20,
-      },
-      Input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 10,
-      },
-      BodyInput: {
-        height: 100,
-      },
-      MediaImage: {
-        width: '100%',
-        height: 200,
-        borderRadius: 10,
-        marginBottom: 20,
-      },
-      FileUploadButton: {
-        backgroundColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
-        alignSelf: 'flex-start',
-        marginBottom: 20,
-      },
-      FileUploadIcon: {
-        fontSize: 20,
-        color: 'white',
-      },
-});
-
-
 
 export default CreateThread;
