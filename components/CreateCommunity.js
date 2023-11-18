@@ -20,7 +20,7 @@ function CreateCommunity () {
             const community = {communityName, description, communityType};
             console.log("Community:", community)
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axiosInstance.post('http://192.168.0.101:8080/communities', community, {
+            const response  = await axiosInstance.post('http://192.168.0.103:8080/communities', community, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

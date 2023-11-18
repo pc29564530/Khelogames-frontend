@@ -1,12 +1,9 @@
-import React, {useEffect, useState  } from 'react';
-import {View, Pressable, Button, StyleSheet, ScrollView} from 'react-native'
-// import Header from './Header';
-// import Footer from './Footer';
+import React, {useEffect} from 'react';
+import {View, ScrollView} from 'react-native';
 import Thread from './Thread';
-// import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import tailwind from 'twrnc';
 
 function Home() {
 
@@ -20,7 +17,6 @@ function Home() {
       const expireTime = await AsyncStorage.getItem('AccessTokenExpirationTime');
 
       if(!authToken || !isTokenExpiration(expireTime)) {
-        console.log("Home line 23")
           navigation.navigate('SignIn')
       }
   }
@@ -33,25 +29,13 @@ function Home() {
 
     return (
       <>
-      <ScrollView style={styles.Container}>
-        <View style={styles.Content}>
-          <Thread />
-        </View>
-      </ScrollView>
-      </>
-        
+        <ScrollView style={tailwind`flex-1 bg-black`}>
+          <View style={tailwind`bg-black`}>
+            <Thread />
+          </View>
+        </ScrollView>
+      </>  
     );  
 }
-
-const styles = StyleSheet.create({
-    Container: {
-      flex: 1,
-    },
-    Content: {
-      backgroundColor: '#ffffff',
-      padding: 10,
-    },
-  });
-  
 
 export default Home;

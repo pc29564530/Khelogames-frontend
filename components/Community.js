@@ -24,7 +24,7 @@ function Community () {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await axiosInstance.get(`http://192.168.0.100:8080/get_all_communities/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.103:8080/get_all_communities/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -88,13 +88,5 @@ function Community () {
       </>
     );
 }
-
-const styles = StyleSheet.create({
-  dropdownText: {
-    fontSize: 16,
-    padding: 5,
-    color: 'blue', // Set the color of the dropdown text here
-  },
-});
 
 export default Community;
