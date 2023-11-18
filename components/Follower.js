@@ -41,7 +41,7 @@ function Follower() {
                 })
                 const followerData = await Promise.all(followerProfile);
                 setFollowerWithProfile(followerData);
-                dispatch(getFollowerUser(response.data));
+                dispatch(getFollowerUser(followerData));
             }
 
         } catch (e) {
@@ -51,9 +51,6 @@ function Follower() {
 
     //add the status of button in the follower
 
-    //add the profile avatar image
-    //add the Fullname and username
-
 
     useEffect(() => {
         fetchFollower();
@@ -62,9 +59,9 @@ function Follower() {
     return (
         <ScrollView style={tailwind`bg-black`}>
             <View style={tailwind`flex-1 bg-black pl-5`}>
-                {followerWithProfile.map((item, i) => (
+                {follower.map((item, i) => (
                     <View key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`}>
-                        {!item.profile.avatar_url ?(
+                        {!item.profile && item.profile.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
                                     {displayText}

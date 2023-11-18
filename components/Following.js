@@ -48,7 +48,7 @@ function Following() {
                 const followingData = await Promise.all(followingProfile);
                 console.log("Hello Bharat")
                 setFollowingWithProfile(followingData);
-                dispatch(getFollowingUser(response.data));
+                dispatch(getFollowingUser(followingData));
             }
         } catch (e) {
             console.error(e);
@@ -61,9 +61,9 @@ function Following() {
     return (
         <ScrollView style={tailwind`bg-black`}>
              <View style={tailwind`flex-1 pl-5`}>
-                {followingWithProfile.map((item, i) => (
+                {following.map((item, i) => (
                         <View key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`}>
-                            {item.profile.avatar_url ?(
+                            {!item.profile && item.profile.avatar_url ?(
                                 <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                     <Text style={tailwind`text-red-500 text-6x3`}>
                                         {displayText}
