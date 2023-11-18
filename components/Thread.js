@@ -16,6 +16,7 @@ const Thread = () => {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
+    const likesCount = useSelector((state) => state.Like)
     const [username,setUsername] = useState('');
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
@@ -23,6 +24,8 @@ const Thread = () => {
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
+
+    console.log("Tbhread from redux: ", threads);
 
     const handleLikes = async (id) => {
       try {
@@ -48,6 +51,8 @@ const Thread = () => {
 
               const newLikeCount = await axiosInstance.put(`http://192.168.0.103:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
+              console.log("LikeCount: ", newLikeCount.data.like_count)
+              console.log("LikeId: ", id)
             } catch (err) {
               console.error(err);
             }
@@ -84,21 +89,9 @@ const Thread = () => {
             }
             return {...item, profile: profileResponse.data}
           });
-          console.log("Threaduser: ", threadUser)
-        //   const followingProfile = item.map(async (item, index) => {
-        //     const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`);
-        //     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-        //     const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-        //     setDisplayText(usernameInitial.toUpperCase());
-        //     } else {
-        //     setDisplayText(''); // Reset displayText if the avatar is present
-        //     }
-        //     return {...item, profile: profileResponse.data}
-        // })
           const threadsWithUserData = await Promise.all(threadUser);
-          console.log("ThreadsWithUserData: ", threadsWithUserData)
           setThreadWithUserProfile(threadsWithUserData);
-          dispatch(setThreads(response.data))
+          dispatch(setThreads(threadsWithUserData))
         }
       } catch (err) {
         console.error(err);
@@ -128,11 +121,11 @@ const Thread = () => {
   
     return (
       <View style={tailwind`flex-1 bg-black`} vertical={true}>
-            {threadWithUserProfile.map((item,i) => (
+            {threads.map((item,i) => (
                 <View key={i} style={tailwind`bg-black mt-5`}>
                     <View >
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
-                          {item.profile.avatar_url ? (
+                          {item.profile && item.profile.avatar_url ? (
                               <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-white`} />
                             ):(
                               <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
@@ -144,7 +137,7 @@ const Thread = () => {
                           }
                           
                           <View style={tailwind`ml-3`}>
-                            <Text style={tailwind`font-bold text-white`}>{item.profile.full_name}</Text>
+                            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
                             <Text style={tailwind`text-white`}>@{item.username}</Text>
                           </View>
                         </Pressable>

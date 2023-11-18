@@ -1,14 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {Video, View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, KeyboardAvoidingView, TextInput, Button} from 'react-native';
+import React, {useState, useRef } from 'react';
+import {Video, View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
-import { addComments, setComments, setCommentText } from '../redux/actions/actions';
+import { addComments, setCommentText, setLikes } from '../redux/actions/actions';
 import Comment from './Comment';
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import KhelogamesLogo from '../assets/images/Khelogames.png';
 import {useSelector, useDispatch} from 'react-redux';
-import {setThreads, setLikes} from '../redux/actions/actions';
-import axios from 'axios';
 import tailwind from 'twrnc'
 import { useNavigation } from '@react-navigation/native';
 
@@ -33,7 +30,7 @@ function ThreadComment ({route}) {
                 }
             })
             dispatch(addComments(response.data));
-            dispatch(addComments([]));
+            dispatch(setCommentText(''));
 
 
         } catch (e) {
@@ -44,25 +41,38 @@ function ThreadComment ({route}) {
 
     const handleLikes = async (id) => {
       try {
+        const authUser = await AsyncStorage.getItem('User');
         const authToken = await AsyncStorage.getItem('AccessToken');
         const headers = {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         }
 
-        const response = await axiosInstance.put(`http://192.168.0.103:8080/update_like/${id}`, null, {headers} );
-        console.log(response.data.like_count);
-        if(response.status === 200) {
-          const newLikesCount = response.data.like_count;
-          console.log(newLikesCount);
-          dispatch(setLikes(id, newLikesCount))
+        // here when click on like icon call api createLike
+        const userCount = await axiosInstance.get(`http://192.168.0.103:8080/checkLikeByUser/${id}`, {headers});
+        console.log("Usercount: ", userCount.data)
+        if(userCount.data == 0) {
+          const response = await axiosInstance.post(`http://192.168.0.103:8080/createLikeThread/${id}`,null, {headers} );
+          if(response.status === 200) {
+            try {
+              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.103:8080/countLike/${id}`,null,{headers});
+              const updateLikeData = {
+                like_count: updatedLikeCount.data,
+                id: id
+              }
+
+              const newLikeCount = await axiosInstance.put(`http://192.168.0.103:8080/update_like`, updateLikeData, {headers});
+              dispatch(setLikes(id, newLikeCount.data.like_count))
+              console.log("LikeCount: ", newLikeCount.data.like_count)
+              console.log("LikeId: ", id)
+            } catch (err) {
+              console.error(err);
+            }
+          }
         }
-        const item = response.data;
-        console.log(item)
       } catch (error) {
         console.error(error);
       }
-
     }
 
     const handleComment = () => {

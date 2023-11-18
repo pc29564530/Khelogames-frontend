@@ -10,12 +10,11 @@ const threadsReducers = (state=initialState, action) => {
         case actionTypes.SET_THREADS:
             return {
                 ...state,
-                threads: action.payload 
+                threads: action.payload
             }
         case actionTypes.SET_LIKES:
             const threadId = action.payload.threadId;
             const newLikesCount = action.payload.newLikesCount;
-
             const updateLikes = state.threads.map(thread => {
                 if(thread.id === threadId) {
                    return {
@@ -34,8 +33,7 @@ const threadsReducers = (state=initialState, action) => {
                 ...state,
                 threads: [...state.threads, action.payload]
             }
-        // to be implemented likes array size instead of count that will contain the username only one user can like at one time a post
-        default: 
+        default:
             return state
     }
 }
