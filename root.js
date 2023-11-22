@@ -18,9 +18,132 @@ import JoinCommunity from './components/JoinCommunity';
 // import { applyMiddleware, useSelector } from 'react-redux';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 import EditProfile from './components/EditProfile';
-
+import CreateCommunity from './components/CreateCommunity';
+import CommunityType from './components/CommunityType'
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import AppDrawer from './navigation/AppDrawer';
 
 const Stack = createStackNavigator();
+const Drawer = createDrawerNavigator();
+
+function AuthStack() {
+  return (
+    <Stack.Navigator>
+        <Stack.Screen name="Main"
+                component={Main}
+                options={{
+                  headerTitle: null,
+                  headerTransparent: false,
+                  headerShown: false,
+                  headerLeft: null,
+                  headerBackTitleVisible: false,
+                }}
+              />
+              <Stack.Screen name="ThreadComment" component={ThreadComment} 
+              options={({ navigation }) => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: () => (
+                <FontAwesome
+                  name="close"
+                  size={24}
+                  style={{ marginLeft: 10 }}
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+            })}
+                />
+        <Stack.Screen name="Profile" component={Profile}
+            options={({ navigation }) => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: () => (
+                <FontAwesome
+                  name="close"
+                  color="white"
+                  size={24}
+                  style={{ marginLeft: 10 }}
+                  onPress={() => navigation.goBack()}
+                />
+              ),
+            })}
+        />
+        <Stack.Screen name="EditProfile" component={EditProfile}
+            options={({ navigation }) => ({
+            headerShown: false,
+            headerTitle: null,
+            headerBackTitleVisible: false,
+            headerLeft: () => (
+              <FontAwesome
+                name="close"
+                size={24}
+                color="white"
+                style={{ marginLeft: 10 }}
+                onPress={() => navigation.goBack()}
+              />
+            ),
+          })}
+        />
+
+        <Stack.Screen name="JoinCommunity" component={JoinCommunity}
+          options={() => ({
+          headerShown: false,
+          headerTitle: null,
+          headerBackTitleVisible: false,
+          headerLeft: false
+          })}
+          />
+          {/* <Stack.Screen name="AppDrawer" component={AppDrawer} />  */}
+          <Stack.Screen name="ProfileMenu" component={ProfileMenu} 
+            options={() => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: false
+            })}
+          />
+          <Stack.Screen name="CreateCommunity" component={CreateCommunity}
+          />
+          <Stack.Screen name="CommunityType" component={CommunityType}/>
+    </Stack.Navigator>
+  );
+}
+
+function UnAuthStack () {
+  return (
+    <Stack.Navigator>
+        <Stack.Screen name="SignUp" component={SignUp}
+            options={() => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: false
+            })}
+        />
+        <Stack.Screen name="User" component={User}
+          options={{
+            headerTitle: null,
+            headerTransparent: false,
+            headerShown: false,
+            headerLeft: null,
+            headerBackTitleVisible: false,
+          }}
+        />
+        <Stack.Screen name="SignIn" component={SignIn}
+            options={{
+            headerTitle: null,
+            headerTransparent: false,
+            headerShown: false,
+            headerLeft: null,
+            headerBackTitleVisible: false,
+          }}
+        />
+    </Stack.Navigator>
+
+  )
+}
 
 export default function Root() {
   const dispatch = useDispatch();
@@ -41,128 +164,11 @@ export default function Root() {
     dispatch(checkExpireTime())
   }, []);
 
-  return (  
-      <NavigationContainer>
-        <Stack.Navigator 
-            initialRouteName={isAuthenticated?'Main':'SignIn'}
-            screenOptions={{
-              headerTitle: null,
-              headerTransparent: false,
-              headerShown: false,
-              headerLeft: null,
-              headerBackTitleVisible: false,
-            }}  
-        >
-          {!isAuthenticated ? (
-              <>
-                <Stack.Screen name="SignUp" component={SignUp}/>
-                <Stack.Screen name="User" component={User}
-                  options={{
-                    headerTitle: null,
-                    headerTransparent: false,
-                    headerShown: false,
-                    headerLeft: null,
-                    headerBackTitleVisible: false,
-                  }}
-                />
-                <Stack.Screen name="SignIn" component={SignIn}
-                    options={{
-                    headerTitle: null,
-                    headerTransparent: false,
-                    headerShown: false,
-                    headerLeft: null,
-                    headerBackTitleVisible: false,
-                  }}
-                />
-              </>
-            ):(
-            <>
-                <Stack.Screen name="Main"
-                  component={Main}
-                  options={{
-                    headerTitle: null,
-                    headerTransparent: false,
-                    headerShown: false,
-                    headerLeft: null,
-                    headerBackTitleVisible: false,
-                  }}
-               />
-                <Stack.Screen name="ThreadComment" component={ThreadComment} 
-                options={({ navigation }) => ({
-                headerShown: true,
-                headerTitle: null,
-                headerBackTitleVisible: false,
-                headerLeft: () => (
-                  <FontAwesome
-                    name="long-arrow-left"
-                    size={iconSize}
-                    style={{ marginLeft: 10 }}
-                    onPress={() => navigation.goBack()}
-                  />
-                ),
-              })}
-                  />
-                  <Stack.Screen name="ProfileMenu" component={ProfileMenu} 
-                options={({ navigation }) => ({
-                headerShown: true,
-                headerTitle: null,
-                headerBackTitleVisible: false,
-                headerLeft: () => (
-                  <FontAwesome
-                    name="long-arrow-left"
-                    size={iconSize}
-                    style={{ marginLeft: 10 }}
-                    onPress={() => navigation.goBack()}
-                  />
-                ),
-              })}
-                  />
-
-
-              <Stack.Screen name="Profile" component={Profile}
-                  options={({ navigation }) => ({
-                  headerShown: true,
-                  headerTitle: null,
-                  headerBackTitleVisible: false,
-                  headerLeft: () => (
-                    <FontAwesome
-                      name="close"
-                      size={iconSize}
-                      style={{ marginLeft: 10 }}
-                      onPress={() => navigation.goBack()}
-                    />
-                  ),
-                })}
-              />
-              <Stack.Screen name="EditProfile" component={EditProfile}
-                  options={({ navigation }) => ({
-                  headerShown: true,
-                  headerTitle: null,
-                  headerBackTitleVisible: false,
-                  headerLeft: () => (
-                    <FontAwesome
-                      name="close"
-                      size={iconSize}
-                      style={{ marginLeft: 10 }}
-                      onPress={() => navigation.goBack()}
-                    />
-                  ),
-                })}
-              />
-
-                <Stack.Screen name="JoinCommunity" component={JoinCommunity}
-                  options={() => ({
-                  headerShown: false,
-                  headerTitle: null,
-                  headerBackTitleVisible: false,
-                  headerLeft: false
-                  })}
-                  />
-            </>
-          )}
-        </Stack.Navigator>
-          
-      </NavigationContainer>
-    
+  return (
+    <>
+        <NavigationContainer>
+          {isAuthenticated ? <AuthStack /> : <UnAuthStack />}
+        </NavigationContainer> 
+    </>
   );
 }

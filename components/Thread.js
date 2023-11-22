@@ -3,21 +3,29 @@ import {View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, Touc
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import KhelogamesLogo from '../assets/images/Khelogames.png';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
 import Video from 'react-native-video';
+import tailwind from 'twrnc';
 
 const Thread = () => {
+
+    const [profileData, setProfileData] = useState(null);
     const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
-
+    const likesCount = useSelector((state) => state.Like)
+    const [username,setUsername] = useState('');
+    const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
+    const [displayText, setDisplayText] = useState('');
+    
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
+
+    console.log("Tbhread from redux: ", threads);
 
     const handleLikes = async (id) => {
       try {
@@ -29,47 +37,61 @@ const Thread = () => {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`http://192.168.0.102:8080/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`http://192.168.0.103:8080/checkLikeByUser/${id}`, {headers});
         console.log("Usercount: ", userCount.data)
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`http://192.168.0.102:8080/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`http://192.168.0.103:8080/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.102:8080/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.103:8080/countLike/${id}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://192.168.0.102:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`http://192.168.0.103:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
+              console.log("LikeCount: ", newLikeCount.data.like_count)
+              console.log("LikeId: ", id)
             } catch (err) {
               console.error(err);
             }
-
           }
         }
       } catch (error) {
         console.error(error);
       }
-
     }
 
     const fetchData = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.102:8080/all_threads', {
+        const response = await axiosInstance.get('http://192.168.0.103:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         });
         const item = response.data;
+        console.log("AllThread: ", item)
         if(item === null){
-          dispatch(setThreads([]))
-
+          setThreadWithUserProfile([]);
+          dispatch(setThreads([]));
         } else {
-          dispatch(setThreads(response.data))
+          const threadUser = item.map(async (item,index) => {
+            console.log("Item: ", item)
+            const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`);
+            if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+              const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+              setDisplayText(usernameInitial.toUpperCase());
+            } else {
+              setDisplayText(''); // Reset displayText if the avatar is present
+            }
+            return {...item, profile: profileResponse.data}
+          });
+          const threadsWithUserData = await Promise.all(threadUser);
+          setThreadWithUserProfile(threadsWithUserData);
+          dispatch(setThreads(threadsWithUserData))
         }
       } catch (err) {
         console.error(err);
@@ -80,16 +102,15 @@ const Thread = () => {
       fetchData();
     }, []);
 
-
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
       try {
         const user = await AsyncStorage.getItem('User');
         if(username === undefined || username === null) {
-          const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${user}`);
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/user/${user}`);
           navigation.navigate('Profile', { username: response.data.username });
         } else {
-          const response = await axiosInstance.get(`http://192.168.0.102:8080/user/${username}`);
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/user/${username}`);
           navigation.navigate('Profile', { username: response.data.username });
         }
 
@@ -97,111 +118,69 @@ const Thread = () => {
         console.error(err);
       }
     }
-    const iconSize = 25
   
     return (
-      <View style={styles.Container} vertical={true}>
+      <View style={tailwind`flex-1 bg-black`} vertical={true}>
             {threads.map((item,i) => (
-                <View key={i} style={styles.ContentContainer}>
-                    <View style={styles.Header}>
-                      <Image source={KhelogamesLogo} style={styles.UserImage} />
-                      <View>
-                        <TouchableOpacity onPress={() => {handleUser(item.username)}}><Text style={styles.UserName}>{item.username}</Text></TouchableOpacity>
-                        <Text style={styles.Position}>{item.timestamp}</Text>
-                      </View>
+                <View key={i} style={tailwind`bg-black mt-5`}>
+                    <View >
+                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
+                          {item.profile && item.profile.avatar_url ? (
+                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-white`} />
+                            ):(
+                              <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
+                                <Text style={tailwind`text-red-500 text-6x3`}>
+                                  {displayText}
+                                </Text>
+                              </View>
+                            )
+                          }
+                          
+                          <View style={tailwind`ml-3`}>
+                            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
+                            <Text style={tailwind`text-white`}>@{item.username}</Text>
+                          </View>
+                        </Pressable>
+                        {/* <Text style={styles.Position}>{item.timestamp}</Text> */}
                     </View>
-                    <Text style={styles.Content}>{item.content}</Text>
+                    <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
-                      style={styles.PostImage}
+                      style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                         source={{uri:item.media_url}}
                       />
                     )}
                     {item.media_type === 'video' && (
-                      <Video style={styles.PostImage}
+                      <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                       source={{uri:item.media_url}} controls={true} />
                     )}
-                    <View style={styles.LikeCount}>
-                      <Text style={styles.likeText}>{item.like_count} Likes</Text>
+                    <View style={tailwind`p-2`}>
+                      <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
                     </View>
-                    <View style={styles.Footer}>
-                      <Pressable  onPress={() => handleLikes(item.id)}>
-                      <FontAwesome 
-                           name="thumbs-o-up"
-                           style={styles.FooterButton}
-                           size={iconSize}
-                        /> 
+                    <View style={tailwind`border-b border-white mb-2`}></View>
+                    <View style={tailwind`flex-row justify-evenly gap-50`}>
+                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
+                        <FontAwesome 
+                            name="thumbs-o-up"
+                            color="white"
+                            size={20}
+                        />
+                        <Text style={tailwind`text-white`}>Like</Text> 
                       </Pressable>
-                      <Pressable onPress={() => handleThreadComment(item, item.id)}>
+                      <Pressable style={tailwind`items-center`}onPress={() => handleThreadComment(item, item.id)}>
                         <FontAwesome 
                            name="comment-o"
-                           style={styles.FooterButton}
-                           size={iconSize}
-                        />  
+                           color="white"
+                           size={20}
+                        />
+                        <Text style={tailwind`text-white`}>Comment</Text> 
                       </Pressable>
                     </View>
+                    <View style={tailwind`border-b border-white mt-2`}></View>
               </View>
               ))}
         </View>
     );
   };
-
-  const styles = StyleSheet.create({
-    Container: {
-      color: 'lightgrey',
-      maxWidth: 500,
-      width: '100%',
-      alignSelf: 'center',
-      flex: 1,
-    },
-    ContentContainer: {
-      marginTop: '1.5px',
-      marginBottom: '1.5px',
-      backgroundColor: 'white',
-    },
-    Header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
-    },
-    UserImage: {
-      width: 50,
-      aspectRatio: 1,
-      borderRadius: 25,
-      backgroundColor: 'red'
-    },
-    UserName: {
-      fontWeight: '600',
-      marginBottom: 5,
-      padding: 10
-    },
-    Position: {
-      fontSize: 12,
-      color: 'grey',
-    },
-    Content: {
-      margin: 10,
-      marginTop: 0,
-    },
-    PostImage: {
-      width: '100%',
-      aspectRatio: 1,
-    },
-    LikeCount: {
-      padding: 10,
-    },
-    Footer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingVertical: 10,
-      borderTopWidth: 1,
-      borderColor: 'lightgray',
-    },
-    FooterButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      fontSize: 18
-    }
-  });
 
 export default Thread;

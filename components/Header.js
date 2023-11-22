@@ -1,77 +1,45 @@
-import React , {useState} from 'react';
-import {Image,Text, View, TextInput, StyleSheet, Pressable, Button, TouchableOpacity} from 'react-native';
-import { useNavigation,  } from '@react-navigation/native';
+import React , {useState, useEffect} from 'react';
+import {Image, View, TouchableOpacity} from 'react-native';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import KhelogamesLogo from '../assets/images/Khelogames.jpg';
+import tailwind from 'twrnc';
+import ProfileMenu from './ProfileMenu';
 
-const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function Header () {
-    const navigation = useNavigation()
+    const navigation = useNavigation();
     const handleAccount = () => {
-        navigation.navigate('ProfileMenu')
-    }
-    const iconSize = 25
+        navigation.navigate('ProfileMenu');
+      };
+
+    //   useEffect(() => {
+    //     navigation.navigate('ProfileMenu');
+    //   }, []);
 
     return (   
-        
-        <View style={styles.Container}>
-            <Image source={KhelogamesLogo} style={styles.KgLogoStyle} />
+        <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-black`}>
+            <Image source={KhelogamesLogo} style={tailwind`h-30 w-25`} />
             
-            <View style={styles.HeaderIcon}>
+            <View style={ tailwind`flex-row items-center`}>
                 <FontAwesome  
                     name="search"
-                    size={iconSize}
-                    color="grey"
-                    style={styles.IconStyles}
+                    size={24}
+                    color="white"
                 />
                 <MaterialIcons 
                     name="message"
-                    size={iconSize}
-                    color="grey"
-                    style={styles.IconStyles}    
+                    size={24}
+                    color="white"   
                 />
-                <TouchableOpacity style={styles.UserAvatar}  onPress={handleAccount}>
-                    <Image style={styles.UserAvatar}    source={logoPath} />
+                <TouchableOpacity  onPress={handleAccount}>
+                    <FontAwesome name="bars" color="white" size={24} />
                 </TouchableOpacity>
             </View>
         </View> 
     )
 }
-
-const styles = StyleSheet.create({
-    Button: {
-        backgroundColor: 'black',
-    },
-    KgLogoStyle: {
-        height: 25,
-        width: 130,
-    },
-    IconStyles: {
-        height: 35,
-        width: 35,
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 10,
-    },
-    Container: {
-        backgroundColor: 'white',
-        flexDirection: 'row',
-        padding: 16,
-        justifyContent: 'space-between',
-    },
-    HeaderIcon: {
-        flexDirection: 'row',
-    },
-    UserAvatar: {
-        marginRight: 10,
-        width: 35,
-        height: 35,
-        borderRadius: 50,
-        backgroundColor: 'grey',
-      },
-});
 
 export default Header;

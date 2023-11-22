@@ -1,16 +1,14 @@
 import React, {useState, useEffect} from 'react';
-import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, Button, TouchableOpacity, SafeAreaView} from 'react-native';
-import AsyncStorage  from '@react-native-async-storage/async-storage'
+import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, Button, TouchableOpacity, SafeAreaView, Touchable} from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
-
+import tailwind from 'twrnc';
+import { Input, Icon } from '@rneui/themed';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
-
-const api = axios.create({
-  baseURL: 'http://192.168.0.105:8080', // Update with your backend URL
-});
 
 
 const SignIn = () => {
@@ -30,7 +28,7 @@ const SignIn = () => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        const response = await axios.post('http://192.168.0.107:8080/login', user);
+        const response = await axios.post('http://192.168.0.103:8080/login', user);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -51,117 +49,47 @@ const SignIn = () => {
     
 
     return (
-      <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', marginTop: 50}}>
-        <View>
+      <View style={tailwind`flex-1 justify-center bg-black`}>
           <Image 
-            style={{width: 150, height: 100, margin: 20}}
+            style={tailwind`mt-5 mb-5 ml-30 mr-30 w-40 h-30`}
             source={logoPath}	
           />
-        </View>
-        <KeyboardAvoidingView >
-            <View style={{alignItems: 'center', marginTop: 20}}>
-              <Text 
-                style={{
-                  fontSize: 20,
-                  fontWeight: 'bold',
-                  marginTop: 12,
-                  color: 'black',
-                }}
-              >
-                  Login
-              </Text>
+          <View  style={tailwind`items-center justify-center bg-black`}>
+            <Text style={tailwind`text-3xl font-bold text-white `}>Login</Text>
+          </View>
+          <View style={tailwind`ml-15 mr-10`}>
+            <View style={tailwind`mt-10`}>
+              <Input
+                style={tailwind`w-full text-white`}
+                leftIcon={<FontAwesome name="user" size={24} color="white"/>}
+                value={username} onChangeText={setUsername} placeholder="Enter the Username" 
+              />
             </View>
-            <View style={{marginTop: 50}}> 
-              <View 
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 5,
-                  backgroundColor: 'whitesmoke',
-                  color: 'black',
-                  paddingVertical: 5,
-                  paddingLeft: 5,
-                  borderRadius: 5,
-                  marginTop: 30,
-                }}
-              >
-                    <TextInput 
-                      style={{
-                        color: 'gray',
-                        marginVertical: 10,
-                        // outlineStyle: 'none',
-                        width: 300,
-                        fontSize: username ? 16 : 16,
-                      }}
-                      value={username} onChangeText={setUsername} placeholder="Enter the Username" />
-              </View>   
+          </View>
+          <View style={tailwind`mt-10 mr-10 ml-15`} >
+            <View style={tailwind`mt-10`}>
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  style={tailwind`w-full text-white`}
+                  leftIcon={<FontAwesome name="lock" size={24} color="white" />}
+                  placeholder="Enter your Password"
+                />
             </View>
-            <View style={{marginTop: 10}}>
-              <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 5,
-                  backgroundColor: 'whitesmoke',
-                  paddingVertical: 5,
-                  paddingLeft: 5,
-                  borderRadius: 5,
-                  marginTop: 20,
-                  marginBottom: 20
-              }}>
-                  <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    style={{
-                      // outlineStyle: 'none',
-                      color: "gray",
-                      marginVertical: 10,
-                      width: 300,
-                      fontSize: password ? 16 : 16,
-                      
-                    }}
-                    placeholder="Enter your Password"
-                  />
+          </View>
 
-              </View>
-            </View>
-
-
-            <TouchableOpacity onPress={handleSignIn} style={{
-                  width: 200,
-                  backgroundColor: "grey",
-                  borderRadius: 6,
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  marginTop: "auto",
-                  padding: 15,
-            }}>
-                <Text style={{
-                  textAlign: "center",
-                  color: "white",
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{
-                  width: 200,
-                  backgroundColor: "grey",
-                  borderRadius: 6,
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  marginTop: 20,
-                  padding: 15,
-              }} onPress={() => navigation.navigate("SignUp")}>
-              <Text style={{
-                textAlign: "center",
-                color: "white",
-                fontSize: 16,
-                fontWeight: "bold",
-              }}>Create new account</Text>
-            </TouchableOpacity>
-        </KeyboardAvoidingView>
-      </View>
+          <View style={tailwind`mt-10 mr-20 ml-20`}>
+            <Pressable onPress={handleSignIn} style={tailwind`bg-blue-500 hover:bg-blue-700 rounded-md py-3 px-4`}>
+              <Text style={tailwind`text-white text-center font-bold`}>Login</Text>
+            </Pressable>
+          </View>
+          <View style={tailwind`mt-10 mr-20 ml-20`}>
+            <Pressable onPress={() => navigation.navigate("SignUp")} style={tailwind`bg-blue-500 hover:bg-blue-700 rounded-md py-3 px-4`}>
+              <Text style={tailwind`text-white text-center font-bold`}>Create New Account</Text>
+            </Pressable>
+          </View>
+    </View>
   );
 }
-
 
 export default SignIn;

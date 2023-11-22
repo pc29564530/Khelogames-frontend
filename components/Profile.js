@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity} from 'react-native';
+import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,9 @@ import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
+import tailwind from 'twrnc';
+
+const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
 function ProfilePage() {
     const axiosInstance = useAxiosInterceptor();
@@ -19,7 +22,11 @@ function ProfilePage() {
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
+    const [displayText, setDisplayText] = useState('');
+    const [followerCount, setFollowerCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
     const following_owner  = route.params?.username
+    
     const handleEditProfile = () => {
       navigation.navigate('EditProfile') // Set the state to indicate that editing mode is active
     };
@@ -29,7 +36,7 @@ function ProfilePage() {
           setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.102:8080/create_follow/${following_owner}`,
+            `http://192.168.0.103:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -51,7 +58,7 @@ function ProfilePage() {
         setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.102:8080/unFollow/${following_owner}`,
+          `http://192.168.0.103:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -79,7 +86,7 @@ function ProfilePage() {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.102:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.103:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -94,7 +101,7 @@ function ProfilePage() {
     } catch (e) {
         console.error(e);
     }
-    }
+  }
 
 
   useEffect(() => {
@@ -117,16 +124,26 @@ function ProfilePage() {
             console.log("User not found in AsyncStorage.");
             return;
         }
+        console.log("Profile Username: ", owner)
         if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`http://192.168.0.102:8080/getProfile/${owner}`)
+           const response = await axios.get(`http://192.168.0.103:8080/getProfile/${owner}`)
+           console.log("AvatarUrl: ", response.data.avatar_url)
+           console.log("CoverUrl: ", response.data.cover_url)
            if( response.data == null ){
             setProfileData([])
           } else {
-            console.log(response.data)
+            console.log("FullOutput: ",response.data)
             setProfileData(response.data);
+            if(response.data.avatar_url || response.avatar_url === '') {
+              const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+              console.log("display Text: ", usernameInitial.toUpperCase())
+              setDisplayText(usernameInitial.toUpperCase());
+            } else {
+              setDisplayText('')
+            }
           }
         } else {
-          const response = await axios.get(`http://192.168.0.102:8080/getProfile/${following_owner}`)
+          const response = await axios.get(`http://192.168.0.103:8080/getProfile/${following_owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -134,12 +151,6 @@ function ProfilePage() {
             setProfileData(response.data);
           }
         }
-          if( response.data == null ){
-            setProfileData([])
-          } else {
-            console.log(response.data)
-            setProfileData(response.data);
-          }
           
         } catch(e) {
           console.error("unable to fetch the profile details", e)
@@ -150,100 +161,101 @@ function ProfilePage() {
     
   }, [])
 
+  useEffect( () => {
+    const followerCount = async () => {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const currentUser = await AsyncStorage.getItem("User");
+        const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollower`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const item = response.data;
+        if(item.length > 0) {
+          setFollowerCount(item.length);
+        }
+    }
+    const followingCount = async () => {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      const currentUser = await AsyncStorage.getItem("User");
+      const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollowing`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      const item = response.data;
+      if(item.length > 0) {
+        setFollowingCount(item.length);
+      }
+  }
+    followerCount();
+    followingCount()
+  }, [])
+
     return(
-        <View style={styles.Container}>
-            <View style={styles.SubContainer}>
-                <View style={styles.UserDetailsLeft}>
-                  <View>
-                        <Image style={styles.UserAvatar}  source={profileData.avatar_url}/> 
-                  </View>
-                        <Text>{profileData.full_name}</Text>
-                        <Text>{profileData.owner}</Text>
-                        <Text>{profileData.bio}</Text>
-                </View>
-                {showEditProfileButton ? (
-                <View style={styles.UserDetailsRight}>
-                     <Pressable onPress={handleEditProfile}>
-                         <Text style={styles.EditButton}>Edit Profile</Text>
-                     </Pressable>
-                 </View>
-                ) : 
-                 null
-                }
-            </View>
-            {!showEditProfileButton && (
-                     <TouchableOpacity style={styles.FollowButton} onPress={handleFollowButton} >
-                        <Text>{isFollowing ? 'Following' : 'Follow'}</Text>
-                     </TouchableOpacity>
-                 )}
-            
+      <View style={tailwind`flex-1 bg-black`}>
+        <View style={tailwind`p-4 gap-30 items-left flex-row`}>
+            <Pressable>
+                <FontAwesome
+                    name="close"
+                    color="white"
+                    size={24}
+                    style={{ marginLeft: 10 }}
+                    onPress={() => navigation.goBack()}
+                />
+            </Pressable>
+            <Text style={tailwind`text-white font-bold text-lg`}>Profile</Text>
         </View>
+        <View style={tailwind`w-full`}>
+            {profileData.cover_url ? (
+                <Image
+                    style={tailwind`h-60 w-full bg-yellow-500`}
+                    source={{uri: profileData.cover_url}}
+                />
+            ):(
+              <Image 
+                style={tailwind`h-60 w-full bg-yellow-500`}
+                source={CoverImage}
+              />
+            )}
+            
+        </View> 
+        <View style={tailwind`flex-1 p-4`}>
+            {profileData.avatar_url ? (
+                <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white -mt-12`} source={{uri: profileData.avatar_url}} />
+            ) : (
+              <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-cente -mt-12`}>
+                <Text style={tailwind`text-red-500 text-12x2`}>
+                  {displayText}
+                </Text>
+              </View>
+            )}
+              <Text style={tailwind`text-3xl mb-1 mt-4 text-white`}>{profileData.full_name}</Text>
+              <Text style={tailwind`text-xl mb-1 text-white`}>@{profileData.owner}</Text>
+              <View style={tailwind`flex-row justify-between content-center pl-2 pt-5 text-black`}>
+                  <Text style={tailwind`flex-row text-lg text-white `}>{followerCount}  Followers</Text>
+                  <Text style={tailwind`flex-row text-lg text-white`}> | </Text>
+                  <Text style={tailwind`flex-row text-lg text-white`}>{followingCount}  Following</Text>
+                </View>
+              <Text style={tailwind`text-xl mb-5 text-white`}>{profileData.bio}</Text>
+
+              <View style={tailwind`flex-row mt-20 `}>
+                {showEditProfileButton ? (
+                <Pressable style={tailwind`items-center p-2 `} onPress={handleEditProfile}>
+                    <Text style={ tailwind`text-blue-500 text-xl font-bold`}>Edit Profile</Text>
+                </Pressable>
+                ) : (
+                  <TouchableOpacity style={tailwind`bg-blue-500 text-gray-500 py-3 px-5 rounded-md w-2/3 text-center items-center z-10`} onPress={handleFollowButton}>
+                      <Text style={ tailwind`text-white text-xl font-bold`}>{isFollowing ? 'Following' : 'Follow'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+        </View>
+  </View>
     );
 }
-const styles = StyleSheet.create({
-  Container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f8f8f8',
-},
-SubContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-},
-UserDetailsLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-},
-UserDetailsRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-},
-UserAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: 8,
-    backgroundColor: 'orange'
-},
-Title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-},
-Text: {
-    fontSize: 20,
-    marginBottom: 5,
-},
-EditButton: {
-    fontSize: 18,
-    color: 'blue',
-},
-UpdateAvatar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-},
-AddAvatar: {
-  margin: 5,
-  position: "absolute",
-  top: 0,
-  left: 0,
-  width: 25,
-  height: 25,
-  color: "grey",
-  borderRadius:50,
-  borderWidth:1,
-  padding:5,
-  backgroundColor: 'whitesmoke'
-},
-FollowButton: {
-  backgroundColor: '#007AFF',
-  color: 'white',
-  padding: 12,
-  borderRadius: 20,
-  width: '34%',
-  alignItems: 'center',
-},
-});
 
 export default ProfilePage

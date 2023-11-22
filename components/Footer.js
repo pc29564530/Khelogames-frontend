@@ -6,6 +6,7 @@ import Home from './Home';
 import Community from './Community';
 import CreateThread from './CreateThread';
 import Follow from './Follow';
+import tailwind from 'twrnc';
 
 
 const Tab = createBottomTabNavigator();
@@ -14,7 +15,7 @@ function Footer() {
   const iconSize = 25
     return (
         <>  
-            <Tab.Navigator 
+            <Tab.Navigator
                 screenOptions={({route})=> ({
                     headerTitle: null,
                     headerTransparent: true,
@@ -22,16 +23,17 @@ function Footer() {
                     headerLeft: null,
                     headerBackTitleVisible: false,
                     tabBarShowLabel: false,
+                    style: tailwind`absolute bottom-0 w-full bg-black-500`,
                     tabBarIcon: () => {
                       let Icon;
                       if(route.name === "Home"){
-                        Icon=<FontAwesome name="home" size={iconSize} />;
+                        Icon=<FontAwesome name="home" size={iconSize} color="black" />;
                       } else if(route.name === "Community"){
-                        Icon = <MaterialIcons name="forum" size={iconSize} />;
+                        Icon = <MaterialIcons name="forum" size={iconSize} color="black"/>;
                       } else if(route.name === "CreateThread") {
-                        Icon = <MaterialIcons name="add-box" size={iconSize} />;
+                        Icon = <MaterialIcons name="add-box" size={iconSize} color="black"/>;
                       } else if(route.name === "Follow") {
-                        Icon = <MaterialIcons  name="connect-without-contact" size={iconSize} />;
+                        Icon = <MaterialIcons  name="connect-without-contact" size={iconSize} color="black"/>;
                       }
                       return Icon;
                     }
