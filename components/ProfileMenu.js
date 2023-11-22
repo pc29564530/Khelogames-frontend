@@ -35,7 +35,7 @@ function ProfileMenu(){
         try {
           const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/getCommunityByUser`, {
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -59,7 +59,7 @@ function ProfileMenu(){
         try {
             const username = await AsyncStorage.getItem('User')
 
-            await axios.delete(`http://192.168.0.101:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.103:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -73,7 +73,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.101:8080/create_follow/${following_owner}`,
+            `http://192.168.0.103:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -94,7 +94,7 @@ function ProfileMenu(){
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.101:8080/unFollow/${following_owner}`,
+          `http://192.168.0.103:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -122,7 +122,7 @@ function ProfileMenu(){
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.101:8080/getFollowing', {
+        const response = await axiosInstance.get('http://192.168.0.103:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ function ProfileMenu(){
       try {
         const authUser = await AsyncStorage.getItem("User");
         console.log(authUser)
-        const response = await axios.get(`http://192.168.0.101:8080/getProfile/${authUser}`);
+        const response = await axios.get(`http://192.168.0.103:8080/getProfile/${authUser}`);
         console.log("response data: ", response.data)
         console.log("Avatar Url: ", response.data.avatar_url)
         if (!response.data.avatar_url || response.data.avatar_url === '') {
@@ -181,7 +181,7 @@ function ProfileMenu(){
       const followerCount = async () => {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const currentUser = await AsyncStorage.getItem("User");
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollower`, {
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollower`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ function ProfileMenu(){
       const followingCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollowing`, {
+        const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollowing`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ function ProfileMenu(){
                   </Pressable>
               </View> 
               <View style={tailwind`mb-5 pl-5 items-left mt-5`}>
-                {profileData.avatar_url ? (
+                {!profileData && profileData.avatar_url ? (
                   <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white`} source={{uri: profileData.avatar_url}} />
                 ) : (
                   <View style={tailwind`w-20 h-20 aspect-w-1 aspect-h-1 rounded-12 bg-gray-500 items-center justify-cente`}>

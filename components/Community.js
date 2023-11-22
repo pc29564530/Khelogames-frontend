@@ -58,7 +58,7 @@ function Community () {
             <CreateCommunity />
           ):(
             <>
-            <View style={tailwind`mt-1 mb-5 bg-yellow-800 rounded-md h-70`}>
+            <View style={tailwind`mt-1 mb-5 bg-gray-800 rounded-md h-70`}>
                 <View style={tailwind`m-5`}>
                     <Text style={tailwind`text-xl text-white`} >Create a New Community</Text>
                     <Text style={tailwind`mb-5 text-white`}>This is place where a people with similar field area connect with each other.</Text>
@@ -66,16 +66,14 @@ function Community () {
                 <Pressable onPress={() => {navigation.navigate('CreateCommunity')}} style={tailwind` bg-blue-500 h-10 items-center ml-10 mr-10 rounded-md pt-2`}>
                   <Text style={tailwind`font-bold text-white`}>Getting Start</Text> 
                 </Pressable>
-                {/* <Button name="Getting Start" onPress={() => {setCreateCommunityScreen(!createCommunityScreen)}}/> */}
-                {/* {createCommunityScreen? onPress{}: null } */}
             </View>
-            <View style={tailwind`w-full bg-white rounded-md`}>
+            <View style={tailwind`w-full  rounded-md`}>
                 {data.map((item,i) => (
-                    <View style={tailwind`flex-row bg-gray-200 mb-1 p-1 rounded-md h-20`} key={i}>
+                    <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
                         <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
                         <View style={tailwind`w-4/5 pl-3`}>
-                            <Text style={tailwind`font-bold text-base`}>{item.communities_name}</Text>
-                            <Text style={tailwind`text-base`}>{item.description}</Text>
+                            <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
+                            <Text style={tailwind`text-base text-white`}>{item.description}</Text>
                             <Text style={tailwind`text-base`}>{item.community_type}</Text>
                         </View>
                     </View>

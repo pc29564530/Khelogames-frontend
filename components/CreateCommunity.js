@@ -18,7 +18,6 @@ function CreateCommunity () {
     const handleCreateCommunity = async () => {
         try {
             const community = {communityName, description, communityType};
-            console.log("Community:", community)
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response  = await axiosInstance.post('http://192.168.0.103:8080/communities', community, {
                 headers: {
@@ -26,7 +25,6 @@ function CreateCommunity () {
                     'Content-Type': 'application/json',
                 },
             });
-            console.log("Response: ", response.data);
             setCommunity(response.data);
         } catch (err) {
             console.error(err);

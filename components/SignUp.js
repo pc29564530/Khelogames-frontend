@@ -20,7 +20,7 @@ function SignUp() {
     const handleVerify = async () => {
         try {
             const verifyMobileNumber = {mobile_number: mobileNumber, otp: otp}
-            const response = await axios.post('http://192.168.0.102:8080/signup', verifyMobileNumber);
+            const response = await axios.post('http://192.168.0.103:8080/signup', verifyMobileNumber);
             dispatch(verifyOTP(response.data))
             dispatch(setMobileNumberVerified(true))
             navigation.navigate("User")
@@ -32,7 +32,7 @@ function SignUp() {
     const handleSendOTP = async () => {
       try {
         console.log("MobileNumber: ", data)
-        const response = await axios.post('http://192.168.0.102:8080/send_otp', {mobile_number: mobileNumber})
+        const response = await axios.post('http://192.168.0.103:8080/send_otp', {mobile_number: mobileNumber})
         console.log(response.data)
         dispatch({type: 'SEND_OTP', payload:response.data})
       } catch (err) {

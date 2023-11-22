@@ -10,6 +10,6 @@ const composeEnhancers = composeWithDevTools({
     port:8080
 })
 
-const store = createStore(rootReducer, composeEnhancers(applyMiddleware(thunk)));
+const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(thunk)));
 
 export default store;
