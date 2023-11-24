@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +15,7 @@ function JoinCommunity() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             console.log('CommunityName: ', item)
-            const response = await axiosInstance.post(`http://192.168.0.100:8080/joinUserCommunity/${item}`, null, {
+            const response = await axiosInstance.post(`http://192.168.0.103:8080/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

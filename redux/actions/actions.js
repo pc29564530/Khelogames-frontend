@@ -21,10 +21,10 @@ export const setAuthenticated = (isAuthenticated) => ({
     payload: isAuthenticated
 });
 
-// export const setMobileNumber = (mobileNumber) => ({
-//     type: 'SET_MOBILE_NUMBER',
-//     payload: mobileNumber
-// });
+export const setMobileNumber = (mobileNumber) => ({
+    type: 'SET_MOBILE_NUMBER',
+    payload: mobileNumber
+});
 
 export const setMobileNumberVerified = (isVerified) => ({
     type: 'SET_MOBILE_NUMBER_VERIFIED',
@@ -81,7 +81,6 @@ export const toggleLikes = (threadId, isLikes) => {
 }
 
 export const setComments = (comments) => {
-    console.log(comments)
     return {
         type: 'SET_COMMENTS',
         payload: comments
@@ -133,7 +132,14 @@ export const setUnFollowUser = (user) => {
 
 export const getFollowingUser = (users) => {
     return {
-        type: 'GET_FOLLOW_USER',
+        type: 'GET_FOLLOWING_USER',
+        payload: users
+    }
+}
+
+export const getFollowerUser = (users) => {
+    return {
+        type: 'GET_FOLLOWER_USER',
         payload: users
     }
 }

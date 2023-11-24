@@ -119,7 +119,6 @@ function ProfileMenu(){
      }
      
     }
-  
     const fetchProfileData = async () => {
       try {
         const authUser = await AsyncStorage.getItem("User");
@@ -200,7 +199,7 @@ function ProfileMenu(){
                   </Pressable>
               </View> 
               <View style={tailwind`mb-5 pl-5 items-left mt-5`}>
-                {profileData.avatar_url ? (
+                {!profileData && profileData.avatar_url ? (
                   <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white`} source={{uri: profileData.avatar_url}} />
                 ) : (
                   <View style={tailwind`w-20 h-20 aspect-w-1 aspect-h-1 rounded-12 bg-gray-500 items-center justify-cente`}>

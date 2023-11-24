@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Image,KeyboardAvoidingView,StyleSheet,TextInput,Pressable, Text, View, Button, TouchableOpacity, SafeAreaView, Touchable} from 'react-native';
-import AsyncStorage  from '@react-native-async-storage/async-storage'
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
@@ -91,6 +91,5 @@ const SignIn = () => {
     </View>
   );
 }
-
 
 export default SignIn;
