@@ -69,8 +69,8 @@ function Following() {
                             <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
                         )}
                         <View  style={tailwind`text-white p-2 mb-1`}>
-                            <Text style={tailwind`text-white font-bold text-xl `}>{item.profile.full_name}</Text>
-                            <Text style={tailwind`text-white`}>@{item.profile.owner}</Text>
+                            <Text style={tailwind`text-white font-bold text-xl `}>{item.profile?.full_name}</Text>
+                            <Text style={tailwind`text-white`}>@{item.profile?.owner}</Text>
                         </View>
                     </View>
                 ))}
