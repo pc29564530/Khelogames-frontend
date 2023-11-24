@@ -2,7 +2,8 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
     user: [],
-    following: []
+    following: [],
+    follower: [],
 }
 
 const userReducers = (state=initialState, action) => {
@@ -12,15 +13,20 @@ const userReducers = (state=initialState, action) => {
                 ...state,
                 user: action.payload
             }
-        case actionTypes.GET_FOLLOW_USER:
-            return {
-                ...state,
-                following: action.payload
-            }
         case actionTypes.FOLLOW_USER:
             return {
                 ...state,
-                following: [...state.following, action.payload] 
+                following: [...state.following, action.payload]
+            }
+        case actionTypes.GET_FOLLOWER_USER:
+            return {
+                ...state,
+                follower: action.payload 
+            }
+        case actionTypes.GET_FOLLOWING_USER:
+            return {
+                ...state,
+                following: action.payload 
             }
         case actionTypes.UNFOLLOW_USER:
             console.log(user)

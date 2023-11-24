@@ -17,6 +17,7 @@ function ProfileMenu(){
     const following_owner  = route.params?.username
 
     const following = useSelector((state) => state.user.following);
+
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
@@ -33,9 +34,8 @@ function ProfileMenu(){
 
     const toggleMyCommunity = async () => {
         try {
-          const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/getCommunityByUser`, {
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/getCommunityByUser`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
@@ -59,7 +59,7 @@ function ProfileMenu(){
         try {
             const username = await AsyncStorage.getItem('User')
 
-            await axios.delete(`http://192.168.0.101:8080/removeSession/${username}`)
+            await axios.delete(`http://192.168.0.103:8080/removeSession/${username}`)
             dispatch(logout());
             await AsyncStorage.removeItem('AccessToken');
             await AsyncStorage.removeItem('RefreshToken');
@@ -73,7 +73,7 @@ function ProfileMenu(){
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.101:8080/create_follow/${following_owner}`,
+            `http://192.168.0.103:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -94,7 +94,7 @@ function ProfileMenu(){
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.101:8080/unFollow/${following_owner}`,
+          `http://192.168.0.103:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -119,30 +119,12 @@ function ProfileMenu(){
      }
      
     }
-    const fetchFollowing = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.101:8080/getFollowing', {
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-            }
-        })
-        const item = response.data;
-        if(item === null) {
-           dispatch(getFollowingUser([]));
-        } else {
-            dispatch(getFollowingUser(item));
-        }
-    } catch (e) {
-        console.error(e);
-    }
-    }
+  
     const fetchProfileData = async () => {
       try {
         const authUser = await AsyncStorage.getItem("User");
         console.log(authUser)
-        const response = await axios.get(`http://192.168.0.101:8080/getProfile/${authUser}`);
+        const response = await axios.get(`http://192.168.0.103:8080/getProfile/${authUser}`);
         console.log("response data: ", response.data)
         console.log("Avatar Url: ", response.data.avatar_url)
         if (!response.data.avatar_url || response.data.avatar_url === '') {
@@ -161,7 +143,6 @@ function ProfileMenu(){
       navigation.navigate('Main')
     }
     useEffect(() =>{
-        fetchFollowing(); 
         setIsFollowing(following.some((item) => item === following_owner))
         const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
@@ -180,8 +161,7 @@ function ProfileMenu(){
     useEffect( () => {
       const followerCount = async () => {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const currentUser = await AsyncStorage.getItem("User");
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollower`, {
+          const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollower`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
@@ -195,8 +175,7 @@ function ProfileMenu(){
       }
       const followingCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollowing`, {
+        const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollowing`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
