@@ -14,7 +14,6 @@ function JoinCommunity() {
     const handleCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            console.log('CommunityName: ', item)
             const response = await axiosInstance.post(`http://192.168.0.101:8080/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,

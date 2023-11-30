@@ -88,7 +88,7 @@ function CreateThread({navigation}) {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post('http://192.168.0.103:8080/create_thread', thread, {
+            const response = await axiosInstance.post('http://192.168.0.101:8080/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ function CreateThread({navigation}) {
             });
 
             const item = response.data;
-            const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.username}`, null, {
+            const profileResponse = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${item.username}`, null, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
