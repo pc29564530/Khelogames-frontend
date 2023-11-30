@@ -20,12 +20,12 @@ const Main =  () => {
         }
         const createProfile = async () => {
             const user = await AsyncStorage.getItem('User')
-            const getUser = await axios.get(`http://192.168.0.103:8080/getProfile/${user}`);
+            const getUser = await axios.get(`http://192.168.0.101:8080/getProfile/${user}`);
 
             //added new profile creation funcitonality
             if(getUser.data == undefined || getUser.data == null) {
                 try {
-                    await axiosInstance.post(`http://192.168.0.103.8080/createProfile`, {username: user}, {
+                    await axiosInstance.post(`http://192.168.0.101.8080/createProfile`, {username: user}, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json'

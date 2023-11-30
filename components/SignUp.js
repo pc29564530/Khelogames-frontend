@@ -10,7 +10,7 @@ import { setMobileNumber, setMobileNumberVerified } from '../redux/actions/actio
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+
 
 function SignUp() {
     const dispatch = useDispatch();
@@ -20,7 +20,7 @@ function SignUp() {
     const handleVerify = async () => {
         try {
             const verifyMobileNumber = {mobile_number: mobileNumber, otp: otp}
-            const response = await axios.post('http://192.168.0.103:8080/signup', verifyMobileNumber);
+            const response = await axios.post('http://192.168.0.101:8080/signup', verifyMobileNumber);
             dispatch(verifyOTP(response.data))
             dispatch(setMobileNumberVerified(true))
             navigation.navigate("User")
@@ -30,10 +30,11 @@ function SignUp() {
     }
 
     const handleSendOTP = async () => {
+      console.log("Otp mobile Number: ", mobileNumber)
       try {
-        console.log("MobileNumber: ", data)
-        const response = await axios.post('http://192.168.0.103:8080/send_otp', {mobile_number: mobileNumber})
-        console.log(response.data)
+        console.log("MobileNumber: ", mobileNumber)
+        const response = await axios.post('http://192.168.0.101:8080/send_otp', {mobile_number: mobileNumber})
+        console.log("Response: ", response.data)
         dispatch({type: 'SEND_OTP', payload:response.data})
       } catch (err) {
         console.error("Unable to send the otp from ui: ", err);
@@ -96,3 +97,4 @@ function SignUp() {
 }
 
 export default SignUp;
+const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
