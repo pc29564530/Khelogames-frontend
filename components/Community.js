@@ -16,13 +16,34 @@ function Community () {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
-
+    const [joinedCommunity, setJoinedCommunity] = useState([]);
+    const fetchCommunityJoinedByUser = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/getCommunityByUser`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            console.log("Joined Community: ", response.data);
+            setJoinedCommunity(response.data)
+            // if (response.data !== null) {
+            //     const joinedCommunitiesArray = response.data.map(item => item.communities_name);
+            //     setJoinedCommunity(joinedCommunitiesArray);
+            // }
+        } catch (e) {
+            console.error('Unable to get the joined communities', e);
+        }
+    };
+    
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             console.log(user);
-            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -52,6 +73,7 @@ function Community () {
                 }
             });
             console.log(response.data);
+            setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
         } catch (err) {
             console.error(err);
         }
@@ -59,10 +81,11 @@ function Community () {
 
     useEffect(() => {
             fetchData();
+            fetchCommunityJoinedByUser();
     },[]);
 
     //community list by community type ```````
-
+    console.log("JoinedCommunityArray: ", joinedCommunity)
     return (
       <>
          
@@ -80,6 +103,9 @@ function Community () {
                   <Text style={tailwind`font-bold text-white`}>Getting Start</Text> 
                 </Pressable>
             </View>
+            <View>
+                <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
+            </View>
             <View style={tailwind`w-full  rounded-md`}>
                 {data.map((item,i) => (
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
@@ -89,9 +115,19 @@ function Community () {
                             <Text style={tailwind` text-white`}>{item.description}</Text>
                             <Text style={tailwind`text-base`}>{item.community_type}</Text>
                         </View>
-                        <Pressable style={tailwind`w-1/5 h-9 rounded-md bg-blue-500 p-2 m-3 justify-center`} onPress={() => handleJoinCommunity(item.communities_name)}>
-                            <Text style={tailwind`text-white pl-3`}>Join</Text>
+                        <Pressable
+                            style={tailwind`w-1/5 h-9 rounded-md ${
+                                joinedCommunity.some(c => c.community_name === item.communities_name)
+                                    ? 'bg-gray-500'
+                                    : 'bg-blue-500'
+                            } p-2 m-3 justify-center`}
+                            onPress={() => handleJoinCommunity(item.communities_name)}
+                        >
+                            <Text style={tailwind`text-white pl-3`}>
+                                {joinedCommunity.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
+                            </Text>
                         </Pressable>
+                        
                     </View>
                 ))}
             </View>
