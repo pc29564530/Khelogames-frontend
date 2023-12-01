@@ -17,6 +17,7 @@ function ProfileMenu(){
     const following_owner  = route.params?.username
 
     const following = useSelector((state) => state.user.following);
+
     const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showLogoutButton, setShowLogoutButton] = useState(false)
     const [currentUser, setCurrentUser] = useState('');
@@ -33,7 +34,6 @@ function ProfileMenu(){
 
     const toggleMyCommunity = async () => {
         try {
-          const user = await AsyncStorage.getItem('User')
           const authToken = await AsyncStorage.getItem('AccessToken')
           const response = await axiosInstance.get(`http://192.168.0.103:8080/getCommunityByUser`, {
             headers: {
@@ -119,25 +119,6 @@ function ProfileMenu(){
      }
      
     }
-    const fetchFollowing = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.103:8080/getFollowing', {
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-            }
-        })
-        const item = response.data;
-        if(item === null) {
-           dispatch(getFollowingUser([]));
-        } else {
-            dispatch(getFollowingUser(item));
-        }
-    } catch (e) {
-        console.error(e);
-    }
-    }
     const fetchProfileData = async () => {
       try {
         const authUser = await AsyncStorage.getItem("User");
@@ -161,7 +142,6 @@ function ProfileMenu(){
       navigation.navigate('Main')
     }
     useEffect(() =>{
-        fetchFollowing(); 
         setIsFollowing(following.some((item) => item === following_owner))
         const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
@@ -180,7 +160,6 @@ function ProfileMenu(){
     useEffect( () => {
       const followerCount = async () => {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const currentUser = await AsyncStorage.getItem("User");
           const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollower`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -195,7 +174,6 @@ function ProfileMenu(){
       }
       const followingCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const currentUser = await AsyncStorage.getItem("User");
         const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollowing`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,

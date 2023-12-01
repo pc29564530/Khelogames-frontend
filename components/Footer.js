@@ -22,22 +22,21 @@ function Footer() {
                     headerShown: false,
                     headerLeft: null,
                     headerBackTitleVisible: false,
-                    tabBarShowLabel: false,
-                    style: tailwind`absolute bottom-0 w-full bg-black-500`,
+                    tabBarShowLabel: true,
+                    tabBarStyle: tailwind`absolute bottom-0 w-full bg-black text-white p-1`,
                     tabBarIcon: () => {
                       let Icon;
                       if(route.name === "Home"){
-                        Icon=<FontAwesome name="home" size={iconSize} color="black" />;
+                        Icon=<FontAwesome name="home" size={iconSize} color="white" />;
                       } else if(route.name === "Community"){
-                        Icon = <MaterialIcons name="forum" size={iconSize} color="black"/>;
+                        Icon = <MaterialIcons name="forum" size={iconSize} color="white"/>;
                       } else if(route.name === "CreateThread") {
-                        Icon = <MaterialIcons name="add-box" size={iconSize} color="black"/>;
+                        Icon = <MaterialIcons name="add-box" size={iconSize} color="white"/>;
                       } else if(route.name === "Follow") {
-                        Icon = <MaterialIcons  name="connect-without-contact" size={iconSize} color="black"/>;
+                        Icon = <MaterialIcons  name="connect-without-contact" size={iconSize} color="white"/>;
                       }
                       return Icon;
-                    }
-                    
+                    }  
                 })}
             > 
                 <Tab.Screen name="Home" component={Home} />

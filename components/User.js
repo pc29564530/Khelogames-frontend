@@ -62,9 +62,11 @@ import tailwind from 'twrnc';
       const handleAccount = async () => {
         if(isMobileNumberVerified) {
           try {
-            const newAccount = {username, mobileNumber, password};
-            console.log(newAccount)
-            const response = await axios.post('http://192.168.0.100:8080/users', newAccount)
+            const newAccount = {username, mobile_number: mobileNumber, password};
+            console.log("new Account: ", newAccount)
+            const response = await axios.post('http://192.168.0.101:8080/users', newAccount)
+            dispatch(setAuthenticated(!isAuthenticated));
+            dispatch(setUser(response.data.user));
             if (response.data) {
               if (response.data.access_token) {
                 await AsyncStorage.setItem("AccessToken", response.data.access_token);
@@ -74,22 +76,21 @@ import tailwind from 'twrnc';
               }
               if (response.data.refresh_token) {
                 await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
-              }
+              } 
               if (response.data.access_token_expires_at) {
                 await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);
               }
               if (response.data.refresh_token_expires_at) {
                 await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
               }
+              console.log("ResponseData for Account Creation ", response.data)
               setRefresh(response.data.refresh_token);
               setAccess(response.data.access_token);
               setAExpire(response.data.access_token_expires_at);
               setRExpire(response.data.access_token_expires_at);
-              dispatch(setAuthenticated(!isAuthenticated));
-              dispatch(setUser(response.data.user));
               // dispatch(setMobileNumber(response.data.user.mobile_number))
               navigation.navigate('JoinCommunity');
-              console.log(response.data);
+              
             } else {
               console.error('Invalid response data');
             }

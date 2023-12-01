@@ -36,7 +36,7 @@ function useAxiosInterceptor() {
               const refreshToken = await AsyncStorage.getItem('RefreshToken');
               if (refreshToken) {
                   console.log("lin no 34 refresh token")
-                const response = await axios.post('http://192.168.0.103:8080/tokens/renew_access', {
+                const response = await axios.post('http://192.168.0.101:8080/tokens/renew_access', {
                   'refresh_token': refreshToken,
                 });
                 console.log(response.data)
@@ -49,7 +49,7 @@ function useAxiosInterceptor() {
                 } else {
                   // Failed to renew token or received an invalid token
                   const username = await AsyncStorage.getItem('User')
-                  await axios.delete(`http://192.168.0.103:8080/removeSession/${username}`)
+                  await axios.delete(`http://192.168.0.101:8080/removeSession/${username}`)
                   await AsyncStorage.removeItem('AccessToken');
                   await AsyncStorage.removeItem('RefreshToken');
                   await AsyncStorage.removeItem('User');
