@@ -8,8 +8,6 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import CreateCommunity from './CreateCommunity';
-import Header from './Header'
-const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 
 function Community () {
@@ -42,13 +40,28 @@ function Community () {
         }
         
     }
+
+    //to join any community from the community list
+    const handleJoinCommunity = async (item) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.post(`http://192.168.0.101:8080/joinUserCommunity/${item}`, null, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            console.log(response.data);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     useEffect(() => {
-        // if(data.length > 0) {
             fetchData();
-        // }
     },[]);
 
-    //community list by community type 
+    //community list by community type ```````
 
     return (
       <>
@@ -71,11 +84,14 @@ function Community () {
                 {data.map((item,i) => (
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
                         <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
-                        <View style={tailwind`w-4/5 pl-3`}>
+                        <View style={tailwind`w-3/5 pl-3`}>
                             <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
-                            <Text style={tailwind`text-base text-white`}>{item.description}</Text>
+                            <Text style={tailwind` text-white`}>{item.description}</Text>
                             <Text style={tailwind`text-base`}>{item.community_type}</Text>
                         </View>
+                        <Pressable style={tailwind`w-1/5 h-9 rounded-md bg-blue-500 p-2 m-3 justify-center`} onPress={() => handleJoinCommunity(item.communities_name)}>
+                            <Text style={tailwind`text-white pl-3`}>Join</Text>
+                        </Pressable>
                     </View>
                 ))}
             </View>
