@@ -21,6 +21,7 @@ import EditProfile from './components/EditProfile';
 import CreateCommunity from './components/CreateCommunity';
 import CommunityType from './components/CommunityType'
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import CommunityPage from './components/CommunityPage';
 import AppDrawer from './navigation/AppDrawer';
 
 const Stack = createStackNavigator();
@@ -107,6 +108,7 @@ function AuthStack() {
           <Stack.Screen name="CreateCommunity" component={CreateCommunity}
           />
           <Stack.Screen name="CommunityType" component={CommunityType}/>
+          <Stack.Screen name="CommunityPage" component={CommunityPage}/>
     </Stack.Navigator>
   );
 }

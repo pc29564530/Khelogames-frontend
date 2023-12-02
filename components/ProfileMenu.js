@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function ProfileMenu() {
   const dispatch = useDispatch();
@@ -139,6 +140,11 @@ function ProfileMenu() {
     navigation.navigate('Main');
   };
 
+  const handleMyCommunityList = (item) => {
+
+    navigation.navigate('CommunityPage', {communityData: item})
+  }
+
   useEffect(() => {
     setIsFollowing(following.some((item) => item === following_owner));
     const verifyUser = async () => {
@@ -191,7 +197,7 @@ function ProfileMenu() {
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
       <View style={tailwind`flex-row items-end justify-between`}>
-        <Text style={tailwind`font-bold text-lg text-white`}>Profile Menu</Text>
+        <Text style={tailwind`font-bold text-lgr text-white`}>Profile Menu</Text>
         <Pressable onPress={handleClose}>
           <FontAwesome name="close" color="white" size={24} />
         </Pressable>
@@ -215,6 +221,7 @@ function ProfileMenu() {
         <View style={tailwind`border-b border-white mt-2`}></View>
       </View>
       <ScrollView>
+          {/* // profile and other content list */}
           <View style={tailwind`mb-5 items-left mt-4`}>
             <Pressable onPress={handleProfilePage} style={tailwind`pt-5 pl-2 font-bold text-left pb-2 flex-row`}>
               <FontAwesome name='user' size={24} color="white" style={tailwind`mt-1`} />
@@ -222,7 +229,7 @@ function ProfileMenu() {
             </Pressable>
             <View style={tailwind`border-b border-white`}></View>
           </View>
-
+          {/* //My Community List */}
           <View style={tailwind`pl-6 items-left mt-5`}>
             <Pressable style={tailwind`flex-row items-center`} onPress={toggleMyCommunity}>
               <Text style={tailwind`text-2xl font-bold mr-10 text-white`}>My Community</Text>
@@ -231,14 +238,18 @@ function ProfileMenu() {
             {showMyCommunity && (
               <ScrollView style={tailwind`mt-5`}>
                 {myCommunityData.map((item, index) => (
-                  <Text key={index} style={tailwind`text-2xl my-0 text-white`}>
-                    {item.community_name}
-                  </Text>
+                  <Pressable key={index} style={tailwind`flex-row `} onPress={() => handleMyCommunityList(item)}>
+                    <Image source={logoPath} style={tailwind`h-10 w-10 bg-red-500 rounded-md`}/>
+                    <Text key={index} style={tailwind`text-2xl my-0 text-white`}>
+                      {item.community_name}
+                    </Text>
+                  </Pressable>
                 ))}
               </ScrollView>
             )}
           </View>
       </ScrollView>
+      {/* //logout button */}
       <View style={tailwind`pl-5 mt-10`}>
         <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-20 bg-gray-500 p-4 rounded-2xl w-80 items-center`}>
           <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
