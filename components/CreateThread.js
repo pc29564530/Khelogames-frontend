@@ -121,6 +121,16 @@ function CreateThread({navigation}) {
 
     return (
         <View style={tailwind`flex-1 p-10 bg-black`}>
+            <View style={tailwind`flex-row h-25  gap-30 p-2 justify-between`}>
+              <Text style={tailwind`text-white font-bold text-lg`}>Edit Profile</Text>
+              <FontAwesome
+                name="close"
+                size={24}
+                color="white"
+                style={{ marginLeft: 5 }}
+                onPress={() => navigation.goBack()}
+              />
+            </View>
             <View style={tailwind`mb-5`}>   
                 <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg text-white`} value={title} onChangeText={setTitle} placeholder="Enter Title..." placeholderTextColor="white"/>
                 <TextInput
