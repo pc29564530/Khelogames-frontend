@@ -20,14 +20,17 @@ const AddContent = ({closeModal}) => {
                     </Pressable>
                 </View>
                 <View>
-                    <Pressable style={tailwind`h-10`} onPress={handleCreateThread}>
-                        <Text style={tailwind` text-2xl bg-gray-200`}>Post Thread</Text>
+                    <Pressable style={tailwind`h-12 flex-row gap-5`} onPress={handleCreateThread}>
+                        <FontAwesome name="feed" color="black" size={24} style={tailwind`mt-1`}/>
+                        <Text style={tailwind` text-2xl `}>Post Thread</Text>
                     </Pressable>
-                    <Pressable style={tailwind`h-10 `}>
-                        <Text style={tailwind` text-2xl bg-gray-200`}>Upload Video</Text>
+                    <Pressable style={tailwind`h-12 flex-row gap-5`}>
+                        <FontAwesome name="video-camera" color="black" size={24} style={tailwind`mt-1`}/>
+                        <Text style={tailwind` text-2xl `}>Video</Text>
                     </Pressable>
-                    <Pressable style={tailwind`h-10 `}>
-                        <Text style={tailwind` text-2xl bg-gray-200`}>Upload Short</Text>
+                    <Pressable style={tailwind`h-12 flex-row gap-5 `}>
+                        <FontAwesome name="paperclip" color="black" size={24} style={tailwind`mt-1`}/>
+                        <Text style={tailwind` text-2xl`}>Short</Text>
                     </Pressable>
                 </View>
             </View>
