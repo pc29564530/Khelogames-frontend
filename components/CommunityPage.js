@@ -9,6 +9,9 @@ import useAxiosInterceptor from './axios_config';
 import { useBottomTabNavigationConfig } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import PostByCommunity from './PostByCommuntiy';
+import CommunityMember from './CommunityMember';
+
 function CommunityPage({route}) {
     const TopTab = createMaterialTopTabNavigator();
     const [joinedCommunity, setJoinedCommunity] = useState([]);
@@ -53,7 +56,7 @@ function CommunityPage({route}) {
     },[])
 
     return (
-        <View style={tailwind`bg-gray-200 flex-1`}>
+        <View style={tailwind`bg-black flex-1`}>
             <View style={tailwind`bg-red-500 h-50`}>
                 <FontAwesome name="close" size={25} color="white"/>
             </View>
@@ -80,23 +83,22 @@ function CommunityPage({route}) {
                 <FontAwesome name="user" color="white" size={14} style={tailwind`pl-4`}/>
                 <Text style={tailwind`text-white text-sm -mt-1`}>20</Text>
             </View>
-            {/* <TopTab.Navigator
+            <TopTab.Navigator
                 screenOptions={{
                     tabBarLabelStyle:tailwind`text-white`,
-                    tabBarStyle:tailwind`bg-red-500`
+                    tabBarStyle:tailwind`bg-black`
                 }}
-            >
+            >   
                 <TopTab.Screen 
-                    name="Post"
-                    component={Post}
-                    color="black"
+                    name="PostByCommunity"
+                    component={PostByCommunity}
                 />
                 <TopTab.Screen 
-                    name="Member"
-                    component={Member}
-                    color="black"
+                    name="CommunityMember"
+                    component={CommunityMember}
+                    initialParams={{communityPageData: communityPageData}}
                 />
-            </TopTab.Navigator> */}
+            </TopTab.Navigator>
         </View>
     )
 }
