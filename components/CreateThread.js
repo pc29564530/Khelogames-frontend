@@ -40,12 +40,14 @@ const fileToBase64 = async (filePath) => {
 
 function CreateThread({navigation}) {
     const axiosInstance = useAxiosInterceptor();
+    const route = useRoute();
     const dispatch = useDispatch();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [likeCount, setLikeCount] = useState(0);
+    const [communityType, setCommunityType] = useState(route.params?.communityType || 'Communtiy Type')
     const threads = useSelector(state => state.threads.threads)
 
     const SelectMedia =  async () => {
@@ -80,6 +82,7 @@ function CreateThread({navigation}) {
     const HandleSubmit = async () => {
         try {
             const thread = {
+                communities_name: communityType,
                 title: title,
                 content: content,
                 mediaType: mediaType,
@@ -115,21 +118,30 @@ function CreateThread({navigation}) {
             navigation.navigate('Home');
         } catch (e) {
             console.error(e);
-        }
-        
+        }  
     }
+
+    const handleSelectCommunity = () => {
+      navigation.navigate('CommunityList', communityType)
+    }
+    
+    useEffect(()=> {
+      setCommunityType(route.params?.communityType)
+    })
 
     return (
         <View style={tailwind`flex-1 p-10 bg-black`}>
-            <View style={tailwind`flex-row h-25  gap-30 p-2 justify-between`}>
-              <Text style={tailwind`text-white font-bold text-lg`}>Edit Profile</Text>
+            <View style={tailwind`flex-row h-25 justify-between`}>
               <FontAwesome
                 name="close"
                 size={24}
                 color="white"
-                style={{ marginLeft: 5 }}
                 onPress={() => navigation.goBack()}
               />
+              <Pressable style={tailwind`border-2 rounded-md border-white h-12 flex-row w-40`} onPress={handleSelectCommunity} >
+                <Text style={tailwind`text-white text-lg p-2`}>{communityType}</Text>
+              </Pressable>
+              {/* <Text style={tailwind`text-white font-bold text-lg`}>New Thread</Text> */}
             </View>
             <View style={tailwind`mb-5`}>   
                 <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg text-white`} value={title} onChangeText={setTitle} placeholder="Enter Title..." placeholderTextColor="white"/>

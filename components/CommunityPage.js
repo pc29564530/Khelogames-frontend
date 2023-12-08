@@ -9,7 +9,7 @@ import useAxiosInterceptor from './axios_config';
 import { useBottomTabNavigationConfig } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import PostByCommunity from './PostByCommuntiy';
+import PostByCommunity from './PostByCommunity';
 import CommunityMember from './CommunityMember';
 
 function CommunityPage({route}) {
@@ -92,6 +92,7 @@ function CommunityPage({route}) {
                 <TopTab.Screen 
                     name="PostByCommunity"
                     component={PostByCommunity}
+                    initialParams={{communityPageData: communityPageData}}
                 />
                 <TopTab.Screen 
                     name="CommunityMember"
