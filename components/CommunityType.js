@@ -20,7 +20,7 @@ function CreateCommunityType () {
     }
 
     return(
-        <View style={tailwind`flex-1 bg-black`}>
+    <View style={tailwind`flex-1 bg-black`}>
       <Pressable onPress={handleClose} style={tailwind`p-4`}>
         <FontAwesome name="close" color="white" size={24} />
       </Pressable>

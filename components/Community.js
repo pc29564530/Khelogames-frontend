@@ -17,6 +17,7 @@ function Community () {
     const navigation = useNavigation();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
     const [joinedCommunity, setJoinedCommunity] = useState([]);
+    
     const fetchCommunityJoinedByUser = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -27,7 +28,6 @@ function Community () {
                 }
             });
     
-            console.log("Joined Community: ", response.data);
             setJoinedCommunity(response.data)
             // if (response.data !== null) {
             //     const joinedCommunitiesArray = response.data.map(item => item.communities_name);
@@ -42,7 +42,7 @@ function Community () {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            console.log(user);
+            //console.log(user);
             const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -55,7 +55,7 @@ function Community () {
             } else {
                 setData(item);
             }
-            console.log(item);
+           // console.log(item);
         } catch (err) {
             console.error(err);
         }
@@ -72,11 +72,16 @@ function Community () {
                     'Content-Type': 'application/json',
                 }
             });
-            console.log(response.data);
+            //console.log(response.data);
             setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
         } catch (err) {
             console.error(err);
         }
+    }
+
+    const handleCommunityPage = (item, id) => {
+        console.log("Item: ", item)
+        navigation.navigate("CommunityPage", {item: item, itemId: id})
     }
 
     useEffect(() => {
@@ -85,7 +90,7 @@ function Community () {
     },[]);
 
     //community list by community type ```````
-    console.log("JoinedCommunityArray: ", joinedCommunity)
+    //console.log("JoinedCommunityArray: ", joinedCommunity)
     return (
       <>
          
@@ -111,20 +116,22 @@ function Community () {
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
                         <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
                         <View style={tailwind`w-3/5 pl-3`}>
-                            <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
-                            <Text style={tailwind` text-white`}>{item.description}</Text>
-                            <Text style={tailwind`text-base`}>{item.community_type}</Text>
+                            <Pressable onPress={()=> (handleCommunityPage(item, item.id))}>
+                                <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
+                                <Text style={tailwind` text-white`}>{item.description}</Text>
+                                <Text style={tailwind`text-base`}>{item.community_type}</Text>
+                            </Pressable>
                         </View>
                         <Pressable
                             style={tailwind`w-1/5 h-9 rounded-md ${
-                                joinedCommunity.some(c => c.community_name === item.communities_name)
+                                joinedCommunity?.some(c => c.community_name === item.communities_name)
                                     ? 'bg-gray-500'
                                     : 'bg-blue-500'
                             } p-2 m-3 justify-center`}
                             onPress={() => handleJoinCommunity(item.communities_name)}
                         >
                             <Text style={tailwind`text-white pl-3`}>
-                                {joinedCommunity.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
+                                {joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
                             </Text>
                         </Pressable>
                         
