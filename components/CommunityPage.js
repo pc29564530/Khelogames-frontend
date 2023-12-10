@@ -49,12 +49,18 @@ function CommunityPage({route}) {
         fetchCommunityJoinedByUser();
     },[])
 
+    navigation.setOptions({
+        headerTitle: '',
+        headerStyle:{
+            backgroundColor:'black'
+        },
+        headerTintColor:'white'
+    });
+
     return (
         <ScrollView contentContainerStyle={{height:1070}}>
             <View style={tailwind`bg-black flex-1`}>
-                <Pressable style={tailwind`bg-red-500 h-50 p-4`} onPress={() => {navigation.goBack()}}>
-                    <FontAwesome name="close" size={25} color="white"/>
-                </Pressable>
+                <View style={tailwind`bg-gray-500 h-50 p-4`}></View>
                 <Image source={logoPath} style={tailwind`bg-white h-20 w-20 rounded-md pl-2 ml-2 -mt-8 `}/>
                 
                 <View style={tailwind`p-5 gap-4 flex-row`}>

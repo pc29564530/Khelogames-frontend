@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {Text, View, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
-import axios from 'axios';
 import useAxiosInterceptor from './axios_config';
 
 function CommunityMember({route}) {
@@ -51,13 +50,13 @@ function CommunityMember({route}) {
     }, [])
     console.log("CommunityWithProfile: ", communityWithProfile)
     return (
-        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }}>
-            <View style={tailwind`h-15 bg-blue-200`}>
-                <Text style={tailwind`text-2xl p-2 text-black`}>Active Member</Text>
+        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }} style={tailwind`bg-black`}>
+            <View style={tailwind`h-12`}>
+                <Text style={tailwind`text-2xl p-2 text-white`}>Active Member</Text>
             </View>
-            <View style={tailwind`bg-red-200 p-3`}>
+            <View style={tailwind` p-3`}>
                 {communityWithProfile?.map((item, index) => (
-                    <View key={index} style={tailwind`h-10 flex-row gap-5`}>
+                    <View key={index} style={tailwind`h-10 flex-row gap-5 mt-2`}>
                         <Image source={item.profile.avatar_url} style={tailwind`h-10 w-10 rounded-full bg-green-500`}/>
                         <View>
                             <Text style={tailwind`text-white text-xl`}>{item.profile.full_name}</Text>

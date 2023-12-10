@@ -117,9 +117,8 @@ const PostByCommunity = ({route}) => {
 
     return (
         <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }}>
-          <TouchableOpacity>
             {threads.map((item,i) => (
-                <View key={i} style={tailwind`bg-black mt-1`}>
+                <View key={i} style={tailwind`bg-black mt-0.5 `}>
                     <View >
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
                           {item.profile && item.profile.avatar_url ? (
@@ -175,7 +174,6 @@ const PostByCommunity = ({route}) => {
                     <View style={tailwind`border-b border-white mt-2`}></View>
               </View>
               ))}
-              </TouchableOpacity>
         </ScrollView>
     );
 }
