@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {Text, View, Image} from 'react-native';
+import {Text, View, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import axios from 'axios';
 import useAxiosInterceptor from './axios_config';
@@ -11,8 +11,6 @@ function CommunityMember({route}) {
     const [displayText, setDisplayText] = useState('');
 
     const communityPageData = route.params?.communityPageData;
-    console.log("Community Name: ", communityPageData)
-    console.log("CommunityName CommunityData: ", communityPageData.communities_name)
     const fetchCommunityMember = async () => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
@@ -53,7 +51,7 @@ function CommunityMember({route}) {
     }, [])
     console.log("CommunityWithProfile: ", communityWithProfile)
     return (
-        <View style={tailwind`flex-1`}>
+        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }}>
             <View style={tailwind`h-15 bg-blue-200`}>
                 <Text style={tailwind`text-2xl p-2 text-black`}>Active Member</Text>
             </View>
@@ -68,7 +66,7 @@ function CommunityMember({route}) {
                     </View>
                 ))}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 

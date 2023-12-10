@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Text, View,Pressable, Image} from 'react-native'
+import {Text, View,Pressable, Image, ScrollView} from 'react-native'
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {setThreads, setLikes} from '../redux/actions/actions';
 import Video from 'react-native-video';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const PostByCommunity = ({route}) => {
     
@@ -57,6 +58,22 @@ const PostByCommunity = ({route}) => {
         }
       }
 
+      const handleUser = async (username) => {
+        try {
+          const user = await AsyncStorage.getItem('User');
+          if(username === undefined || username === null) {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/user/${user}`);
+            navigation.navigate('Profile', { username: response.data.username });
+          } else {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/user/${username}`);
+            navigation.navigate('Profile', { username: response.data.username });
+          }
+  
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
     const fetchThreadByCommunity = async () => {
 
         try {
@@ -99,7 +116,8 @@ const PostByCommunity = ({route}) => {
     }, []);
 
     return (
-        <View style={tailwind`flex-1`}>
+        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }}>
+          <TouchableOpacity>
             {threads.map((item,i) => (
                 <View key={i} style={tailwind`bg-black mt-1`}>
                     <View >
@@ -157,7 +175,8 @@ const PostByCommunity = ({route}) => {
                     <View style={tailwind`border-b border-white mt-2`}></View>
               </View>
               ))}
-        </View>
+              </TouchableOpacity>
+        </ScrollView>
     );
 }
 
