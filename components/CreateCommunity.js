@@ -35,9 +35,6 @@ function CreateCommunity () {
         navigation.navigate("CommunityType");
     }
 
-    const handleClose = () => {
-        navigation.navigate("Community")
-    }
     useEffect(() => {
         if(route.params?.communityType) {
             setCommunityType(route.params?.communityType);
@@ -47,10 +44,10 @@ function CreateCommunity () {
     return (
         <View style={tailwind`flex-1 bg-black`}>
             <View style={tailwind`h-20 flex-row items-center p-2 justify-between`}>
-                <Pressable onPress={handleClose}>
+                <Pressable onPress={() => {navigation.goBack()}} style={tailwind`p-2`}>
                     <FontAwesome name="close" color="white" size={24} />
                 </Pressable>
-                <Pressable onPress={handleSelectCommunity} style={tailwind`rounded-md w-2/5 bg-yellow-400 p-3`}>
+                <Pressable onPress={handleSelectCommunity} style={tailwind`rounded-md w-2/5 bg-yellow-400 p-2 mr-30`}>
                     <Text style={tailwind`text-white`}>{communityType}</Text>
                 </Pressable>
             </View> 

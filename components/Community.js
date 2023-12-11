@@ -8,8 +8,6 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import CreateCommunity from './CreateCommunity';
-import Header from './Header'
-const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 
 function Community () {
@@ -18,13 +16,34 @@ function Community () {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
-
+    const [joinedCommunity, setJoinedCommunity] = useState([]);
+    
+    const fetchCommunityJoinedByUser = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/getCommunityByUser`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            setJoinedCommunity(response.data)
+            // if (response.data !== null) {
+            //     const joinedCommunitiesArray = response.data.map(item => item.communities_name);
+            //     setJoinedCommunity(joinedCommunitiesArray);
+            // }
+        } catch (e) {
+            console.error('Unable to get the joined communities', e);
+        }
+    };
+    
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            console.log(user);
-            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities/${user}`, {
+            //console.log(user);
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -36,20 +55,42 @@ function Community () {
             } else {
                 setData(item);
             }
-            console.log(item);
+           // console.log(item);
         } catch (err) {
             console.error(err);
         }
         
     }
+
+    //to join any community from the community list
+    const handleJoinCommunity = async (item) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.post(`http://192.168.0.101:8080/joinUserCommunity/${item}`, null, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            //console.log(response.data);
+            setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    const handleCommunityPage = (item, id) => {
+        console.log("Item: ", item)
+        navigation.navigate("CommunityPage", {item: item, itemId: id})
+    }
+
     useEffect(() => {
-        // if(data.length > 0) {
             fetchData();
-        // }
+            fetchCommunityJoinedByUser();
     },[]);
 
-    //community list by community type 
-
+    //community list by community type ```````
+    //console.log("JoinedCommunityArray: ", joinedCommunity)
     return (
       <>
          
@@ -67,15 +108,33 @@ function Community () {
                   <Text style={tailwind`font-bold text-white`}>Getting Start</Text> 
                 </Pressable>
             </View>
+            <View>
+                <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
+            </View>
             <View style={tailwind`w-full  rounded-md`}>
                 {data.map((item,i) => (
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
                         <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
-                        <View style={tailwind`w-4/5 pl-3`}>
-                            <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
-                            <Text style={tailwind`text-base text-white`}>{item.description}</Text>
-                            <Text style={tailwind`text-base`}>{item.community_type}</Text>
+                        <View style={tailwind`w-3/5 pl-3`}>
+                            <Pressable onPress={()=> (handleCommunityPage(item, item.id))}>
+                                <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
+                                <Text style={tailwind` text-white`}>{item.description}</Text>
+                                <Text style={tailwind`text-base`}>{item.community_type}</Text>
+                            </Pressable>
                         </View>
+                        <Pressable
+                            style={tailwind`w-1/5 h-9 rounded-md ${
+                                joinedCommunity?.some(c => c.community_name === item.communities_name)
+                                    ? 'bg-gray-500'
+                                    : 'bg-blue-500'
+                            } p-2 m-3 justify-center`}
+                            onPress={() => handleJoinCommunity(item.communities_name)}
+                        >
+                            <Text style={tailwind`text-white pl-3`}>
+                                {joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
+                            </Text>
+                        </Pressable>
+                        
                     </View>
                 ))}
             </View>
