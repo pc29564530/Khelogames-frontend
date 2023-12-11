@@ -19,10 +19,12 @@ import JoinCommunity from './components/JoinCommunity';
 import {checkExpireTime,setAuthenticated, setUser} from './redux/actions/actions';
 import EditProfile from './components/EditProfile';
 import CreateCommunity from './components/CreateCommunity';
-import CommunityType from './components/CommunityType'
+import CommunityType from './components/CommunityType';
+import CreateThread from './components/CreateThread';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import CommunityPage from './components/CommunityPage';
 import AppDrawer from './navigation/AppDrawer';
+import CommunityPage from './components/CommunityPage';
+import CommunityList from './components/CommunityList';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -106,16 +108,33 @@ function AuthStack() {
             })}
           />
           <Stack.Screen name="CreateCommunity" component={CreateCommunity}
+            options={() => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: false
+            })}
           />
           <Stack.Screen name="CommunityType" component={CommunityType}/>
-          <Stack.Screen name="CommunityPage" component={CommunityPage}/>
+          <Stack.Screen name="CreateThread" component={CreateThread} 
+             options={() => ({
+              headerShown: false,
+              headerTitle: null,
+              headerBackTitleVisible: false,
+              headerLeft: false
+            })}
+          />
+          <Stack.Screen name="CommunityPage" component={CommunityPage} />
+          <Stack.Screen name="CommunityList" component={CommunityList} />
     </Stack.Navigator>
   );
 }
 
 function UnAuthStack () {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      initialRouteName='SignIn'
+    >
         <Stack.Screen name="SignUp" component={SignUp}
             options={() => ({
               headerShown: false,
@@ -149,8 +168,7 @@ function UnAuthStack () {
 
 export default function Root() {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  const iconSize = 30
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   useEffect(() => {
     
     const checkAuthStatus = async () => {
