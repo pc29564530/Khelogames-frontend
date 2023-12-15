@@ -44,7 +44,7 @@ export default function EditProfile() {
     const handleAvatar = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('http://192.168.0.103:8080/updateAvatar',{avatar_url: avatarUrl}, {
+            const response = await axiosInstance.put('http://192.168.0.101:8080/updateAvatar',{avatar_url: avatarUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function EditProfile() {
     const handleCover = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('http://192.168.0.103:8080/updateCover',{cover_url: coverUrl}, {
+            const response = await axiosInstance.put('http://192.168.0.101:8080/updateCover',{cover_url: coverUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export default function EditProfile() {
                 full_name: fullName,
             };
     
-            const response = await axiosInstance.put(`http://192.168.0.103:8080/updateFullName`, profileData, {
+            const response = await axiosInstance.put(`http://192.168.0.101:8080/updateFullName`, profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export default function EditProfile() {
                 bio: bio,
             };
     
-            const response = await axiosInstance.put(`http://192.168.0.103:8080/updateBio`, profileData, {
+            const response = await axiosInstance.put(`http://192.168.0.101:8080/updateBio`, profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -124,8 +124,6 @@ export default function EditProfile() {
                 full_name: fullName,
                 bio: bio
             }
-            // console.log("Avatar Url: ", avatarUrl)
-            // console.log("Cover Url: ", coverUrl)
 
             if (avatarUrl !== '') {
                 console.log(avatarUrl)
@@ -136,7 +134,7 @@ export default function EditProfile() {
                 profileData.cover_url = coverUrl
             }
             
-            const response = await axiosInstance.put('http://192.168.0.103:8080/editProfile', profileData, {
+            const response = await axiosInstance.put('http://192.168.0.101:8080/editProfile', profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -169,7 +167,6 @@ export default function EditProfile() {
                 
                 if(type === 'image') {
                     const base64File = await fileToBase64(res.assets[0].uri);
-                    // console.log('base64File:', base64File); 
                     setAvatarUrl(base64File);
                     handleAvatar();
                 } else {
@@ -215,7 +212,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${user}`, {
+            const response = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -250,19 +247,17 @@ export default function EditProfile() {
     // useEffect(() => {
     //     fetchUserProfile();
     // }, []);
+
+    navigation.setOptions({
+        headerTitle: '',
+        headerStyle:{
+            backgroundColor:'black'
+        },
+        headerTintColor:'white'
+    });
     
     return (
         <KeyboardAvoidingView style={tailwind`flex-1 bg-black`} >
-            <View style={tailwind`flex-row h-15  gap-30 p-5`}>
-            <FontAwesome
-                name="close"
-                size={24}
-                color="white"
-                style={{ marginLeft: 5 }}
-                onPress={() => navigation.goBack()}
-              />
-              <Text style={tailwind`text-white font-bold text-lg`}>Edit Profile</Text>
-            </View>
             <View style={tailwind`w-full h-60`}>
                 <Image
                     style={tailwind`h-60 object-cover bg-yellow-500`}

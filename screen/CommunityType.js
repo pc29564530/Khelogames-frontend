@@ -7,10 +7,7 @@ import tailwind from 'twrnc';
 const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 function CreateCommunityType () {
-
-    
     const navigation = useNavigation()
-
     const handleClose = () => {
         navigation.navigate("CreateCommunity")
     }
@@ -19,15 +16,20 @@ function CreateCommunityType () {
         navigation.navigate("CreateCommunity", {communityType: communityType})
     }
 
+    navigation.setOptions({
+        headerTitle: 'Community Type',
+        headerStyle:{
+            backgroundColor:'black'
+        },
+        headerTintColor:'white'
+    });
+
     return(
     <View style={tailwind`flex-1 bg-black`}>
-      <Pressable onPress={handleClose} style={tailwind`p-4`}>
-        <FontAwesome name="close" color="white" size={24} />
-      </Pressable>
       <View style={tailwind`mt-4`}>
         {mainCommunities.map((item, index) => (
           <Pressable key={index} style={tailwind`py-2 px-4`} onPress={() => handleSelectCommunity(item)}>
-            <Text style={tailwind`text-white`}>{item}</Text>
+            <Text style={tailwind`text-white text-xl`}>{item}</Text>
           </Pressable>
         ))}
       </View>

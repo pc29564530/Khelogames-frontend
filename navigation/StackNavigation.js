@@ -5,15 +5,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import BottomTab from './BottomTab';
-import Home from '../screen/Home';
-import CreateThread from '../screen/CreateThread';
-import ThreadComment from '../screen/ThreadComment';
 const KhelogamesLogo = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 const Stack = createStackNavigator();
 
 const StackNavigation = () => {
-  console.log("Line no 14 Stack Navigation")
   return (
     <Stack.Navigator
       initialRouteName='DrawerNavigation'
@@ -46,7 +42,6 @@ const StackNavigation = () => {
         name="BottomTab"
         component={BottomTab}
       />
-      {/* <Stack.Screen name="ThreadComment" component={ThreadComment} /> */}
     </Stack.Navigator>
   );
 };

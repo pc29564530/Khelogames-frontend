@@ -12,6 +12,10 @@ import CreateCommunity from '../screen/CreateCommunity';
 import Profile from '../screen/Profile';
 import EditProfile from '../screen/EditProfile';
 import ThreadComment from '../screen/ThreadComment';
+import JoinCommunity from '../screen/JoinCommunity';
+import CommunityList from '../screen/CommunityList';
+import CommunityPage from '../screen/CommunityPage';
+import CommunityType from '../screen/CommunityType';
 
 const Stack = createStackNavigator();
 
@@ -46,11 +50,22 @@ export default function MainNavigation() {
                         headerLeft: false
                         })}
                     />
+                    <Stack.Screen name="JoinCommunity" component={JoinCommunity}
+                        options={() => ({
+                        headerShown: false,
+                        headerTitle: null,
+                        headerBackTitleVisible: false,
+                        headerLeft: false
+                        })}
+                    />
                     <Stack.Screen name="CreateThread" component={CreateThread}/>
                     <Stack.Screen name="CreateCommunity" component={CreateCommunity}/>
                     <Stack.Screen name="Profile" component={Profile}/>
                     <Stack.Screen name="EditProfile" component={EditProfile} />
                     <Stack.Screen name="ThreadComment" component={ThreadComment} />
+                    <Stack.Screen name="CommunityPage" component={CommunityPage} />
+                    <Stack.Screen name="CommunityList" component={CommunityList} />
+                    <Stack.Screen name="CommunityType" component={CommunityType} />
                     </>
                 ):(
                     <>

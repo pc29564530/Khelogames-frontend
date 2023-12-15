@@ -74,19 +74,17 @@ function ThreadComment ({route}) {
     const handleComment = () => {
       commentInputRef.current.focus();
     }
+
+    navigation.setOptions({
+        headerTitle: '',
+        headerStyle:{
+            backgroundColor:'black'
+        },
+        headerTintColor:'white'
+    });
   
     return (
         <View style={tailwind`flex-1 bg-black`}>
-              <View style={tailwind`p-3 flex-row gap-35 h-15`}>
-              <FontAwesome
-                  name="close"
-                  color="white"
-                  size={24}
-                  style={{ marginLeft: 10 }}
-                  onPress={() => navigation.goBack()}
-                />
-                <Text style={tailwind`text-white font-bold text-lg`}>Thread</Text>
-              </View>
               <ScrollView>
               <View  style={tailwind`bg-black mt-1`}>
                     <View  style={tailwind`p-2`}>

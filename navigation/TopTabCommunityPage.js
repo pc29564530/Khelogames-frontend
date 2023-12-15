@@ -1,7 +1,7 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
-import PostByCommunity from '../components/PostByCommunity';
-import CommunityMember from '../components/CommunityMember';
+import PostByCommunity from '../screen/PostByCommunity';
+import CommunityMember from '../screen/CommunityMember';
 
 function TopTabCommunityPage({communityPageData}) {
     const TopTab = createMaterialTopTabNavigator();
