@@ -5,7 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
-import AddContent from '../comment/AddContent';
+import AddContent from '../components/AddContent';
 import Follow from '../screen/Follow';
 import tailwind from 'twrnc';
 
