@@ -1,15 +1,13 @@
 import React,{useState} from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
-import AddContent from '../screen/AddContent';
+import AddContent from '../comment/AddContent';
 import Follow from '../screen/Follow';
 import tailwind from 'twrnc';
-import CreateThread from '../screen/CreateThread';
 
 const Tab = createBottomTabNavigator();
 
