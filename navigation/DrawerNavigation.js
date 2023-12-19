@@ -5,7 +5,7 @@ import StackNavigation from './StackNavigation';
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigation(){
-    console.log("Step3")
+    //console.log("Step3")
     return (
         <Drawer.Navigator drawerContent={props => <ProfileMenu {...props} />}>
             <Drawer.Screen name="HomeScreen" component={StackNavigation} 

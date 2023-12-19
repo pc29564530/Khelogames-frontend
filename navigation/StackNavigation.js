@@ -6,13 +6,12 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import BottomTab from './BottomTab';
 const KhelogamesLogo = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
-
 const Stack = createStackNavigator();
+import CreateThread from '../screen/CreateThread';
 
 const StackNavigation = () => {
   return (
     <Stack.Navigator
-      initialRouteName='DrawerNavigation'
       screenOptions={{
         header: ({ navigation }) => {
           return (

@@ -10,7 +10,6 @@ import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native'
 import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
-import Header from './Header';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -38,7 +37,9 @@ const fileToBase64 = async (filePath) => {
   }
 };
 
-function CreateThread({navigation}) {
+function CreateThread() {
+    const isFocused = useIsFocused();
+    const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const route = useRoute();
     const dispatch = useDispatch();
@@ -60,9 +61,9 @@ function CreateThread({navigation}) {
          launchImageLibrary(options, async (res) => {
           
             if (res.didCancel) {
-                console.log('User cancelled photo picker');
+                //console.log('User cancelled photo picker');
               } else if (res.error) {
-                console.log('ImagePicker Error: ', response.error);
+                //console.log('ImagePicker Error: ', response.error);
               } else {
                 const type = getMediaTypeFromURL(res.assets[0].uri);
                 
@@ -71,7 +72,7 @@ function CreateThread({navigation}) {
                   setMediaURL(base64File)
                   setMediaType(type);
                 } else {
-                  console.log('unsupported media type:', type);
+                  //console.log('unsupported media type:', type);
                 }
                 setLikeCount(0) 
               }
@@ -124,9 +125,12 @@ function CreateThread({navigation}) {
       navigation.navigate('CommunityList', communityType)
     }
     
-    useEffect(()=> {
-      setCommunityType(route.params?.communityType)
-    })
+    useEffect(() => {
+      if (isFocused && route.params?.communityType) {
+        setCommunityType(route.params.communityType);
+      }
+    }, [isFocused, route.params?.communityType]);
+    
 
     navigation.setOptions({
       headerTitle:'',

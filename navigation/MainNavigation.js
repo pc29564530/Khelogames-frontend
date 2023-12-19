@@ -18,6 +18,7 @@ import JoinCommunity from '../screen/JoinCommunity';
 import CommunityList from '../screen/CommunityList';
 import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
+import Shorts from '../screen/Shorts';
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,7 @@ export default function MainNavigation() {
             }
         };
     
+        setLoading(false);
         checkAuthStatus();
         dispatch(checkExpireTime())
     }, []);
@@ -48,10 +50,14 @@ export default function MainNavigation() {
 
     return(
         <NavigationContainer>
-            <Stack.Navigator initialRouteName={isAuthenticated ? 'DrawerNavigation' : 'SignIn'}>
+            <Stack.Navigator initialRouteName={isAuthenticated?'Home':'SignIn'} 
+            screenOptions={{
+                presentation:'modal'
+            }}
+            >
                 {isAuthenticated?(
                     <>
-                        <Stack.Screen name="DrawerNavigation" component={DrawerNavigation} 
+                        <Stack.Screen name="DrawerNavigation" component={DrawerNavigation}
                         options={() => ({
                             headerShown: false,
                             headerTitle: null,
@@ -67,7 +73,8 @@ export default function MainNavigation() {
                             headerLeft: false
                             })}
                         />
-                        <Stack.Screen name="CreateThread" component={CreateThread}/>
+                        <Stack.Screen name="CreateThread" component={CreateThread} />
+                        <Stack.Screen name="Shorts" component={Shorts} />
                         <Stack.Screen name="CreateCommunity" component={CreateCommunity}/>
                         <Stack.Screen name="Profile" component={Profile}/>
                         <Stack.Screen name="EditProfile" component={EditProfile} />
