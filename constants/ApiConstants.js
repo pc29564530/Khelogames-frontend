@@ -1,4 +1,4 @@
-export const BASE_URL= `http://192.168.0.101:8080`;
+export const BASE_URL= `http://10.0.2.2:8080`;
 export const SEND_OTP=`${BASE_URL}/send_otp`;
 export const CREATE_THREAD_URL=`${BASE_URL}/create_thread`;
 export const GET_ALL_THREAD_BY_COMMUNITY_URL=`${BASE_URL}/get_all_thread_by_communities`;

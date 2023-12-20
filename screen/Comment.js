@@ -19,7 +19,7 @@ function Comment({thread}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://192.168.0.103:8080/getComment/${thread.id}`, {
+            const response = await axiosInstance.get(`http://10.0.2.2:8080/getComment/${thread.id}`, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ function Comment({thread}) {
 
             const threadComment = response.data;
             const itemComment = threadComment.map(async (item,index) => {
-                const profileResponse = await axiosInstance.get(`http://192.168.0.103:8080/getProfile/${item.owner}`);
+                const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.owner}`);
                 if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                     const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());

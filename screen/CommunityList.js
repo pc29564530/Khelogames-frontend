@@ -12,7 +12,7 @@ function CommunityList() {
     const fetchCommunity = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://192.168.0.101:8080/get_all_communities`, {
+            const response = await axiosInstance.get(`http://10.0.2.2:8080/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

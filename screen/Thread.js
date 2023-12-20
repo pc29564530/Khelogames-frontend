@@ -37,19 +37,19 @@ const Thread = () => {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`http://192.168.0.101:8080/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`http://10.0.2.2:8080/checkLikeByUser/${id}`, {headers});
         console.log("Usercount: ", userCount.data)
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`http://192.168.0.101:8080/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`http://10.0.2.2:8080/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.101:8080/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`http://10.0.2.2:8080/countLike/${id}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://192.168.0.101:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`http://10.0.2.2:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
               console.log("LikeCount: ", newLikeCount.data.like_count)
               console.log("LikeId: ", id)
@@ -66,7 +66,7 @@ const Thread = () => {
     const fetchData = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.101:8080/all_threads', {
+        const response = await axiosInstance.get('http://10.0.2.2:8080/all_threads', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const Thread = () => {
         } else {
           const threadUser = item.map(async (item,index) => {
             console.log("Item: ", item)
-            const profileResponse = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${item.username}`);
+            const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.username}`);
             if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
               const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
               setDisplayText(usernameInitial.toUpperCase());
@@ -107,10 +107,10 @@ const Thread = () => {
       try {
         const user = await AsyncStorage.getItem('User');
         if(username === undefined || username === null) {
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/user/${user}`);
+          const response = await axiosInstance.get(`http://10.0.2.2:8080/user/${user}`);
           navigation.navigate('Profile', { username: response.data.username });
         } else {
-          const response = await axiosInstance.get(`http://192.168.0.101:8080/user/${username}`);
+          const response = await axiosInstance.get(`http://10.0.2.2:8080/user/${username}`);
           navigation.navigate('Profile', { username: response.data.username });
         }
 

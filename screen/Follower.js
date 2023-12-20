@@ -16,7 +16,7 @@ function Follower() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollower`, {
+            const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ function Follower() {
                 dispatch(getFollowerUser([]));
             } else {
                 const followerProfile = item.map(async (item, index) => {
-                    const profileResponse = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
