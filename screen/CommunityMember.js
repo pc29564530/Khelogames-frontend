@@ -15,7 +15,7 @@ function CommunityMember({route}) {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const communities_name = communityPageData.communities_name;
 
-        const response = await axiosInstance.get(`http://192.168.0.101:8080/getUserByCommunity/${communities_name}`, {
+        const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -26,7 +26,7 @@ function CommunityMember({route}) {
         console.log("Item: ", item);
 
         const communityMemberPromises = item.map(async (user) => {
-            const profileResponse = await axiosInstance.get(`http://192.168.0.101:8080/getProfile/${user.username}`);
+            const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${user.username}`);
             if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                 const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                 setDisplayText(usernameInitial.toUpperCase());

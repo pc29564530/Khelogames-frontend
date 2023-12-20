@@ -36,7 +36,7 @@ function ProfilePage() {
           setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://192.168.0.103:8080/create_follow/${following_owner}`,
+            `http://10.0.2.2:8080/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -58,7 +58,7 @@ function ProfilePage() {
         setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://192.168.0.103:8080/unFollow/${following_owner}`,
+          `http://10.0.2.2:8080/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -86,7 +86,7 @@ function ProfilePage() {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://192.168.0.103:8080/getFollowing', {
+        const response = await axiosInstance.get('http://10.0.2.2:8080/getFollowing', {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ function ProfilePage() {
         }
         console.log("Profile Username: ", owner)
         if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`http://192.168.0.103:8080/getProfile/${owner}`)
+           const response = await axios.get(`http://10.0.2.2:8080/getProfile/${owner}`)
            console.log("AvatarUrl: ", response.data.avatar_url)
            console.log("CoverUrl: ", response.data.cover_url)
            if( response.data == null ){
@@ -143,7 +143,7 @@ function ProfilePage() {
             }
           }
         } else {
-          const response = await axios.get(`http://192.168.0.103:8080/getProfile/${following_owner}`)
+          const response = await axios.get(`http://10.0.2.2:8080/getProfile/${following_owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -165,7 +165,7 @@ function ProfilePage() {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollower`, {
+        const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ function ProfilePage() {
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const currentUser = await AsyncStorage.getItem("User");
-      const response = await axiosInstance.get(`http://192.168.0.103:8080/getFollowing`, {
+      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

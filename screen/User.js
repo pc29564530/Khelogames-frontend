@@ -64,7 +64,7 @@ import tailwind from 'twrnc';
           try {
             const newAccount = {username, mobile_number: mobileNumber, password};
             console.log("new Account: ", newAccount)
-            const response = await axios.post('http://192.168.0.101:8080/users', newAccount)
+            const response = await axios.post('http://10.0.2.2:8080/users', newAccount)
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(response.data.user));
             if (response.data) {

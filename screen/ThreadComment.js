@@ -21,7 +21,7 @@ function ThreadComment ({route}) {
       const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`http://192.168.0.101:8080/createComment/${itemId}`, {comment_text: commentText}, {
+            const response = await axiosInstance.post(`http://10.0.2.2:8080/createComment/${itemId}`, {comment_text: commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -47,18 +47,18 @@ function ThreadComment ({route}) {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`http://192.168.0.101:8080/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`http://10.0.2.2:8080/checkLikeByUser/${id}`, {headers});
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`http://192.168.0.101:8080/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`http://10.0.2.2:8080/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`http://192.168.0.101:8080/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`http://10.0.2.2:8080/countLike/${id}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://192.168.0.101:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`http://10.0.2.2:8080/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
 
             } catch (err) {

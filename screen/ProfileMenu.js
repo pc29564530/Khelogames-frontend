@@ -36,7 +36,7 @@ function ProfileMenu() {
   const toggleMyCommunity = async () => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://192.168.0.101:8080/getCommunityByUser`, {
+      const response = await axiosInstance.get(`http://10.0.2.2:8080/getCommunityByUser`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ function ProfileMenu() {
   const handleLogout = async () => {
     try {
       const username = await AsyncStorage.getItem('User');
-      await axios.delete(`http://192.168.0.101:8080/removeSession/${username}`);
+      await axios.delete(`http://10.0.2.2:8080/removeSession/${username}`);
       dispatch(logout());
       await AsyncStorage.removeItem('AccessToken');
       await AsyncStorage.removeItem('RefreshToken');
@@ -70,7 +70,7 @@ function ProfileMenu() {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.post(
-        `http://192.168.0.101:8080/create_follow/${following_owner}`,
+        `http://10.0.2.2:8080/create_follow/${following_owner}`,
         {},
         {
           headers: {
@@ -91,7 +91,7 @@ function ProfileMenu() {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.delete(
-        `http://192.168.0.101:8080/unFollow/${following_owner}`,
+        `http://10.0.2.2:8080/unFollow/${following_owner}`,
         {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -120,7 +120,7 @@ function ProfileMenu() {
     try {
       const authUser = await AsyncStorage.getItem('User');
       console.log(authUser);
-      const response = await axios.get(`http://192.168.0.101:8080/getProfile/${authUser}`);
+      const response = await axios.get(`http://10.0.2.2:8080/getProfile/${authUser}`);
       console.log('response data: ', response.data);
       console.log('Avatar Url: ', response.data.avatar_url);
       if (!response.data.avatar_url || response.data.avatar_url === '') {
@@ -164,7 +164,7 @@ function ProfileMenu() {
   useEffect(() => {
     const followerCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollower`, {
+      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ function ProfileMenu() {
     };
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://192.168.0.101:8080/getFollowing`, {
+      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -251,7 +251,7 @@ function ProfileMenu() {
       </ScrollView>
       {/* //logout button */}
       <View style={tailwind`pl-5 mt-10`}>
-        <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-20 bg-gray-500 p-4 rounded-2xl w-80 items-center`}>
+        <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-30 bg-gray-500 p-4 rounded-2xl w-40 items-center`}>
           <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
         </TouchableOpacity>
       </View>
