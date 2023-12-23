@@ -30,7 +30,7 @@ function ProfileMenu() {
   const [followingCount, setFollowingCount] = useState(0);
 
   const handleProfilePage = () => {
-    navigation.navigate('Profile');
+    navigation.navigate('Profile', {username: currentUser});
   };
 
   const toggleMyCommunity = async () => {

@@ -10,8 +10,6 @@ import Video from 'react-native-video';
 import tailwind from 'twrnc';
 
 const Thread = () => {
-
-    const [profileData, setProfileData] = useState(null);
     const navigation = useNavigation()
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
@@ -25,11 +23,8 @@ const Thread = () => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
 
-    console.log("Tbhread from redux: ", threads);
-
     const handleLikes = async (id) => {
       try {
-        const authUser = await AsyncStorage.getItem('User');
         const authToken = await AsyncStorage.getItem('AccessToken');
         const headers = {
           'Authorization': `Bearer ${authToken}`,
@@ -38,7 +33,6 @@ const Thread = () => {
 
         // here when click on like icon call api createLike
         const userCount = await axiosInstance.get(`http://10.0.2.2:8080/checkLikeByUser/${id}`, {headers});
-        console.log("Usercount: ", userCount.data)
         if(userCount.data == 0) {
           const response = await axiosInstance.post(`http://10.0.2.2:8080/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
@@ -50,9 +44,7 @@ const Thread = () => {
               }
 
               const newLikeCount = await axiosInstance.put(`http://10.0.2.2:8080/update_like`, updateLikeData, {headers});
-              dispatch(setLikes(id, newLikeCount.data.like_count))
-              console.log("LikeCount: ", newLikeCount.data.like_count)
-              console.log("LikeId: ", id)
+              dispatch(setLikes(id, newLikeCount.data.like_count));
             } catch (err) {
               console.error(err);
             }
@@ -73,13 +65,11 @@ const Thread = () => {
           },
         });
         const item = response.data;
-        console.log("AllThread: ", item)
         if(item === null){
           setThreadWithUserProfile([]);
           dispatch(setThreads([]));
         } else {
           const threadUser = item.map(async (item,index) => {
-            console.log("Item: ", item)
             const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.username}`);
             if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
               const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
@@ -104,19 +94,7 @@ const Thread = () => {
 
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
-      try {
-        const user = await AsyncStorage.getItem('User');
-        if(username === undefined || username === null) {
-          const response = await axiosInstance.get(`http://10.0.2.2:8080/user/${user}`);
-          navigation.navigate('Profile', { username: response.data.username });
-        } else {
-          const response = await axiosInstance.get(`http://10.0.2.2:8080/user/${username}`);
-          navigation.navigate('Profile', { username: response.data.username });
-        }
-
-      } catch (err) {
-        console.error(err);
-      }
+      navigation.navigate('Profile', {username: username})
     }
   
     return (
