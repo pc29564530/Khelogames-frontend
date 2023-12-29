@@ -11,7 +11,9 @@ function Message({ route }) {
   const axiosInstance = useAxiosInterceptor();
   const [receivedMessage, setReceivedMessage] = useState([]);
   const [newMessageContent, setNewMessageContent] = useState('');
+  const [allMessage, setAllMessage] = useState([]);
   const profileData = route.params?.profileData;
+  const [currentUser, setCurrentUser] = useState('');
   const wsRef = useRef(null);
 
   useEffect(async () => {
@@ -27,12 +29,22 @@ function Message({ route }) {
       console.log("WebSocket Ready: ", wsRef.current.readyState);
     }
 
-    wsRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log('Received Message: ', message);
-      setReceivedMessage((prevMessages) => [...prevMessages, message]);
-    }
 
+    wsRef.current.onmessage = (event) => {
+        const rawData = event?.data
+        try {
+            console.log("Raw Data: ", rawData)
+            if(rawData===null || !rawData){
+                console.error("raw data is undefined");
+            } else {
+                const message = JSON.parse(rawData);
+                setReceivedMessage((prevMessages) => [...prevMessages, message]);
+            }
+        } catch (e) {
+            console.error('error parsing json: ', e);
+        }
+    }
+    
     wsRef.current.onerror = (error) => {
       console.log("Error: ", error);
     }
@@ -47,6 +59,8 @@ function Message({ route }) {
       try {
         const user = profileData.owner;
         const authToken = await AsyncStorage.getItem('AccessToken');
+        const username = await AsyncStorage.getItem('User');
+        
         const response = await axiosInstance.get(`http://10.0.2.2:8080/getMessage/${user}`, null, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -54,10 +68,22 @@ function Message({ route }) {
           }
         });
 
+        setCurrentUser(username);
+
         if (response.data === null || !response.data) {
-          setReceivedMessage([]);
+            setReceivedMessage([]);
         } else {
-          setReceivedMessage(response.data);
+            const messageData = response.data.map((item, index) => {
+                const timestampStr = item.sent_at;
+                const timestamp = new Date(timestampStr);
+                const options = { weekday: 'long', hour: '2-digit', minute: '2-digit' };
+                const formattedTime = timestamp.toLocaleString('en-US', options);
+                item.sent_at = formattedTime; 
+                return item;
+            });
+            console.log("Message: ", messageData)
+          setAllMessage(messageData);
+          setReceivedMessage(messageData);
         }
       } catch (e) {
         console.error('Unable to get the message: ', e)
@@ -68,13 +94,14 @@ function Message({ route }) {
 
   const sendMessage = async () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      const currentUser = await AsyncStorage.getItem('User');
+      const user = await AsyncStorage.getItem('User');
       const newMessage = {
         content: newMessageContent,
-        sender_username: currentUser,
+        sender_username: user,
         receiver_username: profileData.owner,
         sent_at: new Date().toISOString()
       }
+
       console.log("Message : ", newMessage)
       wsRef.current.send(JSON.stringify(newMessage));
       setNewMessageContent('');
@@ -82,7 +109,8 @@ function Message({ route }) {
       console.log("WebSocket is not ready");
     }
   }
-
+console.log("Received Data: ", receivedMessage);
+console.log("current Username: ", currentUser)
   return (
     <View style={tailwind`flex-1 bg-white`}>
       <View style={tailwind`flex-1/5 p-4 flex-row items-center`}>
@@ -92,15 +120,20 @@ function Message({ route }) {
           <Text style={tailwind`text-xl text-gray-500`}>{profileData?.owner}</Text>
         </View>
       </View>
-      <ScrollView style={tailwind`flex-4/5 bg-gray-100`}>
+      <ScrollView style={tailwind`flex-3/5 bg-gray-100 gap-10 p-4`}>
         {receivedMessage.map((item, index) => (
-          <View key={index} style={tailwind`p-2 border-b border-gray-300`}>
+          <View key={index} style={[
+            tailwind`p-2 border rounded-2xl mt-5 mb-5r`,
+            item.sender_username !== currentUser
+              ? tailwind`bg-gray-300`
+              : tailwind`bg-green-200`,
+          ]}>
             <Text style={tailwind`text-black`}>{item.content}</Text>
             <Text style={tailwind`text-sm text-gray-500`}>{item.sent_at}</Text>
           </View>
         ))}
       </ScrollView>
-      <View style={tailwind`flex-1/5 flex-row items-center p-2 bg-white border-t border-gray-300`}>
+      <View style={tailwind`flex-2/5 flex-row flex-end p-2 bg-white border border-gray-300`}>
         <TextInput
           style={tailwind`flex-1 border border-gray-300 rounded-2xl p-2 text-lg text-black mr-2`}
           multiline
