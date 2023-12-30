@@ -1,11 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Pressable, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useFocusEffect } from '@react-navigation/native';
+import EmojiSelector from 'react-native-emoji-selector';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import RFNS from 'react-native-fs';
+import {launchImageLibrary} from 'react-native-image-picker';
+
+const fileToBase64 = async (filePath) => {
+    try {
+      const fileContent = await RFNS.readFile(filePath, 'base64');
+      return fileContent;
+    } catch (error) {
+      console.error('Error converting image to Base64:', error);
+      return null;
+    }
+  };
+
+  function getMediaTypeFromURL(url) {
+    const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
+    if (fileExtensionMatch) {
+      const fileExtension = fileExtensionMatch[1].toLowerCase();
+      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
+      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+  
+      if (imageExtensions.includes(fileExtension)) {
+        return 'image';
+      } else if (videoExtensions.includes(fileExtension)) {
+        return 'video';
+      }
+    }
+  }
 
 function Message({ route }) {
   const axiosInstance = useAxiosInterceptor();
@@ -14,44 +41,93 @@ function Message({ route }) {
   const [allMessage, setAllMessage] = useState([]);
   const profileData = route.params?.profileData;
   const [currentUser, setCurrentUser] = useState('');
+  const [showEmojiSelect, setShowEmojiSelect] = useState(false);
+  const [showEmojiSelector, setShowEmojiSelector] = useState(false);
+  const [mediaType, setMediaType] = useState('');
+  const [mediaURL,setMediaURL] = useState('');
+  const [uploadImage, setUploadImage] = useState(false);
+  
   const wsRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(async () => {
-    const authToken = await AsyncStorage.getItem('AccessToken');
-    wsRef.current = new WebSocket('ws://10.0.2.2:8080/ws', '', {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
-    });
-
-    wsRef.current.onopen = () => {
-      console.log("WebSocket connection open");
-      console.log("WebSocket Ready: ", wsRef.current.readyState);
-    }
-
-
-    wsRef.current.onmessage = (event) => {
-        const rawData = event?.data
-        try {
-            console.log("Raw Data: ", rawData)
-            if(rawData===null || !rawData){
-                console.error("raw data is undefined");
-            } else {
-                const message = JSON.parse(rawData);
-                setReceivedMessage((prevMessages) => [...prevMessages, message]);
-            }
-        } catch (e) {
-            console.error('error parsing json: ', e);
-        }
+  const UploadMedia = () => {
+    let options = { 
+        noData: true,
+        mediaType: 'mixed',
     }
     
-    wsRef.current.onerror = (error) => {
-      console.log("Error: ", error);
+     launchImageLibrary(options, async (res) => {
+      
+        if (res.didCancel) {
+            console.log('User cancelled photo picker');
+          } else if (res.error) {
+            console.log('ImagePicker Error: ', response.error);
+          } else {
+            const type = getMediaTypeFromURL(res.assets[0].uri);
+            
+            if(type === 'image' || type === 'video') {
+              const base64File = await fileToBase64(res.assets[0].uri);
+              setMediaURL(base64File)
+              setMediaType(type);
+              setUploadImage(true);
+            } else {
+              console.log('unsupported media type:', type);
+            }
+          }
+      });
+}
+    
+  useEffect(() => {
+    const setupWebSocket = async () => {
+      try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        wsRef.current = new WebSocket('ws://10.0.2.2:8080/ws', '', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+
+        wsRef.current.onopen = () => {
+          console.log("WebSocket connection open");
+          console.log("WebSocket Ready: ", wsRef.current.readyState);
+        }
+
+        wsRef.current.onmessage = (event) => {
+          const rawData = event?.data;
+          try {
+            if (rawData === null || !rawData) {
+              console.error("raw data is undefined");
+            } else {
+              const message = JSON.parse(rawData);
+              if (isMountedRef.current) {
+                setReceivedMessage((prevMessages) => [...prevMessages, message]);
+              }
+            }
+          } catch (e) {
+            console.error('error parsing json: ', e);
+          }
+        }
+
+        wsRef.current.onerror = (error) => {
+          console.log("Error: ", error);
+        }
+
+        wsRef.current.onclose = (event) => {
+          console.log("WebSocket connection closed: ", event.reason);
+        }
+      } catch (e) {
+        console.error('unable to setup the websocket', err)
+      }
     }
 
-    wsRef.current.onclose = (event) => {
-      console.log("WebSocket connection closed: ", event.reason);
-    }
+    setupWebSocket();
+
+    return () => {
+      isMountedRef.current = false;
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -81,7 +157,6 @@ function Message({ route }) {
                 item.sent_at = formattedTime; 
                 return item;
             });
-            console.log("Message: ", messageData)
           setAllMessage(messageData);
           setReceivedMessage(messageData);
         }
@@ -94,21 +169,36 @@ function Message({ route }) {
 
   const sendMessage = async () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      const user = await AsyncStorage.getItem('User');
-      const newMessage = {
-        content: newMessageContent,
-        sender_username: user,
-        receiver_username: profileData.owner,
-        sent_at: new Date().toISOString()
-      }
+        const user = await AsyncStorage.getItem('User');
 
-      console.log("Message : ", newMessage)
-      wsRef.current.send(JSON.stringify(newMessage));
-      setNewMessageContent('');
+        const newMessage = {
+            content: uploadImage?'':newMessageContent,
+            sender_username: user,
+            receiver_username: profileData.owner,
+            sent_at: new Date().toISOString(),
+            media_url: '',
+            media_type: '',
+        }
+
+        if(uploadImage){
+            newMessage.media_url =mediaURL;
+            newMessage.media_type= mediaType;
+            setUploadImage(false);
+        }
+
+        wsRef.current.send(JSON.stringify(newMessage));
+        setNewMessageContent('');
+        setMediaURL('');
+        setMediaType('');
+    
     } else {
       console.log("WebSocket is not ready");
     }
   }
+  const handleEmoji = () => {
+    setShowEmojiSelect(!showEmojiSelect);
+  };
+
 console.log("Received Data: ", receivedMessage);
 console.log("current Username: ", currentUser)
   return (
@@ -125,27 +215,45 @@ console.log("current Username: ", currentUser)
           <View key={index} style={[
             tailwind`p-2 border rounded-2xl mt-5 mb-5r`,
             item.sender_username !== currentUser
-              ? tailwind`bg-gray-300`
-              : tailwind`bg-green-200`,
+              ? tailwind`bg-gray-200 pl-10`
+              : tailwind`bg-green-200 pr-10`,
           ]}>
+            {item.media_type === 'image'&& (
+                <Image 
+                    source={{uri: item.media_url}}
+                    style={{ width: 200, height: 200 }}
+                />
+            )}
             <Text style={tailwind`text-black`}>{item.content}</Text>
             <Text style={tailwind`text-sm text-gray-500`}>{item.sent_at}</Text>
           </View>
         ))}
       </ScrollView>
-      <View style={tailwind`flex-2/5 flex-row flex-end p-2 bg-white border border-gray-300`}>
-        <TextInput
-          style={tailwind`flex-1 border border-gray-300 rounded-2xl p-2 text-lg text-black mr-2`}
-          multiline
-          value={newMessageContent}
-          onChangeText={(text) => setNewMessageContent(text)}
-          placeholder="Enter message..."
-          placeholderTextColor="gray"
+        <View style={tailwind`flex-end flex-row items-center p-2 bg-white border border-gray-300 justify-between`}>
+            <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="gray"/>
+            <TextInput
+                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}
+                multiline
+                value={newMessageContent}
+                onChangeText={(text) => setNewMessageContent(text)}
+                placeholder="Enter message..."
+                placeholderTextColor="gray"
+            />
+            <FontAwesome onPress={UploadMedia} name="camera" size={24} color="gray" />
+            <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
+                <Text style={tailwind`text-white text-md`}>Send</Text>
+            </Pressable>
+        </View>
+      {showEmojiSelect && (
+        <EmojiSelector
+        showSearchBar={false}
+        headerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
+        style={{ borderColor: 'red', borderWidth: 1, height: 300 }}
+        onEmojiSelected={(emoji) => {
+           setNewMessageContent((prevMessage) => prevMessage + emoji)
+        }}
         />
-        <Pressable onPress={sendMessage}>
-          <FontAwesome name="send" size={24} color="black" />
-        </Pressable>
-      </View>
+      )}
     </View>
   );
 }
