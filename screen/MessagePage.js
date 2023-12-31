@@ -17,6 +17,7 @@ function MessagePage() {
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
+            const currentUser = await AsyncStorage.getItem('User');
             const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollowing`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -29,13 +30,13 @@ function MessagePage() {
                 setFollowingWithProfile([]);
                 dispatch(getFollowingUser([]));
             } else {
-                const followingProfile = item.map(async (item, index) => {
+                const followingProfile = item.map(async (item, index) => {                  
                     const profileResponse = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
                     } else {
-                        setDisplayText(''); // Reset displayText if the avatar is present
+                        setDisplayText('');
                     }
                     return {...item, profile: profileResponse.data}
                 })

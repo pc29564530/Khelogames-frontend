@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, Pressable, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { View, Text, Image, Pressable, TextInput, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
@@ -8,6 +8,8 @@ import EmojiSelector from 'react-native-emoji-selector';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import RFNS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
+import { useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const fileToBase64 = async (filePath) => {
     try {
@@ -23,8 +25,8 @@ const fileToBase64 = async (filePath) => {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
     if (fileExtensionMatch) {
       const fileExtension = fileExtensionMatch[1].toLowerCase();
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
-      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov'];
   
       if (imageExtensions.includes(fileExtension)) {
         return 'image';
@@ -35,14 +37,15 @@ const fileToBase64 = async (filePath) => {
   }
 
 function Message({ route }) {
+  const navigation = useNavigation();
   const axiosInstance = useAxiosInterceptor();
   const [receivedMessage, setReceivedMessage] = useState([]);
   const [newMessageContent, setNewMessageContent] = useState('');
   const [allMessage, setAllMessage] = useState([]);
   const profileData = route.params?.profileData;
+  console.log("Profile Data: ", profileData)
   const [currentUser, setCurrentUser] = useState('');
   const [showEmojiSelect, setShowEmojiSelect] = useState(false);
-  const [showEmojiSelector, setShowEmojiSelector] = useState(false);
   const [mediaType, setMediaType] = useState('');
   const [mediaURL,setMediaURL] = useState('');
   const [uploadImage, setUploadImage] = useState(false);
@@ -172,7 +175,7 @@ function Message({ route }) {
         const user = await AsyncStorage.getItem('User');
 
         const newMessage = {
-            content: uploadImage?'':newMessageContent,
+            content: newMessageContent,
             sender_username: user,
             receiver_username: profileData.owner,
             sent_at: new Date().toISOString(),
@@ -198,34 +201,63 @@ function Message({ route }) {
   const handleEmoji = () => {
     setShowEmojiSelect(!showEmojiSelect);
   };
+  
+  useLayoutEffect(() => {
+    navigation.setOptions({
+        headerTitle: "",
+        headerLeft: ()=> (
+            <View style={tailwind`flex-row items-center gap-4 p-6`}>
+                <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="black" />
+                <View style={tailwind`flex-row gap-4`}>
+                    <Image source={{uri: profileData.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
+                    <View>
+                        <Text style={tailwind`text-black`}>{profileData.full_name}</Text>
+                        <Text style={tailwind`text-black`}>@{profileData.owner}</Text>
+                    </View> 
+                </View>
+            </View>
+        )
+    })
+  },[navigation,profileData])
 
-console.log("Received Data: ", receivedMessage);
-console.log("current Username: ", currentUser)
   return (
     <View style={tailwind`flex-1 bg-white`}>
-      <View style={tailwind`flex-1/5 p-4 flex-row items-center`}>
-        <Image source={profileData?.avatar_url} style={tailwind`h-20 w-20 rounded-full bg-red-500`} />
-        <View style={tailwind`ml-3`}>
-          <Text style={tailwind`text-xl font-bold`}>{profileData?.full_name}</Text>
-          <Text style={tailwind`text-xl text-gray-500`}>{profileData?.owner}</Text>
-        </View>
-      </View>
-      <ScrollView style={tailwind`flex-3/5 bg-gray-100 gap-10 p-4`}>
+      <ScrollView 
+        style={tailwind`flex-3/5 bg-gray-100 p-10`}
+        contentContainerStyle={tailwind`gap-2`}
+      >
         {receivedMessage.map((item, index) => (
           <View key={index} style={[
-            tailwind`p-2 border rounded-2xl mt-5 mb-5r`,
+            tailwind`flex-row items-end`,
             item.sender_username !== currentUser
-              ? tailwind`bg-gray-200 pl-10`
-              : tailwind`bg-green-200 pr-10`,
+              ? tailwind`justify-start`
+              : tailwind`justify-end`,
           ]}>
-            {item.media_type === 'image'&& (
-                <Image 
-                    source={{uri: item.media_url}}
-                    style={{ width: 200, height: 200 }}
-                />
-            )}
-            <Text style={tailwind`text-black`}>{item.content}</Text>
-            <Text style={tailwind`text-sm text-gray-500`}>{item.sent_at}</Text>
+            <View style={[
+                    tailwind`p-2 border rounded-2xl`,
+                    item.sender_username !== currentUser
+                    ? tailwind`bg-gray-300`
+                    : tailwind`bg-green-200`,
+                ]}         
+            >
+                {item.media_type === 'image'&& (
+                    <Image 
+                        source={{uri: item.media_url}}
+                        style={{ width: 200, height: 200 }}
+                    />
+                )}
+                {item.content && (
+                    <Text
+                        style={[
+                        tailwind`text-black`,
+                        item.media_type === 'image' && tailwind`mt-2`,
+                        ]}
+                    >
+                        {item.content}
+                  </Text>
+                )}
+                <Text style={tailwind`text-sm text-gray-500`}>{item.sent_at}</Text>
+            </View>
           </View>
         ))}
       </ScrollView>
