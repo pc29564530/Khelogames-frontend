@@ -43,7 +43,6 @@ function Message({ route }) {
   const [newMessageContent, setNewMessageContent] = useState('');
   const [allMessage, setAllMessage] = useState([]);
   const profileData = route.params?.profileData;
-  console.log("Profile Data: ", profileData)
   const [currentUser, setCurrentUser] = useState('');
   const [showEmojiSelect, setShowEmojiSelect] = useState(false);
   const [mediaType, setMediaType] = useState('');
@@ -205,14 +204,15 @@ function Message({ route }) {
   useLayoutEffect(() => {
     navigation.setOptions({
         headerTitle: "",
+        headerStyle: tailwind`bg-black`,
         headerLeft: ()=> (
             <View style={tailwind`flex-row items-center gap-4 p-6`}>
-                <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="black" />
+                <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
                 <View style={tailwind`flex-row gap-4`}>
                     <Image source={{uri: profileData.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
                     <View>
-                        <Text style={tailwind`text-black`}>{profileData.full_name}</Text>
-                        <Text style={tailwind`text-black`}>@{profileData.owner}</Text>
+                        <Text style={tailwind`text-white`}>{profileData.full_name}</Text>
+                        <Text style={tailwind`text-white`}>@{profileData.owner}</Text>
                     </View> 
                 </View>
             </View>
@@ -221,9 +221,9 @@ function Message({ route }) {
   },[navigation,profileData])
 
   return (
-    <View style={tailwind`flex-1 bg-white`}>
+    <View style={tailwind`flex-1 bg-black`}>
       <ScrollView 
-        style={tailwind`flex-3/5 bg-gray-100 p-10`}
+        style={tailwind`flex-3/5 bg-black-100 p-10`}
         contentContainerStyle={tailwind`gap-2`}
       >
         {receivedMessage.map((item, index) => (
@@ -261,17 +261,17 @@ function Message({ route }) {
           </View>
         ))}
       </ScrollView>
-        <View style={tailwind`flex-end flex-row items-center p-2 bg-white border border-gray-300 justify-between`}>
-            <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="gray"/>
+        <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
+            <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
             <TextInput
-                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}
+                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-white w-60`}
                 multiline
                 value={newMessageContent}
                 onChangeText={(text) => setNewMessageContent(text)}
                 placeholder="Enter message..."
-                placeholderTextColor="gray"
+                placeholderTextColor="white"
             />
-            <FontAwesome onPress={UploadMedia} name="camera" size={24} color="gray" />
+            <FontAwesome onPress={UploadMedia} name="camera" size={24} color="white" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
                 <Text style={tailwind`text-white text-md`}>Send</Text>
             </Pressable>

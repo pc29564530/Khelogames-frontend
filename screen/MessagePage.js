@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import {View, Text, Image, ScrollView, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
@@ -6,6 +6,7 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 function MessagePage() {
     const dispatch = useDispatch();
@@ -18,7 +19,7 @@ function MessagePage() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const currentUser = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`http://192.168.0.102:8080/getFollowing`, {
+            const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ function MessagePage() {
                 dispatch(getFollowingUser([]));
             } else {
                 const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`http://192.168.0.102:8080/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
@@ -60,9 +61,22 @@ function MessagePage() {
         navigation.navigate("Message", {profileData: item})
     }
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: "",
+            headerStyle: tailwind`bg-black`,
+            headerLeft: ()=> (
+                <View style={tailwind`flex-row items-center gap-35 p-2`}>
+                    <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+                    <Text style={tailwind`text-white`}>Message</Text>
+                </View>
+            )
+        })
+      },[navigation])
+
     return (
         <ScrollView style={tailwind`bg-black`}>
-            <View style={tailwind`flex-1 bg-black pl-5`}>
+            <View style={tailwind`flex-1 bg-black pl-5 p-5`}>
                 {following?.map((item, i) => (
                     <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleMessage({ item: item.profile })}>
                             {!item.profile && !item.profile?.avatar_url ?(
