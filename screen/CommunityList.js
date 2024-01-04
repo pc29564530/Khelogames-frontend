@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable} from 'react-native';
+import {View, Text, Pressable, Image} from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function CommunityList() {
     const [communityList, setCommunityList] = useState([]);
@@ -24,30 +26,31 @@ function CommunityList() {
             } else {
                 setCommunityList(item);
             }
-            console.log("CommunityList: ", item)
+
         } catch(e) {
             console.error('error unable to get community list', err)
         }
     }
 
     const handleSelectCommunity = (item) => {
-        console.log("Item in line 34: ", item)
         navigation.navigate('CreateThread', {communityType: item});
     }
 
     useEffect(()=> {
         fetchCommunity();
     }, []);
-    console.log("List: ", communityList)
+
     return (
-        <View >
-            
-                {communityList.map((item,index)=> (
-                    <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`h-25 bg-red-300 p-2 mb-2`}>
-                        <Text style={tailwind`text-black`}>{item.communities_name}</Text>
-                        <Text style={tailwind`text-black`}>{item.communities_description}</Text>
-                    </Pressable>
-                ))}
+        <View style={tailwind`flex-1 bg-white `}>
+            {communityList.map((item,index)=> (
+                <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-black border rounded-md p-2 gap-3 flex-row`}>
+                    <Image source={logoPath} style={tailwind`h-20 w-20 rounded-2xl`}/>
+                    <View>
+                        <Text style={tailwind`text-white text-2xl`}>{item.communities_name}</Text>
+                        <Text style={tailwind`text-white`}>{item.description}</Text>
+                    </View>
+                </Pressable>
+            ))}
         </View>
     );
 }

@@ -17,7 +17,7 @@ function CommunityPage({route}) {
     const fetchCommunityJoinedByUser = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getCommunityByUser`, {
+            const response = await axiosInstance.get(`http://192.168.0.102:8080/getCommunityByUser`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -33,7 +33,7 @@ function CommunityPage({route}) {
     const handleJoinCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await axiosInstance.post(`http://10.0.2.2:8080/joinUserCommunity/${item}`, null, {
+            await axiosInstance.post(`http://192.168.0.102:8080/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

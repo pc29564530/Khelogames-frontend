@@ -14,7 +14,7 @@ function CommunityMember({route}) {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const communities_name = communityPageData.communities_name;
-
+        console.log("Community Name: ", communities_name)
         const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -23,24 +23,25 @@ function CommunityMember({route}) {
         });
 
         const item = response.data;
-        console.log("Item: ", item);
+        if (item === null || !item) {
+            setCommunityWithProfile([]);
+        } else {
+            const communityMemberPromises = item.map(async (user) => {
+                const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${user}`);
+                if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+                    const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                    setDisplayText(usernameInitial.toUpperCase());
+                } else {
+                    setDisplayText('');
+                }
+                return { ...user, profile: profileResponse.data };
+            });
 
-        const communityMemberPromises = item.map(async (user) => {
-            const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${user.username}`);
-            if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                setDisplayText(usernameInitial.toUpperCase());
-            } else {
-                setDisplayText('');
-            }
-            return { ...user, profile: profileResponse.data };
-        });
-
-        const communityMember = await Promise.all(communityMemberPromises);
-
-        setCommunityWithProfile(communityMember);
+            const communityMember = await Promise.all(communityMemberPromises);
+            setCommunityWithProfile(communityMember);
+        }
     } catch (e) {
-        console.error("Error: Unable to fetch community member list", e);
+        console.error("error: Unable to fetch community member list", e);
     }
 };
 
@@ -48,7 +49,7 @@ function CommunityMember({route}) {
     useEffect(() => {
         fetchCommunityMember()
     }, [])
-    console.log("CommunityWithProfile: ", communityWithProfile)
+
     return (
         <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }} style={tailwind`bg-black`}>
             <View style={tailwind`h-12`}>
