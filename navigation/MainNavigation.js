@@ -19,6 +19,8 @@ import CommunityList from '../screen/CommunityList';
 import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
 import Shorts from '../screen/Shorts';
+import Message from '../screen/Message';
+import MessagePage from '../screen/MessagePage';
 
 const Stack = createStackNavigator();
 
@@ -82,6 +84,8 @@ export default function MainNavigation() {
                         <Stack.Screen name="CommunityPage" component={CommunityPage} />
                         <Stack.Screen name="CommunityList" component={CommunityList} />
                         <Stack.Screen name="CommunityType" component={CommunityType} />
+                        <Stack.Screen name="Message" component={Message} />
+                        <Stack.Screen name="MessagePage" component={MessagePage} />
                     </>
                 ):(
                     <>

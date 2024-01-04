@@ -7,11 +7,8 @@ import tailwind from 'twrnc';
 const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 function CreateCommunityType () {
-    const navigation = useNavigation()
-    const handleClose = () => {
-        navigation.navigate("CreateCommunity")
-    }
 
+    const navigation = useNavigation();
     const handleSelectCommunity = (communityType) => {
         navigation.navigate("CreateCommunity", {communityType: communityType})
     }
@@ -25,15 +22,15 @@ function CreateCommunityType () {
     });
 
     return(
-    <View style={tailwind`flex-1 bg-black`}>
-      <View style={tailwind`mt-4`}>
-        {mainCommunities.map((item, index) => (
-          <Pressable key={index} style={tailwind`py-2 px-4`} onPress={() => handleSelectCommunity(item)}>
-            <Text style={tailwind`text-white text-xl`}>{item}</Text>
-          </Pressable>
-        ))}
+      <View style={tailwind`flex-1 bg-black`}>
+        <View style={tailwind`mt-4`}>
+          {mainCommunities.map((item, index) => (
+            <Pressable key={index} style={tailwind`py-2 px-4`} onPress={() => handleSelectCommunity(item)}>
+              <Text style={tailwind`text-white text-xl`}>{item}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-    </View>
     );
 }
 
