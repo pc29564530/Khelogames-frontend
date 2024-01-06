@@ -25,27 +25,25 @@ function Comment({thread}) {
               },
             });
 
-            const threadComment = response.data;
-            const itemComment = threadComment.map(async (item,index) => {
-                const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.owner}`);
-                if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                    const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                        setDisplayText(usernameInitial.toUpperCase());
-                    } else {
-                        setDisplayText(''); // Reset displayText if the avatar is present
-                    }
-                    return {...item, profile: profileResponse.data}
-                })
-            
-            const commentData = await Promise.all(itemComment)
-
-            if(commentData === null || commentData === undefined){
+            if(response.data === null || !response.data) {
                 setCommentWithProfile([]);
                 dispatch(setComments([]));
             } else {
-                setCommentWithProfile(commentData)
+                const threadComment = response.data;
+                const itemComment = threadComment.map(async (item,index) => {
+                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.owner}`);
+                    if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+                        const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                            setDisplayText(usernameInitial.toUpperCase());
+                        } else {
+                            setDisplayText(''); // Reset displayText if the avatar is present
+                        }
+                        return {...item, profile: profileResponse.data}
+                    })
+                
+                const commentData = await Promise.all(itemComment)
+                setCommentWithProfile(commentData);
                 dispatch(setComments(commentData));
-                dispatch(setCommentText(''))
             }
           } catch (error) {
             console.error('Error fetching comments:', error);

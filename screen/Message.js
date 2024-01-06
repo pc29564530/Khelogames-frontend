@@ -273,7 +273,7 @@ function Message({ route }) {
             />
             <FontAwesome onPress={UploadMedia} name="camera" size={24} color="white" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
-                <Text style={tailwind`text-white text-md`}>Send</Text>
+                <Text style={tailwind`text-white`}>Send</Text>
             </Pressable>
         </View>
       {showEmojiSelect && (

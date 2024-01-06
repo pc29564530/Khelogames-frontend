@@ -40,8 +40,18 @@ function CommunityList() {
         fetchCommunity();
     }, []);
 
+    navigation.setOptions({
+        headerTitle:'',
+        headerLeft:()=>(
+            <Pressable onPress={()=>navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
+            </Pressable>
+        ),
+        headerStyle:tailwind`bg-black`
+    })
+
     return (
-        <View style={tailwind`flex-1 bg-white `}>
+        <View style={tailwind`flex-1 bg-black `}>
             {communityList.map((item,index)=> (
                 <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-black border rounded-md p-2 gap-3 flex-row`}>
                     <Image source={logoPath} style={tailwind`h-20 w-20 rounded-2xl`}/>
