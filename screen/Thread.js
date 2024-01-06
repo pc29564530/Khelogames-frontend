@@ -20,6 +20,8 @@ const Thread = () => {
     const [displayText, setDisplayText] = useState('');
     
     const handleThreadComment = (item, id) => {
+      console.log("Item: thread: ", item);
+      console.log("ItemId: ", id);
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
 
@@ -55,42 +57,41 @@ const Thread = () => {
       }
     }
 
-    const fetchData = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://10.0.2.2:8080/all_threads', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        const item = response.data;
-        if(item === null){
-          setThreadWithUserProfile([]);
-          dispatch(setThreads([]));
-        } else {
-          const threadUser = item.map(async (item,index) => {
-            const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.username}`);
-            if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-              const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-              setDisplayText(usernameInitial.toUpperCase());
-            } else {
-              setDisplayText(''); // Reset displayText if the avatar is present
-            }
-            return {...item, profile: profileResponse.data}
-          });
-          const threadsWithUserData = await Promise.all(threadUser);
-          setThreadWithUserProfile(threadsWithUserData);
-          dispatch(setThreads(threadsWithUserData))
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-  
     useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const authToken = await AsyncStorage.getItem('AccessToken');
+          const response = await axiosInstance.get('http://10.0.2.2:8080/all_threads', {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          const item = response.data;
+          if (item === null) {
+            setThreadWithUserProfile([]);
+            dispatch(setThreads([]));
+          } else {
+            const threadUser = item.map(async (item, index) => {
+              const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.username}`);
+              let displayText = '';
+              if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+                const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                displayText = usernameInitial.toUpperCase();
+              }
+              return { ...item, profile: profileResponse.data, displayText };
+            });
+            const threadsWithUserData = await Promise.all(threadUser);
+            setThreadWithUserProfile(threadsWithUserData);
+            dispatch(setThreads(threadsWithUserData));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+  
       fetchData();
-    }, []);
+    }, []); 
 
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
