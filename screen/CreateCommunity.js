@@ -26,6 +26,10 @@ function CreateCommunity () {
                 },
             });
             setCommunity(response.data);
+            setCommunityName('');
+            setCommunityType('Communtiy Type');
+            setDescription('');
+            navigation.goBack();
         } catch (err) {
             console.error(err);
         }
@@ -39,7 +43,7 @@ function CreateCommunity () {
         if(route.params?.communityType) {
             setCommunityType(route.params?.communityType);
         }
-    })
+    }, [route.params?.communityType])
 
     navigation.setOptions({
         headerTitle: '',

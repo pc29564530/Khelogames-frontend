@@ -1,5 +1,5 @@
 import React, {useState, useRef } from 'react';
-import {Video, View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput} from 'react-native';
+import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import { addComments, setCommentText, setLikes } from '../redux/actions/actions';
 import Comment from './Comment';
@@ -7,6 +7,7 @@ import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useSelector, useDispatch} from 'react-redux';
 import tailwind from 'twrnc'
+import Video from 'react-native-video';
 import { useNavigation } from '@react-navigation/native';
 
 function ThreadComment ({route}) {
@@ -85,80 +86,78 @@ function ThreadComment ({route}) {
   
     return (
         <View style={tailwind`flex-1 bg-black`}>
-              <ScrollView>
-              <View  style={tailwind`bg-black mt-1`}>
-                    <View  style={tailwind`p-2`}>
-                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
-                          {item.profile.avatar_url ? (
-                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-24 h-24 rounded-full bg-white`} />
-                            ):(
-                              <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-center`}>
-                                <Text style={tailwind`text-red-500 text-6x3`}>
-                                  {displayText}
-                                </Text>
-                              </View>
-                            )
-                          }
-                          
-                          <View style={tailwind`ml-3`}>
-                            <Text style={tailwind`font-bold text-white text-lg`}>{item.profile.full_name}</Text>
-                            <Text style={tailwind`text-white`}>@{item.username}</Text>
-                          </View>
-                        </Pressable>
-                    </View>
-                    <Text style={tailwind`text-white p-5 text-xl`}>{item.content}</Text>
-                    {item.media_type === 'image' && (
-                      <Image
-                      style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1`}
-                        source={{uri:item.media_url}}
-                      />
-                    )}
-                    {item.media_type === 'video' && (
-                      <Video style={tailwind`w-full aspect-w-1 aspect-h-1 -mt-7`}
-                      source={{uri:item.media_url}} controls={true} />
-                    )}
-                    <View style={tailwind`p-2`}>
-                      <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
-                    </View>
-                    <View style={tailwind`border-b border-white mb-2`}></View>
-                    <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>
-                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
-                      <FontAwesome 
-                           name="thumbs-o-up"
-                           color="white"
-                           size={20}
-                      /> 
-                      <Text style={tailwind`text-white`}>Like</Text>
+            <ScrollView  style={tailwind`bg-black mt-1`}>
+                  <View  style={tailwind`p-2`}>
+                      <Pressable style={tailwind`flex-row items-center p-2 bg-gray-900`} onPress={() => {handleUser(item.username)}}>
+                        {item.profile?.avatar_url ? (
+                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-18 h-18 rounded-full bg-white`} />
+                          ):(
+                            <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-center`}>
+                              <Text style={tailwind`text-red-500 text-6x3`}>
+                                {displayText}
+                              </Text>
+                            </View>
+                          )
+                        }
+                        
+                        <View style={tailwind`ml-3`}>
+                          <Text style={tailwind`font-bold text-white text-lg`}>{item.profile.full_name}</Text>
+                          <Text style={tailwind`text-white`}>@{item.username}</Text>
+                        </View>
                       </Pressable>
-                      <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
-                        <FontAwesome 
-                           name="comment-o"
-                           color="white"
-                           size={20}
-                        />
-                        <Text style={tailwind`text-white `}>Comment</Text>
-                      </Pressable>
-                    </View>
-                    <View style={tailwind`border-b border-white mt-2`}></View>
-                    <View>
-                      <Comment  thread = {item} />
                   </View>
-              </View>
-              </ScrollView>
-              <KeyboardAvoidingView style={tailwind`p-2 w-full bg-black items-start`}>
-                <TextInput
-                    ref={commentInputRef}
-                    style={tailwind`p-4 m-2 w-90 rounded-md border-2 border-white text-lg text-white`}
-                    value={commentText}
-                    onChangeText={(text) => dispatch(setCommentText(text))}
-                    placeholder="Write a comment..."
-                    placeholderTextColor="white"
-                />
-                <Pressable style={tailwind`m-2 ml-30 p-4 bg-gray-500 items-center w-40 rounded-md justify-center`} onPress={() => handleReduxSubmit()}>
-                    <Text style={tailwind`font-bold text-white text-lg`}>POST</Text>
-                </Pressable>
+                  <Text style={tailwind`text-white p-8 text-xl`}>{item.content}</Text>
+                  {item.media_type === 'image' && (
+                    <Image
+                    style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1 `}
+                      source={{uri:item.media_url}}
+                    />
+                  )}
+                  {item.media_type === 'video' && (
+                    <Video style={tailwind`w-full h-70 aspect-w-1 aspect-h-1 -mt-7`}
+                      source={{uri:item.media_url}} controls={true} />
+                  )}
+                  <View style={tailwind`p-2`}>
+                    <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
+                  </View>
+                  <View style={tailwind`border-b border-white mb-2`}></View>
+                  <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>
+                    <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
+                    <FontAwesome 
+                        name="thumbs-o-up"
+                        color="white"
+                        size={20}
+                    /> 
+                    <Text style={tailwind`text-white`}>Like</Text>
+                    </Pressable>
+                    <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
+                      <FontAwesome 
+                        name="comment-o"
+                        color="white"
+                        size={20}
+                      />
+                      <Text style={tailwind`text-white `}>Comment</Text>
+                    </Pressable>
+                  </View>
+                  <View style={tailwind`border-b border-white mt-2`}></View>
+                  <View>
+                    <Comment  thread = {item}/>
+                </View>
+            </ScrollView>
+            <KeyboardAvoidingView style={tailwind`flex-end p-2 bg-black justify-between flex-row`}>
+              <TextInput
+                ref={commentInputRef}
+                style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-white text-lg text-white`}
+                value={commentText}
+                onChangeText={(text) => dispatch(setCommentText(text))}
+                placeholder="Write a comment..."
+                placeholderTextColor="white"
+              />
+              <Pressable style={tailwind`m-3 bg-gray-500 items-center w-20 rounded-xl justify-center`} onPress={() => handleReduxSubmit()}>
+                <Text style={tailwind`font-bold text-white text-lg`}>POST</Text>
+              </Pressable>
             </KeyboardAvoidingView>
-             </View>
+        </View>
     );
   };
 

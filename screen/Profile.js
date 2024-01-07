@@ -1,9 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
@@ -12,10 +10,9 @@ import tailwind from 'twrnc';
 
 const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
-function ProfilePage() {
+function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
-    const dispatch = useDispatch()
-    const route = useRoute();
+    const dispatch = useDispatch();
     const navigation = useNavigation();
     const [profileData, setProfileData] = useState([]);
     const following = useSelector((state) => state.user.following);
@@ -25,11 +22,7 @@ function ProfilePage() {
     const [displayText, setDisplayText] = useState('');
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
-    const following_owner  = route.params?.username
-    
-    const handleEditProfile = () => {
-      navigation.navigate('EditProfile') // Set the state to indicate that editing mode is active
-    };
+    const following_owner  = route.params?.username;
 
     const handleReduxFollow = async () => {
       try {
@@ -109,7 +102,7 @@ function ProfilePage() {
     setIsFollowing(following.some((item) => item === following_owner))
     const verifyUser = async () => {
       const authUser = await AsyncStorage.getItem("User");
-      if(following_owner===undefined || following_owner === null) {
+      if(following_owner === authUser) {
         setShowEditProfileButton(true);
         setCurrentUser(authUser);
       } else {
@@ -123,20 +116,15 @@ function ProfilePage() {
           if (!owner) {
             console.log("User not found in AsyncStorage.");
             return;
-        }
-        console.log("Profile Username: ", owner)
-        if(following_owner === null || following_owner === undefined){
+          }
+          if(following_owner === null || following_owner === undefined){
            const response = await axios.get(`http://10.0.2.2:8080/getProfile/${owner}`)
-           console.log("AvatarUrl: ", response.data.avatar_url)
-           console.log("CoverUrl: ", response.data.cover_url)
            if( response.data == null ){
             setProfileData([])
           } else {
-            console.log("FullOutput: ",response.data)
             setProfileData(response.data);
             if(response.data.avatar_url || response.avatar_url === '') {
               const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
-              console.log("display Text: ", usernameInitial.toUpperCase())
               setDisplayText(usernameInitial.toUpperCase());
             } else {
               setDisplayText('')
@@ -147,7 +135,6 @@ function ProfilePage() {
            if( response.data == null ){
             setProfileData([])
           } else {
-            console.log(response.data)
             setProfileData(response.data);
           }
         }
@@ -195,25 +182,28 @@ function ProfilePage() {
     followingCount()
   }, [])
 
+  const handleMessage = () => {
+    navigation.navigate("Message", {profileData: profileData})
+  }
+
+  const handleEditProfile = () => {
+    navigation.navigate('EditProfile')
+  };
+
+  navigation.setOptions({
+    headerTitle:'',
+    headerStyle:{
+      backgroundColor: 'black'
+    },
+    headerTintColor: 'white'
+  })
     return(
-      <View style={tailwind`flex-1 bg-black`}>
-        <View style={tailwind`p-4 gap-30 items-left flex-row`}>
-            <Pressable>
-                <FontAwesome
-                    name="close"
-                    color="white"
-                    size={24}
-                    style={{ marginLeft: 10 }}
-                    onPress={() => navigation.goBack()}
-                />
-            </Pressable>
-            <Text style={tailwind`text-white font-bold text-lg`}>Profile</Text>
-        </View>
+      <View style={tailwind`flex-1 bg-black `}>
         <View style={tailwind`w-full`}>
             {profileData.cover_url ? (
                 <Image
                     style={tailwind`h-60 w-full bg-yellow-500`}
-                    source={{uri: profileData.cover_url}}
+                    source={{uri:profileData.cover_url}}
                 />
             ):(
               <Image 
@@ -227,7 +217,7 @@ function ProfilePage() {
             {profileData.avatar_url ? (
                 <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white -mt-12`} source={{uri: profileData.avatar_url}} />
             ) : (
-              <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-cente -mt-12`}>
+              <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-center -mt-12`}>
                 <Text style={tailwind`text-red-500 text-12x2`}>
                   {displayText}
                 </Text>
@@ -244,13 +234,18 @@ function ProfilePage() {
 
               <View style={tailwind`flex-row mt-20 `}>
                 {showEditProfileButton ? (
-                <Pressable style={tailwind`items-center p-2 `} onPress={handleEditProfile}>
-                    <Text style={ tailwind`text-blue-500 text-xl font-bold`}>Edit Profile</Text>
+                <Pressable style={tailwind`items-center p-2 border rounded-md bg-red-500 `} onPress={handleEditProfile}>
+                    <Text style={ tailwind`text-white text-xl font-bold`}>Edit Profile</Text>
                 </Pressable>
                 ) : (
-                  <TouchableOpacity style={tailwind`bg-blue-500 text-gray-500 py-3 px-5 rounded-md w-2/3 text-center items-center z-10`} onPress={handleFollowButton}>
-                      <Text style={ tailwind`text-white text-xl font-bold`}>{isFollowing ? 'Following' : 'Follow'}</Text>
-                  </TouchableOpacity>
+                  <View style={tailwind` p-2  flex-row gap-5`}>
+                    <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleMessage}>
+                      <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
+                    </Pressable>
+                    <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleFollowButton}>
+                        <Text style={ tailwind`text-white text-xl font-bold`}>{isFollowing ? 'Following' : 'Follow'}</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
         </View>
@@ -258,4 +253,4 @@ function ProfilePage() {
     );
 }
 
-export default ProfilePage
+export default Profile;

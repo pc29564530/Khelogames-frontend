@@ -9,6 +9,7 @@ import  RFNS from 'react-native-fs';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 
 function getMediaTypeFromURL(url) {
@@ -61,9 +62,9 @@ function CreateThread() {
          launchImageLibrary(options, async (res) => {
           
             if (res.didCancel) {
-                //console.log('User cancelled photo picker');
+                console.log('User cancelled photo picker');
               } else if (res.error) {
-                //console.log('ImagePicker Error: ', response.error);
+                console.log('ImagePicker Error: ', response.error);
               } else {
                 const type = getMediaTypeFromURL(res.assets[0].uri);
                 
@@ -72,7 +73,7 @@ function CreateThread() {
                   setMediaURL(base64File)
                   setMediaType(type);
                 } else {
-                  //console.log('unsupported media type:', type);
+                  console.log('unsupported media type:', type);
                 }
                 setLikeCount(0) 
               }
@@ -137,10 +138,16 @@ function CreateThread() {
       headerStyle:{
         backgroundColor:'black'
       },
-      headerTintColor:'white',
+      headerTintColor:'black',
+      headerLeft: ()=> (
+        <View style={tailwind`flex-row items-center gap-35 p-2`}>
+            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+        </View>
+      ),
       headerRight:()=>(
-        <Pressable style={tailwind`rounded-md w-2/5 bg-gray-400 p-2 mr-34`} onPress={handleSelectCommunity} >
+        <Pressable style={tailwind`flex-row rounded-md w-2.6/5 bg-gray-400 p-1 mr-34 gap-1 justify-between`} onPress={handleSelectCommunity} >
             <Text style={tailwind`text-white text-lg`}>{communityType}</Text>
+            <AntDesign name="down" size={20} color="white" style={tailwind`mt-1`}/>
         </Pressable>
       )
     })
@@ -166,7 +173,6 @@ function CreateThread() {
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
             <Button onPress={HandleSubmit} title="Submit" color="gray"/>
-            
         </View>
     );
 }
