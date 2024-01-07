@@ -11,6 +11,7 @@ import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
 function CommunityPage({route}) {
     const navigation = useNavigation();
     const [joinedCommunity, setJoinedCommunity] = useState([]);
+    const [memberCount, setMemeberCount] = useState(1);
     const axiosInstance = useAxiosInterceptor();
     const communityPageData = route.params?.item;
     
@@ -23,11 +24,32 @@ function CommunityPage({route}) {
                     'Content-Type': 'application/json'
                 }
             });
+            // console.log(response.data.length);
+            // console.log("Joined: ", response.data);
+            // setMemeberCount(response.data.length)
             setJoinedCommunity(response.data);
         } catch (e) {
             console.error('Unable to get the joined communities', e);
         }
     };
+
+    //community member length
+    const fetchCommunityLength = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            console.log('CommunityPage: ',communityPageData)
+            const communities_name = communityPageData.communities_name;
+            const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`,null, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            setMemeberCount(response.data.length);
+        } catch (err) {
+            console.error('Unable to get the length of the user', err);
+        }
+    }
 
     //to join any community from the community list
     const handleJoinCommunity = async (item) => {
@@ -47,6 +69,7 @@ function CommunityPage({route}) {
 
     useEffect(() => {
         fetchCommunityJoinedByUser();
+        fetchCommunityLength();
     },[])
 
     navigation.setOptions({
@@ -84,7 +107,7 @@ function CommunityPage({route}) {
                 <View style={tailwind`flex-row gap-3`}>
                     <FontAwesome name="user" color="white" size={14} style={tailwind`pl-4`}/>
                     {/* implement the follow button */}
-                    <Text style={tailwind`text-white text-sm -mt-1`}>20</Text>
+                    <Text style={tailwind`text-white text-sm -mt-1`}>{memberCount}</Text>
                 </View>
                 <View style={tailwind`flex-1`}>
                     <TopTabCommunityPage communityPageData={communityPageData}/>

@@ -27,7 +27,7 @@ function JoinCommunity() {
     };
 
     const handleNextScreen = () => {
-        navigation.navigate('Main');
+        navigation.navigate('Home');
     };
 
     return (

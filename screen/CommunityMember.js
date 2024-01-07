@@ -15,7 +15,7 @@ function CommunityMember({route}) {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const communities_name = communityPageData.communities_name;
         console.log("Community Name: ", communities_name)
-        const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`, {
+        const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`,null, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
