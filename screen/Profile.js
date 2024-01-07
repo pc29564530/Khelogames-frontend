@@ -183,7 +183,6 @@ function Profile({route}) {
   }, [])
 
   const handleMessage = () => {
-    console.log("ProfileData: ", profileData) 
     navigation.navigate("Message", {profileData: profileData})
   }
 
@@ -198,21 +197,8 @@ function Profile({route}) {
     },
     headerTintColor: 'white'
   })
-console.log("ProfileAvatarUrl: ", profileData.avatar_url)
     return(
       <View style={tailwind`flex-1 bg-black `}>
-        {/* <View style={tailwind`p-4 gap-30 items-left flex-row`}>
-            <Pressable>
-                <FontAwesome
-                    name="close"
-                    color="white"
-                    size={24}
-                    style={{ marginLeft: 10 }}
-                    onPress={() => navigation.goBack()}
-                />
-            </Pressable>
-            <Text style={tailwind`text-white font-bold text-lg`}>Profile</Text>
-        </View> */}
         <View style={tailwind`w-full`}>
             {profileData.cover_url ? (
                 <Image
