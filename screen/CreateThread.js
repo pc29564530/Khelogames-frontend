@@ -93,7 +93,7 @@ function CreateThread() {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post('`${BASE_URL}/create_thread', thread, {
+            const response = await axiosInstance.post(`${BASE_URL}/create_thread`, thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

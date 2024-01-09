@@ -80,7 +80,7 @@ function Profile({route}) {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('`${BASE_URL}/getFollowing', {
+        const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',

@@ -45,7 +45,7 @@ export default function EditProfile() {
     const handleAvatar = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('`${BASE_URL}/updateAvatar',{avatar_url: avatarUrl}, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateAvatar`,{avatar_url: avatarUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default function EditProfile() {
     const handleCover = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('`${BASE_URL}/updateCover',{cover_url: coverUrl}, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateCover`,{cover_url: coverUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
