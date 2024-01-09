@@ -10,7 +10,7 @@ import { setMobileNumber, setMobileNumberVerified } from '../redux/actions/actio
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
+const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 
 function SignUp() {
@@ -98,4 +98,3 @@ function SignUp() {
 }
 
 export default SignUp;
-const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
