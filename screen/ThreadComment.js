@@ -8,6 +8,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useSelector, useDispatch} from 'react-redux';
 import tailwind from 'twrnc'
 import Video from 'react-native-video';
+import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
 
 function ThreadComment ({route}) {
@@ -22,7 +23,7 @@ function ThreadComment ({route}) {
       const handleReduxSubmit = async () => {
         try {
             const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`http://10.0.2.2:8080/createComment/${itemId}`, {comment_text: commentText}, {
+            const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemId}`, {comment_text: commentText}, {
                 headers: { 
                     'Authorization': `Bearer ${authToken}`,
                     'content-type': 'application/json'
@@ -48,18 +49,18 @@ function ThreadComment ({route}) {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`http://10.0.2.2:8080/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`http://10.0.2.2:8080/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`http://10.0.2.2:8080/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
                 id: id
               }
 
-              const newLikeCount = await axiosInstance.put(`http://10.0.2.2:8080/update_like`, updateLikeData, {headers});
+              const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
               dispatch(setLikes(id, newLikeCount.data.like_count))
 
             } catch (err) {

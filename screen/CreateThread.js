@@ -11,6 +11,7 @@ import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -92,7 +93,7 @@ function CreateThread() {
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post('http://10.0.2.2:8080/create_thread', thread, {
+            const response = await axiosInstance.post('`${BASE_URL}/create_thread', thread, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ function CreateThread() {
             });
 
             const item = response.data;
-            const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.username}`, null, {
+            const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.username}`, null, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',

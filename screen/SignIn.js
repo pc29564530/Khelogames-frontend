@@ -8,6 +8,7 @@ import {setAuthenticated, setUser} from '../redux/actions/actions';
 import tailwind from 'twrnc';
 import { Input, Icon } from '@rneui/themed';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { BASE_URL } from '../constants/ApiConstants';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 
@@ -27,7 +28,7 @@ const SignIn = () => {
     const handleSignIn = async() => {
       try {
         const user = {username, password}
-        const response = await axios.post('http://10.0.2.2:8080/login', user);
+        const response = await axios.post(`${BASE_URL}/login`, user);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);

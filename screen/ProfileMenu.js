@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function ProfileMenu() {
@@ -36,7 +37,7 @@ function ProfileMenu() {
   const toggleMyCommunity = async () => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://10.0.2.2:8080/getCommunityByUser`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ function ProfileMenu() {
   const handleLogout = async () => {
     try {
       const username = await AsyncStorage.getItem('User');
-      await axios.delete(`http://10.0.2.2:8080/removeSession/${username}`);
+      await axios.delete(`${BASE_URL}/removeSession/${username}`);
       dispatch(logout());
       await AsyncStorage.removeItem('AccessToken');
       await AsyncStorage.removeItem('RefreshToken');
@@ -70,7 +71,7 @@ function ProfileMenu() {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.post(
-        `http://10.0.2.2:8080/create_follow/${following_owner}`,
+        `${BASE_URL}/create_follow/${following_owner}`,
         {},
         {
           headers: {
@@ -91,7 +92,7 @@ function ProfileMenu() {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.delete(
-        `http://10.0.2.2:8080/unFollow/${following_owner}`,
+        `${BASE_URL}/unFollow/${following_owner}`,
         {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -120,7 +121,7 @@ function ProfileMenu() {
     try {
       const authUser = await AsyncStorage.getItem('User');
       console.log(authUser);
-      const response = await axios.get(`http://10.0.2.2:8080/getProfile/${authUser}`);
+      const response = await axios.get(`${BASE_URL}/getProfile/${authUser}`);
       console.log('response data: ', response.data);
       console.log('Avatar Url: ', response.data.avatar_url);
       if (!response.data.avatar_url || response.data.avatar_url === '') {
@@ -159,7 +160,7 @@ function ProfileMenu() {
   useEffect(() => {
     const followerCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -173,7 +174,7 @@ function ProfileMenu() {
     };
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

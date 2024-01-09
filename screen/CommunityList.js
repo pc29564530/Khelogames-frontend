@@ -5,6 +5,7 @@ import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { BASE_URL } from '../constants/ApiConstants';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function CommunityList() {
@@ -14,7 +15,7 @@ function CommunityList() {
     const fetchCommunity = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/get_all_communities`, {
+            const response = await axiosInstance.get(`${BASE_URL}/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

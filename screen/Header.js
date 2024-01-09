@@ -15,10 +15,6 @@ function Header () {
         navigation.navigate('ProfileMenu');
       };
 
-    //   useEffect(() => {
-    //     navigation.navigate('ProfileMenu');
-    //   }, []);
-
     return (   
         <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-black`}>
             <Image source={KhelogamesLogo} style={tailwind`h-30 w-25`} />

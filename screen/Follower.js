@@ -6,6 +6,7 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowerUser } from '../redux/actions/actions';
 import { useNavigation } from '@react-navigation/native';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function Follower() {
     const dispatch = useDispatch();
@@ -17,7 +18,7 @@ function Follower() {
     const fetchFollower = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ function Follower() {
                 dispatch(getFollowerUser([]));
             } else {
                 const followerProfile = item.map(async (item, index) => {
-                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());

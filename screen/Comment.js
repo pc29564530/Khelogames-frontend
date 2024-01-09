@@ -5,6 +5,7 @@ import { setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function Comment({thread}) {
     const axiosInstance = useAxiosInterceptor();
@@ -18,7 +19,7 @@ function Comment({thread}) {
     const fetchThreadComments = async () => {
           try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getComment/${thread.id}`,null, {
+            const response = await axiosInstance.get(`${BASE_URL}/getComment/${thread.id}`,null, {
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ function Comment({thread}) {
             } else {
                 const threadComment = response.data;
                 const itemComment = threadComment.map(async (item,index) => {
-                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item.owner}`);
+                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.owner}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                             setDisplayText(usernameInitial.toUpperCase());

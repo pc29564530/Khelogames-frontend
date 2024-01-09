@@ -7,6 +7,7 @@ import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -44,7 +45,7 @@ export default function EditProfile() {
     const handleAvatar = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('http://10.0.2.2:8080/updateAvatar',{avatar_url: avatarUrl}, {
+            const response = await axiosInstance.put('`${BASE_URL}/updateAvatar',{avatar_url: avatarUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ export default function EditProfile() {
     const handleCover = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put('http://10.0.2.2:8080/updateCover',{cover_url: coverUrl}, {
+            const response = await axiosInstance.put('`${BASE_URL}/updateCover',{cover_url: coverUrl}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -79,7 +80,7 @@ export default function EditProfile() {
                 full_name: fullName,
             };
     
-            const response = await axiosInstance.put(`http://10.0.2.2:8080/updateFullName`, profileData, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateFullName`, profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ export default function EditProfile() {
                 bio: bio,
             };
     
-            const response = await axiosInstance.put(`http://10.0.2.2:8080/updateBio`, profileData, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateBio`, profileData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${user}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
