@@ -29,10 +29,7 @@ function Community () {
             });
     
             setJoinedCommunity(response.data)
-            // if (response.data !== null) {
-            //     const joinedCommunitiesArray = response.data.map(item => item.communities_name);
-            //     setJoinedCommunity(joinedCommunitiesArray);
-            // }
+
         } catch (e) {
             console.error('Unable to get the joined communities', e);
         }
@@ -41,8 +38,7 @@ function Community () {
     const fetchData = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
-            //console.log(user);
+
             const response = await axiosInstance.get(`http://10.0.2.2:8080/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -72,7 +68,6 @@ function Community () {
                     'Content-Type': 'application/json',
                 }
             });
-            //console.log(response.data);
             setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
         } catch (err) {
             console.error(err);
@@ -89,11 +84,8 @@ function Community () {
             fetchCommunityJoinedByUser();
     },[]);
 
-    //community list by community type ```````
-    //console.log("JoinedCommunityArray: ", joinedCommunity)
     return (
       <>
-         
         <ScrollView  style={tailwind`flex-1 bg-black`}>
           {createCommunityScreen ? (
             <CreateCommunity />
@@ -111,9 +103,9 @@ function Community () {
             <View>
                 <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
             </View>
-            <View style={tailwind`w-full  rounded-md`}>
+            <View style={tailwind`w-full  rounded-md pb-12 pl-2 pr-2`}>
                 {data.map((item,i) => (
-                    <View style={tailwind`flex-row bg-gray-800 mb-1 p-1 rounded-md h-20`} key={i}>
+                    <View style={tailwind`flex-row bg-gray-800 mb-1 p-3 rounded-md h-20`} key={i}>
                         <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
                         <View style={tailwind`w-3/5 pl-3`}>
                             <Pressable onPress={()=> (handleCommunityPage(item, item.id))}>

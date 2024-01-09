@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import {View, Text, Image, ScrollView, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
@@ -6,8 +6,9 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
-function Following() {
+function MessagePage() {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
@@ -17,6 +18,7 @@ function Following() {
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
+            const currentUser = await AsyncStorage.getItem('User');
             const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -29,13 +31,13 @@ function Following() {
                 setFollowingWithProfile([]);
                 dispatch(getFollowingUser([]));
             } else {
-                const followingProfile = item.map(async (item, index) => {
+                const followingProfile = item.map(async (item, index) => {                  
                     const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
                     } else {
-                        setDisplayText(''); // Reset displayText if the avatar is present
+                        setDisplayText('');
                     }
                     return {...item, profile: profileResponse.data}
                 })
@@ -55,15 +57,28 @@ function Following() {
         },[])
     );
 
-    const handleProfile  = ({username}) => {
-        navigation.navigate('Profile', {username: username})
+    const handleMessage = ({item}) => {
+        navigation.navigate("Message", {profileData: item})
     }
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: "",
+            headerStyle: tailwind`bg-black`,
+            headerLeft: ()=> (
+                <View style={tailwind`flex-row items-center gap-35 p-2`}>
+                    <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+                    <Text style={tailwind`text-white`}>Message</Text>
+                </View>
+            )
+        })
+      },[navigation])
 
     return (
         <ScrollView style={tailwind`bg-black`}>
-            <View style={tailwind`flex-1 bg-black pl-5`}>
+            <View style={tailwind`flex-1 bg-black pl-5 p-5`}>
                 {following?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleProfile({username: item.profile?.owner})}>
+                    <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleMessage({ item: item.profile })}>
                             {!item.profile && !item.profile?.avatar_url ?(
                                 <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                     <Text style={tailwind`text-red-500 text-6x3`}>
@@ -84,4 +99,4 @@ function Following() {
     );
 }
 
-export default Following;
+export default MessagePage;

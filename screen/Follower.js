@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Image, StyleSheet,ScrollView } from 'react-native';
+import {View, Text, Image, ScrollView, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowerUser } from '../redux/actions/actions';
+import { useNavigation } from '@react-navigation/native';
 
 function Follower() {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const [followerWithProfile, setFollowerWithProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
@@ -15,7 +17,6 @@ function Follower() {
     const fetchFollower = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -50,16 +51,19 @@ function Follower() {
 
     //add the status of button in the follower
 
-
     useEffect(() => {
         fetchFollower();
     },[])
+
+    const handleProfile = ({username}) => {
+        navigation.navigate('Profile', {username: username})
+    }
 
     return (
         <ScrollView style={tailwind`bg-black`}>
             <View style={tailwind`flex-1 bg-black pl-5`}>
                 {follower?.map((item, i) => (
-                    <View key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`}>
+                    <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleProfile({username: item.profile?.owner})}>
                         {!item.profile && !item.profile.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
@@ -73,7 +77,7 @@ function Follower() {
                             <Text style={tailwind`text-white font-bold text-xl `}>{item.profile.full_name}</Text>
                             <Text style={tailwind`text-white`}>@{item.profile.owner}</Text>
                         </View>
-                    </View>
+                    </Pressable>
                 ))}
             </View>
         </ScrollView>

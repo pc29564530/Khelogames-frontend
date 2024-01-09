@@ -30,7 +30,7 @@ function ProfileMenu() {
   const [followingCount, setFollowingCount] = useState(0);
 
   const handleProfilePage = () => {
-    navigation.navigate('Profile');
+    navigation.navigate('Profile', {username: currentUser});
   };
 
   const toggleMyCommunity = async () => {
@@ -127,7 +127,7 @@ function ProfileMenu() {
         const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
         setDisplayText(usernameInitial.toUpperCase());
       } else {
-        setDisplayText(''); // Reset displayText if the avatar is present
+        setDisplayText('');
       }
 
       setProfileData(response.data);
@@ -136,12 +136,7 @@ function ProfileMenu() {
     }
   };
 
-  const handleClose = () => {
-    navigation.navigate('Main');
-  };
-
   const handleMyCommunityList = (item) => {
-
     navigation.navigate('CommunityPage', {communityData: item})
   }
 
@@ -196,12 +191,12 @@ function ProfileMenu() {
 
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
-      <View style={tailwind`flex-row items-end justify-between`}>
+      {/* <View style={tailwind`flex-row items-end justify-between`}>
         <Text style={tailwind`font-bold text-lgr text-white`}>Profile Menu</Text>
         <Pressable onPress={handleClose}>
           <FontAwesome name="close" color="white" size={24} />
         </Pressable>
-      </View>
+      </View> */}
 
       <View style={tailwind`mb-5 items-left mt-5`}>
         {!profileData && profileData.avatar_url ? (

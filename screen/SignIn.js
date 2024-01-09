@@ -13,8 +13,7 @@ const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/image
 
 const SignIn = () => {
     
-  const dispatch = useDispatch();
-
+    const dispatch = useDispatch();
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
     const user = useSelector((state) => state.auth.user);
     const navigation = useNavigation();
@@ -40,7 +39,6 @@ const SignIn = () => {
         setRExpire(response.data.access_token_expires_at)
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(response.data.user));
-        navigation.navigate('Main')
        
       } catch (err) {
         console.error(err);

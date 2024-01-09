@@ -17,7 +17,7 @@ const AddContent = ({closeModal, navigation }) => {
 
   return (
       <View style={tailwind`bg-white p-4 h-60`}>
-        <View style={tailwind`flex-row justify-end`}>
+        <View style={tailwind`flex-row justify-between`}>
           <Text style={tailwind`text-2xl font-bold`}>Create</Text>
           <Pressable onPress={closeModal}>
             <FontAwesome name="close" color="black" size={24} />
