@@ -5,6 +5,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function CreateCommunity () {
     const navigation = useNavigation();
@@ -19,7 +20,7 @@ function CreateCommunity () {
         try {
             const community = {communityName, description, communityType};
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axiosInstance.post('http://10.0.2.2:8080/communities', community, {
+            const response  = await axiosInstance.post(`${BASE_URL}/communities`, community, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ import RFNS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const fileToBase64 = async (filePath) => {
     try {
@@ -139,7 +140,7 @@ function Message({ route }) {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const username = await AsyncStorage.getItem('User');
         
-        const response = await axiosInstance.get(`http://10.0.2.2:8080/getMessage/${user}`, null, {
+        const response = await axiosInstance.get(`${BASE_URL}/getMessage/${user}`, null, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'content-type': 'application/json'

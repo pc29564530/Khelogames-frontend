@@ -4,7 +4,7 @@ import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import tailwind from 'twrnc';
-
+import { BASE_URL } from '../constants/ApiConstants';
 const mainCommunities = ["Football", "Chess", "VolleyBall", "Hockey"];
 
 function JoinCommunity() {
@@ -14,7 +14,7 @@ function JoinCommunity() {
     const handleCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`http://10.0.2.2:8080/joinUserCommunity/${item}`, null, {
+            const response = await axiosInstance.post(`${BASE_URL}/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

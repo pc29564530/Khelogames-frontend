@@ -6,6 +6,7 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { BASE_URL } from '../constants/ApiConstants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
 function MessagePage() {
@@ -19,7 +20,7 @@ function MessagePage() {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const currentUser = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ function MessagePage() {
                 dispatch(getFollowingUser([]));
             } else {
                 const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());

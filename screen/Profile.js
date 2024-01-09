@@ -7,6 +7,7 @@ import {useSelector,useDispatch} from 'react-redux';
 import {logout,setAuthenticated, setFollowUser, setUnFollowUser, getFollowingUser} from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
@@ -29,7 +30,7 @@ function Profile({route}) {
           setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.post(
-            `http://10.0.2.2:8080/create_follow/${following_owner}`,
+            `${BASE_URL}/create_follow/${following_owner}`,
             {},
             {
               headers: {
@@ -51,7 +52,7 @@ function Profile({route}) {
         setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `http://10.0.2.2:8080/unFollow/${following_owner}`,
+          `${BASE_URL}/unFollow/${following_owner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -79,7 +80,7 @@ function Profile({route}) {
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get('http://10.0.2.2:8080/getFollowing', {
+        const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -118,7 +119,7 @@ function Profile({route}) {
             return;
           }
           if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`http://10.0.2.2:8080/getProfile/${owner}`)
+           const response = await axios.get(`${BASE_URL}/getProfile/${owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -131,7 +132,7 @@ function Profile({route}) {
             }
           }
         } else {
-          const response = await axios.get(`http://10.0.2.2:8080/getProfile/${following_owner}`)
+          const response = await axios.get(`${BASE_URL}/getProfile/${following_owner}`)
            if( response.data == null ){
             setProfileData([])
           } else {
@@ -152,7 +153,7 @@ function Profile({route}) {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const currentUser = await AsyncStorage.getItem("User");
-        const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollower`, {
+        const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -167,7 +168,7 @@ function Profile({route}) {
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const currentUser = await AsyncStorage.getItem("User");
-      const response = await axiosInstance.get(`http://10.0.2.2:8080/getFollowing`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

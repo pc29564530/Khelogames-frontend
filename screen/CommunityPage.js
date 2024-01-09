@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function CommunityPage({route}) {
     const navigation = useNavigation();
@@ -18,15 +19,12 @@ function CommunityPage({route}) {
     const fetchCommunityJoinedByUser = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getCommunityByUser`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
-            // console.log(response.data.length);
-            // console.log("Joined: ", response.data);
-            // setMemeberCount(response.data.length)
             setJoinedCommunity(response.data);
         } catch (e) {
             console.error('Unable to get the joined communities', e);
@@ -39,7 +37,7 @@ function CommunityPage({route}) {
             const authToken = await AsyncStorage.getItem('AccessToken');
             console.log('CommunityPage: ',communityPageData)
             const communities_name = communityPageData.communities_name;
-            const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`,null, {
+            const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communities_name}`,null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -55,7 +53,7 @@ function CommunityPage({route}) {
     const handleJoinCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await axiosInstance.post(`http://10.0.2.2:8080/joinUserCommunity/${item}`, null, {
+            await axiosInstance.post(`${BASE_URL}/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

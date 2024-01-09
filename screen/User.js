@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import {setAuthenticated, setUser} from '../redux/actions/actions';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 
 // export const AllUser = () =>{
 
@@ -64,7 +65,7 @@ import tailwind from 'twrnc';
           try {
             const newAccount = {username, mobile_number: mobileNumber, password};
             console.log("new Account: ", newAccount)
-            const response = await axios.post('http://10.0.2.2:8080/users', newAccount)
+            const response = await axios.post(`${BASE_URL}/users`, newAccount)
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(response.data.user));
             if (response.data) {

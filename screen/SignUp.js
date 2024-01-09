@@ -8,8 +8,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { sendOTP, verifyOTP } from '../redux/actions/actions';
 import { setMobileNumber, setMobileNumberVerified } from '../redux/actions/actions';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
+const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 
 function SignUp() {
@@ -20,7 +21,7 @@ function SignUp() {
     const handleVerify = async () => {
         try {
             const verifyMobileNumber = {mobile_number: mobileNumber, otp: otp}
-            const response = await axios.post('http://10.0.2.2:8080/signup', verifyMobileNumber);
+            const response = await axios.post(`${BASE_URL}/signup`, verifyMobileNumber);
             dispatch(verifyOTP(response.data))
             dispatch(setMobileNumberVerified(true))
             navigation.navigate("User")
@@ -33,7 +34,7 @@ function SignUp() {
       console.log("Otp mobile Number: ", mobileNumber)
       try {
         console.log("MobileNumber: ", mobileNumber)
-        const response = await axios.post('http://10.0.2.2:8080/send_otp', {mobile_number: mobileNumber})
+        const response = await axios.post(`${BASE_URL}/send_otp`, {mobile_number: mobileNumber})
         console.log("Response: ", response.data)
         dispatch({type: 'SEND_OTP', payload:response.data})
       } catch (err) {
@@ -97,4 +98,3 @@ function SignUp() {
 }
 
 export default SignUp;
-const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
