@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {Text, View, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import useAxiosInterceptor from './axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function CommunityMember({route}) {
     const axiosInstance = useAxiosInterceptor();
@@ -15,7 +16,7 @@ function CommunityMember({route}) {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const communities_name = communityPageData.communities_name;
         console.log("Community Name: ", communities_name)
-        const response = await axiosInstance.get(`http://10.0.2.2:8080/getUserByCommunity/${communities_name}`,null, {
+        const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communities_name}`,null, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -27,7 +28,7 @@ function CommunityMember({route}) {
             setCommunityWithProfile([]);
         } else {
             const communityMemberPromises = item.map(async (user) => {
-                const profileResponse = await axiosInstance.get(`http://10.0.2.2:8080/getProfile/${user}`);
+                const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${user}`);
                 if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                     const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                     setDisplayText(usernameInitial.toUpperCase());
