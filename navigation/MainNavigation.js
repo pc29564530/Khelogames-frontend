@@ -21,6 +21,7 @@ import CommunityType from '../screen/CommunityType';
 import Shorts from '../screen/Shorts';
 import Message from '../screen/Message';
 import MessagePage from '../screen/MessagePage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createStackNavigator();
 
@@ -45,7 +46,7 @@ export default function MainNavigation() {
     }, []);
 
     if(loading) {
-        <View style={tailwind`flex-1 justify-center align-center`}>
+        <View style={tailwind`flex-1 justify-evenly items-center`}>
             <ActivityIndicator size="large" color="white"/>
         </View>
     }

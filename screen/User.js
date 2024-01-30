@@ -111,7 +111,7 @@ import { BASE_URL } from '../constants/ApiConstants';
               <Text style={tailwind`text-white font-bold text-xl `}>User Details</Text>
             </View>
             <Text style={tailwind`text-white font-bold text-lg pb-4`} >Username</Text>
-            <TextInput style={tailwind`text-black border border-b-2 border-white rounded-md mb-4 pl-4`} value={username} onChangeText={setUsername} placeholder="Enter your username" placeholderTextColor="white" />
+            <TextInput style={tailwind`text-white border border-b-2 border-white rounded-md mb-4 pl-4`} value={username} onChangeText={setUsername} placeholder="Enter your username" placeholderTextColor="white" />
             <Text style={tailwind`text-white font-bold text-lg pb-4`} >Mobile Number</Text>
             <TextInput style={tailwind`text-white border border-b-2 border-white rounded-md mb-4 pl-4`} value={mobileNumber} onChangeText={setMobileNumber} placeholder="Enter the Mobile Number" placeholderTextColor="white"  />
             <Text style={tailwind`text-white font-bold text-lg pb-4`} >Password</Text>

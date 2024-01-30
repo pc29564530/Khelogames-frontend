@@ -220,10 +220,10 @@ function Profile({route}) {
             
         </View> 
         <View style={tailwind`flex-1 p-4`}>
-            {profileData.avatar_url ? (
+            {profileData && profileData.avatar_url ? (
                 <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-gray-500 -mt-12`} source={{uri: profileData.avatar_url}} />
             ) : (
-              <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-center -mt-12`}>
+              <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-evenly -mt-12`}>
                 <Text style={tailwind`text-red-500 text-12x2`}>
                   {displayText}
                 </Text>

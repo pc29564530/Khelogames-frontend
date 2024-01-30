@@ -91,7 +91,6 @@ function CreateThread() {
                 mediaURL: mediaURL,
                 likeCount: likeCount,
             };
-
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.post(`${BASE_URL}/create_thread`, thread, {
                 headers: {
@@ -128,9 +127,22 @@ function CreateThread() {
     }
     
     useEffect(() => {
-      if (isFocused && route.params?.communityType) {
-        setCommunityType(route.params.communityType);
+      let isMount = true; 
+      const fetchData = async () => {
+          try {
+            if (isMount) {
+              if (isFocused && route.params?.communityType) {
+                setCommunityType(route.params.communityType);
+              }
+            }
+          } catch (e) {
+            console.error("unable to set the community type: ", err)
+          }
       }
+      fetchData();
+      return () => {
+        isMount= false;
+      };
     }, [isFocused, route.params?.communityType]);
     
 

@@ -84,7 +84,7 @@ function Message({ route }) {
     const setupWebSocket = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        wsRef.current = new WebSocket('ws://10.0.2.2:8080/ws', '', {
+        wsRef.current = new WebSocket('ws://192.168.0.102:8080/ws', '', {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
