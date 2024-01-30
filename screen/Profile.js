@@ -118,28 +118,33 @@ function Profile({route}) {
             console.log("User not found in AsyncStorage.");
             return;
           }
-          if(following_owner === null || following_owner === undefined){
-           const response = await axios.get(`${BASE_URL}/getProfile/${owner}`)
-           if( response.data == null ){
-            setProfileData([])
-          } else {
-            setProfileData(response.data);
-            if(response.data.avatar_url || response.avatar_url === '') {
-              const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
-              setDisplayText(usernameInitial.toUpperCase());
+          if(following_owner === owner){
+            const response = await axios.get(`${BASE_URL}/getProfile/${owner}`);
+            if (response.data === null) {
+              setProfileData([]);
             } else {
-              setDisplayText('')
+              setProfileData(response.data)
+              if(!response.data.avatar_url || response.data.avatar_url === '') {
+                const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+                setDisplayText(usernameInitial.toUpperCase());
+              } else {
+                setDisplayText('');
+              }
+            }
+          } else {
+            const response = await axios.get(`${BASE_URL}/getProfile/${following_owner}`)
+           if( response.data == null ){
+              setProfileData([])
+            } else {
+              setProfileData(response.data);
+              if(!response.data.avatar_url || response.data.avatar_url === '') {
+                const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+                setDisplayText(usernameInitial.toUpperCase());
+              } else {
+                setDisplayText('');
+              }
             }
           }
-        } else {
-          const response = await axios.get(`${BASE_URL}/getProfile/${following_owner}`)
-           if( response.data == null ){
-            setProfileData([])
-          } else {
-            setProfileData(response.data);
-          }
-        }
-          
         } catch(e) {
           console.error("unable to fetch the profile details", e)
         }
@@ -161,7 +166,7 @@ function Profile({route}) {
         });
 
         const item = response.data;
-        if(item.length > 0) {
+        if(item !== null && item.length > 0) {
           setFollowerCount(item.length);
         }
     }
@@ -175,7 +180,7 @@ function Profile({route}) {
         }
       });
       const item = response.data;
-      if(item.length > 0) {
+      if(item !== null && item.length > 0) {
         setFollowingCount(item.length);
       }
   }
@@ -216,7 +221,7 @@ function Profile({route}) {
         </View> 
         <View style={tailwind`flex-1 p-4`}>
             {profileData.avatar_url ? (
-                <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white -mt-12`} source={{uri: profileData.avatar_url}} />
+                <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-gray-500 -mt-12`} source={{uri: profileData.avatar_url}} />
             ) : (
               <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-center -mt-12`}>
                 <Text style={tailwind`text-red-500 text-12x2`}>
