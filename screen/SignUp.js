@@ -46,7 +46,7 @@ function SignUp() {
     }
 
   return (
-    <View style={tailwind`flex-1 justify-center bg-black`}>
+    <View style={tailwind`flex-1 justify-evenly bg-black`}>
       <View style={tailwind``}>
         <Pressable onPress={handleNavigateLogin}>
           <FontAwesome
@@ -57,7 +57,7 @@ function SignUp() {
         </Pressable>       
       </View>
       <Image style={tailwind`mt-5 mb-20 ml-30 mr-30 w-40 h-30`} source={logoPath} />
-      <View style={tailwind`items-center justify-center bg-black`}>
+      <View style={tailwind`items-center justify-evenly bg-black`}>
         <Text style={tailwind`text-3xl font-bold text-white `}>Sign Up</Text>
       </View>
       <View style={tailwind`ml-15 mr-10`}>

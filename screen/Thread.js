@@ -79,6 +79,7 @@ const Thread = () => {
               if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                 const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                 displayText = usernameInitial.toUpperCase();
+                setDisplayText(displayText);
               }
               return { ...item, profile: profileResponse.data, displayText };
             });
@@ -105,15 +106,15 @@ const Thread = () => {
                 <View key={i} style={tailwind`bg-black mt-5`}>
                     <View >
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
-                          {item.profile && item.profile.avatar_url ? (
-                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-white`} />
+                          {item.profile.avatar_url ? (
+                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-500`} />
                             ):(
-                              <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
+                              <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
-                                  {displayText}
+                                  {item.displayText}
                                 </Text>
                               </View>
-                            )
+                             )
                           }
                           
                           <View style={tailwind`ml-3`}>
@@ -121,14 +122,10 @@ const Thread = () => {
                             <Text style={tailwind`text-white`}>@{item.username}</Text>
                           </View>
                         </Pressable>
-                        {/* <Text style={styles.Position}>{item.timestamp}</Text> */}
                     </View>
                     <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
                     {item.media_type === 'image' && (
-                      <Image
-                      style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
-                        source={{uri:item.media_url}}
-                      />
+                      <Image style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{uri:item.media_url}}/>
                     )}
                     {item.media_type === 'video' && (
                       <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}

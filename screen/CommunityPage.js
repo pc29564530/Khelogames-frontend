@@ -94,7 +94,7 @@ function CommunityPage({route}) {
                             joinedCommunity.some(c => c.community_name === communityPageData.communities_name)
                                 ? 'bg-gray-500'
                                 : 'bg-blue-500'
-                        } p-2 m-3 justify-center`}
+                        } p-2 m-3 justify-evenly`}
                         onPress={() => handleJoinCommunity(communityPageData.communities_name)}
                     >
                         <Text style={tailwind`text-white pl-1.5`}>

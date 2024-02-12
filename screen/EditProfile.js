@@ -37,21 +37,25 @@ export default function EditProfile() {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [profile, setProfile] = useState();
     const [coverUrl, setCoverUrl] = useState('');
+    const [avatarType, setAvatarType] = useState('');
     
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
 
     //to create the username for personal use no one can change the user after creation
-    const handleAvatar = async () => {
+    const handleAvatar = async (base64, type) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put(`${BASE_URL}/updateAvatar`,{avatar_url: avatarUrl}, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateAvatar`,{avatar_url: base64, avatar_type: type}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             } );
-            setAvatarUrl(response.data);
+            console.log("response of avatar: ", response.data)
+            setAvatarUrl(response.data.avatar_url);
+            setAvatarType(response.data.avatar_type);
+
         } catch (e) {
             console.error("unable to update the avatar: ", err)
         }
@@ -60,13 +64,15 @@ export default function EditProfile() {
     const handleCover = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put(`${BASE_URL}/updateCover`,{cover_url: coverUrl}, {
+            const response = await axiosInstance.put(`${BASE_URL}/updateCover`,{cover_url: coverUrl, cover_type: coverType}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             } );
-            setCoverUrl(response.data);
+            console.log(response.data)
+            setCoverUrl(response.data.cover_url);
+            setCoverType(response.data.cover_type)
         } catch (e) {
             console.error("unable to update the cover: ", err)
         }
@@ -129,11 +135,11 @@ export default function EditProfile() {
                 console.log('ImagePicker Error: ', response.error);
             } else {
                 const type = getMediaTypeFromURL(res.assets[0].uri);
-                
                 if(type === 'image') {
                     const base64File = await fileToBase64(res.assets[0].uri);
                     setAvatarUrl(base64File);
-                    handleAvatar();
+                    setAvatarType(type)
+                    handleAvatar(base64File, type);
                 } else {
                     console.log('unsupported media type: ', type);
                 }
@@ -162,6 +168,7 @@ export default function EditProfile() {
                 if(type === 'image') {
                     const base64File = await fileToBase64(res.assets[0].uri);
                     setCoverUrl(base64File);
+                    setCoverType(type)
                     handleCover();
                 } else {
                     console.log('unsupported media type: ', type);

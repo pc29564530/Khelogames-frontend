@@ -122,8 +122,7 @@ function ProfileMenu() {
       const authUser = await AsyncStorage.getItem('User');
       console.log(authUser);
       const response = await axios.get(`${BASE_URL}/getProfile/${authUser}`);
-      console.log('response data: ', response.data);
-      console.log('Avatar Url: ', response.data.avatar_url);
+      console.log("AVatar Image Url: ", response.data)
       if (!response.data.avatar_url || response.data.avatar_url === '') {
         const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
         setDisplayText(usernameInitial.toUpperCase());
@@ -168,7 +167,7 @@ function ProfileMenu() {
       });
 
       const item = response.data;
-      if (item.length > 0) {
+      if (item !== null && item.length > 0) {
         setFollowerCount(item.length);
       }
     };
@@ -182,7 +181,7 @@ function ProfileMenu() {
       });
 
       const item = response.data;
-      if (item.length > 0) {
+      if (item !== null && item.length > 0) {
         setFollowingCount(item.length);
       }
     };
@@ -200,10 +199,10 @@ function ProfileMenu() {
       </View> */}
 
       <View style={tailwind`mb-5 items-left mt-5`}>
-        {!profileData && profileData.avatar_url ? (
-          <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-white`} source={{ uri: profileData.avatar_url }} />
+        {profileData && profileData.avatar_url ? (
+          <Image style={tailwind`w-30 h-30 mb-5 rounded-full bg-red-500`} source={{uri: profileData.avatar_url}} />
         ) : (
-          <View style={tailwind`w-20 h-20 aspect-w-1 aspect-h-1 rounded-12 bg-gray-500 items-center justify-cente`}>
+          <View style={tailwind`w-20 h-20 aspect-w-1 aspect-h-1 rounded-12 bg-white items-center justify-cente`}>
             <Text style={tailwind`text-red-500 text-12x2`}>{displayText}</Text>
           </View>
         )}
