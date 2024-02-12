@@ -135,7 +135,6 @@ export default function EditProfile() {
                 console.log('ImagePicker Error: ', response.error);
             } else {
                 const type = getMediaTypeFromURL(res.assets[0].uri);
-                console.log()
                 if(type === 'image') {
                     const base64File = await fileToBase64(res.assets[0].uri);
                     setAvatarUrl(base64File);
