@@ -60,8 +60,8 @@ function Comment({thread}) {
         <View style={tailwind`flex-1 bg-black`}>
             <View style={tailwind`flex-1 items-center p-1`}>
                 {comments?.map((item, i) => (
-                    <View  style={tailwind`p-2 m-0.5 w-full bg-gray-900`} key={i}>
-                        <View style={tailwind`flex-row items-center`}>
+                    <View  style={tailwind`p-2 m-0.5 w-full`} key={i}>
+                        <View style={tailwind`flex-row items-top`}>
                             {item.profile && item.profile.avatar_url ? (
                                 <Image  style={tailwind`w-10 h-10 rounded-full mr-2 bg-white`} source={{uri: item.profile.avatar_url}} />
                             ): (
@@ -71,14 +71,14 @@ function Comment({thread}) {
                                     </Text>
                               </View>
                             )}
-                            <View>
+                            <View style={tailwind`px-2 w-75 bg-gray-400 rounded`}>
                                 <Text style={tailwind`text-white font-bold`}>{item.profile?.full_name}</Text>
                                 <Text style={tailwind`text-white font-bold`}>@{item.owner}</Text>
+                                <View style={tailwind`m-4`}>
+                                    <Text style={tailwind`text-base text-white`}>{item.comment_text}</Text>
+                                </View>
                             </View>
-                        </View>
-                        <View style={tailwind`p-2 pl-10`}>
-                            <Text style={tailwind`text-base text-white`}>{item.comment_text}</Text>
-                        </View>
+                        </View>                        
                     </View>
                 ))}
             </View>
