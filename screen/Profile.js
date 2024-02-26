@@ -9,6 +9,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const CoverImage = require('/Users/pawan/project/Khelogames-frontend/assets/images/cover.jpg');
 
@@ -134,11 +135,9 @@ function Profile({route}) {
             }
           } else {
             const response = await axios.get(`${BASE_URL}/getProfile/${following_owner}`)
-            console.log("Line no 137: ", response.data)
            if( response.data == null ){
               setProfileData([])
             } else {
-              console.log("lIn3 no 140: ", response.data)
               setProfileData(response.data);
               if(!response.data.avatar_url || response.data.avatar_url === '') {
                 const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
@@ -206,9 +205,8 @@ function Profile({route}) {
     },
     headerTintColor: 'white'
   })
-  console.log("Line no 209: ", profileData)
     return(
-      <View style={tailwind`flex-1 bg-black `}>
+      <ScrollView contentContainerStyle={{height:900}}>
         {/* <View style={tailwind`w-full`}>
             {profileData.cover_url ? (
                 <Image
@@ -223,7 +221,7 @@ function Profile({route}) {
             )}
             
         </View>  */}
-        <View style={tailwind`flex-1 p-4`}>
+        <View style={tailwind`flex-1 p-4 bg-black`}>
           <View style={tailwind`flex-row gap-8`}>
             {profileData && profileData.avatar_url ? (
                   <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-gray-500`} source={{uri: profileData.avatar_url}} />
@@ -274,7 +272,7 @@ function Profile({route}) {
             )}
           </View>
         </View>
-  </View>
+  </ScrollView>
     );
 }
 

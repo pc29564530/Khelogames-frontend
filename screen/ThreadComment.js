@@ -10,6 +10,8 @@ import tailwind from 'twrnc'
 import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
+import { handleUser, handleLikes } from '../utils/ThreadUtils';
+
 
 function ThreadComment ({route}) {
     const navigation = useNavigation();
@@ -17,6 +19,7 @@ function ThreadComment ({route}) {
     const { item, itemId } = route.params;
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
+    const likesCount = useSelector((state) => state.Like)
     const commentText = useSelector((state) => state.comments.commentText)
     const [displayText, setDisplayText] = useState('');
 
@@ -36,41 +39,6 @@ function ThreadComment ({route}) {
         } catch (e) {
             console.error(e);
         }
-    }
-
-
-    const handleLikes = async (id) => {
-      try {
-        const authUser = await AsyncStorage.getItem('User');
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const headers = {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        }
-
-        // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
-        if(userCount.data == 0) {
-          const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
-          if(response.status === 200) {
-            try {
-              const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
-              const updateLikeData = {
-                like_count: updatedLikeCount.data,
-                id: id
-              }
-
-              const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-              dispatch(setLikes(id, newLikeCount.data.like_count))
-
-            } catch (err) {
-              console.error(err);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
     }
 
     const handleComment = () => {
@@ -123,14 +91,14 @@ function ThreadComment ({route}) {
                   </View>
                   <View style={tailwind`border-b border-white mb-2`}></View>
                   <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>
-                    <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
-                    <FontAwesome 
-                        name="thumbs-o-up"
-                        color="white"
-                        size={20}
-                    /> 
+                  <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: item.id, dispatch, axiosInstance})}>
+                    <FontAwesome
+                      name="thumbs-o-up"
+                      color="white"
+                      size={20}
+                    />
                     <Text style={tailwind`text-white`}>Like</Text>
-                    </Pressable>
+                  </Pressable>
                     <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
                       <FontAwesome 
                         name="comment-o"

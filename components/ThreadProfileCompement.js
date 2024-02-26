@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, StyleSheet, Image, Pressable, SafeAreaView, ScrollView, TouchableOpacity} from 'react-native';
+import {ScrollView} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from '../screen/axios_config';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
-import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
+import { handleLikes, handleThreadComment, handleUser } from '../utils/ThreadUtils';
+import ThreadItem from './ThreadItems';
 
 const ThreadProfileCompement = ({owner}) => {
-//  const owner = route;
-    console.log("Line no 15 : ", owner)
-    const navigation = useNavigation()
+    const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     // const threads = useSelector((state) => state.threads.threads)
     const likesCount = useSelector((state) => state.Like)
-    const [username,setUsername] = useState('');
+    const [ownername,setOwnername] = useState(owner);
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
-    
     const handleThreadComment = (item, id) => {
-      console.log("Item: thread: ", item);
-      console.log("ItemId: ", id);
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
 
@@ -62,7 +57,7 @@ const ThreadProfileCompement = ({owner}) => {
 
     useEffect(() => {
       const fetchData = async () => {
-        try {
+        try { 
           const authToken = await AsyncStorage.getItem('AccessToken');
           const response = await axiosInstance.get(`${BASE_URL}/getThreadByUser/${owner}`, {
             headers: {
@@ -70,7 +65,7 @@ const ThreadProfileCompement = ({owner}) => {
               'Content-Type': 'application/json',
             },
           });
-          console.log("Line 71 Response: ", response.data)
+          
           const item = response.data;
           if (item === null) {
             setThreadWithUserProfile([]);
@@ -96,72 +91,24 @@ const ThreadProfileCompement = ({owner}) => {
       };
   
       fetchData();
-    }, []); 
+    }, [owner]); 
 
     //update the handleUser to directly navigate to profile and profile menu
     const handleUser = async (username) => {
       navigation.navigate('Profile', {username: username})
     }
 
-//     console.log("Profile Data in ThreadProfileCompement: ", route.params?.profileData);
-// console.log("Owner derived from route params: ", owner);
-  console.log("ThreadData: ", threadWithUserProfile)
     return (
-      <ScrollView style={tailwind`flex-1 bg-black`} vertical={true}>
+        <ScrollView style={tailwind`flex-1 bg-black`} vertical={true} nestedScrollEnabled={true}>
             {threadWithUserProfile.map((item,i) => (
-                <View key={i} style={tailwind`bg-black mt-5`}>
-                    <View >
-                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
-                          {item.profile.avatar_url ? (
-                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-500`} />
-                            ):(
-                              <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
-                                <Text style={tailwind`text-red-500 text-6x3`}>
-                                  {item.displayText}
-                                </Text>
-                              </View>
-                             )
-                          }
-                          
-                          <View style={tailwind`ml-3`}>
-                            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
-                            <Text style={tailwind`text-white`}>@{item.username}</Text>
-                          </View>
-                        </Pressable>
-                    </View>
-                    <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
-                    {item.media_type === 'image' && (
-                      <Image style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{uri:item.media_url}}/>
-                    )}
-                    {item.media_type === 'video' && (
-                      <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
-                      source={{uri:item.media_url}} controls={true} />
-                    )}
-                    <View style={tailwind`p-2`}>
-                      <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
-                    </View>
-                    <View style={tailwind`border-b border-white mb-2`}></View>
-                    <View style={tailwind`flex-row justify-evenly gap-50`}>
-                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
-                        <FontAwesome 
-                            name="thumbs-o-up"
-                            color="white"
-                            size={20}
-                        />
-                        <Text style={tailwind`text-white`}>Like</Text> 
-                      </Pressable>
-                      <Pressable style={tailwind`items-center`}onPress={() => handleThreadComment(item, item.id)}>
-                        <FontAwesome 
-                           name="comment-o"
-                           color="white"
-                           size={20}
-                        />
-                        <Text style={tailwind`text-white`}>Comment</Text> 
-                      </Pressable>
-                    </View>
-                    <View style={tailwind`border-b border-white mt-2`}></View>
-              </View>
-              ))}
+                <ThreadItem 
+                    key={i}
+                    item={item}
+                    handleLikes={handleLikes}
+                    handleThreadComment={handleThreadComment}
+                    handleUser={handleUser}
+                />
+            ))}
         </ScrollView>
     );
   };
