@@ -38,6 +38,6 @@ export const handleLikes = async ({id, dispatch, axiosInstance}) => {
     navigation.navigate('ThreadComment', {item: item, itemId: id})
   }
 
-  export const handleUser = async (username, navigation) => {
+  export const handleUser = async ({username, navigation}) => {
     navigation.navigate('Profile', {username: username})
   }
