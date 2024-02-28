@@ -13,3 +13,8 @@
 <img width="329" alt="Screenshot 2023-10-16 at 3 20 51 PM" src="https://github.com/pc29564530/Khelogames-frontend/assets/43681370/dffe84f2-7a18-47c9-99c4-01aeeee6266a">
 
 <img width="329" alt="Screenshot 2023-10-16 at 3 21 10 PM" src="https://github.com/pc29564530/Khelogames-frontend/assets/43681370/e3cf5780-7f80-4743-b5cf-8812dc3c3c67">
+#homescreen
+<img width="329" alt="Screenshot 2023-10-16 at 3 21 10 PM" src="https://github.com/pc29564530/Khelogames-frontend/assets/43681370/e30f0071-37ef-45de-91c7-022054d66769">
+
+
+
