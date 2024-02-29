@@ -17,8 +17,8 @@ function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
   if (fileExtensionMatch) {
     const fileExtension = fileExtensionMatch[1].toLowerCase();
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // Add more image extensions if needed
-    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov']; // Add more video extensions if needed
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'MP4'];
 
     if (imageExtensions.includes(fileExtension)) {
       return 'image';
@@ -167,8 +167,7 @@ function CreateThread() {
 
     return (
         <View style={tailwind`flex-1 p-10 bg-black`}>
-            <View style={tailwind`mb-5`}>   
-                <TextInput style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg text-white`} value={title} onChangeText={setTitle} placeholder="Enter Title..." placeholderTextColor="white"/>
+            <View style={tailwind`mb-5`}>
                 <TextInput
                     style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg h-24 text-white`}
                     multiline 

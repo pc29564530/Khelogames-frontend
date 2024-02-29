@@ -1,4 +1,4 @@
-import React, {useState, useRef } from 'react';
+import React, {useState, useRef, useEffect } from 'react';
 import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import { addComments, setCommentText, setLikes } from '../redux/actions/actions';
@@ -10,15 +10,17 @@ import tailwind from 'twrnc'
 import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
+import { handleUser, handleLikes } from '../utils/ThreadUtils';
 
 function ThreadComment ({route}) {
     const navigation = useNavigation();
     const commentInputRef = useRef();
-    const { item, itemId } = route.params;
+    const { item, itemId} = route.params;
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
     const [displayText, setDisplayText] = useState('');
+    const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like))
 
       const handleReduxSubmit = async () => {
         try {
@@ -38,40 +40,29 @@ function ThreadComment ({route}) {
         }
     }
 
-
-    const handleLikes = async (id) => {
-      try {
-        const authUser = await AsyncStorage.getItem('User');
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const headers = {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        }
-
-        // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
-        if(userCount.data == 0) {
-          const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
-          if(response.status === 200) {
-            try {
-              const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
-              const updateLikeData = {
-                like_count: updatedLikeCount.data,
-                id: id
-              }
-
-              const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-              dispatch(setLikes(id, newLikeCount.data.like_count))
-
-            } catch (err) {
-              console.error(err);
-            }
+    useEffect(()=> {
+      const handleLikeCount = async () => {
+        try {
+          const authToken =  await AsyncStorage.getItem('AccessToken');
+          const response = await axiosInstance.get(`${BASE_URL}/getThread/${itemId}`, null , {
+            headers: { 
+              'Authorization': `Bearer ${authToken}`,
+              'content-type': 'application/json'
           }
+          });
+          const updatedLikesCount = response.data.like_count;
+          dispatch(setLikes(updatedLikesCount));
+          setLikesCount(updatedLikesCount);
+        } catch (e) {
+          console.error(e);
         }
-      } catch (error) {
-        console.error(error);
-      }
-    }
+      };
+      handleLikeCount();
+    }, [likeCount])
+
+    // const handleLikeCount = () => {
+    //   handleLikes({id: itemId, dispatch, axiosInstance});
+    // }
 
     const handleComment = () => {
       commentInputRef.current.focus();
@@ -89,11 +80,11 @@ function ThreadComment ({route}) {
         <View style={tailwind`flex-1 bg-black`}>
             <ScrollView  style={tailwind`bg-black mt-1`}>
                   <View  style={tailwind`p-2`}>
-                      <Pressable style={tailwind`flex-row items-center p-2 bg-gray-900`} onPress={() => {handleUser(item.username)}}>
+                      <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({username: item.username, navigation})}}>
                         {item.profile?.avatar_url ? (
-                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-18 h-18 rounded-full bg-white`} />
+                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-white`} />
                           ):(
-                            <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-center`}>
+                            <View style={tailwind`w-15 h-15 rounded-12 bg-white items-center justify-center`}>
                               <Text style={tailwind`text-red-500 text-6x3`}>
                                 {displayText}
                               </Text>
@@ -107,7 +98,7 @@ function ThreadComment ({route}) {
                         </View>
                       </Pressable>
                   </View>
-                  <Text style={tailwind`text-white p-8 text-xl`}>{item.content}</Text>
+                  <Text style={tailwind`text-white pb-10 text-xl`}>{item.content}</Text>
                   {item.media_type === 'image' && (
                     <Image
                     style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1 `}
@@ -119,18 +110,18 @@ function ThreadComment ({route}) {
                       source={{uri:item.media_url}} controls={true} />
                   )}
                   <View style={tailwind`p-2`}>
-                    <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
+                    <Text style={tailwind`text-white`}>{likeCount} Likes</Text>
                   </View>
                   <View style={tailwind`border-b border-white mb-2`}></View>
                   <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>
-                    <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
-                    <FontAwesome 
-                        name="thumbs-o-up"
-                        color="white"
-                        size={20}
-                    /> 
+                  <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: itemId, dispatch, axiosInstance})}>
+                    <FontAwesome
+                      name="thumbs-o-up"
+                      color="white"
+                      size={20}
+                    />
                     <Text style={tailwind`text-white`}>Like</Text>
-                    </Pressable>
+                  </Pressable>
                     <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
                       <FontAwesome 
                         name="comment-o"
