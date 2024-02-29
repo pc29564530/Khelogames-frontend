@@ -59,10 +59,6 @@ const Thread = () => {
       fetchData();
     }, []); 
 
-    //update the handleUser to directly navigate to profile and profile menu
-    // const handleUser = async (username) => {
-    //   navigation.navigate('Profile', {username: username})
-    // }
   
     return (
         <View style={tailwind`flex-1 bg-black`} vertical={true}>

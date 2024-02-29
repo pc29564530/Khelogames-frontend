@@ -80,11 +80,11 @@ function ThreadComment ({route}) {
         <View style={tailwind`flex-1 bg-black`}>
             <ScrollView  style={tailwind`bg-black mt-1`}>
                   <View  style={tailwind`p-2`}>
-                      <Pressable style={tailwind`flex-row items-center p-2 bg-gray-900`} onPress={() => {handleUser({username: item.username, navigation})}}>
+                      <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({username: item.username, navigation})}}>
                         {item.profile?.avatar_url ? (
-                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-18 h-18 rounded-full bg-white`} />
+                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-white`} />
                           ):(
-                            <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-center`}>
+                            <View style={tailwind`w-15 h-15 rounded-12 bg-white items-center justify-center`}>
                               <Text style={tailwind`text-red-500 text-6x3`}>
                                 {displayText}
                               </Text>
@@ -98,7 +98,7 @@ function ThreadComment ({route}) {
                         </View>
                       </Pressable>
                   </View>
-                  <Text style={tailwind`text-white p-8 text-xl`}>{item.content}</Text>
+                  <Text style={tailwind`text-white pb-10 text-xl`}>{item.content}</Text>
                   {item.media_type === 'image' && (
                     <Image
                     style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1 `}

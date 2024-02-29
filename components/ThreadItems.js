@@ -13,7 +13,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
   return (
     <View style={tailwind`bg-black mt-5`}>
       <View>
-        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => handleUser(item.username, navigation)}>
+        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => handleUser({username: item.username, navigation})}>
           {item.profile?.avatar_url ? (
             <Image source={{ uri: item.profile.avatar_url }} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-500`} />
           ) : (
@@ -34,7 +34,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
         <Image style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{ uri: item.media_url }} />
       )}
       {item.media_type === 'video' && (
-        <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{ uri: item.media_url }} controls={true} />
+        <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} resizeMode='cover'/>
       )}
       <View style={tailwind`p-2`}>
         <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>

@@ -1,3 +1,4 @@
+//need to refactor the code to smaller function 
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -226,7 +227,7 @@ function Profile({route}) {
             {profileData && profileData.avatar_url ? (
                   <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-gray-500`} source={{uri: profileData.avatar_url}} />
               ) : (
-                <View style={tailwind`w-24 h-24 rounded-12 bg-white items-center justify-evenly -mt-12`}>
+                <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-evenly`}>
                   <Text style={tailwind`text-red-500 text-12x2`}>
                     {displayText}
                   </Text>

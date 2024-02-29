@@ -18,6 +18,7 @@ const ThreadRepliesComponent = ({owner}) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                console.log(owner)
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/getCommentByUser/${owner}`,null, {
                     headers: {
