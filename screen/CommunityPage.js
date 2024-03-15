@@ -1,11 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Image, Pressable, ScrollView} from 'react-native';
+import {View, Text, Pressable, ScrollView} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
-const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
 import { BASE_URL } from '../constants/ApiConstants';
 
@@ -30,6 +29,10 @@ function CommunityPage({route}) {
             console.error('Unable to get the joined communities', e);
         }
     };
+    
+    const handleAnnouncement = (communityPageData) => {
+        navigation.navigate('CommunityMessage', {communityPageData:communityPageData})
+    }
 
     //community member length
     const fetchCommunityLength = async () => {
@@ -80,21 +83,24 @@ function CommunityPage({route}) {
 
     return (
         <ScrollView contentContainerStyle={{height:1070}}>
-            <View style={tailwind`bg-black flex-1`}>
-                <View style={tailwind`bg-gray-500 h-50 p-4`}></View>
-                <Image source={logoPath} style={tailwind`bg-white h-20 w-20 rounded-md pl-2 ml-2 -mt-8 `}/>
-                
-                <View style={tailwind`p-5 gap-4 flex-row`}>
-                    <View>
+            <View style={tailwind`bg-black flex-1 pl-2 pt-2`}>
+                <View style={tailwind`flex-row`}>
+                    <View style={tailwind`w-15 h-15 rounded bg-red-100 items-center justify-center`}>
+                        <Text style={tailwind`text-red-500 text-8x3`}>
+                            {communityPageData.displayText}
+                        </Text>
+                    </View>
+                    <View style={tailwind`ml-4`}>
                         <Text style={tailwind`text-white font-bold text-2xl`}>{communityPageData.communities_name}</Text>
-                        <Text style={tailwind`text-white text-`}>{communityPageData.description}</Text>
+                        {/* <Text style={tailwind`text-white text-`}>{communityPageData.description}</Text> */}
+                        <Text style={tailwind`text-white text-sm mt-1`}>Community - {memberCount} member</Text>
                     </View>
                     <Pressable
-                        style={tailwind`w-1/5 h-9 rounded-md ${
+                        style={tailwind` w-1/5 h-9 rounded-md  ${
                             joinedCommunity.some(c => c.community_name === communityPageData.communities_name)
                                 ? 'bg-gray-500'
                                 : 'bg-blue-500'
-                        } p-2 m-3 justify-evenly`}
+                        } p-2 m-3 ml-20`}
                         onPress={() => handleJoinCommunity(communityPageData.communities_name)}
                     >
                         <Text style={tailwind`text-white pl-1.5`}>
@@ -102,11 +108,10 @@ function CommunityPage({route}) {
                         </Text>
                     </Pressable>
                 </View>
-                <View style={tailwind`flex-row gap-3`}>
-                    <FontAwesome name="user" color="white" size={14} style={tailwind`pl-4`}/>
-                    {/* implement the follow button */}
-                    <Text style={tailwind`text-white text-sm -mt-1`}>{memberCount}</Text>
-                </View>
+                <Pressable style={tailwind`h-20 items-start mt-8 ml-4 flex-row rounded h-12 w-full bg-gray-900 items-center`} onPress={() => handleAnnouncement(communityPageData)}>
+                    <AntDesign name="sound" size={20} color="white" style={tailwind` rounded bg-red-500 w-8 h-8 items-center p-1.6 ml-2`} />
+                    <Text style={tailwind`text-white text-2xl ml-2`}>Announcements</Text>
+                </Pressable>
                 <View style={tailwind`flex-1`}>
                     <TopTabCommunityPage communityPageData={communityPageData}/>
                 </View>

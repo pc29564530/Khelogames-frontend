@@ -20,7 +20,8 @@ function ThreadComment ({route}) {
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
     const [displayText, setDisplayText] = useState('');
-    const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like))
+    const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like));
+    const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === itemId)).like_count)
 
       const handleReduxSubmit = async () => {
         try {
@@ -58,11 +59,7 @@ function ThreadComment ({route}) {
         }
       };
       handleLikeCount();
-    }, [likeCount])
-
-    // const handleLikeCount = () => {
-    //   handleLikes({id: itemId, dispatch, axiosInstance});
-    // }
+    }, [])
 
     const handleComment = () => {
       commentInputRef.current.focus();
@@ -75,7 +72,6 @@ function ThreadComment ({route}) {
         },
         headerTintColor:'white'
     });
-  
     return (
         <View style={tailwind`flex-1 bg-black`}>
             <ScrollView  style={tailwind`bg-black mt-1`}>
@@ -110,7 +106,7 @@ function ThreadComment ({route}) {
                       source={{uri:item.media_url}} controls={true} />
                   )}
                   <View style={tailwind`p-2`}>
-                    <Text style={tailwind`text-white`}>{likeCount} Likes</Text>
+                    <Text style={tailwind`text-white`}>{likeCounts} Likes</Text>
                   </View>
                   <View style={tailwind`border-b border-white mb-2`}></View>
                   <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>

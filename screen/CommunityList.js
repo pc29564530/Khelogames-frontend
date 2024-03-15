@@ -10,6 +10,7 @@ const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/image
 
 function CommunityList() {
     const [communityList, setCommunityList] = useState([]);
+    // const [dispayText, setDisplayText] = useState('')
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const fetchCommunity = async () => {
@@ -22,13 +23,24 @@ function CommunityList() {
                 },
             })
             const item = await response.data;
+
             if(item === null) {
                 setCommunityList([]);
             } else {
-                setCommunityList(item);
+                const communityWithDisplayText = item.map((item, index) => {
+                    let displayText = '';
+                    const words = item.communities_name.split(' ');
+                    displayText = words[0].charAt(0).toUpperCase();
+                    if(words.length>1){
+                        displayText += words[1].charAt(0).toUpperCase()
+                    }
+                    return {...item, displayText, displayText}
+                })
+
+                setCommunityList(communityWithDisplayText);
             }
 
-        } catch(e) {
+        } catch(err) {
             console.error('error unable to get community list', err)
         }
     }
@@ -55,7 +67,11 @@ function CommunityList() {
         <View style={tailwind`flex-1 bg-black `}>
             {communityList.map((item,index)=> (
                 <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-black border rounded-md p-2 gap-3 flex-row`}>
-                    <Image source={logoPath} style={tailwind`h-20 w-20 rounded-2xl`}/>
+                    <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
+                        <Text style={tailwind`text-red-500 text-6x3`}>
+                            {item.displayText}
+                        </Text>
+                    </View>
                     <View>
                         <Text style={tailwind`text-white text-2xl`}>{item.communities_name}</Text>
                         <Text style={tailwind`text-white`}>{item.description}</Text>
