@@ -11,6 +11,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import EmojiSelector from 'react-native-emoji-selector';
 import Video from 'react-native-video';
+import { useNavigation } from '@react-navigation/native';
 
 
 function getMediaTypeFromURL(url) {
@@ -29,15 +30,15 @@ function getMediaTypeFromURL(url) {
   }
   
   
-  const fileToBase64 = async (filePath) => {
+const fileToBase64 = async (filePath) => {
     try {
-      const fileContent = await RFNS.readFile(filePath, 'base64');
-      return fileContent;
+        const fileContent = await RFNS.readFile(filePath, 'base64');
+        return fileContent;
     } catch (error) {
-      console.error('Error converting image to Base64:', error);
-      return null;
+        console.error('Error converting image to Base64:', error);
+        return null;
     }
-  };
+};
 
 function CommunityMessage ({route}) {
     const communityData = route.params.communityPageData;
@@ -47,9 +48,11 @@ function CommunityMessage ({route}) {
     const [mediaId, setMediaId] = useState();
     const [contentId, setContentId] = useState();
     const [receivedMessage, setReceivedMessage] = useState([]);
-    const [showEmojiSelect, setShowEmojiSelect] = useState(false)
+    const [showEmojiSelect, setShowEmojiSelect] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
+    const [admin, setAdmin] = useState(false);
     const axiosInstance = useAxiosInterceptor();
+    const navigation = useNavigation();
 
     const handleUpload = () => {
             let options = { 
@@ -73,6 +76,7 @@ function CommunityMessage ({route}) {
                       const formData = new FormData();
                       formData.append('media_url', base64File)
                       formData.append('media_type', type)
+
                       const authToken = await AsyncStorage.getItem("AccessToken")
                       const response = await axiosInstance.post(`${BASE_URL}/createUploadMedia`, formData, {
                         headers: {
@@ -130,6 +134,27 @@ function CommunityMessage ({route}) {
         }
     }
 
+    const checkUserAdmim = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken')
+            const user = await AsyncStorage.getItem('User');
+            console.log("CommunityName: ", communityData.communities_name)
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${communityData.communities_name}`,null,{
+                headers:{
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            } );
+            const item = response.data;
+            if (item.owner === user){
+                setAdmin(true);
+            }
+
+        } catch(err) {
+            console.log("unable to get the community by community name: ", err)
+        }
+    }
+
     useEffect(() => {
         const fetchData = async() => {
             try {
@@ -148,15 +173,25 @@ function CommunityMessage ({route}) {
                 console.error("unable to fetch the message: ", err);
             }
         }
+        checkUserAdmim();
         fetchData();
+        
     }, [])
 
     const handleEmoji = () => {
         setShowEmojiSelect(!showEmojiSelect);
-      };
-    console.log(receivedMessage)
+    };
+
+    navigation.setOptions({
+        headerTitle:communityData.communities_name,
+        headerStyle:{
+          backgroundColor: 'black'
+        },
+        headerTintColor: 'white'
+    });
+    
     return (
-        <View style={tailwind`flex-1 bg-black`}>
+    <View style={tailwind`flex-1 bg-black`}>
       <ScrollView 
         style={tailwind`flex-3/5 bg-black-100 p-10`}
         contentContainerStyle={tailwind`gap-2`}
@@ -199,22 +234,28 @@ function CommunityMessage ({route}) {
           </View>
         ))}
       </ScrollView>
-        <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
-            <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
-            <TextInput
-                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-white w-60`}
-                multiline
-                value={content}
-                onChangeText={setContent}
-                placeholder="Enter message..."
-                placeholderTextColor="white"
-                onEndEditing={handleContent}
-            />
-            <FontAwesome onPress={handleUpload} name="camera" size={24} color="white" />
-            <Pressable onPress={handleMessageMedia} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
-                <Text style={tailwind`text-white`}>Send</Text>
-            </Pressable>
-        </View>
+      {admin ? (
+            <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
+                <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
+                <TextInput
+                    style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-white w-60`}
+                    multiline
+                    value={content}
+                    onChangeText={setContent}
+                    placeholder="Enter message..."
+                    placeholderTextColor="white"
+                    onEndEditing={handleContent}
+                />
+                <FontAwesome onPress={handleUpload} name="camera" size={24} color="white" />
+                <Pressable onPress={handleMessageMedia} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
+                    <Text style={tailwind`text-white`}>Send</Text>
+                </Pressable>
+            </View>
+           ):(
+            <View style={tailwind`flex-end flex-row items-center p-2  border bg-black  justify-evenly`}>
+                    <Text style={tailwind`text-white items-center`}>Only community admin can sent message.</Text>
+            </View>
+           )}
       {showEmojiSelect && (
         <EmojiSelector
         showSearchBar={false}
