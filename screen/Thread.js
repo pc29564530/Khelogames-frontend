@@ -45,6 +45,11 @@ const Thread = () => {
                 displayText = usernameInitial.toUpperCase();
                 setDisplayText(displayText);
               }
+              const timestamp  = item.created_at;
+              const timeDate = new Date(timestamp)
+              const options = { month:'long', day:'2-digit'}
+              const formattedTime = timeDate.toLocaleString('en-US', options)
+              item.created_at = formattedTime; 
               return { ...item, profile: profileResponse.data, displayText };
             });
             const threadsWithUserData = await Promise.all(threadUser);
