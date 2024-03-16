@@ -7,10 +7,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
 import { BASE_URL } from '../constants/ApiConstants';
+import {useSelector, useDispatch} from 'react-redux';
+import { getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
 
 function CommunityPage({route}) {
     const navigation = useNavigation();
-    const [joinedCommunity, setJoinedCommunity] = useState([]);
+    const dispatch = useDispatch();
+    const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity)
     const [memberCount, setMemeberCount] = useState(1);
     const axiosInstance = useAxiosInterceptor();
     const communityPageData = route.params?.item;
@@ -24,7 +27,8 @@ function CommunityPage({route}) {
                     'Content-Type': 'application/json'
                 }
             });
-            setJoinedCommunity(response.data);
+            dispatch(getJoinedCommunity(response.data))
+
         } catch (e) {
             console.error('Unable to get the joined communities', e);
         }
@@ -56,13 +60,14 @@ function CommunityPage({route}) {
     const handleJoinCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await axiosInstance.post(`${BASE_URL}/joinUserCommunity/${item}`, null, {
+            const response = await axiosInstance.post(`${BASE_URL}/joinUserCommunity/${item}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 }
             });
-            setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
+            dispatch(addJoinedCommunity(response.data));
+            
         } catch (err) {
             console.error(err);
         }
@@ -97,14 +102,14 @@ function CommunityPage({route}) {
                     </View>
                     <Pressable
                         style={tailwind` w-1/5 h-9 rounded-md  ${
-                            joinedCommunity.some(c => c.community_name === communityPageData.communities_name)
+                            joinedCommunity?.some(c => c.community_name === communityPageData.communities_name)
                                 ? 'bg-gray-500'
                                 : 'bg-blue-500'
                         } p-2 m-3 ml-20`}
                         onPress={() => handleJoinCommunity(communityPageData.communities_name)}
                     >
                         <Text style={tailwind`text-white pl-1.5`}>
-                            {joinedCommunity.some(c => c.community_name === communityPageData.communities_name) ? 'Joined' : 'Join'}
+                            {joinedCommunity?.some(c => c.community_name === communityPageData.communities_name) ? 'Joined' : 'Join'}
                         </Text>
                     </Pressable>
                 </View>

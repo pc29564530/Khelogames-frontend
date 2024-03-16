@@ -29,9 +29,16 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
             </View>
           )}
           <View style={tailwind`ml-3`}>
-            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
-            <Text style={tailwind`text-white`}>@{item.username}</Text>
+            <View>
+              <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
+            </View>
+            <View style={tailwind`flex-row gap-1`}>
+              <Text style={tailwind`text-white`}>@{item.username}</Text>
+              <Text style={tailwind`text-white`}>-</Text>
+              <Text style={tailwind`text-white`}>{item.created_at}</Text>
+            </View>
           </View>
+
         </Pressable>
       </View>
       <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>

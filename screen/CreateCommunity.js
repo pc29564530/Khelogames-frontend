@@ -6,6 +6,8 @@ import tailwind from 'twrnc';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { BASE_URL } from '../constants/ApiConstants';
+import { useSelector, useDispatch } from 'react-redux';
+import { addCommunity } from '../redux/actions/actions';
 
 function CreateCommunity () {
     const navigation = useNavigation();
@@ -13,8 +15,9 @@ function CreateCommunity () {
     const axiosInstance = useAxiosInterceptor();
     const [communityName, setCommunityName] = useState('');
     const [description, setDescription] = useState('');
+    const dispatch = useDispatch();
+    const community = useSelector((state) => state.community.community)
     const [communityType, setCommunityType] = useState(route.params?.communityType || 'Community Type');
-    const [community, setCommunity] = useState();
 
     const handleCreateCommunity = async () => {
         try {
@@ -26,7 +29,7 @@ function CreateCommunity () {
                     'Content-Type': 'application/json',
                 },
             });
-            setCommunity(response.data);
+            dispatch(addCommunity(response.data));
             setCommunityName('');
             setCommunityType('Communtiy Type');
             setDescription('');

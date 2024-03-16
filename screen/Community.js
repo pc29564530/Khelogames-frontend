@@ -6,15 +6,18 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import CreateCommunity from './CreateCommunity';
 import { BASE_URL } from '../constants/ApiConstants';
+import { useSelector, useDispatch } from 'react-redux';
+import { getAllCommunities, getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
 
 
 function Community () {
 
-    const [data, setData] = useState([]);
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
-    const [joinedCommunity, setJoinedCommunity] = useState([]);
+    const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity)
+    const community = useSelector((state)=>state.community.community)
     
     const fetchCommunityJoinedByUser = async () => {
         try {
@@ -25,8 +28,7 @@ function Community () {
                     'Content-Type': 'application/json'
                 }
             });
-    
-            setJoinedCommunity(response.data)
+            dispatch(getJoinedCommunity(response.data))
 
         } catch (e) {
             console.error('Unable to get the joined communities', e);
@@ -52,8 +54,8 @@ function Community () {
                     const words = item.communities_name.split(' ');
                     displayText = words[0].charAt(0).toUpperCase();
                     return {...item, displayText, displayText}
-                })
-                setData(communityWithDisplayText);
+                });
+                dispatch(getAllCommunities(communityWithDisplayText))
             }
         } catch (err) {
             console.error(err);
@@ -70,8 +72,7 @@ function Community () {
                     'Content-Type': 'application/json',
                 }
             });
-            setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
-            //use redux for joined community update
+            dispatch(addJoinedCommunity(response.data))
         } catch (err) {
             console.error(err);
         }
@@ -82,11 +83,10 @@ function Community () {
     }
 
     useEffect(() => {
-            fetchData();
             fetchCommunityJoinedByUser();
+            fetchData();    
     },[]);
-
-    return (
+    return (    
       <>
         <ScrollView  style={tailwind`flex-1 bg-black`}>
           {createCommunityScreen ? (
@@ -106,7 +106,7 @@ function Community () {
                 <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
             </View>
             <View style={tailwind`w-full  rounded-md pb-12 pl-2 pr-2`}>
-                {data.map((item,i) => (
+                {community?.map((item,i) => (
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-3 rounded-md h-20`} key={i}>
                         <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
                             <Text style={tailwind`text-red-500 text-6x3`}>
