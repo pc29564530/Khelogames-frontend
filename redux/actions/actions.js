@@ -143,3 +143,31 @@ export const getFollowerUser = (users) => {
         payload: users
     }
 }
+
+export const getJoinedCommunity = (community) => {
+    return {
+        type: 'JOINED_COMMUNITY',
+        payload: community
+    }
+}
+
+export const getAllCommunities = (community) => {
+    return {
+        type: 'COMMUNITY',
+        payload: community
+    }
+}
+
+export const addCommunity = (community) => {
+    return {
+        type: 'ADD_COMMUNITY',
+        payload: community
+    }
+}
+
+export const addJoinedCommunity = (community) => {
+    return {
+        type: 'ADD_JOINED_COMMUNITY',
+        payload: community
+    }
+}
