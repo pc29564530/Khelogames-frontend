@@ -25,4 +25,8 @@ export const JOINED_COMMUNITY = 'JOINED_COMMUNITY';
 export const COMMUNITY = 'COMMUNITY';
 export const ADD_COMMUNITY = 'ADD_COMMUNITY';
 export const ADD_JOINED_COMMUNITY = 'GET_JOINED_COMMUNITY';
+export const SET_PROFILE_AVATAR = 'SET_PROFILE_AVATAR';
+export const SET_EDIT_FULL_NAME = 'SET_EDIT_FULL_NAME';
+export const SET_EDIT_DESCRIPTION = 'SET_EDIT_DESCRIPTION';
+export const GET_PROFILE = 'GET_PROFILE';
 //added create new community

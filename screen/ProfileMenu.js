@@ -3,9 +3,9 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
+import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -21,6 +21,7 @@ function ProfileMenu() {
   const following = useSelector((state) => state.user.following);
 
   const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
+  const profile = useSelector((state) => state.profile.profile)
   const [showLogoutButton, setShowLogoutButton] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [showMyCommunity, setShowMyCommunity] = useState(false);
@@ -129,7 +130,7 @@ function ProfileMenu() {
       } else {
         setDisplayText('');
       }
-
+      dispatch(getProfile(response.data));
       setProfileData(response.data);
     } catch (err) {
       console.error('Unable to fetch the profile data: ', err);
@@ -140,21 +141,23 @@ function ProfileMenu() {
     navigation.navigate('CommunityPage', {communityData: item})
   }
 
-  useEffect(() => {
-    setIsFollowing(following.some((item) => item === following_owner));
-    const verifyUser = async () => {
-      const authUser = await AsyncStorage.getItem('User');
-      console.log('Current User:', authUser);
-      if (following_owner === undefined || following_owner === null) {
-        setShowLogoutButton(true);
-        setCurrentUser(authUser);
-      } else {
-        setCurrentUser(following_owner);
-      }
-    };
-    fetchProfileData();
-    verifyUser();
-  }, []);
+  useFocusEffect(
+    React.useCallback(()=>{
+      setIsFollowing(following.some((item) => item === following_owner));
+      const verifyUser = async () => {
+        const authUser = await AsyncStorage.getItem('User');
+        console.log('Current User:', authUser);
+        if (following_owner === undefined || following_owner === null) {
+          setShowLogoutButton(true);
+          setCurrentUser(authUser);
+        } else {
+          setCurrentUser(following_owner);
+        }
+      };
+      fetchProfileData();
+      verifyUser();
+    }, [])
+  );
 
   useEffect(() => {
     const followerCount = async () => {
@@ -191,12 +194,6 @@ function ProfileMenu() {
 
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
-      {/* <View style={tailwind`flex-row items-end justify-between`}>
-        <Text style={tailwind`font-bold text-lgr text-white`}>Profile Menu</Text>
-        <Pressable onPress={handleClose}>
-          <FontAwesome name="close" color="white" size={24} />
-        </Pressable>
-      </View> */}
 
       <View style={tailwind`mb-5 items-left mt-5`}>
         {profileData && profileData.avatar_url ? (

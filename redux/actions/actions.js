@@ -171,3 +171,32 @@ export const addJoinedCommunity = (community) => {
         payload: community
     }
 }
+
+export const setEditFullName = (full_name) => {
+    console.log("Action: ",full_name)
+    return {
+        type: 'SET_EDIT_FULL_NAME',
+        payload: full_name
+    }
+}
+
+export const setEditDescription = (description) => {
+    return {
+        type: 'SET_EDIT_DESCRIPTION',
+        payload: description
+    }
+}
+
+export const setProfileAvatar = (url) => {
+    return {
+        type: 'SET_PROFILE_AVATAR',
+        payload: url
+    }
+}
+
+export const getProfile = (profile) => {
+    return {
+        type: 'GET_PROFILE',
+        payload: profile
+    }
+}
