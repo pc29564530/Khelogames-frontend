@@ -8,6 +8,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector, useDispatch } from 'react-redux';
 import { addCommunity } from '../redux/actions/actions';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 function CreateCommunity () {
     const navigation = useNavigation();
@@ -55,12 +57,24 @@ function CreateCommunity () {
             backgroundColor:'black'
         },
         headerTintColor:'white',
+        headerLeft: ()=> (
+            <View style={tailwind`flex-row items-center gap-35 p-2`}>
+                <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+            </View>
+        ),
         headerRight:() => (
-            <Pressable onPress={handleSelectCommunity} style={tailwind`rounded-md w-2/5 bg-gray-400 p-2 mr-34`}>
-                <Text style={tailwind`text-white`}>{communityType}</Text>
-            </Pressable>
+            <View style={tailwind`flex-row items-center mr-2 gap-18`}>
+                <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
+                    <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
+                    <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
+                </Pressable>
+                <Pressable style={tailwind`p-2`} onPress={handleCreateCommunity}>
+                    <MaterialIcons name="send" size={24} color="white" />
+                </Pressable>
+            </View>
         ),
     });
+
     
     return (
         <View style={tailwind`flex-1 bg-black`}>
@@ -69,12 +83,9 @@ function CreateCommunity () {
                     <Text style={tailwind`text-xl text-white`} >Create a New Community</Text>
                     <Text style={tailwind`mb-5 text-white`}>This is place where a people with similar field area connect with each other.</Text>
                 </View>
-                <View style={tailwind`m-1 pl-6`}>
-                    <TextInput  style={tailwind`p-3 m-6 bg-gray-300 border rounded-md w-4/5 border-gray-500 font-bold text-white bg-black`} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Community Name" placeholderTextColor="white" />
-                    <TextInput style={tailwind`p-3 m-6 bg-gray-300 border border-gray-500 rounded-md w-4/5 font-bold text-white bg-black`} type="input" value={description} onChangeText={setDescription} placeholder="Description" placeholderTextColor="white" />
-                    <Pressable style={tailwind`p-3 ml-24 mt-5 bg-gray-400 rounded-md w-2/5`} onPress={handleCreateCommunity}>
-                        <Text style={tailwind`text-white`}>Create Community</Text>
-                    </Pressable>
+                <View style={tailwind`m-1 `}>
+                    <TextInput  style={tailwind`p-2 m-3 bg-gray-300 w-full border-gray-500 font-bold text-xl text-white bg-black`} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Give the name to community" placeholderTextColor="white" />
+                    <TextInput style={tailwind`p-2 m-3 bg-gray-300 w-full text-white text-lg bg-black`} type="input" value={description} onChangeText={setDescription} placeholder="Write something about the community" placeholderTextColor="white" />
                 </View>
             </View>
         </View>
