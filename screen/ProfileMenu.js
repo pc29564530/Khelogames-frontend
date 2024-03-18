@@ -205,10 +205,10 @@ function ProfileMenu() {
         )}
         <Text style={tailwind`pt-5 pl-2 text-2xl font-bold text-left text-white`}>{profileData.full_name}</Text>
         <Text style={tailwind`pl-2 text-2xl text-white`}>@{currentUser}</Text>
-        <View style={tailwind`flex-row justify-between content-center pl-2 pt-5 text-white`}>
-          <Text style={tailwind`font-bold text-lg text-white`}>{followerCount} Followers</Text>
-          <Text style={tailwind`font-bold text-lg text-white`}> | </Text>
-          <Text style={tailwind`font-bold text-lg text-white`}>{followingCount} Following</Text>
+        <View style={tailwind`flex-row justify-between content-center pl-2 pr-2 pt-5 text-white`}>
+          <Text style={tailwind` text-lg text-white`}>{followerCount} Followers</Text>
+          <Text style={tailwind` text-lg text-white`}> | </Text>
+          <Text style={tailwind` text-lg text-white`}>{followingCount} Following</Text>
         </View>
         <View style={tailwind`border-b border-white mt-2`}></View>
       </View>
@@ -242,8 +242,8 @@ function ProfileMenu() {
           </View>
       </ScrollView>
       {/* //logout button */}
-      <View style={tailwind`pl-5 mt-10`}>
-        <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-30 bg-gray-500 p-4 rounded-2xl w-40 items-center`}>
+      <View style={tailwind` mt-10 items-center`}>
+        <TouchableOpacity onPress={() => handleLogout()} style={tailwind` bg-gray-500 p-2 rounded-2xl w-40 items-center`}>
           <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
         </TouchableOpacity>
       </View>
