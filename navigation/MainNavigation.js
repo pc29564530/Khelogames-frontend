@@ -22,6 +22,11 @@ import Shorts from '../screen/Shorts';
 import Message from '../screen/Message';
 import MessagePage from '../screen/MessagePage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Club from '../screen/Club';
+import CreateClub from '../screen/CreateClub';
+import ClubPage from '../screen/ClubPage';
+
+// import Fixture from '../screen/Fixture';
 
 const Stack = createStackNavigator();
 
@@ -87,6 +92,13 @@ export default function MainNavigation() {
                         <Stack.Screen name="CommunityType" component={CommunityType} />
                         <Stack.Screen name="Message" component={Message} />
                         <Stack.Screen name="MessagePage" component={MessagePage} />
+                        <Stack.Screen name="Club" component={Club} />
+                        <Stack.Screen name="CreateClub" component={CreateClub} />
+                        <Stack.Screen name="ClubPage" component={ClubPage} />
+                        {/* <Stack.Screen name="Fixture" component={Fixture} />
+                        <Stack.Screen name="Media" component={Media} />
+                        <Stack.Screen name="Stats" component={Stats} />
+                        <Stack.Screen name="Members" component={Members} /> */}
                     </>
                 ):(
                     <>

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
@@ -189,14 +190,12 @@ function ProfileMenu() {
     followingCount();
   }, []);
 
+  const handleClubPage = () => {
+    navigation.navigate('Club')
+  }
+
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
-      {/* <View style={tailwind`flex-row items-end justify-between`}>
-        <Text style={tailwind`font-bold text-lgr text-white`}>Profile Menu</Text>
-        <Pressable onPress={handleClose}>
-          <FontAwesome name="close" color="white" size={24} />
-        </Pressable>
-      </View> */}
 
       <View style={tailwind`mb-5 items-left mt-5`}>
         {profileData && profileData.avatar_url ? (
@@ -217,10 +216,14 @@ function ProfileMenu() {
       </View>
       <ScrollView>
           {/* // profile and other content list */}
-          <View style={tailwind`mb-5 items-left mt-4`}>
-            <Pressable onPress={handleProfilePage} style={tailwind`pt-5 pl-2 font-bold text-left pb-2 flex-row`}>
+          <View style={tailwind`mb-1 items-left mt-1`}>
+            <Pressable onPress={handleProfilePage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
               <FontAwesome name='user' size={24} color="white" style={tailwind`mt-1`} />
               <Text style={tailwind`text-2xl text-white pl-4`}>Profile</Text>
+            </Pressable>
+            <Pressable onPress={handleClubPage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
+              <AntDesign name='team' size={24} color="white" style={tailwind`mt-1`} />
+              <Text style={tailwind`text-2xl text-white pl-4`}>Club/Team</Text>
             </Pressable>
             <View style={tailwind`border-b border-white`}></View>
           </View>
