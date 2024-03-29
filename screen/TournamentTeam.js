@@ -22,7 +22,6 @@ const TournamentTeam = ({route}) => {
                         'Content-Type': 'content-type'
                     }
                 })
-                console.log("Temas: ", response.data)
                 setTeams(response.data)
     
             } catch (err) {
@@ -36,7 +35,7 @@ const TournamentTeam = ({route}) => {
     }
     return (
         <ScrollView style={tailwind`flex-1 mt-2`}>
-            {teams.map((item, index) => (
+            {teams?.map((item, index) => (
                 <Pressable key={index} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-2 flex-row justify-between`} onPress={() => {handleTeam(item)}}>
                     <View style={tailwind`flex-row items-center`}>
                         <Image src="/home/users/pawan" style={tailwind`rounded-full shadow-lg h-14 w-14 bg-pink-200`} />

@@ -27,8 +27,8 @@ const TournamentMatches = ({route}) => {
     const [organizerID, setOrganizerID] = useState(null);
     const [allMatchs, setAllMatchs] = useState([]);
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
+    const [sport, setSport] = useState('');
 
-    useEffect(() => {
     const fetchTournamentOrganizer = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken')
@@ -39,16 +39,13 @@ const TournamentMatches = ({route}) => {
                         'Content-Type':'application/json'
                     }
                 })
-                console.log("response: ", response.data)
                 const item = response.data;
                 const orgazinerName = item.map((item) => item.organizer_name);
                 const isAdmin = orgazinerName.includes(currentUser)
                 setAdmin(isAdmin);
                 setCurrentUser(user);
-                console.log("Organizer; ", item)
                 
                 if(isAdmin) {
-                    console.log("is IUteL ",item)
                     item.map((it) => {
                         if(it.organizer_name === currentUser) {
                             setOrganizerID(it.organizer_id);
@@ -61,8 +58,6 @@ const TournamentMatches = ({route}) => {
                 console.log("unable to fetch the organizer: ", err)
             }
         }
-        fetchTournamentOrganizer();
-    }, []);
 
     const showDate = () => {
         setShowDatePicker(true);
@@ -93,20 +88,20 @@ const TournamentMatches = ({route}) => {
           setShowDatePicker(false)
         }
       };
-    // console.log("Date: ", date)
-    console.log("Date: ", date)
-    console.log("Time: ", time)
 
     const fetchTournamentMatchs = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
             const response = await axiosInstance.get(`${BASE_URL}/getAllTournamentMatch`, {
+                params:{
+                    tournament_id:tournament.tournament_id,
+                    sports: tournament.sport_type
+                },
                 headers: {
                     'Authorization':`bearer ${authToken}`,
                     'Content-Type':'application/json'
                 }
             })
-            console.log("response: hj : ", response.data)
             const item = response.data;
             const allMatchData = item.map( async (item) => {
                 try {
@@ -124,55 +119,41 @@ const TournamentMatches = ({route}) => {
                             'Content-Type':'application/json'
                         }
                     })
-                    
-                    console.log("response1: ", response1.data)
-                    console.log("response2: ", response2.data)
 
                     return {...item, team1_name:response1.data.club_name, team2_name: response2.data.club_name}
-                    
-                    // setTeams(response.data);
                 } catch (err) {
                     console.error("unable to select the team or club name: ", err);
                 }
-
-
-                
-
             })
             const data = await Promise.all(allMatchData)
-            console.log("Data: ", data)
             setTournamentTeamData(data)
-           console.log("All Match: ", item)
-            
-
         } catch (err) {
             console.log("unable to fetch the organizer: ", err)
         }
     }
 
-      useEffect(() => {
-        const fetchTournamentTeams = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getTeams/${tournament.tournament_id}`, null, {
-                    headers: {
-                        'Authorization':`bearer ${authToken}`,
-                        'Content-Type':'application/json'
-                    }
-                })
-                console.log("teams: ", response.data)
-                
-                setTeams(response.data);
-            } catch (err) {
-                console.error("unable to select the team or club name: ", err);
-            }
+    const fetchTournamentTeams = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getTeams/${tournament.tournament_id}`, null, {
+                headers: {
+                    'Authorization':`bearer ${authToken}`,
+                    'Content-Type':'application/json'
+                }
+            })
+            setTeams(response.data);
+        } catch (err) {
+            console.error("unable to select the team or club name: ", err);
         }
-        fetchTournamentTeams()
-        fetchTournamentMatchs()
-      }, []);
+    }
+
+    useEffect(() => {
+        fetchTournamentTeams();
+        fetchTournamentMatchs();
+        fetchTournamentOrganizer();
+    }, []);
 
       const handleSelectTeam = (item) => {
-        console.log("Item: Team: ", item)
         if(modalType === 'team1') {
             setTeam1(item.id);
             
@@ -191,9 +172,9 @@ const TournamentMatches = ({route}) => {
                     team2_id: team2,
                     date_on: date,
                     start_at: time,
-                    stage:''
+                    stage:'',
+                    sports:tournament.sport_type
                 }
-                console.log("Fixture: ", fixture)
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.post(`${BASE_URL}/createTournamentMatch`, fixture,{
                     headers: {
@@ -201,18 +182,14 @@ const TournamentMatches = ({route}) => {
                         'Content-Type':'application/json'
                     }
                 })
-                console.log(response.data)
             } catch (err) {
                 console.error("unable to set the fixture : ", err);
             }
       }
-
-      console.log("modal: ", isModalVisible)
     return (
         <View style={tailwind`flex-1 mt-1 items-center justify-center`}>
            {admin && (
             <View style={tailwind`rounded-lg shadow-lg bg-orange-200 p-4 mb-4 w-80`}>
-                
                <Pressable onPress={showDate} style={tailwind`mb-2`}>
                     <MaterialIcons name="date-range" size={24} color="black" />
                </Pressable>
@@ -271,13 +248,17 @@ const TournamentMatches = ({route}) => {
             </View>
            )}
             <View >
-                {tournamentTeamData.map((item,index) => (
-                    <Pressable key={index} style={tailwind`mt-4 rounded-lg bg-purple-300  p-4 flex-row items-center justify-evenly`}>
+            {tournamentTeamData.length > 0 ? (
+                tournamentTeamData.map((item, index) => (
+                    <Pressable key={index} style={tailwind`mt-4 rounded-lg bg-purple-300 p-4 flex-row items-center justify-evenly`}>
                         <Text style={tailwind`text-xl`}>{item.team1_name}</Text>
                         <Text style={tailwind`text-xl`}>vs</Text>
                         <Text style={tailwind`text-xl`}>{item.team2_name}</Text>
                     </Pressable>
-                ))}
+                ))
+            ) : (
+                <Text>Loading matches...</Text>
+            )}
             </View>
         </View>
     );
