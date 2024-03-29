@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -194,6 +195,10 @@ function ProfileMenu() {
     navigation.navigate('Club')
   }
 
+  const handleTournamentPage = () => {
+    navigation.navigate("Tournament");
+  }
+
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
 
@@ -214,7 +219,7 @@ function ProfileMenu() {
         </View>
         <View style={tailwind`border-b border-white mt-2`}></View>
       </View>
-      <ScrollView>
+      <ScrollView style={tailwind}>
           {/* // profile and other content list */}
           <View style={tailwind`mb-1 items-left mt-1`}>
             <Pressable onPress={handleProfilePage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
@@ -224,6 +229,10 @@ function ProfileMenu() {
             <Pressable onPress={handleClubPage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
               <AntDesign name='team' size={24} color="white" style={tailwind`mt-1`} />
               <Text style={tailwind`text-2xl text-white pl-4`}>Club/Team</Text>
+            </Pressable>
+            <Pressable onPress={handleTournamentPage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
+              <MaterialCommunityIcons name='tournament' size={24} color="white" style={tailwind`mt-1`} />
+              <Text style={tailwind`text-2xl text-white pl-4`}>Tournament</Text>
             </Pressable>
             <View style={tailwind`border-b border-white`}></View>
           </View>
@@ -246,13 +255,14 @@ function ProfileMenu() {
               </ScrollView>
             )}
           </View>
+          <View style={tailwind`pl-5 mt-10`}>
+            <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-30 bg-gray-500 p-4 rounded-2xl w-40 items-center`}>
+              <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
+            </TouchableOpacity>
+        </View>
       </ScrollView>
       {/* //logout button */}
-      <View style={tailwind`pl-5 mt-10`}>
-        <TouchableOpacity onPress={() => handleLogout()} style={tailwind`pl-30 bg-gray-500 p-4 rounded-2xl w-40 items-center`}>
-          <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+      
     </View>
   );
 }
