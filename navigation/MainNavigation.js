@@ -25,6 +25,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Club from '../screen/Club';
 import CreateClub from '../screen/CreateClub';
 import ClubPage from '../screen/ClubPage';
+import Tournament from '../screen/Tournament';
+import TournamentPage from '../screen/TournamentPage';
+import CreateTournament from '../screen/CreateTournament';
 
 // import Fixture from '../screen/Fixture';
 
@@ -95,10 +98,9 @@ export default function MainNavigation() {
                         <Stack.Screen name="Club" component={Club} />
                         <Stack.Screen name="CreateClub" component={CreateClub} />
                         <Stack.Screen name="ClubPage" component={ClubPage} />
-                        {/* <Stack.Screen name="Fixture" component={Fixture} />
-                        <Stack.Screen name="Media" component={Media} />
-                        <Stack.Screen name="Stats" component={Stats} />
-                        <Stack.Screen name="Members" component={Members} /> */}
+                        <Stack.Screen name="Tournament" component={Tournament} />
+                        <Stack.Screen name="TournamentPage" component={TournamentPage} />
+                        <Stack.Screen name="CreateTournament" component={CreateTournament} />
                     </>
                 ):(
                     <>
