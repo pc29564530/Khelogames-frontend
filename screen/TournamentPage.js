@@ -98,7 +98,7 @@ const TournamentPage = ({ route }) => {
             >
                 { showSearchInput? (
                     <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
-                        { teams.length>0 && teams.map((item, index) => (
+                        { teams?.length>0 && teams.map((item, index) => (
                             <Pressable key={index} style={tailwind` bg-red-500`} onPress={() => handleSetTeamTournament(item)} >
                                 <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
                             </Pressable>

@@ -7,7 +7,6 @@ import TournamentTeam from '../screen/TournamentTeam';
 
 function TopTabCricket({tournament}) {
     const TopTab = createMaterialTopTabNavigator();
-    console.log("TopTobFootball: ", tournament)
     return (
         <TopTab.Navigator
                 screenOptions={{
@@ -37,5 +36,4 @@ function TopTabCricket({tournament}) {
         </TopTab.Navigator>
     );
 }
-
-export {TopTabFootball};
+export default TopTabCricket;

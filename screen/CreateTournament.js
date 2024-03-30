@@ -49,6 +49,7 @@ const CreateTournament = () => {
             console.log("Tournament: ", data)
 
             const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.post(`${BASE_URL}/createTournament`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -57,6 +58,16 @@ const CreateTournament = () => {
             });
             const item = response.data;
             setTournament(item)
+            const organizerData = {
+                organizer_name:user,
+                tournament_id: item.tournament_id
+            }
+            const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
             navigation.goBack();
 
         } catch (err) {

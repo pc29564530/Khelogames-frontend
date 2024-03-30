@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRef } from 'react';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -11,17 +11,31 @@ import { BASE_URL } from '../constants/ApiConstants';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
+const createRow = (items, itemInRow) => {
+    const row=[];
+    for(let i=0;i<items.length; i+=itemInRow) {
+        row.push(items.slice(i, i+itemInRow));
+    }
+    return row;
+}
+
 const Club = () => {
     const navigation = useNavigation();
     const scrollViewRef = useRef(null);
     const axiosInstance = useAxiosInterceptor();
     const [clubs, setClubs] = useState([]);
+    const [sport, setSport] = useState('Football');
+    
 
     useEffect(() => {
+        const screenWith = Dimensions.get('window').width
+        const itemWidth = 100;
+        const itemInRow = Math.floor(screenWith/itemWidth);
+        
         const getClubData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getClubs`,{
+                const response = await axiosInstance.get(`${BASE_URL}/getClubsBySport/${sport}`,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -42,8 +56,8 @@ const Club = () => {
                         return {...item, displayText: displayText}
                     });
                     const clubData = await Promise.all(clubWithDisplayText)
-                    console.log("ClubData: ", clubData)
-                    setClubs(clubData);
+                    const allClubs = createRow(clubData,itemInRow)
+                    setClubs(allClubs);
                 }
             } catch (err) {
                 console.error("unable to fetch all team or club: ", err);
@@ -51,7 +65,7 @@ const Club = () => {
         }
         
         getClubData()
-    }, [])
+    }, [sport])
 
     navigation.setOptions({
         headerTitle:'Club'
@@ -68,6 +82,10 @@ const Club = () => {
     const handleClub = (item) => {
         navigation.navigate('ClubPage', {item: item})
     }
+
+    const handleSport = (item) => {
+        setSport(item)
+    }
     
     return (
         <View style={tailwind`flex-1 `}>
@@ -76,37 +94,32 @@ const Club = () => {
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     ref={scrollViewRef}
-                    contentContainerStyle={tailwind`flex-row justify-between ml-2 mr-2`}
+                    contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                 >
                     {sports.map((item, index) => (
-                        <View key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2`}>
+                        <Pressable key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2 ml-2`} onPress={() => handleSport(item)}>
                             <Text style={tailwind`text-black`}>{item}</Text>
-                        </View>
+                        </Pressable>
                     ))}
                 </ScrollView>
                 <Pressable onPress={scrollRight} style={tailwind`justify-center ml-2`}>
                     <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                 </Pressable>
             </View>
-            <View style={tailwind`mt-5`}>
-                <Pressable style={tailwind`flex-row border rounded-md w-25 items-center justify-center ml-4`}>
-                        <Text style={tailwind`text-lg`}>Filter</Text>
-                        <MaterialIcons name="keyboard-arrow-down" size={30} color="black" />
-                </Pressable>
-            </View>
             <View style={tailwind`p-4 relative gap-4`}>
-                <View>
-                    {clubs.map((item,index) => (
-                        <>
-                            <Pressable key={index} style={tailwind`border rounded-md h-20 w-20 items-center justify-center`} onPress={()=> handleClub(item)}>
-                                <Text style={tailwind`text-black text-5xl items-center justify-center`}>{item.displayText}</Text>
-                            </Pressable>
-                            <View style={tailwind``}>
-                                <Text style={tailwind`text-lg text-black`}>{item.club_name}</Text>
-                            </View>
-                        </>
+                {clubs.map((clubRow, index) => (
+                        <View key={index} style={tailwind`flex-row gap-4`}>
+                            {clubRow.map((item, subIndex) => (
+                                <View style={tailwind`w-relative`}>
+                                    <Pressable key={subIndex} style={tailwind`border rounded-md h-20 w-20 items-center justify-center`} onPress={() => handleClub(item)}>
+                                        <Text style={tailwind`text-black text-5xl items-center justify-center`}>{item.avatar_url ? <Image source={{ uri: item.avatar_url }} style={{ width: 100, height: 100 }} /> : item.club_name.charAt(0).toUpperCase()}</Text>
+                                    </Pressable>
+                                    <Text style={tailwind`text-sm w-20 items-center`}>{item.club_name}</Text>
+                                </View>
+                                
+                            ))}
+                        </View>
                     ))}
-                </View>
             </View>
             <Pressable onPress={handleAddClub} style={tailwind`absolute bottom-5 right-5 p-4 border rounded-full w-20 h-20 bg-white items-center justify-center`}>
                 <MaterialIcons name="add" size={40} color="black"/>
