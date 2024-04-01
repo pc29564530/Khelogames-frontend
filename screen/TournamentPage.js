@@ -93,8 +93,9 @@ const TournamentPage = ({ route }) => {
     }
     return (
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                scrollEnabled={scrollEnabled}
+                contentContainerStyle={{height:870 }}
+                scrollEnabled={true}
+                showsVerticalScrollIndicator={true}
             >
                 { showSearchInput? (
                     <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
@@ -105,8 +106,8 @@ const TournamentPage = ({ route }) => {
                         ))}
                     </View>
                 ):(
-                    <>
-                        <View style={tailwind`justify-center ml-2 mr-2 items-center p-16`}>
+                    <View style={tailwind`flex-1`}>
+                        <View style={tailwind`justify-center ml-2 mr-2 items-center p-10`}>
                             <View style={tailwind`border rounded-full h-20 w-20 bg-red-400 items-center justify-center`}>
                                 <Text style={tailwind``}>Text</Text>
                             </View>
@@ -119,8 +120,9 @@ const TournamentPage = ({ route }) => {
                                 <Text style={tailwind`text-lg`}>{tournament.sport_type}</Text>
                             </View>
                         </View>
-                        {checkSport()}
-                    </>
+                        <View style={tailwind`flex-1`}>{checkSport()}</View>
+                        
+                    </View>
                 )}
             </ScrollView>
     );
