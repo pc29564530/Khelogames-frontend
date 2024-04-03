@@ -4,21 +4,23 @@ import TournamentFootballInfo from '../screen/TournamentFootballInfo';
 import TournamentMatches from '../screen/TournamentMatches';
 import TournamentFootballStats from '../screen/TournamentFootballStats';
 import TournamentTeam from '../screen/TournamentTeam';
+import TournamentStanding from '../screen/TournamentStanding';
 
 function TopTabFootball({tournament}) {
     const TopTab = createMaterialTopTabNavigator();
-    console.log("TopTobFootball: ", tournament)
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black`,
-                    tabBarStyle:tailwind`bg-white`,
-                    headerShown:true
+                    tabBarActiveTintColor: '#e91e63',
+                    tabBarLabelStyle: { fontSize: 16 },
+                    tabBarStyle: { backgroundColor: 'powderblue' },
+                    tabBarScrollEnabled:true
                 }}
             >   
                 <TopTab.Screen 
                     name="Info"
                     component={TournamentFootballInfo}
+                    initialParams={{tournament:tournament}}
                 /> 
                 <TopTab.Screen 
                     name="Team"
@@ -32,6 +34,11 @@ function TopTabFootball({tournament}) {
                 <TopTab.Screen 
                     name="Matches"
                     component={TournamentMatches}
+                    initialParams={{tournament:tournament}}
+                />
+                <TopTab.Screen 
+                    name="Standing"
+                    component={TournamentStanding}
                     initialParams={{tournament:tournament}}
                 />
         </TopTab.Navigator>
