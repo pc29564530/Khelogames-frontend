@@ -109,7 +109,7 @@ const TournamentPage = ({ route }) => {
                     <View style={tailwind`flex-1`}>
                         <View style={tailwind`justify-center ml-2 mr-2 items-center p-10`}>
                             <View style={tailwind`border rounded-full h-20 w-20 bg-red-400 items-center justify-center`}>
-                                <Text style={tailwind``}>Text</Text>
+                                <Text style={tailwind`text-2xl`}>{tournament.displayText}</Text>
                             </View>
                             <View style={tailwind`mt-2`}>
                                 <Text style={tailwind`text-xl`}>{tournament.tournament_name}</Text>
