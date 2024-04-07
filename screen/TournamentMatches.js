@@ -135,6 +135,10 @@ const TournamentMatches = ({ route }) => {
         }
     };
 
+    const handleCloseFixtureModal = () => {
+        setIsModalVisible(false);
+    }
+
     return (
         <ScrollView 
             contentContainerStyle={{flexGrow:1}}
@@ -151,12 +155,13 @@ const TournamentMatches = ({ route }) => {
                 )}
             </View>
             {isModalVisible && (
-                <Modal transparent={true} animationType='slide' visible={isModalVisible}>
+                <Modal transparent={true} animationType='slide' visible={isModalVisible} onRequestClose={handleCloseFixtureModal}>
                     <View style={tailwind`flex-1 justify-center bg-black bg-opacity-50`}>
                         <CreateFixtue
                             tournament={tournament}
                             teams={teams}
                             organizerID={organizerID}
+                            handleCloseFixtureModal={handleCloseFixtureModal}
                         />
                     </View>
                 </Modal>

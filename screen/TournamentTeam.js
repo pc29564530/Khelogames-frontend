@@ -59,9 +59,8 @@ const TournamentTeam = ({ route }) => {
                 tournament_id: tournament.tournament_id,
                 team_id: item
             };
-            console.log("adding the team: ", addTeam);
             const authToken = await AsyncStorage.getItem('AccessToken');
-            await axiosInstance.post(`${BASE_URL}/addTeam/`, addTeam, {
+            const response = await axiosInstance.post(`${BASE_URL}/addTeam`, addTeam, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -82,17 +81,18 @@ const TournamentTeam = ({ route }) => {
 
     return (
             <ScrollView style={tailwind`mt-4`}>
-                <View style={tailwind`mt-2`}>
-                    <Pressable onPress={handleTeamModal} style={tailwind`p-4 rounded-lg shadow-lg w-40 items-center pb-2 justify-center ml-60 `}>
-                        <Text style={tailwind`text-md p-2`}>Select Team</Text>
-                    </Pressable>
-                </View>
-                <View>
-                    {teams.map((item, index) => (
-                        <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
-                    ))}
-                </View>
-                
+                <ScrollView>
+                    <View style={tailwind`mt-2`}>
+                        <Pressable onPress={handleTeamModal} style={tailwind`p-4 rounded-lg shadow-lg w-40 items-center pb-2 justify-center ml-60 `}>
+                            <Text style={tailwind`text-md p-2`}>Select Team</Text>
+                        </Pressable>
+                    </View>
+                    <View>
+                        {teams.map((item, index) => (
+                            <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
+                        ))}
+                    </View>
+                </ScrollView>
                 {isModalVisible && (
                     <Modal
                         transparent={true}

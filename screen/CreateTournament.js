@@ -8,6 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
+import { useNavigation } from '@react-navigation/native';
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
@@ -17,6 +18,7 @@ const CreateTournament = () => {
     const [format, setFormat] = useState('');
     const [sport, setSport] = useState('');
     const axiosInstance = useAxiosInterceptor();
+    const navigation = useNavigation();
     const formats = ['knockout', 'league', 'league+knockout', 'gourps+knockout', 'custom'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
@@ -68,7 +70,7 @@ const CreateTournament = () => {
                     'Content-Type': 'application/json',
                 },
             })
-            navigation.goBack();
+            navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
 
         } catch (err) {
             console.log("unable to create a new tournament ", err);
@@ -91,7 +93,6 @@ const CreateTournament = () => {
                         </Pressable>
                     </View>
                 </Pressable>
-
             </View>
             <View style={tailwind`mt-2`}>
                 <TextInput 
@@ -117,7 +118,7 @@ const CreateTournament = () => {
                 </View>
                 {/* Submit button */}
                 <Pressable style={tailwind`border rounded-md`} onPress={handleCreatedTournament}>
-                    <Text style={tailwind`text-lg p-1 bg-pink-300`}>Submit</Text>
+                    <Text style={tailwind`text-lg p-1 bg-pink-300`}>Next</Text>
                 </Pressable>
             </View>
             {/* Format selection modal */}

@@ -28,6 +28,7 @@ import ClubPage from '../screen/ClubPage';
 import Tournament from '../screen/Tournament';
 import TournamentPage from '../screen/TournamentPage';
 import CreateTournament from '../screen/CreateTournament';
+import TournamentDescription from '../screen/TournamentDescription';
 
 // import Fixture from '../screen/Fixture';
 
@@ -101,6 +102,7 @@ export default function MainNavigation() {
                         <Stack.Screen name="Tournament" component={Tournament} />
                         <Stack.Screen name="TournamentPage" component={TournamentPage} />
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
+                        <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                     </>
                 ):(
                     <>

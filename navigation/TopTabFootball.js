@@ -11,9 +11,9 @@ function TopTabFootball({tournament}) {
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarActiveTintColor: '#e91e63',
-                    tabBarLabelStyle: { fontSize: 16 },
-                    tabBarStyle: { backgroundColor: 'powderblue' },
+                    tabBarLabelStyle:tailwind`text-black text-md`,
+                    tabBarStyle:tailwind`bg-white`,
+                    headerShown:true,
                     tabBarScrollEnabled:true
                 }}
             >   
