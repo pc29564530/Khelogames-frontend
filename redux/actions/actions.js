@@ -143,3 +143,60 @@ export const getFollowerUser = (users) => {
         payload: users
     }
 }
+
+export const getJoinedCommunity = (community) => {
+    return {
+        type: 'JOINED_COMMUNITY',
+        payload: community
+    }
+}
+
+export const getAllCommunities = (community) => {
+    return {
+        type: 'COMMUNITY',
+        payload: community
+    }
+}
+
+export const addCommunity = (community) => {
+    return {
+        type: 'ADD_COMMUNITY',
+        payload: community
+    }
+}
+
+export const addJoinedCommunity = (community) => {
+    return {
+        type: 'ADD_JOINED_COMMUNITY',
+        payload: community
+    }
+}
+
+export const setEditFullName = (full_name) => {
+    console.log("Action: ",full_name)
+    return {
+        type: 'SET_EDIT_FULL_NAME',
+        payload: full_name
+    }
+}
+
+export const setEditDescription = (description) => {
+    return {
+        type: 'SET_EDIT_DESCRIPTION',
+        payload: description
+    }
+}
+
+export const setProfileAvatar = (url) => {
+    return {
+        type: 'SET_PROFILE_AVATAR',
+        payload: url
+    }
+}
+
+export const getProfile = (profile) => {
+    return {
+        type: 'GET_PROFILE',
+        payload: profile
+    }
+}

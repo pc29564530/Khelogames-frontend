@@ -58,6 +58,7 @@ function Comment({thread}) {
 
     return (
         <View style={tailwind`flex-1 bg-black`}>
+            <Text style={tailwind`flex-1 h-10 text-white text-6x3 mt-3`}>Comments</Text>
             <View style={tailwind`flex-1 items-center p-1`}>
                 {comments?.map((item, i) => (
                     <View  style={tailwind`p-2 m-0.5 w-full`} key={i}>
@@ -71,12 +72,11 @@ function Comment({thread}) {
                                     </Text>
                               </View>
                             )}
-                            <View style={tailwind`px-2 w-75 bg-gray-400 rounded`}>
-                                <Text style={tailwind`text-white font-bold`}>{item.profile?.full_name}</Text>
+                            <View style={tailwind`px-2 w-75`}>
+                                <Text style={tailwind`text-white font-bold text-4x2`}>{item.profile?.full_name}</Text>
                                 <Text style={tailwind`text-white font-bold`}>@{item.owner}</Text>
-                                <View style={tailwind`m-4`}>
-                                    <Text style={tailwind`text-base text-white`}>{item.comment_text}</Text>
-                                </View>
+                                <Text style={tailwind`text-base text-white mt-4`}>{item.comment_text}</Text>
+                                <View style={tailwind`border-b border-white mt-2 w-100`}></View>
                             </View>
                         </View>                        
                     </View>

@@ -15,6 +15,7 @@ function MessagePage() {
     const axiosInstance = useAxiosInterceptor();
     const [followingWithProfile, setFollowingWithProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
+    const [communities, setCommunities] = useState([]);
     const following = useSelector((state) => state.user.following)
     const fetchFollowing = async () => {
         try {
@@ -51,15 +52,112 @@ function MessagePage() {
             console.error(e);
         }
     }
+
+    const fetchCommunity = async () => {
+        try {
+            const currentUser = await AsyncStorage.getItem('User');
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByMessage`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if(!response.data || response.data === null) {
+                setCommunities([]);
+            } else {
+                try { 
+                    let dispayText = '';
+
+                    const communityData = response.data.map( async (item, index) => {
+                        const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${item}`,null, {
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        return response.data
+                    });
+
+                    const communityDataResponse = await Promise.all(communityData);
+
+                    const communityWithDisplayText = communityDataResponse.map((item) => {
+                    const [communities_name] = item.communities_name.split(' '); // Split the string into an array using space as separator
+                    const firstLetter = communities_name.charAt(0).toUpperCase();
+                        return {...item, dispayText: firstLetter };
+                    })
+                    const communityItem = await Promise.all(communityWithDisplayText)
+                    
+                    try {
+                        const profileData = communityItem.map(async (item) => {
+                            const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${currentUser}`);
+                            return {...item, profileData: profileResponse.data}
+                        })
+                        const communityWithProfile = await Promise.all(profileData);
+                        // console.log("Fullcommunity: ", communityWithProfile)
+                        setCommunities(communityWithProfile)
+                    } catch (err) {
+                        console.error("unable to fetch the profile of the admin ", err)
+                    }
+                } catch(err) {
+                    console.error("unable to fetch the community", err);
+                }
+            }
+
+        } catch(err) {
+            console.error('error not able fetch all community: ', err);
+        }
+    }
+
+    const fetchMessageReceiver = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getMessagedUser`, null, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const item = response.data;
+            if(item === null || !item) {
+                setFollowingWithProfile([]);
+                // dispatch(getFollowingUser([]));
+            } else {
+                const followingProfile = item.map(async (item, index) => {                  
+                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
+                    if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
+                        const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                        setDisplayText(usernameInitial.toUpperCase());
+                    } else {
+                        setDisplayText('');
+                    }
+                    return {...item, profile: profileResponse.data}
+                })
+                const followingData = await Promise.all(followingProfile);
+                setFollowingWithProfile(followingData);
+                // dispatch(getFollowingUser(followingData));
+            }
+
+        } catch(err) {
+            console.error('unable to get user: ', err);
+        }
+    }
     
     useFocusEffect(
         React.useCallback(() => {
-            fetchFollowing();
+            // fetchFollowing();
+   
+        fetchCommunity();
+        fetchMessageReceiver();
         },[])
     );
 
     const handleMessage = ({item}) => {
         navigation.navigate("Message", {profileData: item})
+    }
+
+    const handleMessageCommunity = ({item}) => {
+        navigation.navigate("CommunityMessage", {communityPageData: item})
     }
 
     useLayoutEffect(() => {
@@ -74,11 +172,29 @@ function MessagePage() {
             )
         })
       },[navigation])
-
+      console.log("Communities: ", communities)
     return (
         <ScrollView style={tailwind`bg-black`}>
             <View style={tailwind`flex-1 bg-black pl-5 p-5`}>
-                {following?.map((item, i) => (
+            <>
+                {communities.map((item,index)=>(
+                    <Pressable key={index} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleMessageCommunity({ item: item })}>
+                        <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
+                            <Text style={tailwind`text-red-500 text-6x3`}>
+                                {item.dispayText}
+                            </Text>
+                        </View>
+                        <View  style={tailwind`text-white p-2 mb-1`}>
+                            <Text style={tailwind`text-white font-bold text-xl `}>{item.communities_name}</Text>
+                            <Text style={tailwind`text-white`}>{item.discription}</Text>
+                        </View>
+                    </Pressable>
+                ))
+
+                }
+            </>
+            <>
+                {followingWithProfile?.map((item, i) => (
                     <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleMessage({ item: item.profile })}>
                             {!item.profile && !item.profile?.avatar_url ?(
                                 <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
@@ -95,6 +211,7 @@ function MessagePage() {
                             </View>
                     </Pressable>
                 ))}
+            </>
             </View>
         </ScrollView>
     );

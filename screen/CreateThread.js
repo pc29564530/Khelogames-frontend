@@ -12,6 +12,8 @@ import useAxiosInterceptor from './axios_config';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
+import { KeyboardAvoidingView, ScrollView } from 'native-base';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -50,7 +52,7 @@ function CreateThread() {
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [likeCount, setLikeCount] = useState(0);
-    const [communityType, setCommunityType] = useState(route.params?.communityType || 'Communtiy Type')
+    const [communityType, setCommunityType] = useState(route.params?.communityType || 'Select Community')
     const threads = useSelector(state => state.threads.threads)
 
     const SelectMedia =  async () => {
@@ -151,6 +153,7 @@ function CreateThread() {
       headerStyle:{
         backgroundColor:'black'
       },
+      headerStyle: tailwind`border-shadow bg-black`,
       headerTintColor:'black',
       headerLeft: ()=> (
         <View style={tailwind`flex-row items-center gap-35 p-2`}>
@@ -158,33 +161,47 @@ function CreateThread() {
         </View>
       ),
       headerRight:()=>(
-        <Pressable style={tailwind`flex-row rounded-md w-2.6/5 bg-gray-400 p-1 mr-34 gap-1 justify-between`} onPress={handleSelectCommunity} >
-            <Text style={tailwind`text-white text-lg`}>{communityType}</Text>
-            <AntDesign name="down" size={20} color="white" style={tailwind`mt-1`}/>
+        <View style={tailwind`flex-row items-center mr-2 gap-18`}>
+        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
+          <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
+          <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
         </Pressable>
+        <Pressable style={tailwind`p-2`} onPress={HandleSubmit}>
+          <MaterialIcons name="send" size={24} color="white" />
+        </Pressable>
+      </View>
       )
     })
 
     return (
-        <View style={tailwind`flex-1 p-10 bg-black`}>
+        <View style={tailwind`flex-1 p-4 bg-black`}>
             <View style={tailwind`mb-5`}>
-                <TextInput
-                    style={tailwind`border border-gray-300 rounded p-3 mb-10 font-bold text-lg h-24 text-white`}
-                    multiline 
-                    value={content} 
-                    onChangeText={setContent} 
-                    placeholder="Enter description..."
+              <TextInput
+                    style={tailwind` font-bold text-2xl h-24 text-white`}
+                    value={title} 
+                    onChangeText={setTitle} 
+                    placeholder="Write the title here..."
                     placeholderTextColor="white"
                 />
+                <ScrollView style={tailwind`h-100`}>
+                  <TextInput
+                      style={tailwind` text-lg text-white`}
+                      multiline 
+                      value={content} 
+                      onChangeText={setContent} 
+                      placeholder="Write something here..."
+                      placeholderTextColor="white"
+                  />
+                </ScrollView>
             </View>
-            <Pressable style={tailwind`flex mb-10`} onPress={SelectMedia} >
-                <FontAwesome name="upload" size={25} color="white"  style={tailwind`bg-gray-400 h-10 w-10 p-2`}/>
-                <Text style={tailwind`text-white`}>Please upload media</Text> 
-            </Pressable>
             
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
-            <Button onPress={HandleSubmit} title="Submit" color="gray"/>
+            <View style={tailwind`flex-1 justify-end items-end p-4`}>
+              <Pressable style={tailwind`bg-gray-400 rounded-full p-2`} onPress={SelectMedia}>
+                  <FontAwesome name="image" size={25} color="white" />
+              </Pressable>
+            </View>
         </View>
     );
 }

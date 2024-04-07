@@ -5,11 +5,16 @@ import Video from 'react-native-video';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import useAxiosInterceptor from '../screen/axios_config';
 
-const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosInstance}) => {
+const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosInstance, handleComment}) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const handleFullScreen = () => {
+    console.log('entering full screen mode')
+  }
+  const handleVolume = () => {
+    console.log('changing the volume of video')
+  }
   return (
     <View style={tailwind`bg-black mt-5`}>
       <View>
@@ -24,9 +29,16 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
             </View>
           )}
           <View style={tailwind`ml-3`}>
-            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
-            <Text style={tailwind`text-white`}>@{item.username}</Text>
+            <View>
+              <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
+            </View>
+            <View style={tailwind`flex-row gap-1`}>
+              <Text style={tailwind`text-white`}>@{item.username}</Text>
+              <Text style={tailwind`text-white`}>-</Text>
+              <Text style={tailwind`text-white`}>{item.created_at}</Text>
+            </View>
           </View>
+
         </Pressable>
       </View>
       <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
@@ -34,7 +46,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
         <Image style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{ uri: item.media_url }} />
       )}
       {item.media_type === 'video' && (
-        <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} resizeMode='cover'/>
+        <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} onFullscreenPlayerWillPresent={() => {handleFullScreen()}} onVolumeChange={()=>{handleVolume()}} resizeMode='cover'/>
       )}
       <View style={tailwind`p-2`}>
         <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
@@ -49,6 +61,16 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
           />
           <Text style={tailwind`text-white`}>Like</Text>
         </Pressable>
+        {handleComment ? (
+          <Pressable style={tailwind`items-center`} onPress={handleComment}>
+            <FontAwesome
+              name="comment-o"
+              color="white"
+              size={20}
+            />
+            <Text style={tailwind`text-white`}>Comment</Text>
+          </Pressable>
+        ):(
         <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment({item, id: item.id, navigation, dispatch, axiosInstance})}>
           <FontAwesome
             name="comment-o"
@@ -57,6 +79,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
           />
           <Text style={tailwind`text-white`}>Comment</Text>
         </Pressable>
+        )}
       </View>
       <View style={tailwind`border-b border-white mt-2`}></View>
     </View>

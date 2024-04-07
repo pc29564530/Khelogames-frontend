@@ -1,23 +1,23 @@
 import React, {useState, useEffect} from 'react';
-import {Pressable, View, Text, Image, Input, TextInput, Button, StyleSheet, Touchable, ScrollView, TouchableOpacity, Modal } from 'react-native';
-import axios from 'axios';
+import {Pressable, View, Text,ScrollView} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
-const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
-import ModalDropdown from 'react-native-modal-dropdown';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import CreateCommunity from './CreateCommunity';
 import { BASE_URL } from '../constants/ApiConstants';
+import { useSelector, useDispatch } from 'react-redux';
+import { getAllCommunities, getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
 
 
 function Community () {
 
-    const [data, setData] = useState([]);
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
-    const [joinedCommunity, setJoinedCommunity] = useState([]);
+    const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity)
+    const community = useSelector((state)=>state.community.community)
     
     const fetchCommunityJoinedByUser = async () => {
         try {
@@ -28,8 +28,7 @@ function Community () {
                     'Content-Type': 'application/json'
                 }
             });
-    
-            setJoinedCommunity(response.data)
+            dispatch(getJoinedCommunity(response.data))
 
         } catch (e) {
             console.error('Unable to get the joined communities', e);
@@ -50,13 +49,17 @@ function Community () {
             if(item == null) {
                 setData([]);
             } else {
-                setData(item);
+                const communityWithDisplayText = item.map((item, index) => {
+                    let displayText = '';
+                    const words = item.communities_name.split(' ');
+                    displayText = words[0].charAt(0).toUpperCase();
+                    return {...item, displayText, displayText}
+                });
+                dispatch(getAllCommunities(communityWithDisplayText))
             }
-           // console.log(item);
         } catch (err) {
             console.error(err);
-        }
-        
+        }    
     }
 
     //to join any community from the community list
@@ -69,23 +72,21 @@ function Community () {
                     'Content-Type': 'application/json',
                 }
             });
-            setJoinedCommunity(((prevCommunities)=> [...prevCommunities, item]));
+            dispatch(addJoinedCommunity(response.data))
         } catch (err) {
             console.error(err);
         }
     }
 
     const handleCommunityPage = (item, id) => {
-        console.log("Item: ", item)
         navigation.navigate("CommunityPage", {item: item, itemId: id})
     }
 
     useEffect(() => {
-            fetchData();
             fetchCommunityJoinedByUser();
+            fetchData();    
     },[]);
-
-    return (
+    return (    
       <>
         <ScrollView  style={tailwind`flex-1 bg-black`}>
           {createCommunityScreen ? (
@@ -105,9 +106,13 @@ function Community () {
                 <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
             </View>
             <View style={tailwind`w-full  rounded-md pb-12 pl-2 pr-2`}>
-                {data.map((item,i) => (
+                {community?.map((item,i) => (
                     <View style={tailwind`flex-row bg-gray-800 mb-1 p-3 rounded-md h-20`} key={i}>
-                        <Image style={tailwind`w-10 h-10 rounded-md bg-red-500 p-8`} source={logoPath} />
+                        <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
+                            <Text style={tailwind`text-red-500 text-6x3`}>
+                                {item.displayText}
+                            </Text>
+                        </View>
                         <View style={tailwind`w-3/5 pl-3`}>
                             <Pressable onPress={()=> (handleCommunityPage(item, item.id))}>
                                 <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
@@ -132,8 +137,7 @@ function Community () {
                 ))}
             </View>
             </>
-          )}
-            
+          )} 
         </ScrollView>
       </>
     );

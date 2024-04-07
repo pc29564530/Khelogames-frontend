@@ -20,6 +20,7 @@ import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
 import Shorts from '../screen/Shorts';
 import Message from '../screen/Message';
+import CommunityMessage from '../screen/CommunityMessage';
 import MessagePage from '../screen/MessagePage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Club from '../screen/Club';
@@ -103,6 +104,7 @@ export default function MainNavigation() {
                         <Stack.Screen name="TournamentPage" component={TournamentPage} />
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
+                        <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
                     </>
                 ):(
                     <>
