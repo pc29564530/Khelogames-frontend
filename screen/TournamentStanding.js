@@ -5,16 +5,19 @@ import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
+import { ScrollView } from 'react-native-gesture-handler';
+import SelectTeamBySport from '../components/SelectTeamBySport';
 
 const TournamentStanding = ({route}) => {
     const tournament = route.params.tournament;
     const axiosInstance = useAxiosInterceptor();
     const [group, setGroup] = useState([]);
     const [standings, setStandings] = useState([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalTeamVisible, setIsModalTeamVisible] = useState(false);
     const [groupName, setGroupName] = useState('');
     const [groupStrength, setGroupStrength] = useState(3);
     const [standingGroupData, setStandingGroupData] = useState([]);
+    const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
 
     const fetchGroup = async () => {
         try {
@@ -49,6 +52,11 @@ const TournamentStanding = ({route}) => {
                 if (group.length > 0 && group[0] !== undefined) {
                     for (const item of group) {
                         if (item !== undefined) {
+                            const data = {
+                                    tournament_id: tournament.tournament_id,
+                                    group_id: item.group_id,
+                                    sport_type: tournament.sport_type
+                            }
                             const response = await axiosInstance.get(`${BASE_URL}/getTournamentStanding`, {
                                 params: {
                                     tournament_id: tournament.tournament_id.toString(),
@@ -64,7 +72,6 @@ const TournamentStanding = ({route}) => {
                         } else {
                             console.error("Item is undefined");
                         }
-
                     }
                     setStandings(standingData)
                 } else {
@@ -80,29 +87,19 @@ const TournamentStanding = ({route}) => {
         }
     }, [group, tournament]);
 
-    console.log("Standing: ", standings)
     let tableHead;
     let standingsData=[];
-
-    if(standings[0]?.standData[0]?.sport_type === "Football") {
+    if( standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Football") {
         tableHead = ["Team", "W", "L", "D", "GD", "Pts"];
         standingsData = standings[0]?.standData.map((item, index) => [
             item.club_name, item.wins, item.loss, item.draw, item.goals_for, item.goals_against, item.goals_difference, item.points
         ]).map(row => row.filter(value => value !== undefined));
-    } else {
+    } else if(standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Cricket"){
         tableHead = ["Team", "M", "W", "L", "D", "Points"];
         standingsData = standings[0]?.standData.map((item, index) => [
-            item.club_name, item.wins, item.loss, item.draw, item.goals_difference, item.points
+            item.club_name, item.wins, item.loss, item.draw, item.points
         ]).map(row => row.filter(value => value !== undefined));
     }
-
-    if(standings.length>0){
-
-    }
-
-
-
-
 
     const handleAddGroup = async () => {
         try {
@@ -112,7 +109,7 @@ const TournamentStanding = ({route}) => {
                 tournament_id: tournament.tournament_id,
                 group_strength: groupStrength
             }
-            const response = await axiosInstance.post(`${BASE_URL}/addTournamentGroup`,groupData, {
+            const response = await axiosInstance.post(`${BASE_URL}/createTournamentGroup`,groupData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -133,16 +130,30 @@ const TournamentStanding = ({route}) => {
         }
     }
 
-    const handleClose = () => {
-        setIsModalVisible(!isModalVisible);
+    const handleGroupClose = () => {
+        setIsModalGroupVisible(!isModalGroupVisible);
+    }
+    const handleTeamClose = () => {
+        setIsModalTeamVisible(!isModalTeamVisible);
     }
 
-   //console.log("Standing Ponit: ", standingsData) 
+    const handleTeamSelection = () => {
+        setIsModalTeamSelection(!setIsModalTeamSelection)
+    }
+
+    const closeTeamBySport = () => {
+        setIsModalTeamVisible(false)
+    }
   return (
-    <View style={tailwind`mt-4`}>
-        <Pressable onPress={() => setIsModalVisible(!isModalVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
-            <Text>Set Group</Text>
-        </Pressable>
+    <ScrollView style={tailwind`mt-4`}>
+        <View style={tailwind`flex-row`}>
+            <Pressable onPress={() => setIsModalGroupVisible(!isModalGroupVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
+                <Text>Set Group</Text>
+            </Pressable>
+            <Pressable onPress={() => setIsModalTeamVisible(!isModalTeamVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
+                <Text>Set Team</Text>
+            </Pressable>
+        </View>
         <View>
             {standings.length > 0 ? (
                 standings.map((group, standingIndex) => (
@@ -161,11 +172,11 @@ const TournamentStanding = ({route}) => {
                     </View>
             )}
         </View>
-        {isModalVisible && <Modal animationType="slide"
-                visible={isModalVisible}
+        {isModalGroupVisible && <Modal animationType="slide"
+                visible={isModalGroupVisible}
                 transparent={true}
             >
-                <Pressable onPress={() => handleClose()} style={tailwind`flex-1 justify-end bg-black bg-opacity-50 rounded-lg bg-black items-center justify-end`}>
+                <Pressable onPress={() => handleGroupClose()} style={tailwind`flex-1 justify-end bg-black   rounded-lg bg-black items-center justify-end`}>
                     <View style={tailwind`bg-white p-4 rounded-lg h-80 w-full`}>
                         <TextInput
                             value={groupName}
@@ -191,8 +202,21 @@ const TournamentStanding = ({route}) => {
             </Modal>
             }
 
-        
-    </View>
+            {isModalTeamVisible && <Modal animationType="slide"
+                            visible={isModalTeamVisible}
+                            transparent={true}
+                            onRequestClose={closeTeamBySport}
+                        >
+                <Pressable onPress={() => handleTeamClose()} style={tailwind`flex-1 justify-end bg-black bg-opacity-50 rounded-lg bg-black items-center justify-end`}>
+                    <View style={tailwind`bg-white p-4 rounded-lg h-80 w-full`}>
+                        <Pressable onPress={() => handleTeamSelection}>
+                            <SelectTeamBySport tournament={tournament} group={group} closeTeamBySport={closeTeamBySport}/>
+                        </Pressable>
+                    </View>
+                </Pressable>
+            </Modal>
+            }
+    </ScrollView>
        
   )
 }

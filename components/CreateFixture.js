@@ -7,7 +7,7 @@ import tailwind from 'twrnc';
 import DateTimePicker from '@react-native-community/datetimepicker'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const CreateFixtue = ({tournament, teams, organizerID}) => {
+const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal}) => {
     const [admin, setAdmin] = useState('');
     const [team1, setTeam1] = useState(null);
     const [team2, setTeam2] = useState(null);
@@ -81,6 +81,7 @@ const CreateFixtue = ({tournament, teams, organizerID}) => {
                         'Content-Type':'application/json'
                     }
                 })
+                handleCloseFixtureModal()
             } catch (err) {
                 console.error("unable to set the fixture : ", err);
             }
