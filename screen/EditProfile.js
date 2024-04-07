@@ -8,6 +8,8 @@ import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
 import { BASE_URL } from '../constants/ApiConstants';
+import { setEditFullName, setEditDescription, setProfileAvatar } from '../redux/actions/actions';
+import { useDispatch } from 'react-redux';
 
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -38,7 +40,7 @@ export default function EditProfile() {
     const [profile, setProfile] = useState();
     const [coverUrl, setCoverUrl] = useState('');
     const [avatarType, setAvatarType] = useState('');
-    
+    const dispatch = useDispatch();
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
 
@@ -52,7 +54,8 @@ export default function EditProfile() {
                     'Content-Type': 'application/json',
                 },
             } );
-            console.log("response of avatar: ", response.data)
+
+            dispatch(setProfileAvatar(response.data.avatar_url))
             setAvatarUrl(response.data.avatar_url);
             setAvatarType(response.data.avatar_type);
 
@@ -92,8 +95,8 @@ export default function EditProfile() {
                     'Content-Type': 'application/json',
                 },
             });
-
-            setFullName(response.data);
+            dispatch(setEditFullName(response.data.full_name));
+            setFullName(response.data.full_name);
         } catch (e) {
             console.error("Unable to update full name: ", e);
         }
@@ -113,8 +116,8 @@ export default function EditProfile() {
                     'Content-Type': 'application/json',
                 },
             });
-    
-            setBio(response.data);
+            dispatch(setEditDescription(response.data.bio));
+            setBio(response.data.bio);
         } catch (e) {
             console.error("Unable to update Bio: ", e);
         }

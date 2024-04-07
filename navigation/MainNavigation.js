@@ -20,6 +20,7 @@ import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
 import Shorts from '../screen/Shorts';
 import Message from '../screen/Message';
+import CommunityMessage from '../screen/CommunityMessage';
 import MessagePage from '../screen/MessagePage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -87,6 +88,8 @@ export default function MainNavigation() {
                         <Stack.Screen name="CommunityType" component={CommunityType} />
                         <Stack.Screen name="Message" component={Message} />
                         <Stack.Screen name="MessagePage" component={MessagePage} />
+                        <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
+                        
                     </>
                 ):(
                     <>

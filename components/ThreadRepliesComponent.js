@@ -51,10 +51,14 @@ const ThreadRepliesComponent = ({owner}) => {
                             'Content-Type': 'application/json',
                         },
                     });
-                    
+                    const timestamp  = item.created_at;
+                    const timeDate = new Date(timestamp)
+                    const options = { month:'long', day:'2-digit'}
+                    const formattedTime = timeDate.toLocaleString('en-US', options)
+                    item.created_at = formattedTime;
                     return {...item, profile: response.data};
                 } );
-               const responseResult = await Promise.all(threadDataWithProfile)
+                const responseResult = await Promise.all(threadDataWithProfile)
                 setRepliesWithProfile(responseResult)
                 
             } catch (err) {
