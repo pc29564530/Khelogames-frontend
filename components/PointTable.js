@@ -23,7 +23,6 @@ const PointTable = ({ standingsData, tableHead }) => {
 }
 
 const colForm = (item) => {
-    console.log("Item L d ", item[1])
     return item[0]?.map((_, colIndex) => item.map(data => data[colIndex]) )
 }
 
