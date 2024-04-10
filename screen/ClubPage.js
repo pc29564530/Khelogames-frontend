@@ -6,9 +6,10 @@ import { useNavigation } from '@react-navigation/native';
 import Members from '../components/Members';
 import Fixture from '../components/Fixture';
 import Stats from '../components/Stats';
+import Participated from '../components/Participated';
 
 
-const subCategorys = [ "Members", "Fixture","Stats"];
+const subCategorys = [ "Members", "Fixture","Stats", "Participated"];
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
@@ -19,8 +20,10 @@ const ClubPage = ({route}) => {
     }
     const rerenderSubCategory = () => {
         switch (subCategory) {
+            case "Participated":
+                return <Participated clubData={clubData}/>;
             case "Fixture":
-                return <Fixture />;
+                return <Fixture  clubName={clubData.club_name}/>;
             case "Stats":
                 return <Stats />;
             default:
