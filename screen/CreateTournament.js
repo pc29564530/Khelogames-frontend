@@ -9,21 +9,29 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
     const [isFormatVisible, setIsFormatVisible] = useState(false);
     const [isSportVisible, setIsSportVisible] = useState(false);
+    const [isDurationVisible, setIsDurationVisible] = useState(false);
     const [tournament, setTournament] = useState([]);
     const [format, setFormat] = useState('');
     const [sport, setSport] = useState('');
     const axiosInstance = useAxiosInterceptor();
+    const [startOn, setStartOn] = useState('');
+    const [endOn, setEndOn] = useState('');
     const navigation = useNavigation();
     const formats = ['knockout', 'league', 'league+knockout', 'gourps+knockout', 'custom'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
     const handleFormatModal = () => {
         setIsFormatVisible(!isFormatVisible);
+    }
+
+    const handleDurationModal = () => {
+        setIsDurationVisible(!isDurationVisible);
     }
 
     const handleSportModal = () => {
@@ -42,14 +50,23 @@ const CreateTournament = () => {
 
      const handleCreatedTournament = async () => {
         try {
-            const data = {
-                tournament_name: tournamentName,
-                sport_type: sport,
-                format: format,
-                teams_joined: 0
+            let data;
+            if (!startOn && !endOn) {
+                alert("Please select the start and end date.");
+            } else if (!startOn) {
+                alert("Please select the start date.");
+            } else if (!endOn) {
+                alert("Please select the end date.");
+            } else {
+                data = {
+                    tournament_name: tournamentName,
+                    sport_type: sport,
+                    format: format,
+                    teams_joined: 0,
+                    start_on: startOn,
+                    end_on: endOn
+                }
             }
-            console.log("Tournament: ", data)
-
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.post(`${BASE_URL}/createTournament`, data, {
@@ -60,6 +77,8 @@ const CreateTournament = () => {
             });
             const item = response.data;
             setTournament(item)
+            setStartOn('');
+            setEndOn('');
             const organizerData = {
                 organizer_name:user,
                 tournament_id: item.tournament_id
@@ -74,6 +93,18 @@ const CreateTournament = () => {
 
         } catch (err) {
             console.log("unable to create a new tournament ", err);
+        }
+     }
+
+     const handleDateChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        if(!startOn){
+            setStartOn(currentDate);
+        } else if(!endOn) {
+            setEndOn(currentDate)
+        } else {
+            setIsDurationVisible(!isDurationVisible);
+            return;
         }
      }
 
@@ -115,6 +146,11 @@ const CreateTournament = () => {
                         <AntDesign name="filetext1" size={24} color="black"/>
                         <Text>Format</Text>
                     </Pressable>
+                    {/* Icon for duration */}
+                    <Pressable style={tailwind`items-center`} onPress={handleDurationModal}>
+                        <AntDesign name="calendar" size={24} color="black"/>
+                        <Text>Duration</Text>
+                    </Pressable>
                 </View>
                 {/* Submit button */}
                 <Pressable style={tailwind`border rounded-md`} onPress={handleCreatedTournament}>
@@ -155,6 +191,16 @@ const CreateTournament = () => {
                     </View>
                 </View>
             </Modal>
+            {isDurationVisible && (
+                <DateTimePicker 
+                    testID='dateTimePicker'
+                    value={startOn ? startOn : endOn ? endOn : new Date()}
+                    mode='date'
+                    is24Hour={true}
+                    display='default'
+                    onChange={handleDateChange}
+                />
+            )}
         </View>
     );
 }
