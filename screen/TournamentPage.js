@@ -10,7 +10,7 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 
 const TournamentPage = ({ route }) => {
-    const tournament = route.params.item.item;
+    const tournament = route.params.item;
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [scrollEnabled, setScrollEnabled] = useState(false);

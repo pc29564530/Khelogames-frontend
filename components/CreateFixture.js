@@ -61,7 +61,6 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
 
       const handleSetFixture = async () => {
             try {
-                console.log("tournamentSport : ", tournament.sport_type)
                 const fixture = {
                     organizer_id:organizerID,
                     tournament_id: tournament.tournament_id,
@@ -72,8 +71,6 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
                     stage:'',
                     sports:tournament.sport_type
                 }
-
-                console.log("Fixture: ", fixture)
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.post(`${BASE_URL}/createTournamentMatch`, fixture,{
                     headers: {

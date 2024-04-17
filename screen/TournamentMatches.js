@@ -87,21 +87,7 @@ const TournamentMatches = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            const item = response.data.map((item) => {
-                //date
-                const timestampStrDate = item.date_on;
-                const timestampDate = new Date(timestampStrDate);
-                const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
-                const formattedDate = timestampDate.toLocaleString('en-US', optionsDate);
-                //time
-                const timestampStr = item.start_at;
-                const timestamp = new Date(timestampStr);
-                const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true };
-                const formattedTime = timestamp.toLocaleTimeString('en-US', optionsTime);
-                item.date_on = formattedDate;
-                item.start_at = formattedTime;
-                return item;
-            });
+            const item = response.data;
             const matchData = item.map(async (item) => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
@@ -123,7 +109,30 @@ const TournamentMatches = ({ route }) => {
                             'Content-Type': 'application/json'
                         }
                     });
-                    return { ...item, team1_name: response1.data.club_name, team2_name: response2.data.club_name, tournament_name: response3.data.tournament_name };
+
+                    const response4 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                        params:{
+                            match_id: item.match_id,
+                            team_id: item.team1_id
+                        },
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+
+                    const response5 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                        params:{
+                            match_id: item.match_id,
+                            team_id: item.team2_id
+                        },
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+
+                    return { ...item, team1_name: response1.data.club_name, team2_name: response2.data.club_name, tournament_name: response3.data.tournament_name, team1_score: response4.data.goal_score?response4.data.goal_score:0, team2_score: response5.data.goal_score?response5.data.goal_score:0 };
                 } catch (err) {
                     console.error("Unable to fetch club data: ", err);
                 }
@@ -138,7 +147,63 @@ const TournamentMatches = ({ route }) => {
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
     }
+    
+    const determineMatchStatus = (item) => {
+        startTimeStr = item.start_time;
+        endTimeStr = item.end_time;
+        const [datePart, timePart] = startTimeStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
+        const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 
+        const [datePartEnd, timePartEnd] = endTimeStr.split('T');
+        const [yearEnd, monthEnd, dayEnd] = datePartEnd.split('-').map(Number);
+        const [hourEnd, minuteEnd, secondEnd] = timePartEnd.slice(0,-1).split(':').map(Number);
+        const matchEndDateTime = new Date(Date.UTC(yearEnd, monthEnd - 1, dayEnd, hourEnd, minuteEnd, secondEnd));
+
+
+        const currentDateTime = new Date();
+    
+        if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
+            console.error("date time format error")
+            return "";
+        }
+    
+        console.log("Current Date/Time: ", currentDateTime);
+        console.log("Match Start Date/Time: ", matchStartDateTime);
+        console.log("Match End Date/Time: ", matchEndDateTime);
+    
+        let status;
+        if (currentDateTime < matchStartDateTime) {
+            status = "Not Started";
+        } else if (currentDateTime > matchEndDateTime) {
+            status = "End";
+        } else {
+            status = "Live";
+        }
+        console.log("Status: ", status);
+        return status;
+    };
+    
+    const formattedDate = (item) => {
+        const timestampStrDate = item;
+        const timestampDate = new Date(timestampStrDate);
+        const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
+        const formattedDate = timestampDate.toLocaleString('en-US', optionsDate);
+        return formattedDate;
+    }
+    
+
+    const formattedTime = (item) => {
+        const timestampStr = item;
+        const timestamp = new Date(timestampStr);
+        const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true };
+        const formattedTime = timestamp.toLocaleTimeString('en-US', optionsTime);
+        return formattedTime;
+    }
+
+    
+   
     return (
         <ScrollView 
             contentContainerStyle={{flexGrow:1}}
@@ -175,16 +240,35 @@ const TournamentMatches = ({ route }) => {
                                     <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-10 h-10 bg-violet-200 rounded-full `} />
                                     <Text style={tailwind`ml-2 text-xl font-semibold text-gray-800`}>{item.team1_name}</Text>
                                 </View>
+                                {determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End" && (
+                                    <View>
+                                        <Text>{item.team1_score}</Text>
+                                    </View>
+                                )}
                                 <Text style={tailwind`text-gray-600 text-lg`}>vs</Text>
+                                {(determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End") && (
+                                    <View>
+                                        <Text>{item.team2_score}</Text>
+                                    </View>
+                                )}
+                                
                                 <View style={tailwind` items-center`}>
                                     <Image source={{ uri: item.team2_avatar_url }} style={tailwind`w-10 h-10 bg-violet-200 rounded-full`} />
                                     <Text style={tailwind`ml-2 text-xl font-semibold text-gray-800`}>{item.team2_name}</Text>
                                 </View>
                             </View>
-                            <View style={tailwind`flex-row justify-between`}>
-                                <Text style={tailwind`text-gray-600`}>{item.date_on}</Text>
-                                <Text style={tailwind`text-gray-600`}>{item.start_at}</Text>
-                            </View>
+                            {determineMatchStatus(item) === "Not Started" ? (
+                                <View style={tailwind`flex-row justify-between`}>
+                                    <Text style={tailwind`text-gray-600`}>{formattedDate(item.date_on)}</Text>
+                                    <Text style={tailwind`text-gray-600`}>{formattedTime(item.start_time)}</Text>
+                                </View>
+                            ):(
+                                <View style={tailwind`items-center -mt-2`}>
+                                   <Text style={tailwind`text-gray-600 shadow-lg bg-red-500 p-1 rounded-md`}>{determineMatchStatus(item) === "Live" ? "Live" : "Ended"}</Text>
+                                </View>
+                            )}
+                            
+                            
                         </Pressable>
                     ))
                 ) : (
