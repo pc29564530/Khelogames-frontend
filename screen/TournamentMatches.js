@@ -88,6 +88,7 @@ const TournamentMatches = ({ route }) => {
                 }
             });
             const item = response.data;
+            console.log("Matches: ", item)
             const matchData = item.map(async (item) => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
@@ -145,7 +146,7 @@ const TournamentMatches = ({ route }) => {
     };
 
     const handleCloseFixtureModal = () => {
-        setIsModalVisible(false);
+        setIsModalVisible(!isModalVisible);
     }
     
     const determineMatchStatus = (item) => {
@@ -168,10 +169,6 @@ const TournamentMatches = ({ route }) => {
             console.error("date time format error")
             return "";
         }
-    
-        console.log("Current Date/Time: ", currentDateTime);
-        console.log("Match Start Date/Time: ", matchStartDateTime);
-        console.log("Match End Date/Time: ", matchEndDateTime);
     
         let status;
         if (currentDateTime < matchStartDateTime) {
@@ -196,14 +193,22 @@ const TournamentMatches = ({ route }) => {
 
     const formattedTime = (item) => {
         const timestampStr = item;
-        const timestamp = new Date(timestampStr);
-        const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true };
-        const formattedTime = timestamp.toLocaleTimeString('en-US', optionsTime);
+        const [datePart, timePart] = timestampStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+        let adjustedHour = hour;
+        if (adjustedHour > 12) {
+            adjustedHour = adjustedHour%12;
+        } else if (adjustedHour < 12) {
+            adjustedHour = adjustedHour;
+        }
+        const period = hour < 12 ? 'AM' : 'PM';
+        const formattedTime = `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
         return formattedTime;
     }
 
     
-   
+   console.log("Line no 203: ", tournamentTeamData)
     return (
         <ScrollView 
             contentContainerStyle={{flexGrow:1}}
@@ -240,7 +245,7 @@ const TournamentMatches = ({ route }) => {
                                     <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-10 h-10 bg-violet-200 rounded-full `} />
                                     <Text style={tailwind`ml-2 text-xl font-semibold text-gray-800`}>{item.team1_name}</Text>
                                 </View>
-                                {determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End" && (
+                                {(determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End") && (
                                     <View>
                                         <Text>{item.team1_score}</Text>
                                     </View>
