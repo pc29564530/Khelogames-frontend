@@ -9,6 +9,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 
+const currentTime = new Date();
+
 const TournamentMatches = ({ route }) => {
     const tournament = route.params.tournament;
     const [teams, setTeams] = useState([]);
@@ -88,7 +90,6 @@ const TournamentMatches = ({ route }) => {
                 }
             });
             const item = response.data;
-            console.log("Matches: ", item)
             const matchData = item.map(async (item) => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
@@ -164,21 +165,20 @@ const TournamentMatches = ({ route }) => {
 
 
         const currentDateTime = new Date();
-    
+        const localDate = new Date(currentDateTime.getTime()-currentDateTime.getTimezoneOffset()*60*1000)
         if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
             console.error("date time format error")
             return "";
         }
     
         let status;
-        if (currentDateTime < matchStartDateTime) {
+        if (localDate < matchStartDateTime ) {
             status = "Not Started";
-        } else if (currentDateTime > matchEndDateTime) {
+        } else if (localDate > matchEndDateTime) {
             status = "End";
         } else {
             status = "Live";
         }
-        console.log("Status: ", status);
         return status;
     };
     
@@ -186,7 +186,7 @@ const TournamentMatches = ({ route }) => {
         const timestampStrDate = item;
         const timestampDate = new Date(timestampStrDate);
         const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
-        const formattedDate = timestampDate.toLocaleString('en-US', optionsDate);
+        const formattedDate = timestampDate.toLocaleDateString('en-US', optionsDate);
         return formattedDate;
     }
     
@@ -207,8 +207,6 @@ const TournamentMatches = ({ route }) => {
         return formattedTime;
     }
 
-    
-   console.log("Line no 203: ", tournamentTeamData)
     return (
         <ScrollView 
             contentContainerStyle={{flexGrow:1}}
