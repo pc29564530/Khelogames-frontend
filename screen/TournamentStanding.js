@@ -39,10 +39,9 @@ const TournamentStanding = ({route}) => {
             console.error("unable to fetch the group using sport: ", err);
         }
     }
-    console.log("Group: ", group)
     useEffect(() => {
         fetchGroup();
-    }, [])
+    }, [group])
     
     useEffect(() => {
         const fetchStanding = async () => {
@@ -87,19 +86,19 @@ const TournamentStanding = ({route}) => {
         }
     }, [group, tournament]);
 
-    let tableHead;
-    let standingsData=[];
-    if( standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Football") {
-        tableHead = ["Team", "W", "L", "D", "GD", "Pts"];
-        standingsData = standings[0]?.standData.map((item, index) => [
-            item.club_name, item.wins, item.loss, item.draw, item.goals_for, item.goals_against, item.goals_difference, item.points
-        ]).map(row => row.filter(value => value !== undefined));
-    } else if(standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Cricket"){
-        tableHead = ["Team", "M", "W", "L", "D", "Points"];
-        standingsData = standings[0]?.standData.map((item, index) => [
-            item.club_name, item.wins, item.loss, item.draw, item.points
-        ]).map(row => row.filter(value => value !== undefined));
-    }
+    // let tableHead;
+    // if( standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Football") {
+    //     tableHead = ["Team", "W", "L", "D", "GD", "Pts"];
+    //     standingsData = standings[0]?.standData.map((item, index) => [
+    //         item.club_name, item.wins, item.loss, item.draw, item.goal_difference, item.points
+    //     ]).map(row => row.filter(value => value !== undefined));
+        
+    // } else if(standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Cricket"){
+    //     tableHead = ["Team", "M", "W", "L", "D", "Pts"];
+    //     standingsData = standings[0]?.standData.map((item, index) => [
+    //         item.club_name, item.wins, item.loss, item.draw, item.points
+    //     ]).map(row => row.filter(value => value !== undefined));
+    // }
 
     const handleAddGroup = async () => {
         try {
@@ -144,6 +143,8 @@ const TournamentStanding = ({route}) => {
     const closeTeamBySport = () => {
         setIsModalTeamVisible(false)
     }
+
+
   return (
     <ScrollView style={tailwind`mt-4`}>
         <View style={tailwind`flex-row`}>
@@ -159,9 +160,7 @@ const TournamentStanding = ({route}) => {
                 standings.map((group, standingIndex) => (
                     <View key={standingIndex}>
                         <Text>{group.groupName}</Text>
-                        <View>
-                             <PointTable standingsData={standingsData} tableHead={tableHead}/>
-                        </View>
+                        <PointTable standingsData={group.standData}/>
                     </View>
                     ))
                 ) : (
