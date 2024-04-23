@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRef } from 'react';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
-import CreateClub from './CreateClub';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -86,6 +86,20 @@ const Club = () => {
     const handleSport = (item) => {
         setSport(item)
     }
+
+    navigation.setOptions({
+        headerTitle:'',
+        headerLeft:()=>(
+            <Pressable onPress={()=>navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+            </Pressable>
+        ),
+        headerRight:() => (
+            <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => navigation.navigate("CreateTournament")}>
+                <MaterialIcons name="add" size={24} color="black"/>
+            </Pressable>
+        )
+    })
     
     return (
         <View style={tailwind`flex-1 `}>
@@ -121,11 +135,7 @@ const Club = () => {
                         </View>
                     ))}
             </View>
-            <Pressable onPress={handleAddClub} style={tailwind`absolute bottom-5 right-5 p-4 border rounded-full w-20 h-20 bg-white items-center justify-center`}>
-                <MaterialIcons name="add" size={40} color="black"/>
-            </Pressable>
         </View>
-
     );
 }
 

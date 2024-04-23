@@ -7,7 +7,7 @@ import tailwind from 'twrnc';
 const PointTable = ({ standingsData, tableHead }) => {
     const standingData = colForm(standingsData);
     return (
-        <View style={tailwind`p-4 bg-white rounded-md shadow`}>
+        <View style={tailwind`p-4 bg-white rounded-md shadow-md justify-center    `}>
             <View style={tailwind`flex-row justify-between items-center py-2 border-gray-300 `}>
                 {standingData?.map((colData, colIndex) => (
                     <View style={tailwind``}>

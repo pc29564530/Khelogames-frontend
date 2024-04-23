@@ -6,10 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import Members from '../components/Members';
 import Fixture from '../components/Fixture';
 import Stats from '../components/Stats';
-import Participated from '../components/Participated';
 
 
-const subCategorys = [ "Members", "Fixture","Stats", "Participated"];
+const subCategorys = [ "Members", "Fixture","Stats", "Media", "Post"];
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
@@ -18,10 +17,12 @@ const ClubPage = ({route}) => {
     const  handleSubCategory = async (item) => {
         setSubCategory(item)
     }
-    const rerenderSubCategory = () => {
+    const rerenderSubCategory = () => { 
         switch (subCategory) {
-            case "Participated":
-                return <Participated clubData={clubData}/>;
+            case "Media":
+                return <ClubMedia clubName={clubData.club_name}/>;
+            case "Post":
+                return <ClubPost clubName={clubData.club_name}/>;
             case "Fixture":
                 return <Fixture  clubName={clubData.club_name}/>;
             case "Stats":
@@ -30,6 +31,8 @@ const ClubPage = ({route}) => {
                 return <Members clubName={clubData.club_name} />;
         }
     }
+
+    
     return (
         <View style={tailwind`m-4`}>
             <View style={tailwind`flex-row items-center justify-start gap-5`}>

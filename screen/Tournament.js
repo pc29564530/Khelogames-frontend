@@ -7,22 +7,26 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { BASE_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
-const defaultImage = require('/Users/pawan/project/Khelogames-frontend/assets/gradient_trophy_silver.jpg');
+
+let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
 const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
+    const [sport, setSport] = useState('Football');
     const [tournaments, setTournaments] = useState({live:[],upcomming:[],previous:[]});
-    const scrollViewRef = useRef(null)
+    const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
-        //console.log("Long : ", item)
         navigation.navigate("TournamentPage" , {item:item})
     }
     useEffect(() => {
         const fetchTournament = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getTournaments`, {
+                const response = await axiosInstance.get(`${BASE_URL}/getTournamentsBySport`, {
+                    params:{
+                        "sport_type":sport
+                    },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -89,7 +93,7 @@ const Tournament = () => {
             }
         }
         fetchTournament();
-    }, []);
+    }, [sport]);
     
     navigation.setOptions({
         headerTitle:'',
@@ -105,22 +109,48 @@ const Tournament = () => {
         )
     })
 
+    const handleSport = (item) => {
+        setSport(item);
+    } 
+
+    const scrollRight = () => {
+        scrollViewRef.current.scrollTo({x:100, animated:true})
+    }
+
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
             <ScrollView
                 nestedScrollEnabled={true}
             >
+                <View style={tailwind`flex-row mt-5`}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        ref={scrollViewRef}
+                        contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
+                    >
+                        {sports.map((item, index) => (
+                            <Pressable key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                                <Text style={tailwind`text-black`}>{item}</Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                    <Pressable onPress={scrollRight} style={tailwind`justify-center ml-2`}>
+                        <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
+                    </Pressable>
+                </View>
                 {Object.keys(tournaments).map((tournamentItem, index) => (
                     <View key={index}>
                         <Text style={tailwind`text-xl font-bold mb-2 p-2 ml-4`}>{tournamentItem.charAt(0).toUpperCase() + tournamentItem.slice(1)}</Text>
-                        <ScrollView
+                        {tournaments[tournamentItem] && tournaments[tournamentItem].length>0?(
+                            <ScrollView
                             style={tailwind`ml-4 mr-2 flex-row`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             ref={scrollViewRef}
                             contentContainerStyle={tailwind`ml-2 mr-2`}
                         >
-                            {tournaments[tournamentItem].map((item, idx) => (
+                           {tournaments[tournamentItem].map((item, idx) => (
                                 <Pressable
                                     key={idx}
                                     style={tailwind`border rounded-md w-40 h-52 p-2 mr-4 relative bg-gray-200`}
@@ -147,6 +177,11 @@ const Tournament = () => {
                                 </Pressable>
                             ))}
                         </ScrollView>
+                        ):(
+                            <View style={tailwind`items-center justify-center h-30 w-50 shadow-lg bg-white`}>
+                                <Text style={tailwind`text-black`}>There is no tournament {tournamentItem}</Text>
+                            </View>
+                        )}
                     </View>
                 ))}
             </ScrollView>

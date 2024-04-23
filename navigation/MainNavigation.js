@@ -30,6 +30,7 @@ import Tournament from '../screen/Tournament';
 import TournamentPage from '../screen/TournamentPage';
 import CreateTournament from '../screen/CreateTournament';
 import TournamentDescription from '../screen/TournamentDescription';
+import FixturePage from '../screen/FixturePage';
 
 // import Fixture from '../screen/Fixture';
 
@@ -64,19 +65,19 @@ export default function MainNavigation() {
     return(
         <NavigationContainer>
             <Stack.Navigator initialRouteName={isAuthenticated?'Home':'SignIn'} 
-            screenOptions={{
-                presentation:'modal'
-            }}
+                screenOptions={{
+                    presentation:'modal'
+                }}
             >
                 {isAuthenticated?(
                     <>
                         <Stack.Screen name="DrawerNavigation" component={DrawerNavigation}
-                        options={() => ({
-                            headerShown: false,
-                            headerTitle: null,
-                            headerBackTitleVisible: false,
-                            headerLeft: false
-                            })}
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                                })}
                         />
                         <Stack.Screen name="JoinCommunity" component={JoinCommunity}
                             options={() => ({
@@ -105,6 +106,7 @@ export default function MainNavigation() {
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
+                        <Stack.Screen name="FixturePage" component={FixturePage} />
                     </>
                 ):(
                     <>

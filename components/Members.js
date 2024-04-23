@@ -11,7 +11,6 @@ const Members = ({clubName}) => {
     const axiosInstance = useAxiosInterceptor();
     const [member, setMember] = useState([]);
     const navigation = useNavigation();
-    console.log("Member ClubName: ", clubName)
     useEffect(() => {
         const fetchMembers = async () => {
             try {
