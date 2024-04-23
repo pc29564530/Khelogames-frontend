@@ -12,7 +12,7 @@ import axios from 'axios';
 
 
 
-const Fixture = ({clubName}) => {
+const Fixture = ({clubID}) => {
     const [match, setMatch] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState();
@@ -28,7 +28,7 @@ const Fixture = ({clubName}) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getMatchByClubName` ,{
                 params: {
-                    club_name: clubName
+                    id: clubID
                 },
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -44,13 +44,22 @@ const Fixture = ({clubName}) => {
                     const timestampDate = new Date(timestampStrDate);
                     const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
                     const formattedDate = timestampDate.toLocaleString('en-US', optionsDate);
+                    
+                    
                     //time
-                    const timestampStr = item.start_at;
-                    const timestamp = new Date(timestampStr);
-                    const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true };
-                    const formattedTime = timestamp.toLocaleTimeString('en-US', optionsTime);
+                    const timestampStr = item.start_time;
+                    const [timePart] = timestampStr.split('T');
+                    const [hour, minute] = timePart.split(':').map(Number);
+                    let adjustedHour = hour;
+                    if (adjustedHour > 12) {
+                        adjustedHour = adjustedHour%12;
+                    } else if (adjustedHour < 12) {
+                        adjustedHour = adjustedHour;
+                    }
+                    const period = hour < 12 ? 'AM' : 'PM';
+                    const formattedTime = `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
+                    item.start_time = formattedTime;
                     item.date_on = formattedDate;
-                    item.start_at = formattedTime;
                     return item;
                 });
 
@@ -123,7 +132,6 @@ const Fixture = ({clubName}) => {
                         <View style={tailwind`items-start justify-center ml-2`}>
                             <Text style={tailwind``}>{item.tournament_name}</Text>
                         </View>
-                        {/* //{tournamentMatch.length>0 && tournamentMatch.map((item, idx) => ( */}
                             <View style={tailwind`flex-row items-center`}>
                                 <View style={tailwind` justify-between mb-2 gap-1 p-2 mt-1`}>
                                     <View style={tailwind`items-center flex-row`}>
@@ -138,10 +146,9 @@ const Fixture = ({clubName}) => {
                                 <View style={tailwind`bg-gray-400 w-0.2 mx-4 h-10`}></View>
                                 <View style={tailwind` justify-between`}>
                                     <Text style={tailwind`text-gray-600`}>{item.date_on}</Text>
-                                    <Text style={tailwind`text-gray-600`}>{item.start_at}</Text>
+                                    <Text style={tailwind`text-gray-600`}>{item.start_time}</Text>
                                 </View>
                             </View>
-                        {/* //))} */}
                 </Pressable>
                 ))}
             </View>
@@ -154,9 +161,7 @@ const Fixture = ({clubName}) => {
                     >
                         <View style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`}>
                             <View style={tailwind`bg-white rounded-md p-4`}>
-                                {console.log(tournamentName)}
                                 {tournamentName && tournamentName?.map((item, index) => (
-                                
                                     <Pressable
                                         key={index}
                                         style={tailwind`bg-white p-2`}
