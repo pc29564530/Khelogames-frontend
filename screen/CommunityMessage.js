@@ -128,7 +128,6 @@ function CommunityMessage ({route}) {
                     'Content-Type': 'application/json'
                 }
             } );
-            console.log(response.data)
         } catch(err) {
             console.error('unable to send the response: ', err);
         }
@@ -138,7 +137,6 @@ function CommunityMessage ({route}) {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
             const user = await AsyncStorage.getItem('User');
-            console.log("CommunityName: ", communityData.communities_name)
             const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${communityData.communities_name}`,null,{
                 headers:{
                     'Authorization': `Bearer ${authToken}`,
@@ -168,7 +166,6 @@ function CommunityMessage ({route}) {
                 setReceivedMessage(response.data)
                 const user = await AsyncStorage.getItem('Users')
                 setCurrentUser(user);
-                console.log("CommunityMessage: ", response.data)
             } catch (err) {
                 console.error("unable to fetch the message: ", err);
             }
