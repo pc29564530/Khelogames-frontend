@@ -5,10 +5,7 @@ import ThreadRepliesComponent from "../components/ThreadRepliesComponent";
 import tailwind from "twrnc";
 
 const TopTabProfile = ({profileData}) => {
-    // const profileData = route?.params?.profileData
-    console.log("Line no 8: ", profileData)
     const owner = profileData.owner
-    console.log("Owner: ", owner)
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator 

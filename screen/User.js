@@ -15,7 +15,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 //   const fetchData = async () => {
 //     try {
 //       const authtoken = await AsyncStorage.getItem('AccessToken');
-//       const response = await axios.get('http://192.168.0.105:8080/user_list', {
+//       const response = await axios.get(`${BASE_URL}/user_list`, {
 //         headers:{
 //           'Authorization':`Bearer ${authtoken}`,
 //           'Content-Type': 'application/json',
