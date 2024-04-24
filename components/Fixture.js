@@ -8,6 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import FixturePage from '../screen/FixturePage';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import axios from 'axios';
+import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
+import { ScrollView } from 'react-native-gesture-handler';
 
 
 
@@ -38,32 +40,44 @@ const Fixture = ({clubID}) => {
             if(!response.data || response.data === null ){
                 setMatch([]);
             } else {
-                const item = response.data.map((item) => {
-                    //date
-                    const timestampStrDate = item.date_on;
-                    const timestampDate = new Date(timestampStrDate);
-                    const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
-                    const formattedDate = timestampDate.toLocaleString('en-US', optionsDate);
-                    
-                    
-                    //time
-                    const timestampStr = item.start_time;
-                    const [timePart] = timestampStr.split('T');
-                    const [hour, minute] = timePart.split(':').map(Number);
-                    let adjustedHour = hour;
-                    if (adjustedHour > 12) {
-                        adjustedHour = adjustedHour%12;
-                    } else if (adjustedHour < 12) {
-                        adjustedHour = adjustedHour;
+                const item = response.data;
+                const matchData = item.map( async (itm, index) => {
+                    try {
+                        const responseScore1 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                            params:{
+                                match_id: itm.match_id,
+                                team_id: itm.team1_id
+                            },
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json',
+                            }
+                        })
+    
+                        const responseScore2 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                            params:{
+                                match_id: itm.match_id,
+                                team_id: itm.team2_id
+                            },
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        if(responseScore1.data === null && responseScore2.data === null) {
+                            return {...itm, responseScore1: [], responseScore2: []}
+                        } else {
+                            return {...itm, responseScore1: responseScore1.data, responseScore2: responseScore2.data}
+                        }
+                        
+                    } catch (err) {
+                        console.error("unable to get the score using tournament match", err)
                     }
-                    const period = hour < 12 ? 'AM' : 'PM';
-                    const formattedTime = `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
-                    item.start_time = formattedTime;
-                    item.date_on = formattedDate;
-                    return item;
-                });
+                })
 
-                setMatch(item)
+                const matchDataWithScore = await Promise.all(matchData);
+
+                setMatch(matchDataWithScore)
                 const tournamentIDSet = new Set();
                 const tournamentData = [];
                 item.forEach((itm) => {
@@ -89,6 +103,38 @@ const Fixture = ({clubID}) => {
     const handleDropDown = () => {
         setIsDropDownVisible(true);
     }
+
+    const determineMatchStatus = (item) => {
+        startTimeStr = item.start_time;
+        endTimeStr = item.end_time;
+        const [datePart, timePart] = startTimeStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
+        const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+
+        const [datePartEnd, timePartEnd] = endTimeStr.split('T');
+        const [yearEnd, monthEnd, dayEnd] = datePartEnd.split('-').map(Number);
+        const [hourEnd, minuteEnd, secondEnd] = timePartEnd.slice(0,-1).split(':').map(Number);
+        const matchEndDateTime = new Date(Date.UTC(yearEnd, monthEnd - 1, dayEnd, hourEnd, minuteEnd, secondEnd));
+
+
+        const currentDateTime = new Date();
+        const localDate = new Date(currentDateTime.getTime()-currentDateTime.getTimezoneOffset()*60*1000)
+        if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
+            console.error("date time format error")
+            return "";
+        }
+
+        let status;
+        if (localDate < matchStartDateTime ) {
+            status = "Not Started";
+        } else if (localDate > matchEndDateTime) {
+            status = "End";
+        } else {
+            status = "Live";
+        }
+        return status;
+};
 
     const handleTournamentNavigate = async (tournamentItem) => {
         try {
@@ -119,39 +165,48 @@ const Fixture = ({clubID}) => {
             console.error("unable to navigate to tournament name: ", err);
         }
     }
-
     return (
-        <View style={tailwind`mt-4`}>
+        <ScrollView style={tailwind`mt-4`}>
             <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center inline inline-block w-35 gap-2`} onPress={() => handleDropDown()}>
                 <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
                 <AntDesign name="down"  size={10} color="black" />
             </Pressable>
-            <View>
+            <ScrollView>
                 {match.length>0 && match.map((item, index) => (
                     <Pressable key={index} style={tailwind`mb-4 p-1 bg-white rounded-lg shadow-md`} onPress={() => handleFixtureStatus(item)} >
                         <View style={tailwind`items-start justify-center ml-2`}>
                             <Text style={tailwind``}>{item.tournament_name}</Text>
                         </View>
-                            <View style={tailwind`flex-row items-center`}>
-                                <View style={tailwind` justify-between mb-2 gap-1 p-2 mt-1`}>
-                                    <View style={tailwind`items-center flex-row`}>
-                                        <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
-                                        <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team1_name}</Text>
-                                    </View>
-                                    <View style={tailwind` items-center flex-row`}>
-                                        <Image source={{ uri: item.team2_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full`} />
-                                        <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team2_name}</Text>
-                                    </View>
+                        <View style={tailwind`flex-row items-center`}>
+                            <View style={tailwind` justify-between mb-2 gap-1 p-2 mt-1`}>
+                                <View style={tailwind`items-center flex-row`}>
+                                    <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
+                                    <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team1_name}</Text>
                                 </View>
-                                <View style={tailwind`bg-gray-400 w-0.2 mx-4 h-10`}></View>
-                                <View style={tailwind` justify-between`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.date_on}</Text>
-                                    <Text style={tailwind`text-gray-600`}>{item.start_time}</Text>
+                                <View style={tailwind` items-center flex-row`}>
+                                    <Image source={{ uri: item.team2_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full`} />
+                                    <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team2_name}</Text>
                                 </View>
                             </View>
+                            <View style={tailwind`bg-gray-400 w-0.2 mx-4 h-10`}></View>
+                            <View style={tailwind` justify-between`}>
+                            {(determineMatchStatus(item)==="Live" || determineMatchStatus(item) === "End")  &&  (
+                                <>
+                                    <Text style={tailwind`text-black`}>{!item.responseScore1.goal_for?(0):item.responseScore1.goal_for }</Text>
+                                    <Text style={tailwind`text-black`}>{!item.responseScore2.goal_for?(0):item.responseScore2.goal_for}</Text>
+                                </>
+                            )}
+                            {determineMatchStatus(item)==="Not Started" && (
+                                <>
+                                    <Text style={tailwind`text-black`}>{formattedDate(item.date_on)}</Text>
+                                    <Text style={tailwind`text-black`}>{formattedTime(item.start_time)}</Text>
+                                </>
+                            )}
+                            </View>
+                        </View>
                 </Pressable>
                 ))}
-            </View>
+            </ScrollView>
                 {isDropDownVisible && (
                     <Modal
                         animationType="slide"
@@ -174,7 +229,7 @@ const Fixture = ({clubID}) => {
                         </View>
                     </Modal>
                 )}
-        </View>
+        </ScrollView>
     );
 }
 

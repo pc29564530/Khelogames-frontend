@@ -9,8 +9,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 
-const currentTime = new Date();
-
 const TournamentMatches = ({ route }) => {
     const tournament = route.params.tournament;
     const [teams, setTeams] = useState([]);
@@ -26,17 +24,17 @@ const TournamentMatches = ({ route }) => {
     }, []);
 
     useEffect(() => {
-        if (admin) {
+        // if (admin) {
             fetchTournamentTeams();
-        }
-    }, [admin]);
+        // }
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => {
-            if (admin) {
+            // if (admin) {
                 fetchTournamentMatchs();
-            }
-        }, [admin])
+            // }
+        }, [])
     );
 
     const fetchTournamentOrganizer = async () => {
