@@ -10,9 +10,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const TournamentMatches = ({ route }) => {
-    const tournament = route.params.tournament;
+    const {tournament, currentRole } = route.params;
     const [teams, setTeams] = useState([]);
-    const [admin, setAdmin] = useState(false);
+    // const [admin, setAdmin] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const [organizerID, setOrganizerID] = useState(null);
@@ -50,7 +50,7 @@ const TournamentMatches = ({ route }) => {
             const item = response.data;
             item.forEach(item => {
                 if (item.organizer_name.toLowerCase() === user.toLowerCase()) {
-                    setAdmin(true);
+                    // setAdmin(true);
                     setOrganizerID(item.organizer_id);
                 }
             });
@@ -149,12 +149,12 @@ const TournamentMatches = ({ route }) => {
     }
     
     const determineMatchStatus = (item) => {
-        startTimeStr = item.start_time;
-        endTimeStr = item.end_time;
-        const [datePart, timePart] = startTimeStr.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
-        const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            startTimeStr = item.start_time;
+            endTimeStr = item.end_time;
+            const [datePart, timePart] = startTimeStr.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
+            const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 
         const [datePartEnd, timePartEnd] = endTimeStr.split('T');
         const [yearEnd, monthEnd, dayEnd] = datePartEnd.split('-').map(Number);
@@ -213,7 +213,7 @@ const TournamentMatches = ({ route }) => {
         <View style={tailwind`flex-1 bg-gray-100`}>
             <View style={tailwind`p-4 flex-row justify-between items-center bg-white`}>
                 <Text style={tailwind`text-xl font-bold text-gray-800`}>{tournament.name}</Text>
-                {admin && (
+                {currentRole === "admin" && (
                     <Pressable onPress={() => setIsModalVisible(!isModalVisible)} style={tailwind`rounded-lg bg-purple-200 p-2 justify-start flex-row items-center`}>
                         <Text style={tailwind`text-lg text-purple-800`}>Set Fixture</Text>
                         <MaterialIcons name="add" size={24} color="black" />

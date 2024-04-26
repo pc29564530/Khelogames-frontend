@@ -7,7 +7,7 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 
 const TournamentTeam = ({ route }) => {
-    const { tournament } = route.params;
+    const { tournament, currentRole } = route.params;
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const [teams, setTeams] = useState([]);
@@ -82,11 +82,13 @@ const TournamentTeam = ({ route }) => {
     return (
             <ScrollView style={tailwind`mt-4`}>
                 <ScrollView>
-                    <View style={tailwind`mt-2`}>
-                        <Pressable onPress={handleTeamModal} style={tailwind`p-4 rounded-lg shadow-lg w-40 items-center pb-2 justify-center ml-60 `}>
-                            <Text style={tailwind`text-md p-2`}>Select Team</Text>
-                        </Pressable>
-                    </View>
+                    {currentRole==="admin" && (
+                        <View style={tailwind`mt-2`}>
+                            <Pressable onPress={handleTeamModal} style={tailwind`p-4 rounded-lg shadow-lg w-40 items-center pb-2 justify-center ml-60 `}>
+                                <Text style={tailwind`text-md p-2`}>Select Team</Text>
+                            </Pressable>
+                        </View>
+                    )}
                     <View>
                         {teams.map((item, index) => (
                             <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />

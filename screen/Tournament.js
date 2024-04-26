@@ -14,11 +14,19 @@ const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const [sport, setSport] = useState('Football');
+    const [currentRole, setCurrentRole] = useState('');
     const [tournaments, setTournaments] = useState({live:[],upcomming:[],previous:[]});
     const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
-        navigation.navigate("TournamentPage" , {item:item})
+        navigation.navigate("TournamentPage" , {item:item, currentRole: currentRole})
     }
+    useEffect(() => {
+        const checkRole = async () => {
+            const role = await AsyncStorage.getItem('Role');
+            setCurrentRole(role);
+        }
+        checkRole();
+    }, []);
     useEffect(() => {
         const fetchTournament = async () => {
             try {
@@ -103,9 +111,13 @@ const Tournament = () => {
             </Pressable>
         ),
         headerRight:() => (
-            <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => navigation.navigate("CreateTournament")}>
-                <MaterialIcons name="add" size={24} color="black"/>
-            </Pressable>
+            <View>
+                {currentRole === 'admin' && (
+                     <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => navigation.navigate("CreateTournament")}>
+                        <MaterialIcons name="add" size={24} color="black"/>
+                    </Pressable>
+                )}
+            </View>
         )
     })
 

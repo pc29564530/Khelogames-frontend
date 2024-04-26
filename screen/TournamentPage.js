@@ -8,9 +8,11 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
+import { current } from '@reduxjs/toolkit';
 
 const TournamentPage = ({ route }) => {
-    const tournament = route.params.item;
+    const {item, currentRole} = route.params;
+    const tournament = item;
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -23,13 +25,13 @@ const TournamentPage = ({ route }) => {
             case "Badminton":
                 return <TopTabBadminton />;
             case "Cricket":
-                return <TopTabCricket tournament={tournament} />;
+                return <TopTabCricket tournament={tournament} currentRole={currentRole}/>;
             case "Hockey":
                 return <TopTabHockey />;
             case "Tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} />;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole} />;
         }
     }
 
@@ -98,16 +100,20 @@ const TournamentPage = ({ route }) => {
                 showsVerticalScrollIndicator={true}
             >
                 { showSearchInput? (
-                    <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
-                        { teams?.length>0 && teams.map((item, index) => (
-                            <Pressable key={index} style={tailwind` bg-red-500`} onPress={() => handleSetTeamTournament(item)} >
-                                <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
-                            </Pressable>
-                        ))}
-                    </View>
+                    <>
+                    {currentRole === "admin" && (
+                        <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
+                            { teams?.length>0 && teams.map((item, index) => (
+                                <Pressable key={index} style={tailwind` bg-red-500`} onPress={() => handleSetTeamTournament(item)} >
+                                    <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    )}
+                    </>
                 ):(
                     <View style={tailwind`flex-1`}>
-                        <View style={tailwind`justify-center ml-2 mr-2 items-center p-10`}>
+                        <View style={tailwind`justify-center sml-2 mr-2 items-center p-10`}>
                             <View style={tailwind`border rounded-full h-20 w-20 bg-red-400 items-center justify-center`}>
                                 <Text style={tailwind`text-2xl`}>{tournament.displayText}</Text>
                             </View>

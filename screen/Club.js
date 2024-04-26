@@ -25,7 +25,16 @@ const Club = () => {
     const axiosInstance = useAxiosInterceptor();
     const [clubs, setClubs] = useState([]);
     const [sport, setSport] = useState('Football');
+    const [currentRole, setCurrentRole] = useState('');
     
+    useEffect(() => {
+        const roleStatus = async () => {
+            const checkRole = await AsyncStorage.getItem('Role');
+            console.log("Current Role: ", checkRole)
+            setCurrentRole(checkRole);
+        }
+        roleStatus();
+      }, [])
 
     useEffect(() => {
         const screenWith = Dimensions.get('window').width
@@ -94,10 +103,14 @@ const Club = () => {
                 <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
             </Pressable>
         ),
-        headerRight:() => (
-            <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => navigation.navigate("CreateTournament")}>
-                <MaterialIcons name="add" size={24} color="black"/>
-            </Pressable>
+        headerRight: () => (
+            <View>
+                {currentRole === "admin" && (
+                    <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddClub()}>
+                        <MaterialIcons name="add" size={24} color="black"/>
+                    </Pressable>
+                )}
+            </View>
         )
     })
     
