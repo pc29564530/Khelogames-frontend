@@ -11,12 +11,14 @@ import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/act
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
+import AddPlayerToClub from '../components/AddPlayerToClub';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 function ProfileMenu() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const axiosInstance = useAxiosInterceptor();
+  
   const route = useRoute();
   const following_owner = route.params?.username;
 
@@ -32,6 +34,15 @@ function ProfileMenu() {
   const [displayText, setDisplayText] = useState('');
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [currentRole, setCurrentRole] = useState('');
+
+  useEffect(() => {
+    const roleStatus = async () => {
+        const checkRole = await AsyncStorage.getItem('Role')
+        setCurrentRole(checkRole);
+    }
+    roleStatus();
+  }, [])
 
   const handleProfilePage = () => {
     navigation.navigate('Profile', {username: currentUser});
@@ -200,6 +211,11 @@ function ProfileMenu() {
     navigation.navigate("Tournament");
   }
 
+  const addPlayerProfile = () => {
+    navigation.navigate("AddPlayerToClub")
+      // return (<AddPlayerToClub />);
+  }
+
   return (
     <View style={tailwind`flex-1 bg-black p-4`}>
 
@@ -227,6 +243,12 @@ function ProfileMenu() {
               <FontAwesome name='user' size={24} color="white" style={tailwind`mt-1`} />
               <Text style={tailwind`text-2xl text-white pl-4`}>Profile</Text>
             </Pressable>
+            {currentRole === "admin" && (
+                <Pressable onPress={addPlayerProfile} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
+                  <FontAwesome name='user' size={24} color="white" style={tailwind`mt-1`} />
+                  <Text style={tailwind`text-2xl text-white pl-4`}>Player Profile</Text>
+                </Pressable>
+            )}
             <Pressable onPress={handleClubPage} style={tailwind`pt-1 pl-2 font-bold text-left pb-1 flex-row`}>
               <AntDesign name='team' size={24} color="white" style={tailwind`mt-1`} />
               <Text style={tailwind`text-2xl text-white pl-4`}>Club/Team</Text>
