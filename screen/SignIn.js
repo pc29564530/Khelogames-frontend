@@ -30,6 +30,7 @@ const SignIn = () => {
         const user = {username, password}
         const response = await axios.post(`${BASE_URL}/login`, user);
         await AsyncStorage.setItem("AccessToken", response.data.access_token);
+        await AsyncStorage.setItem("Role", response.data.user.role);
         await AsyncStorage.setItem("User", response.data.user.username);
         await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
         await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);

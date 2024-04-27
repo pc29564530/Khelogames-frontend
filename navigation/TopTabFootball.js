@@ -7,6 +7,7 @@ import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
 
 function TopTabFootball({tournament, currentRole}) {
+    console.log("line no 12: ", tournament)
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -25,16 +26,17 @@ function TopTabFootball({tournament, currentRole}) {
                 <TopTab.Screen 
                     name="Team"
                     component={TournamentTeam}
-                    initialParams={{tournament:tournament, currentRole}}
+                    initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
                 <TopTab.Screen 
                     name="Stats"
                     component={TournamentFootballStats}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 
                     name="Matches"
                     component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 
                     name="Standing"

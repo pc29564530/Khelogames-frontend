@@ -16,7 +16,7 @@ const PointTable = ({ standingsData }) => {
                 item.club_name, item.wins, item.loss, item.draw, item.goal_difference, item.points
             ]);
         } else if (sportType === "Cricket") {
-            tableHead = ["Team", "M", "W", "L", "D", "Pts"];
+            tableHead = ["Team", "W", "L", "D", "Pts"];
             formattedData = standingsData.map(item => [
                 item.club_name, item.wins, item.loss, item.draw, item.points
             ]);

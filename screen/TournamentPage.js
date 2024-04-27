@@ -11,8 +11,9 @@ import TopTabCricket from '../navigation/TopTabCricket';
 import { current } from '@reduxjs/toolkit';
 
 const TournamentPage = ({ route }) => {
-    const {item, currentRole} = route.params;
-    const tournament = item;
+    const {item, currentRole, sport} = route.params;
+    console.log("item: ", item)
+    const tournament = item
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -21,7 +22,7 @@ const TournamentPage = ({ route }) => {
     const navigation = useNavigation();
 
     const checkSport = () => {
-        switch (tournament.sport_type) {
+        switch (sport) {
             case "Badminton":
                 return <TopTabBadminton />;
             case "Cricket":
@@ -31,7 +32,7 @@ const TournamentPage = ({ route }) => {
             case "Tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} />;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole} sport={sport} />;
         }
     }
 
@@ -93,6 +94,7 @@ const TournamentPage = ({ route }) => {
             console.error("unable to add the team to tournament: ", err);
         }
     }
+    console.log("Tournament: ", tournament)
     return (
             <ScrollView
                 contentContainerStyle={{height:870 }}
