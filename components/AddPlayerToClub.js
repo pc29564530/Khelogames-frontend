@@ -7,18 +7,19 @@ import CountryPicker from 'react-native-country-picker-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
+import { useNavigation } from '@react-navigation/native';
 
 const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
 const AddPlayerToClub = () => {
     const [playerName, setPlayerName] = useState('');
-    const [playerBio, setPlayerBio] = useState();
+    const [playerBio, setPlayerBio] = useState('');
     const [playerSport, setPlayerSport] = useState('');
     const [playerCountry, setPlayerCountry] = useState('');
     const [isSportVisible, setIsSportVisible] = useState(false);
     const [isCountryPicker, setIsCountryPicker] = useState(false);
     const axiosInstance = useAxiosInterceptor();
-
+    const navigation  = useNavigation();
     const handleSportSelection = (sport) => {
         setPlayerSport(sport);
         setIsSportVisible(false);
@@ -27,20 +28,22 @@ const AddPlayerToClub = () => {
     const handleAddPlayer = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/addPlayerProfile`, {
-                params: {
+            const data = {
                     player_name:playerName,
                     player_avatar_url: "",
-                    player_bio: playerBio,
+                    player_bio: "",
                     player_category: "",
                     player_sport: playerSport,
-                    nation: playerCountry
-                },
+                    nation: playerCountry.name
+            }
+            console.log(data)
+            const response = await axiosInstance.post(`${BASE_URL}/addPlayerProfile`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             });
+            navigation.navigate("ProfileMenu");
         } catch (err) {
             console.error("unable to add the player data: ", err);
         }
