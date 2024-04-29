@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 
 
-const Members = ({clubID}) => {
+const Members = ({clubData}) => {
     const axiosInstance = useAxiosInterceptor();
     const [member, setMember] = useState([]);
     const [searchPlayer, setSearchPlayer] = useState('');
@@ -45,11 +45,8 @@ const Members = ({clubID}) => {
         const fetchMembers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const data = {
-                    club_id: clubID
-                }
                 const response = await axiosInstance.get(`${BASE_URL}/getClubMember`, {
-                    params: { club_id: clubID.toString()},
+                    params: { club_id: clubData.id.toString()},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -70,9 +67,7 @@ const Members = ({clubID}) => {
                                 const usernameInitial = profileData.data.player_name ? profileData.data.player_name.charAt(0) : '';
                                 displayText = usernameInitial.toUpperCase();
                             }
-                            
-
-                            return {...item, profile: profileData.data, displayText}
+                            return {...item, profile: profileData.data,clubName: clubData.club_name, displayText }
                         }
                     } catch (err) {
                         console.error("unable to get the profile of user ", err)
@@ -80,7 +75,7 @@ const Members = ({clubID}) => {
                 })
                 
                 
-                const clubMemberWithProfile = await Promise.all(responseWithProfile);
+                const clubMemberWithProfile = await Promise.all(responseWithProfile)
                 setMember(clubMemberWithProfile)
             } catch(err) {
                 console.error("unable to fetch all member of team/club ", err)
@@ -89,14 +84,14 @@ const Members = ({clubID}) => {
         fetchMembers();
     }, []);
     //need to change in player profile backend to reterive the profile of the player
-    const handleProfile = (player_id) => {
-        navigation.navigate('PlayerProfile', {id:player_id} );
+    const handleProfile = (itm) => {
+        navigation.navigate('PlayerProfile', {profileData:itm} );
     }
 
     const handleAddPlayer = async (selectedItem) => {
         try {
             const data = {
-                club_id:clubID,
+                club_id:clubData.club_id,
                 player_id: selectedItem.id
             }
             const authToken = await AsyncStorage.getItem('AcessToken');
@@ -136,16 +131,16 @@ const Members = ({clubID}) => {
             </View>
             <View style={tailwind`mt-8`}>
                 {member?.map((item,index) => (
-                    <Pressable key={index} style={tailwind`  p-1 h-15 mt-1`} onPress={() => handleProfile({username: item.profile?.owner})}>
+                    <Pressable key={index} style={tailwind`  p-1 h-15 mt-1`} onPress={() => handleProfile({itm: item})}>
                             <View style={tailwind`flex-row items-center`}>
-                                {!item?.profile && !item?.profile?.avatar_url ?(
+                                {item.profile && item.profile.player_avatar_url ?(
+                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
+                                ) : (
                                     <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                         <Text style={tailwind`text-red-500 text-6x3`}>
                                             {item?.displayText}
                                         </Text>
                                     </View>
-                                ) : (
-                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
                                 )}
                                 <View  style={tailwind`text-black p-2 mb-1`}>
                                     <Text style={tailwind`text-black font-bold text-xl `}>{item?.profile?.player_name}</Text>
