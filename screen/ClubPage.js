@@ -27,7 +27,7 @@ const ClubPage = ({route}) => {
             case "Stats":
                 return <Stats />;
             default:
-                return <Members clubName={clubData.club_name} />;
+                return <Members clubID={clubData.id} />;
         }
     }
 
