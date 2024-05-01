@@ -30,9 +30,9 @@ import Tournament from '../screen/Tournament';
 import TournamentPage from '../screen/TournamentPage';
 import CreateTournament from '../screen/CreateTournament';
 import TournamentDescription from '../screen/TournamentDescription';
-import FixturePage from '../screen/FixturePage';
 import AddPlayerToClub from '../components/AddPlayerToClub';
 import PlayerProfile from '../screen/PlayerProfile';
+import CricketMatchPage from '../screen/CricketMatchPage'
 
 const Stack = createStackNavigator();
 
@@ -106,9 +106,10 @@ export default function MainNavigation() {
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
-                        <Stack.Screen name="FixturePage" component={FixturePage} />
+                        {/* <Stack.Screen name="MatchPage" component={FixturePage} /> */}
                         <Stack.Screen name="AddPlayerToClub" component={AddPlayerToClub} />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} />
+                        <Stack.Screen name="CricketMatchPage" component={CricketMatchPage} />
                     </>
                 ):(
                     <>

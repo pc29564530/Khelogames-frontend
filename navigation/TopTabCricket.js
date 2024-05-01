@@ -32,7 +32,7 @@ function TopTabCricket({tournament}) {
                     component={TournamentCricketStats}
                 />
                 <TopTab.Screen 
-                    name="Matches"
+                    name="TournamentMatches"
                     component={TournamentMatches}
                     initialParams={{tournament:tournament, currentRole:currentRole}}
                 />

@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
+    const navigation = useNavigation();
     
     useFocusEffect(
         React.useCallback(() => {
@@ -28,7 +30,6 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
             const item = response.data;
             const matchData = item.map(async (item) => {
                 try {
-                    console.log("Line no 31: ", item)
                     const authToken = await AsyncStorage.getItem('AccessToken');
                     const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team1_id}`, null, {
                         headers: {
@@ -48,7 +49,6 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                             'Content-Type': 'application/json'
                         }
                     });
-                    console.log("Match 1: ", item.match_id)
                     const response4 = await axiosInstance.get(`${BASE_URL}/getCricketMatchScore`, {
                         params:{
                             match_id: item.match_id,
@@ -82,12 +82,18 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
             console.error("Unable to fetch tournament matches: ", err);
         }
     };
+
+    const handleMatchPage = (item) => {
+
+        navigation.navigate("CricketMatchPage", {item: item})
+    }
+
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
                 {tournamentTeamData?.length > 0 ? (
                     tournamentTeamData.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleFixturePage()}>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>

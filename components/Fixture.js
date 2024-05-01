@@ -11,9 +11,6 @@ import axios from 'axios';
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 
-
-
-
 const Fixture = ({clubID}) => {
     const [match, setMatch] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
@@ -30,7 +27,7 @@ const Fixture = ({clubID}) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getMatchByClubName` ,{
                 params: {
-                    id: clubID
+                    id: clubID.toString()
                 },
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -97,7 +94,7 @@ const Fixture = ({clubID}) => {
         }
     }
     const handleFixtureStatus = async (item) => {
-        navigation.navigate('FixturePage', fixtureData={item});
+        navigation.navigate("CricketMatchPage", {item:item})
     }
 
     const handleDropDown = () => {
