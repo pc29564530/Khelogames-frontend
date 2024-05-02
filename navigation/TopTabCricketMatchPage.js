@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import CricketMatchScorePage from '../components/CricketMatchScorePage';
 import CricketTeamSquad from '../components/CricketTeamSquad';
 
-const TopTabCricketMatchPage = ({team1ID, team2ID}) => {
+const TopTabCricketMatchPage = ({team1ID, team2ID, tournamentID, matchID}) => {
         const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -17,6 +17,7 @@ const TopTabCricketMatchPage = ({team1ID, team2ID}) => {
                 <TopTab.Screen 
                     name="Scorecard"
                     component={CricketMatchScorePage}
+                    initialParams={{team1ID: team1ID, team2ID: team2ID, tournamentID: tournamentID, matchID: matchID}}
                 />
                 <TopTab.Screen 
                     name="Squad"

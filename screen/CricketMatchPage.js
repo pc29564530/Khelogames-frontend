@@ -64,7 +64,7 @@ const CricketMatchPage = ({route}) => {
             <View style={tailwind` h-45 bg-black`}>
                 <Text style={tailwind`text-white`}>Hello Score</Text>
             </View>
-            <TopTabCricketMatchPage team1ID ={matchData.team1_id} team2ID={matchData.team2_id}/>
+            <TopTabCricketMatchPage team1ID ={matchData.team1_id} team2ID={matchData.team2_id} tournamentID={matchData.tournament_id} matchID={matchData.match_id}/>
         </View>
     );
 }
