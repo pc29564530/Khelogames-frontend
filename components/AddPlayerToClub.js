@@ -43,7 +43,11 @@ const AddPlayerToClub = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            navigation.navigate("ProfileMenu");
+            setPlayerCountry('');
+            setPlayerName('');
+            setPlayerSport('');
+            setPlayerBio('');
+            navigation.goBack();
         } catch (err) {
             console.error("unable to add the player data: ", err);
         }

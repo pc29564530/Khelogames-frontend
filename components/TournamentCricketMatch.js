@@ -3,6 +3,8 @@ import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
@@ -87,6 +89,24 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
 
         navigation.navigate("CricketMatchPage", {item: item})
     }
+
+    // navigation.setOptions({
+    //     headerTitle:"",
+    //     headerLeft:()=>(
+    //         <Pressable onPress={()=>navigation.goBack()}>
+    //             <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+    //         </Pressable>
+    //     ),
+    //     headerRight: () => (
+    //         <View>
+    //             {/* {currentRole === "admin" && ( */}
+    //                 <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddClub()}>
+    //                     <MaterialIcons name="add" size={24} color="black"/>
+    //                 </Pressable>
+    //             {/* )} */}
+    //         </View>
+    //     )
+    // })
 
     return (
         <ScrollView>

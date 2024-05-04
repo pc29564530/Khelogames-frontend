@@ -12,7 +12,6 @@ import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
 
 const TournamentMatches = ({route }) => {
-    console.log("Line")
     const {tournament, currentRole } = route.params;
     const [teams, setTeams] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -123,10 +122,6 @@ const TournamentMatches = ({route }) => {
         const period = hour < 12 ? 'AM' : 'PM';
         const formattedTime = `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
         return formattedTime;
-    }
-
-    const handleFixturePage = () => {
-        navigation.navigate("FixturePage")
     }
 
     const tournamentMatchBySport = (sport) => {

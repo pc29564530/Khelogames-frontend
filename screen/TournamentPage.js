@@ -8,7 +8,6 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
-import { current } from '@reduxjs/toolkit';
 
 const TournamentPage = ({ route }) => {
     const {item, currentRole, sport} = route.params;

@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, Pressable} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import TopTabCricketMatchPage from '../navigation/TopTabCricketMatchPage';
+import { useNavigation } from '@react-navigation/native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
 const CricketMatchPage = ({route}) => {
     const [teamScoreBatting, setTeamScoreBatting] = useState([]);
@@ -12,6 +15,7 @@ const CricketMatchPage = ({route}) => {
     const [data, setData] = useState([]);
     const matchData = route.params.item;
     const axiosInstance = useAxiosInterceptor();
+    const navigation= useNavigation();
 
     useEffect(() => {
         const fetchPlayerScore = async () => {
@@ -59,6 +63,28 @@ const CricketMatchPage = ({route}) => {
         }
         fetchPlayerScore()
     }, [])
+
+    const handleAddPlayerBattingOrBowlingStats = () => {
+        navigation.navigate("AddCricketMatchPlayer", {team1ID:matchData.team1_id, team2ID: matchData.team2_id, team1Name: matchData.team1_name, team2Name: matchData.team2_name, tournamentID: matchData.tournament_id, matchID: matchData.match_id});
+    }
+
+    navigation.setOptions({
+        headerTitle:"",
+        headerLeft:()=>(
+            <Pressable onPress={()=>navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+            </Pressable>
+        ),
+        headerRight: () => (
+            <View>
+                {/* {currentRole === "admin" && ( */}
+                    <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddPlayerBattingOrBowlingStats()}>
+                        <MaterialIcons name="add" size={24} color="black"/>
+                    </Pressable>
+                {/* )} */}
+            </View>
+        )
+    })
     return (
         <View style={tailwind`flex-1 mt-4`}>
             <View style={tailwind` h-45 bg-black`}>
