@@ -8,10 +8,9 @@ import TopTabCricketMatchPage from '../navigation/TopTabCricketMatchPage';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const CricketMatchPage = ({route}) => {
-    const [teamScoreBatting, setTeamScoreBatting] = useState([]);
-    const [teamBowling, setTeamBowling] = useState([]);
     const [data, setData] = useState([]);
     const matchData = route.params.item;
     const axiosInstance = useAxiosInterceptor();
@@ -68,6 +67,10 @@ const CricketMatchPage = ({route}) => {
         navigation.navigate("AddCricketMatchPlayer", {team1ID:matchData.team1_id, team2ID: matchData.team2_id, team1Name: matchData.team1_name, team2Name: matchData.team2_name, tournamentID: matchData.tournament_id, matchID: matchData.match_id});
     }
 
+    const handleEditScore = () => {
+        navigation.navigate("EditMatchScore", {team1ID:matchData.team1_id, team2ID: matchData.team2_id, team1Name: matchData.team1_name, team2Name: matchData.team2_name, tournamentID: matchData.tournament_id, matchID: matchData.match_id });
+    }
+
     navigation.setOptions({
         headerTitle:"",
         headerLeft:()=>(
@@ -76,7 +79,10 @@ const CricketMatchPage = ({route}) => {
             </Pressable>
         ),
         headerRight: () => (
-            <View>
+            <View style={tailwind`flex-row`}>
+                <Pressable onPress={() => handleEditScore()} style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`}>
+                    <FontAwesome name="edit" size={24} color="black" />
+                </Pressable>
                 {/* {currentRole === "admin" && ( */}
                     <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddPlayerBattingOrBowlingStats()}>
                         <MaterialIcons name="add" size={24} color="black"/>
@@ -88,7 +94,8 @@ const CricketMatchPage = ({route}) => {
     return (
         <View style={tailwind`flex-1 mt-4`}>
             <View style={tailwind` h-45 bg-black`}>
-                <Text style={tailwind`text-white`}>Hello Score</Text>
+                {/* //adding the match */}
+                <Text>Hello Score</Text>
             </View>
             <TopTabCricketMatchPage team1ID ={matchData.team1_id} team2ID={matchData.team2_id} tournamentID={matchData.tournament_id} matchID={matchData.match_id}/>
         </View>

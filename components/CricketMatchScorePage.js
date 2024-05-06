@@ -4,6 +4,8 @@ import useAxiosInterceptor from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
+import { useNavigation } from '@react-navigation/native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const fetchScoreboard = async (authToken, axiosInstance, teamID, tournamentID, matchID) => {
     
@@ -41,6 +43,7 @@ const CricketMatchScorePage = ({route}) => {
     const [clubName1, setClubName1] = useState('');
     const [clubName2, setClubName2] = useState('');
     const [isClubNameVisible, setIsClubNameVisible] = useState('');
+    const navigation = useNavigation();
 
     const {team1ID, team2ID, tournamentID, matchID} = route.params;
     const axiosInstance = useAxiosInterceptor()
@@ -164,7 +167,6 @@ const CricketMatchScorePage = ({route}) => {
                 {isClubNameVisible === clubName1 && (
                     <TeamScoreBoard batTeam={BatTeam1} bowlTeam={BowlTeam2} battingCol={battingCol} bowlingCol={bowlingCol}/>
                 )   
-                    //teamScoreBoard(BatTeam1, BowlTeam2, clubName1, isClubNameVisible)
                 }
                 {isClubNameVisible === clubName2 && (
                      <TeamScoreBoard batTeam={BatTeam2} bowlTeam={BowlTeam1} battingCol={battingCol} bowlingCol={bowlingCol}/>
@@ -181,7 +183,6 @@ const colForm = (item) => {
 }
 
 const TeamScoreBoard = ({batTeam, bowlTeam, battingCol, bowlingCol}) => {
-    console.log("Line no 184: ", batTeam)
     if (!batTeam || batTeam.length === 0) {
         return <Text style={tailwind`text-red-500`}>Not Played / Match Not Started Yet</Text>;
     }
