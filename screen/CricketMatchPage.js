@@ -93,9 +93,25 @@ const CricketMatchPage = ({route}) => {
     })
     return (
         <View style={tailwind`flex-1 mt-4`}>
-            <View style={tailwind` h-45 bg-black`}>
-                {/* //adding the match */}
-                <Text>Hello Score</Text>
+            <View style={tailwind` h-45 bg-black flex-row items-center justify-center gap-20`}>
+                <View>
+                    <Text style={tailwind`text-white text-2xl`}>{matchData.team1_name}</Text>
+                    <View style={tailwind`flex-row`}>
+                        <Text style={tailwind`text-white text-2xl`}>{matchData?.team1_score?.score}</Text>
+                        <Text style={tailwind`text-white text-2xl`}>/</Text>
+                        <Text style={tailwind`text-white text-2xl`}>{matchData?.team1_score?.wickets}</Text>
+                    </View>
+                </View>
+                <View style={tailwind`border-l-2 border-white h-20`} />
+                <View>
+                    <Text style={tailwind`text-white text-2xl`}>{matchData.team2_name}</Text>
+                    <View style={tailwind`flex-row`}>
+                        <Text style={tailwind`text-white text-2xl`}>{matchData?.team2_score?.score}</Text>
+                        <Text style={tailwind`text-white text-2xl`}>/</Text>
+                        <Text style={tailwind`text-white text-2xl`}>{matchData?.team2_score?.wickets}</Text>
+                    </View>
+                    
+                </View>
             </View>
             <TopTabCricketMatchPage team1ID ={matchData.team1_id} team2ID={matchData.team2_id} tournamentID={matchData.tournament_id} matchID={matchData.match_id}/>
         </View>
