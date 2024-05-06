@@ -3,8 +3,7 @@ import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import axios from 'axios';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
@@ -15,6 +14,80 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                 fetchTournamentMatchs();
         }, [])
     );
+
+    const getMatchScoreAndUpdate = async (matchId, batTeamId, bowlTeamId) => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const matchScoreResponse = await axiosInstance.get(`${BASE_URL}/getCricketTeamPlayerScore`, {
+                params: {
+                    match_id: matchId,
+                    tournament_id: tournament.tournament_id,
+                    team_id: batTeamId 
+                },
+                headers: {
+                    'Authorization': `bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const matchScoreData = matchScoreResponse.data || [];
+            const bowlerRunsConcededResponse = await axiosInstance.get(`${BASE_URL}/getCricketTeamPlayerScore`,{
+                params: {
+                    match_id: matchId,
+                    tournament_id: tournament.tournament_id,
+                    team_id: bowlTeamId 
+                },
+                headers: {
+                    'Authorization': `bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            const bowlConcededData = bowlerRunsConcededResponse.data || [];
+            if(matchScoreData !== null && bowlerRunsConcededResponse.data !== null) {
+                const teamScore = matchScoreData.reduce((totalScore, playerScore) => totalScore+playerScore.runs_scored, 0)
+                const teamWickets = matchScoreData.reduce((totalWickets, playerOut) => totalWickets + (playerOut.wicket_taken_by>0?1:0),0);
+                const teamRunsConceded = bowlConcededData.reduce((totalRunsConceded, bowlerRuns) => totalRunsConceded + bowlerRuns.runs_conceded,0)
+
+                const extrasScore = Math.abs(teamScore-teamRunsConceded);
+                try {
+                    const batData = {
+                        score: totalScore,
+                        match_id: matchId,
+                        team_id: batTeamId
+                    }
+                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchRunsScore` ,batData,{
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const bowlData = {
+                        wickets: teamWickets,
+                        match_id: matchId,
+                        team_id: bowlTeamId
+                    }
+
+                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchWicket` ,bowlData,{
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchExtras` ,{extras: extrasScore, match_id: matchId, team_id: batTeamId},{
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }); 
+                } catch (err) {
+                    console.error("unable to update the team score; ", err);
+                }
+            }
+        } catch (err) {
+            console.error("Unable to get the match score and not able to update the score:  ", err);
+        }
+    }
 
     const fetchTournamentMatchs = async () => {
         try {
@@ -31,6 +104,8 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
             });
             const item = response.data;
             const matchData = item.map(async (item) => {
+                    getMatchScoreAndUpdate(item.match_id, item.team1_id, item.team2_id);
+                    getMatchScoreAndUpdate(item.match_id, item.team2_id, item.team1_id);
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
                     const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team1_id}`, null, {
@@ -89,24 +164,6 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
 
         navigation.navigate("CricketMatchPage", {item: item})
     }
-
-    // navigation.setOptions({
-    //     headerTitle:"",
-    //     headerLeft:()=>(
-    //         <Pressable onPress={()=>navigation.goBack()}>
-    //             <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-    //         </Pressable>
-    //     ),
-    //     headerRight: () => (
-    //         <View>
-    //             {/* {currentRole === "admin" && ( */}
-    //                 <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddClub()}>
-    //                     <MaterialIcons name="add" size={24} color="black"/>
-    //                 </Pressable>
-    //             {/* )} */}
-    //         </View>
-    //     )
-    // })
 
     return (
         <ScrollView>
