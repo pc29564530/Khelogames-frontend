@@ -1,59 +1,22 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View, Image, Text} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setComments, setCommentText } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
-import { BASE_URL } from '../constants/ApiConstants';
+import { getThreadComment } from '../services/commentServices';
 
 function Comment({thread}) {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
-    const comments = useSelector((state) => state.comments.comments)
-    const [commentWithProfile, setCommentWithProfile] = useState([]);
-    const [displayText, setDisplayText] = useState('');
-
+    const comments = useSelector((state) => state.comments.comments);
 
     //Implementing redux
     const fetchThreadComments = async () => {
-          try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getComment/${thread.id}`,null, {
-              headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-              },
-            });
-
-            if(response.data === null || !response.data) {
-                setCommentWithProfile([]);
-                dispatch(setComments([]));
-            } else {
-                const threadComment = response.data;
-                const itemComment = threadComment.map(async (item,index) => {
-                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.owner}`);
-                    if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                        const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                            setDisplayText(usernameInitial.toUpperCase());
-                        } else {
-                            setDisplayText(''); // Reset displayText if the avatar is present
-                        }
-                        return {...item, profile: profileResponse.data}
-                    })
-                
-                const commentData = await Promise.all(itemComment)
-                setCommentWithProfile(commentData);
-                dispatch(setComments(commentData));
-            }
-          } catch (error) {
-            console.error('Error fetching comments:', error);
-          }
-      };
-      
+        getThreadComment({dispatch: dispatch, axiosInstance: axiosInstance, threadId: thread.id})
+    };
 
     useEffect(() => {
-            fetchThreadComments();   
+        fetchThreadComments();   
     }, []);
 
     return (
@@ -68,7 +31,7 @@ function Comment({thread}) {
                             ): (
                                 <View style={tailwind`w-10 h-10 rounded-12 bg-white items-center justify-center`}>
                                     <Text style={tailwind`text-red-500 text-6x3`}>
-                                    {displayText}
+                                    {item.displayText}
                                     </Text>
                               </View>
                             )}

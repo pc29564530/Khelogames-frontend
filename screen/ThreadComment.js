@@ -11,6 +11,7 @@ import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
 import { handleUser, handleLikes } from '../utils/ThreadUtils';
+import { addThreadComment } from '../services/commentServices';
 
 function ThreadComment ({route}) {
     const navigation = useNavigation();
@@ -19,26 +20,24 @@ function ThreadComment ({route}) {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
-    const [displayText, setDisplayText] = useState('');
     const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like));
     const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === itemId)).like_count)
 
       const handleReduxSubmit = async () => {
-        try {
-            const authToken =  await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemId}`, {comment_text: commentText}, {
-                headers: { 
-                    'Authorization': `Bearer ${authToken}`,
-                    'content-type': 'application/json'
-                }
-            })
-            dispatch(addComments(response.data));
-            dispatch(setCommentText(''));
-
-
-        } catch (e) {
-            console.error(e);
-        }
+        addThreadComment({commentText: commentText, dispatch: dispatch, itemId: itemId, axiosInstance: axiosInstance})
+        // try {
+        //     const authToken =  await AsyncStorage.getItem('AccessToken');
+        //     const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemId}`, {comment_text: commentText}, {
+        //         headers: { 
+        //             'Authorization': `Bearer ${authToken}`,
+        //             'content-type': 'application/json'
+        //         }
+        //     })
+        //     dispatch(addComments(response.data));
+        //     dispatch(setCommentText(''));
+        // } catch (e) {
+        //     console.error(e);
+        // }
     }
 
     useEffect(()=> {
@@ -82,7 +81,7 @@ function ThreadComment ({route}) {
                           ):(
                             <View style={tailwind`w-15 h-15 rounded-12 bg-white items-center justify-center`}>
                               <Text style={tailwind`text-red-500 text-6x3`}>
-                                {displayText}
+                               {item.displayText}
                               </Text>
                             </View>
                           )
