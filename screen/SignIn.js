@@ -8,7 +8,7 @@ import {setAuthenticated, setUser} from '../redux/actions/actions';
 import tailwind from 'twrnc';
 import { Input, Icon } from '@rneui/themed';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { BASE_URL } from '../constants/ApiConstants';
+import { loginServies } from '../services/authServies';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
 
@@ -20,28 +20,10 @@ const SignIn = () => {
     const navigation = useNavigation();
     const  [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [refresh, setRefresh] = useState(null);
-    const [access, setAccess] = useState(null);
-    const [aexpire, setAExpire] = useState(null);
-    const [rexpire, setRExpire] = useState(null);
 
     const handleSignIn = async() => {
       try {
-        const user = {username, password}
-        const response = await axios.post(`${BASE_URL}/login`, user);
-        await AsyncStorage.setItem("AccessToken", response.data.access_token);
-        await AsyncStorage.setItem("Role", response.data.user.role);
-        await AsyncStorage.setItem("User", response.data.user.username);
-        await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
-        await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);
-        await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
-        setRefresh(response.data.refresh_token);
-        setAccess(response.data.access_token);  
-        setAExpire(response.data.access_token_expires_at)
-        setRExpire(response.data.access_token_expires_at)
-        dispatch(setAuthenticated(!isAuthenticated));
-        dispatch(setUser(response.data.user));
-       
+        loginServies({username: username, password:password, dispatch: dispatch, isAuthenticated: isAuthenticated});     
       } catch (err) {
         console.error(err);
       }

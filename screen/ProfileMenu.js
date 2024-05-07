@@ -13,6 +13,7 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import AddPlayerToClub from '../components/AddPlayerToClub';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+import { logoutServies } from '../services/authServies';
 
 function ProfileMenu() {
   const dispatch = useDispatch();
@@ -68,17 +69,8 @@ function ProfileMenu() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      const username = await AsyncStorage.getItem('User');
-      await axios.delete(`${BASE_URL}/removeSession/${username}`);
-      dispatch(logout());
-      await AsyncStorage.removeItem('AccessToken');
-      await AsyncStorage.removeItem('RefreshToken');
-      await AsyncStorage.removeItem('User');
-    } catch (err) {
-      console.log('Failed to logout', err);
-    }
+  const handleLogout =  () => {
+    logoutServies({dispatch: dispatch});
   };
 
   const handleReduxFollow = async () => {
