@@ -10,6 +10,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import axios from 'axios';
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
+import { determineMatchStatus } from '../utils/MatchStatus';
 
 const Fixture = ({clubID}) => {
     const [match, setMatch] = useState([]);
@@ -101,37 +102,37 @@ const Fixture = ({clubID}) => {
         setIsDropDownVisible(true);
     }
 
-    const determineMatchStatus = (item) => {
-        startTimeStr = item.start_time;
-        endTimeStr = item.end_time;
-        const [datePart, timePart] = startTimeStr.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
-        const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+//     const determineMatchStatus = (item) => {
+//         startTimeStr = item.start_time;
+//         endTimeStr = item.end_time;
+//         const [datePart, timePart] = startTimeStr.split('T');
+//         const [year, month, day] = datePart.split('-').map(Number);
+//         const [hour, minute, second] = timePart.slice(0,-1).split(':').map(Number);
+//         const matchStartDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 
-        const [datePartEnd, timePartEnd] = endTimeStr.split('T');
-        const [yearEnd, monthEnd, dayEnd] = datePartEnd.split('-').map(Number);
-        const [hourEnd, minuteEnd, secondEnd] = timePartEnd.slice(0,-1).split(':').map(Number);
-        const matchEndDateTime = new Date(Date.UTC(yearEnd, monthEnd - 1, dayEnd, hourEnd, minuteEnd, secondEnd));
+//         const [datePartEnd, timePartEnd] = endTimeStr.split('T');
+//         const [yearEnd, monthEnd, dayEnd] = datePartEnd.split('-').map(Number);
+//         const [hourEnd, minuteEnd, secondEnd] = timePartEnd.slice(0,-1).split(':').map(Number);
+//         const matchEndDateTime = new Date(Date.UTC(yearEnd, monthEnd - 1, dayEnd, hourEnd, minuteEnd, secondEnd));
 
 
-        const currentDateTime = new Date();
-        const localDate = new Date(currentDateTime.getTime()-currentDateTime.getTimezoneOffset()*60*1000)
-        if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
-            console.error("date time format error")
-            return "";
-        }
+//         const currentDateTime = new Date();
+//         const localDate = new Date(currentDateTime.getTime()-currentDateTime.getTimezoneOffset()*60*1000)
+//         if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
+//             console.error("date time format error")
+//             return "";
+//         }
 
-        let status;
-        if (localDate < matchStartDateTime ) {
-            status = "Not Started";
-        } else if (localDate > matchEndDateTime) {
-            status = "End";
-        } else {
-            status = "Live";
-        }
-        return status;
-};
+//         let status;
+//         if (localDate < matchStartDateTime ) {
+//             status = "Not Started";
+//         } else if (localDate > matchEndDateTime) {
+//             status = "End";
+//         } else {
+//             status = "Live";
+//         }
+//         return status;
+// };
 
     const handleTournamentNavigate = async (tournamentItem) => {
         try {

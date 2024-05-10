@@ -7,7 +7,7 @@ import FootballLineUp from '../screen/FootballLineUp';
 function FootballMatchPageContent({matchData}) {
     const TopTab = createMaterialTopTabNavigator();
     // const {tournamentData} = route.params;
-    console.log("tab bar: ", matchData)
+    console.log("tab bar: ", matchData.start_time)
     return (
         <TopTab.Navigator
                 screenOptions={{
@@ -17,7 +17,7 @@ function FootballMatchPageContent({matchData}) {
                     tabBarScrollEnabled:true
                 }}
                 tabBarOptions={{
-                    tabStyle: { width: 260 },
+                    tabStyle: { width: 130},
                     scrollEnabled: true,
                     indicatorStyle: tailwind`bg-red-400`,
                 }}
@@ -32,11 +32,11 @@ function FootballMatchPageContent({matchData}) {
                     component={FootballLineUp}
                     initialParams={{matchData:matchData}}
                 />
-                {/* <TopTab.Screen 
+                <TopTab.Screen 
                     name="Standing"
                     component={TournamentStanding}
-                    initialParams={{matchData: matchData    }}
-                /> */}
+                    initialParams={{matchData: matchData}}
+                />
         </TopTab.Navigator>
     );
 }

@@ -2,9 +2,13 @@ import React ,{useState, useEffect} from 'react';
 import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { getFootballMatches } from '../services/footballMatchServices';
 
 const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
+    const navigation = useNavigation();
+    
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -13,19 +17,8 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
 
     const fetchTournamentMatchs = async () => {
         try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getAllTournamentMatch`, {
-                params: {
-                    tournament_id: tournament.tournament_id,
-                    sports: tournament.sport_type
-                },
-                headers: {
-                    'Authorization': `bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const item = response.data;
-            const matchData = item.map(async (item) => {
+            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentId: tournament.tournament_id, tournamentSport: tournament.sport_type});
+            const matchData = item?.map(async (item) => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
                     const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team1_id}`, null, {
@@ -81,12 +74,16 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
         }
     };
 
+    const handleFootballMatchPage = (item) => {
+        navigation.navigate("FootballMatchPage", {matchData:item, determineMatchStatus:determineMatchStatus, formattedDate:formattedDate, formattedTime:formattedTime});
+    }
+
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
                 {tournamentTeamData?.length > 0 ? (
                     tournamentTeamData.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleFixturePage()}>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleFootballMatchPage(item)}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>

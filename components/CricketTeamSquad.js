@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import {Text, View, ScrollView} from 'react-native';
+import {Text, View, ScrollView, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
@@ -19,8 +19,20 @@ const getMember = async (authToken, teamID, axiosInstance) => {
 const CricketTeamSquad = ({route}) => {
     const [team1Player, setTeam1Player] = useState([]);
     const [team2Player, setTeam2Player] = useState([]);
+    const [team1ModalVisible, setTeam1ModalVisible] = useState(true);
+    const [team2ModalVisible, setTeam2ModalVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();    
     const {team1ID, team2ID} = route.params;
+
+    const handleToggle = (team) => {
+        if (team === 'team1') {
+            setTeam1ModalVisible(true);
+            setTeam2ModalVisible(false);
+        } else if (team === 'team2') {
+            setTeam1ModalVisible(false);
+            setTeam2ModalVisible(true);
+        }
+    };
 
     useEffect(() => {
         const fetchTeamPlayer = async () => {
@@ -94,15 +106,27 @@ const CricketTeamSquad = ({route}) => {
 
     return (
         <ScrollView style={tailwind`flex-1 p-4`}>
-            <View style={tailwind`flex-row justify-between items-start`}>
-                <View>
+            <View style={tailwind`flex-row justify-evenly  items-center ml-2 mr-2 gap-2`}>
+                <Pressable style={tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center`} onPress={() => handleToggle('team1')}> 
                     <Text style={tailwind`text-xl font-bold mb-2`}>{team1Player[team1Player.length - 1]?.clubName}</Text>
-                    {renderPlayers(team1Player)}
-                </View>
-                <View>
+                </Pressable>
+                <Pressable style={tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center`} onPress={() => handleToggle('team2')}>
                     <Text style={tailwind`text-xl font-bold mb-2`}>{team2Player[team2Player.length - 1]?.clubName}</Text>
-                    {renderPlayers(team2Player)}
-                </View>
+                </Pressable>
+            </View>
+            <View style={tailwind`flex-row justify-between items-start`}>
+                {team1ModalVisible && (
+                    <View>
+                        <Text style={tailwind`text-xl font-bold mb-2`}>{team1Player[team1Player.length - 1]?.clubName}</Text>
+                        {renderPlayers(team1Player)}
+                    </View>
+                )}
+                {team2ModalVisible && (
+                    <View>
+                        <Text style={tailwind`text-xl font-bold mb-2`}>{team2Player[team2Player.length - 1]?.clubName}</Text>
+                        {renderPlayers(team2Player)}
+                    </View>
+                )}
             </View>
         </ScrollView>
     )
