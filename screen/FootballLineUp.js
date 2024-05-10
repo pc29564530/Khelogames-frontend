@@ -12,7 +12,7 @@ const FootballLineUp = ({ route }) => {
     const [teamPlayer1, setTeamPlayer1] = useState([]);
     const [teamPlayer2, setTeamPlayer2] = useState([]);
     const axiosInstance = useAxiosInterceptor();
-    const matchData = route.params.matchData.item;
+   const matchData = route.params.matchData;
     const handleToggle = (team) => {
         if (team === 'team1') {
             setTeam1ModalVisible(true);
