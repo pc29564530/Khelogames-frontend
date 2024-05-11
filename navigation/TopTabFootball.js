@@ -1,23 +1,27 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
 import TournamentFootballInfo from '../screen/TournamentFootballInfo';
-import TournamentMatches from '../screen/TournamentMatches';
 import TournamentFootballStats from '../screen/TournamentFootballStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
+import TournamentMatches from '../screen/TournamentMatches';
 
 function TopTabFootball({tournament, currentRole}) {
-    console.log("line no 12: ", tournament)
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black text-md`,
+                    tabBarLabelStyle:tailwind`text-black text-md `,
                     tabBarStyle:tailwind`bg-white`,
                     headerShown:true,
                     tabBarScrollEnabled:true
                 }}
-            >   
+                tabBarOptions={{
+                    tabStyle: { width: 150 },
+                    scrollEnabled: true,
+                    indicatorStyle: tailwind`bg-red-400`,
+                }}
+            > 
                 <TopTab.Screen 
                     name="Info"
                     component={TournamentFootballInfo}
@@ -33,7 +37,7 @@ function TopTabFootball({tournament, currentRole}) {
                     component={TournamentFootballStats}
                     initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen  
                     name="Matches"
                     component={TournamentMatches}
                     initialParams={{tournament:tournament, currentRole: currentRole}}
