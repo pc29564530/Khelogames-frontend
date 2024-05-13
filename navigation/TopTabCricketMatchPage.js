@@ -3,6 +3,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import tailwind from 'twrnc';
 import CricketMatchScorePage from '../components/CricketMatchScorePage';
 import CricketTeamSquad from '../components/CricketTeamSquad';
+import CricketMatchDetail from '../screen/CricketMatchDetail';
 
 const TopTabCricketMatchPage = ({team1ID, team2ID, tournamentID, matchID}) => {
         const TopTab = createMaterialTopTabNavigator();
@@ -14,6 +15,11 @@ const TopTabCricketMatchPage = ({team1ID, team2ID, tournamentID, matchID}) => {
                     headerShown:true
                 }}
             >
+                <TopTab.Screen 
+                    name="Detail"
+                    component={CricketMatchDetail}
+                    initialParams={{matchID: matchID, tournamentID: tournamentID}}
+                />
                 <TopTab.Screen 
                     name="Scorecard"
                     component={CricketMatchScorePage}
