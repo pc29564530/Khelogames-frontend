@@ -11,6 +11,7 @@ import { formattedDate } from '../utils/FormattedDateTime';
 
 const FootballDetails = ({route}) => {
     const matchData = route.params.matchData;
+    console.log("Match Data: ", matchData)
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const handleTournamentPage = async (tournamentID) => {
@@ -47,15 +48,15 @@ const FootballDetails = ({route}) => {
                     </Pressable>
                 </View>
            </View>
-           <View style={tailwind``}>
-                <Text>Details</Text>
-                <View>
+           <View style={tailwind`mt-2`}>
+                <Text style={tailwind`text-2xl ml-2`}>Details</Text>
+                <View style={tailwind`flex-row justify-between ml-2 mr-2`}>
                     <Text>Date</Text>
                     <Text>{formattedDate(matchData.date_on)}</Text>
                 </View>
-                <View>
+                <View style={tailwind`flex-row justify-between ml-2 mr-2`}>
                     <Text>Time</Text>
-                    <Text>{formattedTime(matchData.time_at)}</Text>
+                    <Text>{formattedTime(matchData.start_time)}</Text>
                 </View>
            </View>
         </View>

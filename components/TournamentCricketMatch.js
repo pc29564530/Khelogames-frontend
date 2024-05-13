@@ -3,7 +3,6 @@ import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
@@ -46,11 +45,10 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                 const teamScore = matchScoreData.reduce((totalScore, playerScore) => totalScore+playerScore.runs_scored, 0)
                 const teamWickets = matchScoreData.reduce((totalWickets, playerOut) => totalWickets + (playerOut.wicket_taken_by>0?1:0),0);
                 const teamRunsConceded = bowlConcededData.reduce((totalRunsConceded, bowlerRuns) => totalRunsConceded + bowlerRuns.runs_conceded,0)
-
                 const extrasScore = Math.abs(teamScore-teamRunsConceded);
                 try {
                     const batData = {
-                        score: totalScore,
+                        score: teamScore,
                         match_id: matchId,
                         team_id: batTeamId
                     }

@@ -25,19 +25,6 @@ function ThreadComment ({route}) {
 
       const handleReduxSubmit = async () => {
         addThreadComment({commentText: commentText, dispatch: dispatch, itemId: itemId, axiosInstance: axiosInstance})
-        // try {
-        //     const authToken =  await AsyncStorage.getItem('AccessToken');
-        //     const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemId}`, {comment_text: commentText}, {
-        //         headers: { 
-        //             'Authorization': `Bearer ${authToken}`,
-        //             'content-type': 'application/json'
-        //         }
-        //     })
-        //     dispatch(addComments(response.data));
-        //     dispatch(setCommentText(''));
-        // } catch (e) {
-        //     console.error(e);
-        // }
     }
 
     useEffect(()=> {

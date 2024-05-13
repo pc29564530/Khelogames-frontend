@@ -71,10 +71,10 @@ const AddFootballPlayerScore = ({route}) => {
             <View style={tailwind`rounded-lg p-2 shadow-sm bg-white`}>
                 <Text>Select Team</Text>
                 <View style={tailwind`flex-row`}>
-                    <Pressable style={tailwind`shadow-lg p-6 rounded-lg`} onPress={() => setTeam(matchData.team1_id)}>
+                    <Pressable style={[tailwind`shadow-lg p-6 rounded-lg`, team === matchData.team1_name?tailwind`bg-gray-200`:null]} onPress={() => setTeam(matchData.team1_id)}>
                         <Text>{matchData.team1_name}</Text>
                     </Pressable>   
-                    <Pressable style={tailwind`shadow-lg p-6 rounded-lg`} onPress={() => setTeam(matchData.team2_id)}>
+                    <Pressable style={[tailwind`shadow-lg p-6 rounded-lg`, team === matchData.team1_name?tailwind`bg-gray-200`:null]} onPress={() => setTeam(matchData.team2_id)}>
                         <Text>{matchData.team2_name}</Text>
                     </Pressable>
                 </View>
