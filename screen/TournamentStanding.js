@@ -7,9 +7,10 @@ import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
 import { ScrollView } from 'react-native-gesture-handler';
 import SelectTeamBySport from '../components/SelectTeamBySport';
+import { DrawerContentScrollView } from '@react-navigation/drawer';
 
 const TournamentStanding = ({route}) => {
-    const tournament = route.params.tournament;
+    const {tournament, currentRole} = route.params;
     const axiosInstance = useAxiosInterceptor();
     const [group, setGroup] = useState([]);
     const [standings, setStandings] = useState([]);
@@ -34,6 +35,7 @@ const TournamentStanding = ({route}) => {
                     'Content-Type': 'application/json',
                 },
             })
+            console.log(response.data)
             setGroup(response.data);
         } catch (err) {
             console.error("unable to fetch the group using sport: ", err);
@@ -41,7 +43,7 @@ const TournamentStanding = ({route}) => {
     }
     useEffect(() => {
         fetchGroup();
-    }, [group])
+    }, [])
     
     useEffect(() => {
         const fetchStanding = async () => {
@@ -84,21 +86,7 @@ const TournamentStanding = ({route}) => {
         if (group?.length >= 0) {
             fetchStanding();
         }
-    }, [group, tournament]);
-
-    // let tableHead;
-    // if( standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Football") {
-    //     tableHead = ["Team", "W", "L", "D", "GD", "Pts"];
-    //     standingsData = standings[0]?.standData.map((item, index) => [
-    //         item.club_name, item.wins, item.loss, item.draw, item.goal_difference, item.points
-    //     ]).map(row => row.filter(value => value !== undefined));
-        
-    // } else if(standings.length>0 && standings[0]?.standData !== null &&  standings[0]?.standData[0]?.sport_type === "Cricket"){
-    //     tableHead = ["Team", "M", "W", "L", "D", "Pts"];
-    //     standingsData = standings[0]?.standData.map((item, index) => [
-    //         item.club_name, item.wins, item.loss, item.draw, item.points
-    //     ]).map(row => row.filter(value => value !== undefined));
-    // }
+    }, []);
 
     const handleAddGroup = async () => {
         try {
@@ -143,18 +131,19 @@ const TournamentStanding = ({route}) => {
     const closeTeamBySport = () => {
         setIsModalTeamVisible(false)
     }
-
-
+    
   return (
     <ScrollView style={tailwind`mt-4`}>
-        <View style={tailwind`flex-row`}>
-            <Pressable onPress={() => setIsModalGroupVisible(!isModalGroupVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
-                <Text>Set Group</Text>
-            </Pressable>
-            <Pressable onPress={() => setIsModalTeamVisible(!isModalTeamVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
-                <Text>Set Team</Text>
-            </Pressable>
-        </View>
+        {currentRole === "admin" && (
+            <View style={tailwind`flex-row`}>
+                <Pressable onPress={() => setIsModalGroupVisible(!isModalGroupVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
+                    <Text>Set Group</Text>
+                </Pressable>
+                <Pressable onPress={() => setIsModalTeamVisible(!isModalTeamVisible)} style={tailwind`p-4 rounded-lg shadow-lg w-30 items-center justify-center`}>
+                    <Text>Set Team</Text>
+                </Pressable>
+            </View>
+        )}
         <View>
             {standings.length > 0 ? (
                 standings.map((group, standingIndex) => (

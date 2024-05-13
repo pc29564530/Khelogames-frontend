@@ -1,9 +1,7 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, Pressable, TouchableOpacity, Image} from 'react-native';
+import {View, Text, TextInput, Pressable, ScrollView, Image} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {launchImageLibrary} from 'react-native-image-picker';
-import AsyncStorage  from '@react-native-async-storage/async-storage'
-import {addThreads} from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
@@ -11,9 +9,8 @@ import Video from 'react-native-video';
 import useAxiosInterceptor from './axios_config';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
-import { BASE_URL } from '../constants/ApiConstants';
-import { KeyboardAvoidingView, ScrollView } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { addNewThreadServices } from '../services/threadsServices';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -84,44 +81,15 @@ function CreateThread() {
     };
 
     const HandleSubmit = async () => {
-        try {
-            const thread = {
-                communities_name: communityType,
-                title: title,
-                content: content,
-                mediaType: mediaType,
-                mediaURL: mediaURL,
-                likeCount: likeCount,
-            };
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/create_thread`, thread, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const item = response.data;
-            const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.username}`, null, {
-              headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-              },
-            })
-            const threadItem = {
-              item,
-              profile: profileResponse.data
-            }
-            if(item === null || !item) {
-              dispatch(addThreads([]));
-            } else {
-              dispatch(addThreads(item));
-            }
-            
-            navigation.navigate('Home');
-        } catch (e) {
-            console.error(e);
-        }  
+        const thread = {
+          communities_name: communityType,
+          title: title,
+          content: content,
+          mediaType: mediaType,
+          mediaURL: mediaURL,
+          likeCount: likeCount,
+        };
+        addNewThreadServices({dispatch: dispatch, axiosInstance: axiosInstance, thread: thread, navigation: navigation});
     }
 
     const handleSelectCommunity = () => {

@@ -1,22 +1,27 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
 import TournamentFootballInfo from '../screen/TournamentFootballInfo';
-import TournamentMatches from '../screen/TournamentMatches';
 import TournamentFootballStats from '../screen/TournamentFootballStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
+import TournamentMatches from '../screen/TournamentMatches';
 
-function TopTabFootball({tournament}) {
+function TopTabFootball({tournament, currentRole}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black text-md`,
+                    tabBarLabelStyle:tailwind`text-black text-md `,
                     tabBarStyle:tailwind`bg-white`,
                     headerShown:true,
                     tabBarScrollEnabled:true
                 }}
-            >   
+                tabBarOptions={{
+                    tabStyle: { width: 150 },
+                    scrollEnabled: true,
+                    indicatorStyle: tailwind`bg-red-400`,
+                }}
+            > 
                 <TopTab.Screen 
                     name="Info"
                     component={TournamentFootballInfo}
@@ -25,21 +30,22 @@ function TopTabFootball({tournament}) {
                 <TopTab.Screen 
                     name="Team"
                     component={TournamentTeam}
-                    initialParams={{tournament:tournament}}
+                    initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
                 <TopTab.Screen 
                     name="Stats"
                     component={TournamentFootballStats}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen  
                     name="Matches"
                     component={TournamentMatches}
-                    initialParams={{tournament:tournament}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 
                     name="Standing"
                     component={TournamentStanding}
-                    initialParams={{tournament:tournament}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
         </TopTab.Navigator>
     );

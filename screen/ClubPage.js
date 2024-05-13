@@ -7,7 +7,7 @@ import Fixture from '../components/Fixture';
 import Stats from '../components/Stats';
 
 
-const subCategorys = [ "Members", "Fixture","Stats", "Media", "Post"];
+const subCategorys = [ "Members", "Fixture"];
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
@@ -27,7 +27,7 @@ const ClubPage = ({route}) => {
             case "Stats":
                 return <Stats />;
             default:
-                return <Members clubName={clubData.club_name} />;
+                return <Members clubData={clubData} />;
         }
     }
 
