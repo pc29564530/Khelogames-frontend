@@ -3,9 +3,14 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+<<<<<<< HEAD
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+=======
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { useNavigation, useRoute } from '@react-navigation/native';
+>>>>>>> ae4b7cb (added the club page and drawer size increase for profile menu)
 import { useSelector, useDispatch } from 'react-redux';
 import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
@@ -204,8 +209,7 @@ function ProfileMenu() {
   }
 
   const addPlayerProfile = () => {
-    navigation.navigate("AddPlayerToClub")
-      // return (<AddPlayerToClub />);
+    navigation.navigate("AddPlayerToClub");
   }
 
   return (
