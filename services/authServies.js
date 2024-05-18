@@ -1,11 +1,11 @@
 import axios from "axios";
-import { BASE_URL } from "../constants/ApiConstants";
+import { AUTH_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {setAuthenticated, setUser, logout} from '../redux/actions/actions';
 
 export const loginServies = async ({ username, password, dispatch, isAuthenticated }) => {
     try {
-        const response = await axios.post(`${BASE_URL}/login`, {username,password });
+        const response = await axios.post(`${AUTH_URL}/login`, {username,password });
         const item = response.data;
         await AsyncStorage.setItem("AccessToken", item.access_token);
         await AsyncStorage.setItem("Role", item.user.role);
@@ -25,7 +25,7 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
 export const logoutServies = async ({dispatch}) => {
     try {
         const username = await AsyncStorage.getItem('User');
-        await axios.delete(`${BASE_URL}/removeSession/${username}`);
+        await axios.delete(`${AUTH_URL}/removeSession/${username}`);
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');

@@ -3,19 +3,14 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-<<<<<<< HEAD
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-=======
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useNavigation, useRoute } from '@react-navigation/native';
->>>>>>> ae4b7cb (added the club page and drawer size increase for profile menu)
 import { useSelector, useDispatch } from 'react-redux';
 import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import AddPlayerToClub from '../components/AddPlayerToClub';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { logoutServies } from '../services/authServies';
@@ -132,7 +127,7 @@ function ProfileMenu() {
     try {
       const authUser = await AsyncStorage.getItem('User');
       console.log(authUser);
-      const response = await axios.get(`${BASE_URL}/getProfile/${authUser}`);
+      const response = await axios.get(`${AUTH_URL}/getProfile/${authUser}`);
       if (!response.data.avatar_url || response.data.avatar_url === '') {
         const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
         setDisplayText(usernameInitial.toUpperCase());

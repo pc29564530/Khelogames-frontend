@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { AUTH_URL } from '../constants/ApiConstants';
 
 
 
@@ -37,7 +37,7 @@ function useAxiosInterceptor() {
               const refreshToken = await AsyncStorage.getItem('RefreshToken');
               if (refreshToken) {
                   console.log("lin no 34 refresh token")
-                const response = await axios.post(`${BASE_URL}/tokens/renew_access`, {
+                const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
                   'refresh_token': refreshToken,
                 });
                 console.log(response.data)
@@ -50,7 +50,7 @@ function useAxiosInterceptor() {
                 } else {
                   // Failed to renew token or received an invalid token
                   const username = await AsyncStorage.getItem('User')
-                  await axios.delete(`${BASE_URL}/removeSession/${username}`)
+                  await axios.delete(`${AUTH_URL}/removeSession/${username}`)
                   await AsyncStorage.removeItem('AccessToken');
                   await AsyncStorage.removeItem('RefreshToken');
                   await AsyncStorage.removeItem('User');
