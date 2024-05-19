@@ -200,3 +200,69 @@ export const getProfile = (profile) => {
         payload: profile
     }
 }
+
+//matches score
+
+export const getFootballMatches = (matches) => {
+    return {
+        type: 'GET_FOOTBALL_MATCES',
+        payload: matches
+    }
+}
+
+export const getCricketMatches = (matches) => {
+    return {
+        type: 'GET_CRICKET_MATCHES',
+        payload: matches
+    }
+}
+
+export const getFootballMatchScore = (score) => {
+    return {
+        type: 'GET_FOOTBALLL_MATCH',
+        payload: score
+    }
+}
+
+export const getCricketMatchScore = (score) => {
+    return {
+        type: 'GET_FOOTBALLL_MATCH',
+        payload: score
+    }
+}
+
+export const getCricketPlayerScore = (score) => {
+    return {
+        type: 'GET_CRICKET_PLAYER_SCORE',
+        payload: score
+    }
+}
+
+export const getFootballPlayerScore = (score) => {
+    return {
+        type: 'GET_FOOTBALLL_PLAYER_SCORE',
+        payload: score
+    }
+}
+
+//standing
+
+export const getCricketStanding = (standing) => {
+    return {
+        type: 'GET_CRICKET_STANDING',
+        payload: score
+    }
+}
+
+export const getFootballStanding = (standing) => {
+    return {
+        type: 'GET_FOOTBALL_STANDING',
+        payload: score
+    }
+}
+
+//Add stats function
+//get stats function
+//update stats function
+
+

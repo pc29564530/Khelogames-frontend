@@ -10,6 +10,8 @@ import joinedCommunityReducer from "./joinedCommunityReducer";
 import communityReducers from "./communityReducers"
 import editProfileReducers from "./editProfileReducers";
 import profileReducers from "./profileReducers";
+import { footballMatchPlayerScore } from "./fooballMatchPlayerScoreReducers";
+import { footballMatchScore } from "./footballMatchScoreReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
@@ -22,7 +24,11 @@ const rootReducer = combineReducers({
     joinedCommunity: joinedCommunityReducer,
     community: communityReducers,
     editProfile: editProfileReducers,
-    profile: profileReducers
+    profile: profileReducers,
+    playerScore: footballMatchPlayerScore,
+    matchScore: footballMatchScore,
+    playerScore: cricketMatchPlayerScore,
+    matchScore: cricketMatchScore
 });
 
 export default rootReducer;
