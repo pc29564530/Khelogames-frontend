@@ -12,6 +12,8 @@ import editProfileReducers from "./editProfileReducers";
 import profileReducers from "./profileReducers";
 import { footballMatchPlayerScore } from "./fooballMatchPlayerScoreReducers";
 import { footballMatchScore } from "./footballMatchScoreReducers";
+import { cricketMatchScore } from "./cricketMatchScoreReducers";
+import { cricketMatchPlayerScore } from "./cricketMatchPlayerScoreReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
