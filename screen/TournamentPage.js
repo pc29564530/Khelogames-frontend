@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,11 +8,11 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
+import { GlobalContext } from '../context/GlobalContext';
 
 const TournamentPage = ({ route }) => {
-    const {item, currentRole, sport} = route.params;
-    console.log("item: ", item)
-    const tournament = item
+    const {sport, setSport, tournament, setTournament} = useContext(GlobalContext)
+    const { currentRole} = route.params;
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -31,7 +31,7 @@ const TournamentPage = ({ route }) => {
             case "Tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} sport={sport} />;
+                return <TopTabFootball currentRole={currentRole}/>; // remove tournament={tournament}
         }
     }
 
@@ -93,7 +93,6 @@ const TournamentPage = ({ route }) => {
             console.error("unable to add the team to tournament: ", err);
         }
     }
-    console.log("Tournament: ", tournament)
     return (
             <ScrollView
                 contentContainerStyle={{height:870 }}
