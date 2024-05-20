@@ -4,10 +4,9 @@ import { BASE_URL } from "../constants/ApiConstants";
 export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getTournamentsBySport`, {
-            params:{
-                "sport_type":sport
-            },
+        console.log("Sport: ", sport.toLowerCase())
+        //need to lowercase the word of sport 
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
