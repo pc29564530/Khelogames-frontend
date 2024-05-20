@@ -51,7 +51,7 @@ const TournamentMatches = ({route }) => {
     const fetchTournamentTeams = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getTeams/${tournament.tournament_id}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournament.tournament_id}`, null, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'

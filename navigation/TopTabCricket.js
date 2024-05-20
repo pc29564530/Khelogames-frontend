@@ -7,7 +7,7 @@ import TournamentCricketStats from '../screen/TournamentCricketStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
 
-function TopTabCricket({tournament}) {
+function TopTabCricket({tournament, currentRole}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
