@@ -4,7 +4,7 @@ const initialstate = {
     playerScore: []
 }
 
-export const footballMatchPlayerScore = (state=initialstate, action) => {
+const footballMatchPlayerScoreReducers = (state=initialstate, action) => {
     switch (action.type) {
         case actionTypes.GET_FOOTBALLL_PLAYER_SCORE:
             return {
@@ -20,3 +20,5 @@ export const footballMatchPlayerScore = (state=initialstate, action) => {
             return state
     }
 }
+
+export default footballMatchPlayerScoreReducers;

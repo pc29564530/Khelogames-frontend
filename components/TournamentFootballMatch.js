@@ -4,11 +4,14 @@ import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { getFootballMatches } from '../services/footballMatchServices';
+import { useDispatch, useSelector } from 'react-redux';
+import { getFootballMatchScore } from '../redux/actions/actions';
 
 const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const navigation = useNavigation();
-    
+    const dispatch = useDispatch();
+    const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -18,29 +21,32 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
     const fetchTournamentMatchs = async () => {
         try {
             const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentId: tournament.tournament_id, tournamentSport: tournament.sport_type});
+            if(item === null ){
+                return item;
+            }
             const matchData = item?.map(async (item) => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team1_id}`, null, {
+                    const response1 = await axiosInstance.get(`${BASE_URL}/${item.sports}/getClub/${item.team1_id}`, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const response2 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team2_id}`, null, {
+                    const response2 = await axiosInstance.get(`${BASE_URL}/${item.sports}/getClub/${item.team2_id}`, null, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const response3 = await axiosInstance.get(`${BASE_URL}/getTournament/${item.tournament_id}`, null, {
+                    const response3 = await axiosInstance.get(`${BASE_URL}/${item.sports}/getTournament/${item.tournament_id}`, null, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    const response4 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                    const response4 = await axiosInstance.get(`${BASE_URL}/${item.sports}/getFootballMatchScore`, {
                         params:{
                             match_id: item.match_id,
                             team_id: item.team1_id
@@ -51,7 +57,7 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
                         }
                     })
 
-                    const response5 = await axiosInstance.get(`${BASE_URL}/getFootballMatchScore`, {
+                    const response5 = await axiosInstance.get(`${BASE_URL}/${item.sports}/getFootballMatchScore`, {
                         params:{
                             match_id: item.match_id,
                             team_id: item.team2_id
@@ -69,6 +75,7 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
             });
             const allMatchData = await Promise.all(matchData);
             setTournamentTeamData(allMatchData);
+            dispatch(getFootballMatchScore(allMatchData))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }
@@ -81,8 +88,8 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
-                {tournamentTeamData?.length > 0 ? (
-                    tournamentTeamData.map((item, index) => (
+                {matches?.length > 0 ? (
+                    matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleFootballMatchPage(item)}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>

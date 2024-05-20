@@ -1,22 +1,25 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialstate = {
-    matchScore: []
+    cricketMatchScore: []
 }
 
-export const cricketMatchScore = (state=initialstate, action) => {
+const cricketMatchScoreReducers = (state=initialstate, action) => {
+    console.log("Linen no 8 Cricket: ", state.cricketMatchScore)
     switch (action.type) {
         case actionTypes.GET_CRICKET_MATCHES:
             return {
                 ...state,
-                matchScore: action.payload
+                cricketMatchScore: action.payload
             }
         case actionTypes.ADD_CRICKET_MATCHES:
             return {
                 ...state,
-                matchScore: [...state.matchScore, action.payload]
+                cricketMatchScore: [...state.cricketMatchScore, action.payload]
             }
         default:
             return state
     }
 }
+
+export default cricketMatchScoreReducers;

@@ -203,45 +203,32 @@ export const getProfile = (profile) => {
 
 //matches score
 
-export const getFootballMatches = (matches) => {
+export const getFootballMatchScore = (matchScore) => {
+    console.log("Line no 207: ", matchScore )
     return {
-        type: 'GET_FOOTBALL_MATCES',
-        payload: matches
+        type: 'GET_FOOTBALL_MATCHES',
+        payload: matchScore
     }
 }
 
-export const getCricketMatches = (matches) => {
+export const getCricketMatchScore = (cricketMatchScore) => {
     return {
         type: 'GET_CRICKET_MATCHES',
-        payload: matches
+        payload: cricketMatchScore
     }
 }
 
-export const getFootballMatchScore = (score) => {
-    return {
-        type: 'GET_FOOTBALLL_MATCH',
-        payload: score
-    }
-}
-
-export const getCricketMatchScore = (score) => {
-    return {
-        type: 'GET_FOOTBALLL_MATCH',
-        payload: score
-    }
-}
-
-export const getCricketPlayerScore = (score) => {
+export const getCricketPlayerScore = (cricketPlayerScore) => {
     return {
         type: 'GET_CRICKET_PLAYER_SCORE',
-        payload: score
+        payload: cricketPlayerScore
     }
 }
 
-export const getFootballPlayerScore = (score) => {
+export const getFootballPlayerScore = (playerScore) => {
     return {
         type: 'GET_FOOTBALLL_PLAYER_SCORE',
-        payload: score
+        payload: playerScore
     }
 }
 
