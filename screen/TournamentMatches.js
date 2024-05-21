@@ -30,19 +30,31 @@ const TournamentMatches = ({route }) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`${BASE_URL}/getOrganizer/${tournament.tournament_id}`, null, {
+            console.log("Line no 33 organizer: ", user)
+            const data = {
+                tournament_id: tournament.tournament_id,
+                organizer_name: user
+            }
+            console.log("Data: line no 37: ", data)
+            const response = await axiosInstance.get(`${BASE_URL}/getOrganizer`, {
+                params: {
+                    tournament_id: tournament.tournament_id.toString(),
+                    organizer_name: user
+                },
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
             const item = response.data;
-            item.forEach(item => {
-                if (item.organizer_name.toLowerCase() === user.toLowerCase()) {
-                    // setAdmin(true);
-                    setOrganizerID(item.organizer_id);
-                }
-            });
+            setOrganizerID(item.organizer_id)
+            //add this foreach when there is more than one organizer for tournament
+            // item.forEach(item => {
+            //     if (item.organizer_name.toLowerCase() === user.toLowerCase()) {
+            //         // setAdmin(true);
+            //         setOrganizerID(item.organizer_id);
+            //     }
+            // });
         } catch (err) {
             console.log("Unable to fetch the organizer: ", err);
         }
@@ -65,7 +77,7 @@ const TournamentMatches = ({route }) => {
 
 
     const handleCloseFixtureModal = () => {
-        setIsModalVisible(!isModalVisible);
+        setIsModalVisible(false);
     }
     
     const determineMatchStatus = (item) => {
@@ -157,22 +169,24 @@ const TournamentMatches = ({route }) => {
         <View style={tailwind`flex-1 bg-gray-100`}>
             <View style={tailwind`p-4 flex-row justify-between items-center bg-white`}>
                 <Text style={tailwind`text-xl font-bold text-gray-800`}>{tournament?.name}</Text>
-                {currentRole === "admin" && (
+                {/* {currentRole === "admin" && ( */}
                     <Pressable onPress={() => setIsModalVisible(!isModalVisible)} style={tailwind`rounded-lg bg-purple-200 p-2 justify-start flex-row items-center`}>
                         <Text style={tailwind`text-lg text-purple-800`}>Set Fixture</Text>
                         <MaterialIcons name="add" size={24} color="black" />
                     </Pressable>
-                )}
+                {/* )} */}
             </View>
             {isModalVisible && (
                 <Modal transparent={true} animationType='slide' visible={isModalVisible} onRequestClose={handleCloseFixtureModal}>
-                    <View style={tailwind`flex-1 justify-center bg-black bg-opacity-50`}>
-                        <CreateFixtue
-                            tournament={tournament}
-                            teams={teams}
-                            organizerID={organizerID}
-                            handleCloseFixtureModal={handleCloseFixtureModal}
-                        />
+                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <CreateFixtue
+                                tournament={tournament}
+                                teams={teams}
+                                organizerID={organizerID}
+                                handleCloseFixtureModal={handleCloseFixtureModal}
+                            />
+                        </View>
                     </View>
                 </Modal>
             )}

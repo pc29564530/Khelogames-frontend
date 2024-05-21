@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, Pressable, Modal} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -6,6 +6,9 @@ import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import DateTimePicker from 'react-native-modern-datepicker'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { GlobalContext } from '../context/GlobalContext';
+import {addFootballScoreServices} from '../services/footballMatchServices';
+import { useDispatch } from 'react-redux';
 
 const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal}) => {
     const [admin, setAdmin] = useState('');
@@ -22,14 +25,20 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
     const [isModalDateVisible, setIsModalDateVisible] = useState(false);
     const [modalType, setModalType] = useState('')
     const axiosInstance = useAxiosInterceptor()
+    const {sports} = useContext(GlobalContext);
+    const dispatch = useDispatch();
 
     const modifyDateTime = (newDateTime) => {
+        if (!newDateTime) {
+            console.error('new date time is undefined');
+            return null;
+        }
         const [datePart, timePart] = newDateTime.split(' ');
         const [year, month, day] = datePart.split('/').map(Number);
         const [hour, minute] = timePart.split(':').map(Number);
         const matchDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute));
         return matchDateTime;
-    }
+    };
 
     const handleSelectTeam = (item) => {
     if(modalType === 'team1') {
@@ -57,7 +66,7 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
             }
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/createTournamentMatch`, fixture,{
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/createTournamentMatch`, fixture,{
                 headers: {
                     'Authorization':`bearer ${authToken}`,
                     'Content-Type':'application/json'
@@ -66,43 +75,23 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
 
             const item = response.data;
             if(item && item !== null) {
-                try {
-                    const scoreData1 = {
-                        match_id:item.match_id,
-                        tournament_id: item.tournament_id,
-                        team_id: item.team1_id,
-                        goal_score: 0
-                    }
-                    const scoreData2 = {
-                        match_id:item.match_id,
-                        tournament_id: item.tournament_id,
-                        team_id: item.team2_id,
-                        goal_score: 0
-                    }
-                    const team1Response = await axiosInstance.post(`${BASE_URL}/addFootballMatchScore`,scoreData1, {
-                        headers: {
-                            'Authorization':`bearer ${authToken}`,
-                            'Content-Type':'application/json'
-                        }
-                    });
-                    const team2Response = await axiosInstance.post(`${BASE_URL}/addFootballMatchScore`,scoreData2, {
-                        headers: {
-                            'Authorization':`bearer ${authToken}`,
-                            'Content-Type':'application/json'
-                        }
-                    });
-                } catch ( err) {
-                    console.error("unable to create the score board ", err)
+                switch (sports) {
+                    case "Cricket":
+                        return addCricketScoreServices({sports, dispatch, item, authToken, axiosInstance});
+                    default:
+                        return addFootballScoreServices({sports, dispatch, item, authToken, axiosInstance})
                 }
             }
-            handleCloseFixtureModal()
+            
         } catch (err) {
             console.error("unable to set the fixture : ", err);
+        } finally {
+            handleCloseFixtureModal();
         }
     }
 
     const hideDatePicker = () => {
-    setShowDatePicker(false);
+        setShowDatePicker(false);
     };
       
     return (
