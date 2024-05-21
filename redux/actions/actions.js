@@ -204,7 +204,6 @@ export const getProfile = (profile) => {
 //matches score
 
 export const getFootballMatchScore = (matchScore) => {
-    console.log("Line no 207: ", matchScore )
     return {
         type: 'GET_FOOTBALL_MATCHES',
         payload: matchScore
@@ -245,6 +244,20 @@ export const getFootballStanding = (standing) => {
     return {
         type: 'GET_FOOTBALL_STANDING',
         payload: score
+    }
+}
+
+export const addFootballMatchScore = (matchScore) => {
+    return {
+        type: 'ADD_FOOTBALL_MATCH',
+        payload: matchScore
+    }
+}
+
+export const addCricketMatchScore = (cricketMatchScore) => {
+    return {
+        type: 'ADD_CRICKET_MATCH',
+        payload: cricketMatchScore
     }
 }
 
