@@ -265,4 +265,21 @@ export const addCricketMatchScore = (cricketMatchScore) => {
 //get stats function
 //update stats function
 
+//get tournament
+
+export const getTournamentBySportAction = (tournaments) => {
+    return {
+        type: 'GET_TOURNAMENT_BY_SPORT',
+        payload: tournaments
+    }
+};
+
+export const getTournamentByIdAction = (tournaments) => {
+    return {
+        type: 'GET_TOURNAMENT_BY_ID',
+        payload: tournaments
+    }
+} 
+
+
 
