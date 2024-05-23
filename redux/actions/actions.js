@@ -274,10 +274,10 @@ export const getTournamentBySportAction = (tournaments) => {
     }
 };
 
-export const getTournamentByIdAction = (tournaments) => {
+export const getTournamentByIdAction = (tournament) => {
     return {
         type: 'GET_TOURNAMENT_BY_ID',
-        payload: tournaments
+        payload: tournament
     }
 } 
 
