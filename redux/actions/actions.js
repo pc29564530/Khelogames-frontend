@@ -281,5 +281,12 @@ export const getTournamentByIdAction = (tournament) => {
     }
 } 
 
+export const setSport = (sport) => {
+    return {
+        type: 'SET_SPORT',
+        payload: sport
+    }
+}
+
 
 

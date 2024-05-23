@@ -7,7 +7,7 @@ import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { setEditFullName, setEditDescription, setProfileAvatar } from '../redux/actions/actions';
 import { useDispatch } from 'react-redux';
 
@@ -73,7 +73,6 @@ export default function EditProfile() {
                     'Content-Type': 'application/json',
                 },
             } );
-            console.log(response.data)
             setCoverUrl(response.data.cover_url);
             setCoverType(response.data.cover_type)
         } catch (e) {
@@ -187,7 +186,7 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
 
-            const response = await axiosInstance.get(`${BASE_URL}/getProfile/${user}`, {
+            const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${user}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

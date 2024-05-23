@@ -43,3 +43,6 @@ export const ADD_CRICKET_MATCHES_PLAYER_SCORE = 'ADD_CRICKET_MATCHES_PLAYER_SCOR
 //get tournament by sport
 export const GET_TOURNAMENT_BY_SPORT = 'GET_TOURNAMENT_BY_SPORT';
 export const GET_TOURNAMENT_BY_ID = 'GET_TOURNAMENT_BY_ID';
+
+//set the sport
+export const SET_SPORT = 'SET_SPORT';
