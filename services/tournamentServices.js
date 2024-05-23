@@ -4,7 +4,6 @@ import { BASE_URL } from "../constants/ApiConstants";
 export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        console.log("Sport: ", sport.toLowerCase())
         //need to lowercase the word of sport 
         const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
             headers: {
@@ -99,4 +98,28 @@ export const addNewTournamentBySport = async ({axiosInstance, data, navigation})
     } catch (err) {
         console.error("unable to add new tournament and organizer: ", err);
     }
+}
+
+export const getTournamentByID = async ({axiosInstance, sport, id}) => {
+    try {
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournament/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
+        });
+    } catch (err) {
+        console.error("unable to get the tournament by id: ", err);
+    }
+}
+
+export const findTournamentByID = ({tournamentBySport, tournamentId, tournamentStatus}) => {
+    for (const status of tournamentStatus) {
+        const foundTournament = tournamentBySport[status]?.find(status => status.tournament_id===tournamentId);
+        if(foundTournament){
+            return foundTournament
+        };
+    }
+    return null;
 }

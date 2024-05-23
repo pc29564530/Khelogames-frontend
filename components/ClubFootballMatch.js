@@ -7,20 +7,26 @@ import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import FixturePage from '../screen/FixturePage';
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import axios from 'axios';
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 import { determineMatchStatus } from '../utils/MatchStatus';
 import { GlobalContext } from '../context/GlobalContext';
+import {findTournamentByID} from '../services/tournamentServices';
+import { useDispatch, useSelector } from 'react-redux';
+import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
+import { getTournamentBySport } from '../services/tournamentServices';
 
 const ClubFootballMatch = ({clubData}) => {
     const [match, setMatch] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState();
+    const [currentRole, setCurrentRole] = useState('');
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const {sport, setSport} = useContext(GlobalContext);
-
+    const tournament = useSelector(state => state.tournamentsReducers.tournament);
+    const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
     useEffect(() => {
         fetchTournamentMatch();
     }, []);
@@ -108,32 +114,15 @@ const ClubFootballMatch = ({clubData}) => {
     }
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        try {
-            const authToken = await AsyncStorage.getItem('AcessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournaments`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                  },
-            });
-            const items = response.data;
-            if (items && items !== null) {
-                const dataWithDisplayText = items.map((it, index) => {
-                    let displayText = '';
-                    const usernameInitial = it.tournament_name ? it.tournament_name.charAt(0) : '';
-                    displayText = usernameInitial.toUpperCase();
-                    return {...it, displayText: displayText}
-                });
-                const tournamentWithDisplayText = await Promise.all(dataWithDisplayText)
-                tournamentWithDisplayText.map((itm) => {
-                    if(itm.tournament_id === tournamentItem.tournament_id ){
-                        navigation.navigate("TournamentPage", {item:itm})
-                    }   
-                });
-            }
-        } catch (err) {
-            console.error("unable to navigate to tournament name: ", err);
+        const tournamentId = tournamentItem.tournament_id;
+        const tournamentStatus = ["live", "previous", "upcoming"];
+        const tournamentBySport = await getTournamentBySport({axiosInstance, sport});
+        dispatch(getTournamentBySportAction(tournamentBySport));
+        const foundTournament = findTournamentByID({tournamentBySport, tournamentId, tournamentStatus});
+        if(foundTournament !== null){
+            dispatch(getTournamentByIdAction(foundTournament));
         }
+        navigation.navigate("TournamentPage", {tournament: tournament, currentRole: currentRole});
     }
 
     return (

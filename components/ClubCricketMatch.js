@@ -12,16 +12,21 @@ import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 import { determineMatchStatus } from '../utils/MatchStatus';
 import { GlobalContext } from '../context/GlobalContext';
+import { findTournamentByID, getTournamentBySport } from '../services/tournamentServices';
+import { useDispatch, useSelector } from 'react-redux';
+import { getTournamentByIdAction, getTournamentBySportAction } from '../redux/actions/actions';
 
 const ClubCricketMatch = ({clubData}) => {
-    // console.log("Club Data line no 16: ", clubData)
     const [match, setMatch] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState([]);
     const axiosInstance = useAxiosInterceptor();
+    const [currentRole, setCurrentRole] = useState('');
     const navigation = useNavigation();
-    const {sport, setSport} = useContext(GlobalContext)
-    // console.log("Line no 21 ClubData: ", clubData.id)
+    const dispatch = useDispatch();
+    const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
+    const tournament = useSelector((state) => state.tournamentsReducers.tournament);
+    const {sport, setSport} = useContext(GlobalContext);
 
     useEffect(() => {
         fetchClubMatch();
@@ -71,7 +76,6 @@ const ClubCricketMatch = ({clubData}) => {
                         } else {
                             return {...itm, responseScore1: responseScore1.data, responseScore2: responseScore2.data}
                         }
-                        
                     } catch (err) {
                         console.error("unable to get the score using club match", err)
                     }   
@@ -106,35 +110,17 @@ const ClubCricketMatch = ({clubData}) => {
     }
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        try {
-            const authToken = await AsyncStorage.getItem('AcessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getTournaments`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                  },
-            })
-            const items = response.data;
-            if (items && items !== null) {
-                const dataWithDisplayText = items.map((it, index) => {
-                    let displayText = '';
-                    const usernameInitial = it.tournament_name ? it.tournament_name.charAt(0) : '';
-                    displayText = usernameInitial.toUpperCase();
-                    return {...it, displayText: displayText}
-                });
-                const tournamentWithDisplayText = await Promise.all(dataWithDisplayText)
-                tournamentWithDisplayText.map((itm) => {
-                    if(itm.tournament_id === tournamentItem.tournament_id ){
-                        navigation.navigate("TournamentPage", {item:itm})
-                    }   
-                })
-            }
-            
-        } catch (err) {
-            console.error("unable to navigate to tournament name: ", err);
+        const tournamentId = tournamentItem.tournament_id;
+        const tournamentStatus = ["live", "previous", "upcoming"];
+        const tournamentBySport = await getTournamentBySport({axiosInstance, sport});
+        dispatch(getTournamentBySportAction(tournamentBySport));
+        const foundTournament = findTournamentByID({tournamentBySport, tournamentId, tournamentStatus});
+        if(foundTournament !== null){
+            dispatch(getTournamentByIdAction(foundTournament));
         }
+        navigation.navigate("TournamentPage", {tournament: tournament, currentRole: currentRole});
     }
-    
+
     return (
         <ScrollView style={tailwind`mt-4`}>
             <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center inline inline-block w-35 gap-2`} onPress={() => handleDropDown()}>
