@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,19 +6,24 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
-import { getTournamentBySport } from '../services/tournamentServices';
+import { getTournamentByID, getTournamentBySport } from '../services/tournamentServices';
+import { GlobalContext } from '../context/GlobalContext';
+import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
+import { useDispatch, useSelector } from 'react-redux';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
 const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
-    const [sport, setSport] = useState('Football');
+    const {sport, setSport} = useContext(GlobalContext);
     const [currentRole, setCurrentRole] = useState('');
-    const [tournaments, setTournaments] = useState({live:[],upcomming:[],previous:[]});
+    const dispatch = useDispatch();
+    const tournaments = useSelector(state => state.tournamentsReducers.tournaments)
     const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
-        navigation.navigate("TournamentPage" , {item:item, currentRole: currentRole})
+        dispatch(getTournamentByIdAction(item));
+        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole})
     }
     useEffect(() => {
         const checkRole = async () => {
@@ -30,7 +35,7 @@ const Tournament = () => {
     useEffect(() => {
         const fetchTournament = async () => {
             const tournamentData = await getTournamentBySport({axiosInstance: axiosInstance, sport: sport});
-            setTournaments(tournamentData);
+            dispatch(getTournamentBySportAction(tournamentData));
         }
         fetchTournament();
     }, [sport]);

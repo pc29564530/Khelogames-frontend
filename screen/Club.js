@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRef } from 'react';
 import tailwind from 'twrnc';
@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
+import { GlobalContext } from '../context/GlobalContext';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
@@ -24,13 +25,11 @@ const Club = () => {
     const scrollViewRef = useRef(null);
     const axiosInstance = useAxiosInterceptor();
     const [clubs, setClubs] = useState([]);
-    const [sport, setSport] = useState('Football');
     const [currentRole, setCurrentRole] = useState('');
-    
+    const {sport, setSport} = useContext(GlobalContext);
     useEffect(() => {
         const roleStatus = async () => {
             const checkRole = await AsyncStorage.getItem('Role');
-            console.log("Current Role: ", checkRole)
             setCurrentRole(checkRole);
         }
         roleStatus();
@@ -44,7 +43,7 @@ const Club = () => {
         const getClubData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getClubsBySport/${sport}`,{
+                const response = await axiosInstance.get(`${BASE_URL}/${sport}/getClubsBySport`,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
