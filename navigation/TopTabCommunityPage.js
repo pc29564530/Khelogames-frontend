@@ -14,12 +14,12 @@ function TopTabCommunityPage({communityPageData}) {
                 }}
             >   
                 <TopTab.Screen 
-                    name="PostByCommunity"
+                    name="Post"
                     component={PostByCommunity}
                     initialParams={{communityPageData: communityPageData}}
                 />
                 <TopTab.Screen 
-                    name="CommunityMember"
+                    name="Member"
                     component={CommunityMember}
                     initialParams={{communityPageData: communityPageData}}
                 />

@@ -6,7 +6,7 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 
 function Following() {
     const dispatch = useDispatch();
@@ -31,7 +31,7 @@ function Following() {
                 dispatch(getFollowingUser([]));
             } else {
                 const followingProfile = item.map(async (item, index) => {
-                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());

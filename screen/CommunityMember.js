@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {Text, View, Image, ScrollView, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import useAxiosInterceptor from './axios_config';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { handleUser } from '../utils/ThreadUtils';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,7 +29,7 @@ function CommunityMember({route}) {
             setCommunityWithProfile([]);
         } else {
             const communityMemberPromises = item.map(async (user) => {
-                const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${user}`);
+                const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${user}`);
                 let dispayText = '';
                 if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                      dispayText = profileResponse.data.owner.charAt(0).toUpperCase();

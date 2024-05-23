@@ -8,7 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
-import { GlobalContext } from '../context/GlobalContext';
+import { setSport } from "../redux/actions/actions";
+import { useDispatch, useSelector } from 'react-redux';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
@@ -26,14 +27,16 @@ const Club = () => {
     const axiosInstance = useAxiosInterceptor();
     const [clubs, setClubs] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
-    const {sport, setSport} = useContext(GlobalContext);
+    const dispatch = useDispatch();
+    const sport = useSelector(state => state.sportReducers.sport);
+    
     useEffect(() => {
         const roleStatus = async () => {
             const checkRole = await AsyncStorage.getItem('Role');
             setCurrentRole(checkRole);
         }
         roleStatus();
-      }, [])
+    }, []);
 
     useEffect(() => {
         const screenWith = Dimensions.get('window').width
@@ -92,7 +95,7 @@ const Club = () => {
     }
 
     const handleSport = (item) => {
-        setSport(item)
+        dispatch(setSport(item));
     }
 
     navigation.setOptions({

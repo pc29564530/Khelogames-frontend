@@ -30,12 +30,11 @@ const TournamentMatches = ({route }) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            console.log("Line no 33 organizer: ", user)
             const data = {
                 tournament_id: tournament.tournament_id,
                 organizer_name: user
             }
-            console.log("Data: line no 37: ", data)
+            
             const response = await axiosInstance.get(`${BASE_URL}/getOrganizer`, {
                 params: {
                     tournament_id: tournament.tournament_id.toString(),
@@ -185,6 +184,7 @@ const TournamentMatches = ({route }) => {
                                 teams={teams}
                                 organizerID={organizerID}
                                 handleCloseFixtureModal={handleCloseFixtureModal}
+                                sport={sport}
                             />
                         </View>
                     </View>

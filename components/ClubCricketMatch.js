@@ -1,17 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useEffect, useState, useContext} from 'react';
+import React, {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
-import FixturePage from '../screen/FixturePage';
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import axios from 'axios';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 import { determineMatchStatus } from '../utils/MatchStatus';
-import { GlobalContext } from '../context/GlobalContext';
 import { findTournamentByID, getTournamentBySport } from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentByIdAction, getTournamentBySportAction } from '../redux/actions/actions';
@@ -26,7 +23,7 @@ const ClubCricketMatch = ({clubData}) => {
     const dispatch = useDispatch();
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
-    const {sport, setSport} = useContext(GlobalContext);
+    const sport = useSelector(state => state.sportReducers.sport);
 
     useEffect(() => {
         fetchClubMatch();

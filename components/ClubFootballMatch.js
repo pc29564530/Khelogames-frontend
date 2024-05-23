@@ -1,16 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import FixturePage from '../screen/FixturePage';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 import { determineMatchStatus } from '../utils/MatchStatus';
-import { GlobalContext } from '../context/GlobalContext';
 import {findTournamentByID} from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
@@ -24,7 +23,7 @@ const ClubFootballMatch = ({clubData}) => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const {sport, setSport} = useContext(GlobalContext);
+    const sport = useSelector(state => state.sportReducers.sport);
     const tournament = useSelector(state => state.tournamentsReducers.tournament);
     const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
     useEffect(() => {
@@ -108,12 +107,17 @@ const ClubFootballMatch = ({clubData}) => {
     const handleFixtureStatus = async (item) => {
         navigation.navigate("CricketMatchPage", {item:item})
     }
-
+    useFocusEffect(
+        useCallback(() => {
+            setIsDropDownVisible(false);
+        }, [])
+    );
     const handleDropDown = () => {
         setIsDropDownVisible(true);
     }
 
     const handleTournamentNavigate = async (tournamentItem) => {
+        setIsDropDownVisible(false);
         const tournamentId = tournamentItem.tournament_id;
         const tournamentStatus = ["live", "previous", "upcoming"];
         const tournamentBySport = await getTournamentBySport({axiosInstance, sport});

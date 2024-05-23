@@ -5,15 +5,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCricketMatchScore } from '../redux/actions/actions';
-import { GlobalContext } from '../context/GlobalContext';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
     const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore)
-    // const {sports} = useContext(GlobalContext)
-
+    const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();

@@ -26,7 +26,7 @@ const TournamentStanding = ({route}) => {
             const tour = {
                 tournament_id: tournament.tournament_id
             }
-            const response = await axiosInstance.get(`${BASE_URL}/getTournamentGroups`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
                 params:{
                     tournament_id: tournament.tournament_id.toString()
                 },
@@ -58,7 +58,7 @@ const TournamentStanding = ({route}) => {
                                     group_id: item.group_id,
                                     sport_type: tournament.sport_type
                             }
-                            const response = await axiosInstance.get(`${BASE_URL}/getTournamentStanding`, {
+                            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
                                 params: {
                                     tournament_id: tournament.tournament_id.toString(),
                                     group_id: item.group_id,
@@ -131,6 +131,8 @@ const TournamentStanding = ({route}) => {
     const closeTeamBySport = () => {
         setIsModalTeamVisible(false)
     }
+
+    console.log("Standing ", standings)
     
   return (
     <ScrollView style={tailwind`mt-4`}>
@@ -146,7 +148,7 @@ const TournamentStanding = ({route}) => {
         )}
         <View>
             {standings.length > 0 ? (
-                standings.map((group, standingIndex) => (
+                standings?.map((group, standingIndex) => (
                     <View key={standingIndex}>
                         <Text>{group.groupName}</Text>
                         <PointTable standingsData={group.standData}/>

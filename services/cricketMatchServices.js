@@ -1,5 +1,5 @@
 
-export const addCricketScoreServices = async ({sports, dispatch, item, authToken, axiosInstance}) => {
+export const addCricketScoreServices = async ({sport, dispatch, item, authToken, axiosInstance}) => {
     try {
         const scoreData1 = {
             match_id:item.match_id,
@@ -21,13 +21,13 @@ export const addCricketScoreServices = async ({sports, dispatch, item, authToken
             extras: 0,
             innings: 0
         }
-        const team1Response = await axiosInstance.post(`${BASE_URL}/${sports}/addCricketMatchScore`,scoreData1, {
+        const team1Response = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketMatchScore`,scoreData1, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
             }
         });
-        const team2Response = await axiosInstance.post(`${BASE_URL}/${sports}/addCricketMatchScore`,scoreData2, {
+        const team2Response = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketMatchScore`,scoreData2, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'

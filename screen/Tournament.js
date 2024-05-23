@@ -7,8 +7,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { getTournamentByID, getTournamentBySport } from '../services/tournamentServices';
-import { GlobalContext } from '../context/GlobalContext';
-import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
+import { getTournamentBySportAction, getTournamentByIdAction, setSport } from '../redux/actions/actions';
 import { useDispatch, useSelector } from 'react-redux';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
@@ -16,14 +15,14 @@ let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics
 const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
-    const {sport, setSport} = useContext(GlobalContext);
     const [currentRole, setCurrentRole] = useState('');
     const dispatch = useDispatch();
-    const tournaments = useSelector(state => state.tournamentsReducers.tournaments)
+    const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
+    const sport = useSelector(state => state.sportReducers.sport);
     const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
         dispatch(getTournamentByIdAction(item));
-        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole})
+        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole, sport: sport})
     }
     useEffect(() => {
         const checkRole = async () => {
@@ -59,7 +58,7 @@ const Tournament = () => {
     })
 
     const handleSport = (item) => {
-        setSport(item);
+        dispatch(setSport(item));
     } 
 
     const scrollRight = () => {

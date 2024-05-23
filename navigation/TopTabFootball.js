@@ -5,13 +5,9 @@ import TournamentFootballStats from '../screen/TournamentFootballStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
 import TournamentMatches from '../screen/TournamentMatches';
-import { useContext } from 'react';
-import { GlobalContext } from '../context/GlobalContext';
-import TournamentCricketMatch from '../components/TournamentCricketMatch';
 
-function TopTabFootball({currentRole}) {
+function TopTabFootball({tournament, currentRole}) {
     const TopTab = createMaterialTopTabNavigator();
-    const {tournament} = useContext(GlobalContext)
     return (
         <TopTab.Navigator
                 screenOptions={{

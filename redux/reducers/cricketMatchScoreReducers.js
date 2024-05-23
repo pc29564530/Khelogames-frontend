@@ -5,7 +5,6 @@ const initialstate = {
 }
 
 const cricketMatchScoreReducers = (state=initialstate, action) => {
-    console.log("Linen no 8 Cricket: ", state.cricketMatchScore)
     switch (action.type) {
         case actionTypes.GET_CRICKET_MATCHES:
             return {

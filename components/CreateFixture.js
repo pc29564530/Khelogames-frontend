@@ -6,11 +6,10 @@ import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import DateTimePicker from 'react-native-modern-datepicker'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { GlobalContext } from '../context/GlobalContext';
 import {addFootballScoreServices} from '../services/footballMatchServices';
 import { useDispatch } from 'react-redux';
 
-const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal}) => {
+const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal, sport}) => {
     const [admin, setAdmin] = useState('');
     const [team1, setTeam1] = useState(null);
     const [team2, setTeam2] = useState(null);
@@ -25,7 +24,6 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
     const [isModalDateVisible, setIsModalDateVisible] = useState(false);
     const [modalType, setModalType] = useState('')
     const axiosInstance = useAxiosInterceptor()
-    const {sports} = useContext(GlobalContext);
     const dispatch = useDispatch();
 
     const modifyDateTime = (newDateTime) => {
@@ -61,12 +59,12 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
                 date_on: modifyDateTime(date),
                 start_time: modifyDateTime(startTime),
                 stage:"",
-                sports:tournament.sport_type,
+                sports:sport,
                 end_time: modifyDateTime(endTime)
             }
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/createTournamentMatch`, fixture,{
+            const response = await axiosInstance.post(`${BASE_URL}/${sport}/createTournamentMatch`, fixture,{
                 headers: {
                     'Authorization':`bearer ${authToken}`,
                     'Content-Type':'application/json'
@@ -75,11 +73,11 @@ const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal})
 
             const item = response.data;
             if(item && item !== null) {
-                switch (sports) {
+                switch (sport) {
                     case "Cricket":
-                        return addCricketScoreServices({sports, dispatch, item, authToken, axiosInstance});
+                        return addCricketScoreServices({sport, dispatch, item, authToken, axiosInstance});
                     default:
-                        return addFootballScoreServices({sports, dispatch, item, authToken, axiosInstance})
+                        return addFootballScoreServices({sport, dispatch, item, authToken, axiosInstance})
                 }
             }
             

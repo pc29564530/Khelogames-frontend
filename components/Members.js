@@ -16,6 +16,8 @@ const Members = ({clubData}) => {
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
     const navigation = useNavigation();
+    // const clubData = route.params.clubData;
+    // console.log("Club Data: ", clubData)
 
     useEffect(() => {
         const fetchPlayerProfile = async () => {
@@ -45,7 +47,7 @@ const Members = ({clubData}) => {
         const fetchMembers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getClubMember`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${clubData.sport}/getClubMember`, {
                     params: { club_id: clubData.id.toString()},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
