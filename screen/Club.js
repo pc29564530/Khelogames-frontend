@@ -95,7 +95,7 @@ const Club = () => {
     }
 
     const handleClub = (item) => {
-        navigation.navigate('ClubPage', {item: item})
+        navigation.navigate('ClubPage', {clubData: item, sport: sport})
     }
 
     const handleSport = (item) => {

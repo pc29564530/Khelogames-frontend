@@ -23,9 +23,8 @@ const sportPage = (clubData, sport) => {
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
-    const clubData = route.params.item;
+    const {clubData, sport} = route.params;
     const [subCategory, setSubCategory] = useState('');
-    const {sport, setSport} = useContext(GlobalContext);
 
     const  handleSubCategory = async (item) => {
         setSubCategory(item)
@@ -48,7 +47,7 @@ const ClubPage = ({route}) => {
                 </View>
                 <View >
                     <Text style={tailwind`text-2xl text-black `}>{clubData.club_name}</Text>
-                    <Text style={tailwind`text-xl text-black `}>{clubData.sport}</Text>
+                    <Text style={tailwind`text-xl text-black `}>{sport}</Text>
                 </View>
             </View>
             <View style={tailwind`flex-row  mt-2`}>
