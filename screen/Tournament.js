@@ -24,6 +24,11 @@ const Tournament = () => {
         dispatch(getTournamentByIdAction(item));
         navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole, sport: sport})
     }
+
+    useEffect(() => {
+        dispatch(setSport("Football"));
+    }, []);
+
     useEffect(() => {
         const checkRole = async () => {
             const role = await AsyncStorage.getItem('Role');

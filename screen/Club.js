@@ -29,6 +29,10 @@ const Club = () => {
     const [currentRole, setCurrentRole] = useState('');
     const dispatch = useDispatch();
     const sport = useSelector(state => state.sportReducers.sport);
+
+    useEffect(() => {
+        dispatch(setSport("Football"));
+    }, []);
     
     useEffect(() => {
         const roleStatus = async () => {
