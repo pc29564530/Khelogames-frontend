@@ -4,16 +4,21 @@ import {Text, View, ScrollView, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
+import { useSelector } from 'react-redux';
 
-const getMember = async (authToken, teamID, axiosInstance) => {
-    const teamResponse = await axiosInstance.get(`${BASE_URL}/getClubMember`, {
-        params: { club_id: teamID.toString() },
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-        },
-    });
-    return teamResponse;
+const getMember = async (authToken, teamID, axiosInstance, sport) => {
+    try {
+        const teamResponse = await axiosInstance.get(`${BASE_URL}/${sport}/getClubMember`, {
+            params: { club_id: teamID.toString() },
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return teamResponse;
+    } catch (err) {
+        console.error("unable to fetch team member ", err);
+    }
 }
 
 const CricketTeamSquad = ({route}) => {
@@ -23,6 +28,7 @@ const CricketTeamSquad = ({route}) => {
     const [team2ModalVisible, setTeam2ModalVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();    
     const {team1ID, team2ID} = route.params;
+    const sport = useSelector((state) => state.sportReducers.sport);
 
     const handleToggle = (team) => {
         if (team === 'team1') {
@@ -38,7 +44,7 @@ const CricketTeamSquad = ({route}) => {
         const fetchTeamPlayer = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const team1Response = await getMember(authToken, team1ID, axiosInstance);
+                const team1Response = await getMember(authToken, team1ID, axiosInstance, sport);
                 const team1PlayerNameResponse = team1Response.data.map(async (item, index) => {
                     const response = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
                         params:{
@@ -50,11 +56,10 @@ const CricketTeamSquad = ({route}) => {
                         },
                     });
                     return {...item, playerName: response.data.player_name}
-                })
-
+                });
                 const  team1Data = await Promise.all(team1PlayerNameResponse);
 
-                const team2Response = await getMember(authToken, team2ID, axiosInstance);
+                const team2Response = await getMember(authToken, team2ID, axiosInstance, sport);
                 const team2PlayerNameResponse = team2Response.data.map(async (item, index) => {
                     const response = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
                         params:{
@@ -68,14 +73,15 @@ const CricketTeamSquad = ({route}) => {
                     return {...item, playerName: response.data.player_name}
                 })
                 const  team2Data = await Promise.all(team2PlayerNameResponse);
-                const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${team1Data[0].club_id}`, {
+
+                const response1 = await axiosInstance.get(`${BASE_URL}/${sport}/getClub/${team1ID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 });
                     
-                const response2 = await axiosInstance.get(`${BASE_URL}/getClub/${team2Data[0].club_id}`, {
+                const response2 = await axiosInstance.get(`${BASE_URL}/${sport}/getClub/${team2ID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',

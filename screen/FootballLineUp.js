@@ -27,7 +27,7 @@ const FootballLineUp = ({ route }) => {
         const fetchTeam1Player = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getClubMember`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getClubMember`, {
                     params: {
                         club_id: matchData.team1_id
                     },
@@ -49,7 +49,7 @@ const FootballLineUp = ({ route }) => {
         const fetchTeam2Player = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getClubMember`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getClubMember`, {
                     params: {
                         club_id: matchData.team1_id
                     },
@@ -67,37 +67,41 @@ const FootballLineUp = ({ route }) => {
         fetchTeam2Player();
     }, []);
 
-
+    const renderPlayers = (players) => {
+        return (
+            <View style={tailwind`ml-4`}>
+                {players.map((item, index) => (
+                    <View key={index} style={tailwind`mb-2`}>
+                        <Text>{item.playerName}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    }
 
     return (
-        <View style={tailwind`flex-1 mt-4`}>
+        <ScrollView style={tailwind`flex-1 p-4`}>
             <View style={tailwind`flex-row justify-evenly  items-center ml-2 mr-2 gap-2`}>
-                <Pressable style={tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center`} onPress={() => handleToggle('team1')}>
-                    <Text style={tailwind`text-2xl`}>{matchData.team1_name}</Text>
+                <Pressable style={tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center`} onPress={() => handleToggle('team1')}> 
+                    <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.team1_name}</Text>
                 </Pressable>
                 <Pressable style={tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center`} onPress={() => handleToggle('team2')}>
-                    <Text style={tailwind`text-2xl`}>{matchData.team2_name}</Text>
+                    <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.team2_name}</Text>
                 </Pressable>
             </View>
-            {team1ModalVisible && (
-                <View style={tailwind`mt-4`}>
-                    {teamPlayer1.map((item, index) => {
-                        <View key={index}>
-                            <Text>{item.player_name}</Text>
-                        </View>
-                    })}
-                </View>
-            )}
-            {team2ModalVisible && (
-                <View style={tailwind`mt-4`}>
-                     {teamPlayer2.map((item, index) => {
-                        <View key={index}>
-                            <Text>{item.player_name}</Text>
-                        </View>
-                    })}
-                </View>
-            )}
-        </View>
+            <View style={tailwind`flex-row justify-between items-start`}>
+                {team1ModalVisible && (
+                    <View>
+                        {renderPlayers(teamPlayer1)}
+                    </View>
+                )}
+                {team2ModalVisible && (
+                    <View>
+                        {renderPlayers(teamPlayer2)}
+                    </View>
+                )}
+            </View>
+        </ScrollView>
     );
 };
 
