@@ -105,7 +105,7 @@ const ClubFootballMatch = ({clubData}) => {
         }
     }
     const handleFixtureStatus = async (item) => {
-        navigation.navigate("CricketMatchPage", {item:item})
+        navigation.navigate("FootballMatchPage", {matchData:item, determineMatchStatus:determineMatchStatus, formattedDate:formattedDate, formattedTime:formattedTime})
     }
     useFocusEffect(
         useCallback(() => {

@@ -68,7 +68,7 @@ const TournamentMatches = ({route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            setTeams(response.data);
+            setTeams(response.data|| []);
         } catch (err) {
             console.error("Unable to fetch teams: ", err);
         }
