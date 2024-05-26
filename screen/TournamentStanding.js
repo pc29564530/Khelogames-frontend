@@ -7,87 +7,32 @@ import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
 import { ScrollView } from 'react-native-gesture-handler';
 import SelectTeamBySport from '../components/SelectTeamBySport';
-import { DrawerContentScrollView } from '@react-navigation/drawer';
+import { fetchStandings, fetchGroups } from '../services/tournamentServices';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 const TournamentStanding = ({route}) => {
     const {tournament, currentRole} = route.params;
     const axiosInstance = useAxiosInterceptor();
-    const [group, setGroup] = useState([]);
-    const [standings, setStandings] = useState([]);
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false);
     const [groupName, setGroupName] = useState('');
     const [groupStrength, setGroupStrength] = useState(3);
-    const [standingGroupData, setStandingGroupData] = useState([]);
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
+    const groups = useSelector((state) => state.tournamentsReducers.groups);
+    const standings = useSelector((state) => state.tournamentsReducers.standings);
+    const dispatch = useDispatch();
 
-    const fetchGroup = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const tour = {
-                tournament_id: tournament.tournament_id
-            }
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
-                params:{
-                    tournament_id: tournament.tournament_id.toString()
-                },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            console.log(response.data)
-            setGroup(response.data);
-        } catch (err) {
-            console.error("unable to fetch the group using sport: ", err);
-        }
-    }
+
     useEffect(() => {
-        fetchGroup();
-    }, [])
+        dispatch(fetchGroups(tournament, axiosInstance));
+    }, [dispatch, tournament, axiosInstance]);
+
+    useEffect(() => {
+        if (groups.length > 0) {
+            dispatch(fetchStandings(tournament, groups, axiosInstance));
+        }
+    }, [dispatch, tournament, groups, axiosInstance]);
     
-    useEffect(() => {
-        const fetchStanding = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                let standingData = [];
-                if (group.length > 0 && group[0] !== undefined) {
-                    for (const item of group) {
-                        if (item !== undefined) {
-                            const data = {
-                                    tournament_id: tournament.tournament_id,
-                                    group_id: item.group_id,
-                                    sport_type: tournament.sport_type
-                            }
-                            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
-                                params: {
-                                    tournament_id: tournament.tournament_id.toString(),
-                                    group_id: item.group_id,
-                                    sport_type: tournament.sport_type
-                                },
-                                headers: {
-                                    'Authorization': `Bearer ${authToken}`,
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            standingData.push({groupName: item.group_name, standData: response.data});
-                        } else {
-                            console.error("Item is undefined");
-                        }
-                    }
-                    setStandings(standingData)
-                } else {
-                    console.error("Group array is empty or contains undefined elements");
-                }
-            } catch (err) {
-                console.error("unable to fetch the standing using sport: ", err);
-            }
-        };
-
-        if (group?.length >= 0) {
-            fetchStanding();
-        }
-    }, []);
-
     const handleAddGroup = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -102,6 +47,8 @@ const TournamentStanding = ({route}) => {
                     'Content-Type': 'application/json'
                 }
             } )
+            const item = response.data || [];
+            dispatch(add_group(item));
         } catch (err) {
             console.error("unable to add the group: ", err)
         }
@@ -131,8 +78,6 @@ const TournamentStanding = ({route}) => {
     const closeTeamBySport = () => {
         setIsModalTeamVisible(false)
     }
-
-    console.log("Standing ", standings)
     
   return (
     <ScrollView style={tailwind`mt-4`}>
@@ -147,7 +92,7 @@ const TournamentStanding = ({route}) => {
             </View>
         )}
         <View>
-            {standings.length > 0 ? (
+            {standings?.length > 0 ? (
                 standings?.map((group, standingIndex) => (
                     <View key={standingIndex}>
                         <Text>{group.groupName}</Text>

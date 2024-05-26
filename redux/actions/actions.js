@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as actionTypes from '../types/actionTypes';
+import { BASE_URL } from "../../constants/ApiConstants";
 
 export const sendOTP = (mobileNumber) => ({
     type: 'SEND_OTP',
@@ -287,6 +288,37 @@ export const setSport = (sport) => {
         payload: sport
     }
 }
+
+export const setStandings = (standings) => {
+    console.log("Line 292: ", standings)
+    return {
+        type: 'SET_STANDING',
+        payload: standings
+    }
+}
+
+export const setGroups = (groups) => {
+    console.log("Line no 299: ", groups)
+    return {
+        type: 'SET_GROUP',
+        payload: groups
+    }
+}
+
+export const addTeamToGroup = (teamId, groupId, tournamentId) => {
+    return {
+        type: 'ADD_TEAM_GROUP',
+        payloal: {teamId, groupId, tournamentId}
+    }
+}
+
+export const addGroup = (groups) => {
+    return {
+        type: 'ADD_GROUP',
+        payload: groups
+    }
+}
+
 
 
 

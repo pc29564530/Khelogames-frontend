@@ -46,3 +46,8 @@ export const GET_TOURNAMENT_BY_ID = 'GET_TOURNAMENT_BY_ID';
 
 //set the sport
 export const SET_SPORT = 'SET_SPORT';
+
+export const SET_STANDING = 'SET_STANDING';
+export const SET_GROUP = 'SET_GROUP';
+export const ADD_TEAM_GROUP = 'ADD_TEAM_GROUP';
+export const ADD_GROUP = 'ADD_TEAM_GROUP';
