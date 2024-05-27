@@ -74,10 +74,6 @@ const TournamentStanding = ({route}) => {
     const handleTeamSelection = () => {
         setIsModalTeamSelection(!setIsModalTeamSelection)
     }
-
-    const closeTeamBySport = () => {
-        setIsModalTeamVisible(false)
-    }
     
   return (
     <ScrollView style={tailwind`mt-4`}>
@@ -140,12 +136,12 @@ const TournamentStanding = ({route}) => {
             {isModalTeamVisible && <Modal animationType="slide"
                             visible={isModalTeamVisible}
                             transparent={true}
-                            onRequestClose={closeTeamBySport}
+                            onRequestClose={handleTeamClose}
                         >
                 <Pressable onPress={() => handleTeamClose()} style={tailwind`flex-1 justify-end bg-black bg-opacity-50 rounded-lg bg-black items-center justify-end`}>
                     <View style={tailwind`bg-white p-4 rounded-lg h-80 w-full`}>
                         <Pressable onPress={() => handleTeamSelection}>
-                            <SelectTeamBySport tournament={tournament} group={group} closeTeamBySport={closeTeamBySport}/>
+                            <SelectTeamBySport tournament={tournament} groups={groups}/>
                         </Pressable>
                     </View>
                 </Pressable>
