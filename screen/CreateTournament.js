@@ -164,7 +164,7 @@ const CreateTournament = () => {
                 visible={isFormatVisible}
                 onRequestClose={handleFormatModal}
             >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Pressable onPress={handleFormatModal} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                     <View style={tailwind`bg-white rounded-md p-4`}>
                         {formats.map((item, index) => (
                             <Pressable key={index} onPress={() => handleFormatSelection(item)}>
@@ -172,7 +172,7 @@ const CreateTournament = () => {
                             </Pressable>
                         ))}
                     </View>
-                </View>
+                </Pressable>
             </Modal>
             {/* Sport type selection modal */}
             <Modal
@@ -181,7 +181,7 @@ const CreateTournament = () => {
                 visible={isSportVisible}
                 onRequestClose={handleSportModal}
             >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Pressable onPress={handleSportModal} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                     <View style={tailwind`bg-white rounded-md p-4`}>
                         {sports.map((item, index) => (
                             <Pressable key={index} onPress={() => handleSportSelection(item)}>
@@ -189,7 +189,7 @@ const CreateTournament = () => {
                             </Pressable>
                         ))}
                     </View>
-                </View>
+                </Pressable>
             </Modal>
             {isDurationVisible && (
                 <DateTimePicker 

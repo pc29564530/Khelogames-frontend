@@ -156,7 +156,7 @@ const Members = ({clubData}) => {
                     visible={isSelectPlayerModal}
                     onRequestClose={() => setIsSelectPlayerModal(false)}
                 >
-                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                    <Pressable onPress={() => setIsSelectPlayerModal(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-t-lg p-4`}>
                             <TextInput value={searchPlayer} onChangeText={(text) => {
                                 setSearchPlayer(text)
@@ -170,7 +170,7 @@ const Members = ({clubData}) => {
                                 ))}
                             </ScrollView>
                         </View>
-                    </View>
+                    </Pressable>
                 </Modal>
             )}
         </View>

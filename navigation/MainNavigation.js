@@ -30,7 +30,7 @@ import Tournament from '../screen/Tournament';
 import TournamentPage from '../screen/TournamentPage';
 import CreateTournament from '../screen/CreateTournament';
 import TournamentDescription from '../screen/TournamentDescription';
-import AddPlayerToClub from '../components/AddPlayerToClub';
+import CreatePlayerProfile from '../screen/CreatePlayerProfile';
 import PlayerProfile from '../screen/PlayerProfile';
 import CricketMatchPage from '../screen/CricketMatchPage';
 import AddCricketMatchPlayer from '../screen/AddCricketMatchPlayer';
@@ -110,7 +110,7 @@ export default function MainNavigation() {
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
-                        <Stack.Screen name="AddPlayerToClub" component={AddPlayerToClub} />
+                        <Stack.Screen name="CreatePlayerProfile" component={CreatePlayerProfile} />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} />
                         <Stack.Screen name="CricketMatchPage" component={CricketMatchPage} />
                         <Stack.Screen name="AddCricketMatchPlayer" component={AddCricketMatchPlayer} />

@@ -87,8 +87,8 @@ const TournamentTeam = ({ route }) => {
         <ScrollView style={tailwind`mt-4 px-4 bg-gray-100`}>
             {currentRole === "admin" && (
                 <View style={tailwind`mt-2 flex items-end`}>
-                    <Pressable onPress={handleTeamModal} style={tailwind`px-4 py-2 rounded-lg shadow-lg bg-blue-500 items-center`}>
-                        <Text style={tailwind`text-md text-white`}>Select Team</Text>
+                    <Pressable onPress={handleTeamModal} style={tailwind`px-4 py-2 rounded-lg shadow-lg bg-blue-600 items-center`}>
+                        <Text style={tailwind`text-md text-white font-semibold`}>Select Team</Text>
                     </Pressable>
                 </View>
             )}
@@ -105,7 +105,7 @@ const TournamentTeam = ({ route }) => {
                     onRequestClose={handleCloseTeam}
                 >
                     <Pressable onPress={handleCloseTeam} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                        <View style={tailwind`bg-white rounded-t-lg p-4 max-h-3/4`}>
                             <Text style={tailwind`text-xl font-bold mb-4`}>Teams List</Text>
                             <ScrollView>
                                 {teamDisplay.map((item, index) => (
@@ -125,8 +125,8 @@ const TournamentTeam = ({ route }) => {
 const TeamItem = ({ item, onPress }) => (
     <Pressable onPress={onPress} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-4 flex-row justify-between items-center`}>
         <View style={tailwind`flex-row items-center`}>
-            <Image source={{ uri: '/users/home/pawan' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
-            <Text style={tailwind`ml-4 text-lg text-gray-800`}>{item.club_name}</Text>
+            <Image source={{ uri: item.logo_url || 'default_logo_url' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
+            <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.club_name}</Text>
         </View>
         <Text style={tailwind`rounded-lg bg-blue-500 text-white px-4 py-2`}>A1</Text>
     </Pressable>

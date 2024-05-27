@@ -11,7 +11,6 @@ import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/act
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
-import AddPlayerToClub from '../components/AddPlayerToClub';
 const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { logoutServies } from '../services/authServies';
 
@@ -204,7 +203,7 @@ function ProfileMenu() {
   }
 
   const addPlayerProfile = () => {
-    navigation.navigate("AddPlayerToClub");
+    navigation.navigate("CreatePlayerProfile");
   }
 
   return (

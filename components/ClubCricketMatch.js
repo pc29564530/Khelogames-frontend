@@ -167,7 +167,7 @@ const ClubCricketMatch = ({clubData}) => {
                         visible={isDropDownVisible}
                         onRequestClose = {() => setIsDropDownVisible(!isDropDownVisible)}
                     >
-                        <View style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`}>
+                        <Pressable onPress={() => setIsDropDownVisible(false)} style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`}>
                             <View style={tailwind`bg-white rounded-md p-4`}>
                                 {tournamentName && tournamentName?.map((item, index) => (
                                     <Pressable
@@ -179,7 +179,7 @@ const ClubCricketMatch = ({clubData}) => {
                                     </Pressable>
                                 ))}
                             </View>
-                        </View>
+                        </Pressable>
                     </Modal>
                 )}
         </ScrollView>
