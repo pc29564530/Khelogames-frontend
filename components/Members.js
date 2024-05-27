@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, Image, Modal} from 'react-native';
+import {View, Text, Pressable, Image, Modal, ScrollView, TextInput} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
-import { ScrollView, TextInput } from 'react-native-gesture-handler';
 
 
 const Members = ({clubData}) => {
@@ -16,8 +15,6 @@ const Members = ({clubData}) => {
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
     const navigation = useNavigation();
-    // const clubData = route.params.clubData;
-    // console.log("Club Data: ", clubData)
 
     useEffect(() => {
         const fetchPlayerProfile = async () => {
@@ -69,7 +66,7 @@ const Members = ({clubData}) => {
                                 const usernameInitial = profileData.data.player_name ? profileData.data.player_name.charAt(0) : '';
                                 displayText = usernameInitial.toUpperCase();
                             }
-                            return {...item, profile: profileData.data,clubName: clubData.club_name, displayText }
+                            return {...item, profile: profileData.data,clubName: clubData.club_name, displayText: displayText }
                         }
                     } catch (err) {
                         console.error("unable to get the profile of user ", err)
@@ -123,12 +120,12 @@ const Members = ({clubData}) => {
             <View style={tailwind`mt-2 mb-2 items-center`}>
                 <Pressable 
                     style={({ pressed }) => [
-                        tailwind`h-20 rounded-lg shadow-lg p-3`,
-                        pressed ? tailwind`opacity-50` : null // Apply opacity when pressed
+                        tailwind`h-12 rounded-lg shadow-lg px-4 py-3 bg-blue-500 items-center justify-center`,
+                        pressed ? tailwind`opacity-75` : null,
                     ]} 
                     onPress={() => setIsSelectPlayerModal(true)}
                 >
-                    <Text style={tailwind`text-black text-xl`}>Add Player</Text>
+                    <Text style={tailwind`text-white text-lg`}>Add Player</Text>
                 </Pressable>
             </View>
             <View style={tailwind`mt-8`}>

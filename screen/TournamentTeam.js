@@ -22,7 +22,6 @@ const TournamentTeam = ({ route }) => {
     const fetchTeams = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            // use global state for sport
             const tournamentID = tournament.tournament_id;
             const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournamentID}`, {
                 headers: {
@@ -52,7 +51,7 @@ const TournamentTeam = ({ route }) => {
     };
 
     const handleTeam = (item) => {
-        navigation.navigate('ClubPage', { item });
+        navigation.navigate('ClubPage', { clubData: item, sport: item.sports });
     };
 
     const handleAddTeam = async (item) => {
@@ -62,12 +61,15 @@ const TournamentTeam = ({ route }) => {
                 team_id: item
             };
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/addTeam`, addTeam, {
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/addTeam`, addTeam, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
+            if (response.status === 200) {
+                fetchTeams(); // Refresh the team list after adding
+            }
         } catch (err) {
             console.error("unable to add the tournament teams: ", err);
         }
@@ -82,57 +84,51 @@ const TournamentTeam = ({ route }) => {
     };
 
     return (
-            <ScrollView style={tailwind`mt-4`}>
-                <ScrollView>
-                    {currentRole==="admin" && (
-                        <View style={tailwind`mt-2`}>
-                            <Pressable onPress={handleTeamModal} style={tailwind`p-4 rounded-lg shadow-lg w-40 items-center pb-2 justify-center ml-60 `}>
-                                <Text style={tailwind`text-md p-2`}>Select Team</Text>
-                            </Pressable>
+        <ScrollView style={tailwind`mt-4 px-4 bg-gray-100`}>
+            {currentRole === "admin" && (
+                <View style={tailwind`mt-2 flex items-end`}>
+                    <Pressable onPress={handleTeamModal} style={tailwind`px-4 py-2 rounded-lg shadow-lg bg-blue-500 items-center`}>
+                        <Text style={tailwind`text-md text-white`}>Select Team</Text>
+                    </Pressable>
+                </View>
+            )}
+            <View style={tailwind`mt-4`}>
+                {teams.map((item, index) => (
+                    <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
+                ))}
+            </View>
+            {isModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isModalVisible}
+                    onRequestClose={handleCloseTeam}
+                >
+                    <Pressable onPress={handleCloseTeam} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                            <Text style={tailwind`text-xl font-bold mb-4`}>Teams List</Text>
+                            <ScrollView>
+                                {teamDisplay.map((item, index) => (
+                                    <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`py-2 border-b border-gray-200`}>
+                                        <Text style={tailwind`text-lg text-gray-700`}>{item.club_name}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
                         </View>
-                    )}
-                    <View>
-                        {teams.map((item, index) => (
-                            <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
-                        ))}
-                    </View>
-                </ScrollView>
-                {isModalVisible && (
-                    <Modal
-                        transparent={true}
-                        animationType="slide"
-                        visible={isModalVisible}
-                        onRequestClose={handleCloseTeam}
-                        style={tailwind`mt-4`}
-                    >
-                        <Pressable  onPress={() => handleCloseTeam()}style={tailwind`flex-1 justify-end bg-black   rounded-lg bg-black justify-end`}>
-                            <View style={tailwind`bg-white h-100 rounded-t-md p-4`}>
-                                <ScrollView style={tailwind`flex-1`}>
-                                    <Text style={tailwind`text-xl font-bold mt-4 `}>Teams List</Text>
-                                    {teamDisplay.map((item, index) => (
-                                        <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`mt-2 p-1`}>
-                                            <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
-                                        </Pressable>
-                                    ))}
-                                </ScrollView>
-                            </View>
-                        </Pressable>
-                    </Modal>
-                )}
-            </ScrollView>
-            
+                    </Pressable>
+                </Modal>
+            )}
+        </ScrollView>
     );
 };
 
 const TeamItem = ({ item, onPress }) => (
-    <Pressable onPress={onPress} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-2 flex-row justify-between`}>
+    <Pressable onPress={onPress} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-4 flex-row justify-between items-center`}>
         <View style={tailwind`flex-row items-center`}>
-            <Image source='/users/home/pawan' style={tailwind`rounded-full shadow-lg h-14 w-14 bg-pink-200`} />
-            <Text style={tailwind`text-black text-lg ml-2`}>{item.club_name}</Text>
+            <Image source={{ uri: '/users/home/pawan' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
+            <Text style={tailwind`ml-4 text-lg text-gray-800`}>{item.club_name}</Text>
         </View>
-        <View style={tailwind`flex-row`}>
-            <Text style={tailwind`rounded-lg bg-blue-300 p-2 items-center aspect-auto h-10 m-4`}>A1</Text>
-        </View>
+        <Text style={tailwind`rounded-lg bg-blue-500 text-white px-4 py-2`}>A1</Text>
     </Pressable>
 );
 
