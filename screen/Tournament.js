@@ -72,9 +72,7 @@ const Tournament = () => {
 
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
-            <ScrollView
-                nestedScrollEnabled={true}
-            >
+            <ScrollView nestedScrollEnabled={true}>
                 <View style={tailwind`flex-row mt-5`}>
                     <ScrollView
                         horizontal
@@ -83,8 +81,8 @@ const Tournament = () => {
                         contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                     >
                         {sports.map((item, index) => (
-                            <Pressable key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2 ml-2`} onPress={() => handleSport(item)}>
-                                <Text style={tailwind`text-black`}>{item}</Text>
+                            <Pressable key={index} style={tailwind`border rounded-full bg-blue-500 p-2 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                                <Text style={tailwind`text-white`}>{item}</Text>
                             </Pressable>
                         ))}
                     </ScrollView>
@@ -93,46 +91,46 @@ const Tournament = () => {
                     </Pressable>
                 </View>
                 {Object.keys(tournaments).map((tournamentItem, index) => (
-                    <View key={index}>
-                        <Text style={tailwind`text-xl font-bold mb-2 p-2 ml-4`}>{tournamentItem.charAt(0).toUpperCase() + tournamentItem.slice(1)}</Text>
+                    <View key={index} style={tailwind`mt-6`}>
+                        <Text style={tailwind`text-xl font-bold mb-2 p-2 ml-4 text-blue-800`}>{tournamentItem.charAt(0).toUpperCase() + tournamentItem.slice(1)}</Text>
                         {tournaments[tournamentItem] && tournaments[tournamentItem].length>0?(
                             <ScrollView
-                            style={tailwind`ml-4 mr-2 flex-row`}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            ref={scrollViewRef}
-                            contentContainerStyle={tailwind`ml-2 mr-2`}
-                        >
-                           {tournaments[tournamentItem].map((item, idx) => (
-                                <Pressable
-                                    key={idx}
-                                    style={tailwind`border rounded-md w-40 h-52 p-2 mr-4 relative bg-gray-200`}
-                                    onPress={() => handleTournamentPage(item)}
-                                >
-                                    <View style={tailwind`rounded-lg p-1 flex-row justify-between`}>
-                                        <View style={tailwind`flex-row items-center bg-yellow-300 rounded-lg p-1`}>
-                                            <Text style={tailwind`text-black text-sm`}>{item.currentStatus}</Text>
-                                        </View>
-                                        <View style={tailwind`flex-row items-center bg-purple-200 p-1 rounded-lg p-1`}>
-                                            <Text style={tailwind`text-black text-sm`}>{item.format}</Text>
-                                        </View>
-                                    </View>
-                                    <View style={tailwind`mt-auto`}>
-                                        <Text style={tailwind`text-black text-lg`} numberOfLines={1}>{item.tournament_name}</Text>
-                                        <View style={tailwind`flex-row justify-between items-center mt-1`}>
-                                            <View style={tailwind`flex-row items-center`}>
-                                                <AntDesign name="team" size={14} color="black" />
-                                                <Text style={tailwind`text-sm text-black ml-1`}>{item.teams_joined}</Text>
+                                style={tailwind`ml-4 mr-2 flex-row`}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                ref={scrollViewRef}
+                                contentContainerStyle={tailwind`ml-2 mr-2`}
+                            >
+                                {tournaments[tournamentItem].map((item, idx) => (
+                                    <Pressable
+                                        key={idx}
+                                        style={tailwind`border rounded-lg w-40 h-52 p-2 mr-4 relative bg-white shadow-lg`}
+                                        onPress={() => handleTournamentPage(item)}
+                                    >
+                                        <View style={tailwind`rounded-lg p-1 flex-row justify-between mb-2`}>
+                                            <View style={tailwind`flex-row items-center bg-yellow-300 rounded-lg px-2 py-1`}>
+                                                <Text style={tailwind`text-black text-sm`}>{item.currentStatus}</Text>
                                             </View>
-                                            <Text style={tailwind`text-black text-sm`}>{item.sport_type}</Text>
+                                            <View style={tailwind`flex-row items-center bg-purple-200 p-1 rounded-lg px-2 py-1`}>
+                                                <Text style={tailwind`text-black text-xs font-semibold`}>{item.format}</Text>
+                                            </View>
                                         </View>
-                                    </View>
-                                </Pressable>
-                            ))}
+                                        <View style={tailwind`mt-auto`}>
+                                            <Text style={tailwind`text-black text-lg font-semibold`} numberOfLines={1}>{item.tournament_name}</Text>
+                                            <View style={tailwind`flex-row justify-between items-center mt-2`}>
+                                                <View style={tailwind`flex-row items-center`}>
+                                                    <AntDesign name="team" size={14} color="black" />
+                                                    <Text style={tailwind`text-sm text-black ml-1`}>{item.teams_joined}</Text>
+                                                </View>
+                                                <Text style={tailwind`text-black text-sm ml-1`}>{item.sport_type}</Text>
+                                            </View>
+                                        </View>
+                                    </Pressable>
+                                ))}
                         </ScrollView>
                         ):(
-                            <View style={tailwind`items-center justify-center h-30 w-50 shadow-lg bg-white`}>
-                                <Text style={tailwind`text-black`}>There is no tournament {tournamentItem}</Text>
+                            <View style={tailwind`items-center justify-center h-30 w-full p-4 bg-white shadow-lg rounded-lg mt-2`}>
+                                <Text style={tailwind`text-black text-center`}>There is no tournament {tournamentItem}</Text>
                             </View>
                         )}
                     </View>
