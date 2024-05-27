@@ -7,6 +7,7 @@ import tailwind from 'twrnc';
 import DateTimePicker from 'react-native-modern-datepicker'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {addFootballScoreServices} from '../services/footballMatchServices';
+import {addCricketScoreServices} from '../services/cricketMatchServices';
 import { useDispatch } from 'react-redux';
 
 const CreateFixtue = ({tournament, teams, organizerID, handleCloseFixtureModal, sport}) => {

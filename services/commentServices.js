@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BASE_URL } from "../constants/ApiConstants";
+import { BASE_URL, AUTH_URL } from "../constants/ApiConstants";
 import { addComments, setComments, setCommentText } from "../redux/actions/actions";
 
 export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {

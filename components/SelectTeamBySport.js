@@ -4,6 +4,8 @@ import {View, Text, Modal, Pressable} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
+import { useDispatch } from 'react-redux';
+import { addTeamToGroup } from '../redux/actions/actions';
 
 const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false)
@@ -12,8 +14,7 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
     const [groupID, setGroupID] = useState(null);
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
-
-
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchTeam = async () => {
@@ -26,12 +27,10 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                     }
                 })
                 if(!response.data || response.data === null) {
-                    setTeams([])
+                    setTeams([]);
                 } else {
-                    setTeams(response.data)
-                    
+                    setTeams(response.data);
                 }
-    
             } catch (err) {
                 console.error("unable to fetch the team by sport: ", err);
             }
@@ -41,8 +40,7 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
 
 
     const handleTeamSelect = () => {
-        setIsModalTeamVisible(!isModalTeamVisible);
-        
+        setIsModalTeamVisible(!isModalTeamVisible); 
     }
 
     const handleSelectGroup = (item) => {
@@ -93,13 +91,13 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                             'Content-Type': 'application/json'
                         }
                     });
+                    const item = responseAddTeam.data || [];
+                    dispatch(addTeamToGroup(item));
                 } catch (err) {
                     console.log("unable to add the team to standing: ", err)
                 }
             }
-
             closeTeamBySport()
-
         } catch (err) {
             console.error("unable to fetch the team by sport: ", err);
         }
@@ -143,7 +141,7 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                     </View>
                 </Modal>
             )}
-
+            
             {isModalGroupVisible && (
                         <Modal
                                 transparent={true}

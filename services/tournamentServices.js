@@ -36,16 +36,16 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
                     currentStatus = "live";
                 }
 
-                //set the date 
-                const dateStartStr = it.start_on;
-                const dateEndStr = it.end_on;
-                const timeStampStartOn = new Date(dateStartStr);
-                const timeStampEndOn = new Date(dateEndStr);
-                const options = {weekday: 'long', month:'long', day:'2-digit'}
-                const formattedStartOn = timeStampStartOn.toLocaleString('en-US', options);
-                const formattedEndOn = timeStampEndOn.toLocaleString('en-US', options);
-                it.start_on = formattedStartOn;
-                it.end_on = formattedEndOn;
+                // //set the date 
+                // const dateStartStr = it.start_on;
+                // const dateEndStr = it.end_on;
+                // const timeStampStartOn = new Date(dateStartStr);
+                // const timeStampEndOn = new Date(dateEndStr);
+                // const options = {weekday: 'long', month:'long', day:'2-digit'}
+                // const formattedStartOn = timeStampStartOn.toLocaleString('en-US', options);
+                // const formattedEndOn = timeStampEndOn.toLocaleString('en-US', options);
+                // it.start_on = formattedStartOn;
+                // it.end_on = formattedEndOn;
 
                 //set the display text
                 let displayText = '';
