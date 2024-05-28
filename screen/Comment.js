@@ -25,7 +25,7 @@ function Comment({thread}) {
             <View style={tailwind`flex-1 items-center p-1`}>
                 {comments?.map((item, i) => (
                     <View  style={tailwind`p-2 m-0.5 w-full`} key={i}>
-                        <View style={tailwind`flex-row items-top`}>
+                        <View style={tailwind`flex-row`}>
                             {item.profile && item.profile.avatar_url ? (
                                 <Image  style={tailwind`w-10 h-10 rounded-full mr-2 bg-white`} source={{uri: item.profile.avatar_url}} />
                             ): (
