@@ -51,31 +51,34 @@ const Members = ({clubData}) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                const responseWithProfile = await response.data.map( async (item, index) => {
-                    try {
-                        if(item && item !== null) {
-                            const profileData = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
-                                params: { player_id: item.player_id.toString()},
-                                headers: {
-                                    'Authorization': `Bearer ${authToken}`,
-                                    'Content-Type': 'application/json',
-                                },
-                            });
-                            let displayText = '';
-                            if (!profileData.data?.avatar_url || profileData.data?.avatar_url === '') {
-                                const usernameInitial = profileData.data.player_name ? profileData.data.player_name.charAt(0) : '';
-                                displayText = usernameInitial.toUpperCase();
+                const item = response.data || [];
+                if(!item || item === null ){
+                    setMember([]);
+                } else {
+                    const responseWithProfile = await response.data.map( async (item, index) => {
+                        try {
+                            if(item && item !== null) {
+                                const profileData = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
+                                    params: { player_id: item.player_id.toString()},
+                                    headers: {
+                                        'Authorization': `Bearer ${authToken}`,
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+                                let displayText = '';
+                                if (!profileData.data?.avatar_url || profileData.data?.avatar_url === '') {
+                                    const usernameInitial = profileData.data.player_name ? profileData.data.player_name.charAt(0) : '';
+                                    displayText = usernameInitial.toUpperCase();
+                                }
+                                return {...item, profile: profileData.data,clubName: clubData.club_name, displayText: displayText }
                             }
-                            return {...item, profile: profileData.data,clubName: clubData.club_name, displayText: displayText }
+                        } catch (err) {
+                            console.error("unable to get the profile of user ", err)
                         }
-                    } catch (err) {
-                        console.error("unable to get the profile of user ", err)
-                    }
-                })
-                
-                
-                const clubMemberWithProfile = await Promise.all(responseWithProfile)
-                setMember(clubMemberWithProfile)
+                    });
+                    const clubMemberWithProfile = await Promise.all(responseWithProfile)
+                    setMember(clubMemberWithProfile)
+                }
             } catch(err) {
                 console.error("unable to fetch all member of team/club ", err)
             }
@@ -103,6 +106,7 @@ const Members = ({clubData}) => {
             setIsSelectPlayerModal(false)
         } catch (err) {
             console.error("unable to add the player data: ", err);
+            setMember([]);
         }
     }
 

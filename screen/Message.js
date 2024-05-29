@@ -53,85 +53,64 @@ function Message({ route }) {
   const wsRef = useRef(null);
   const isMountedRef = useRef(true);
 
-  const UploadMedia = () => {
-    let options = { 
-        noData: true,
-        mediaType: 'mixed',
-    }
-    
-     launchImageLibrary(options, async (res) => {
-      
-        if (res.didCancel) {
-            console.log('User cancelled photo picker');
-          } else if (res.error) {
-            console.log('ImagePicker Error: ', response.error);
-          } else {
-            const type = getMediaTypeFromURL(res.assets[0].uri);
-            
-            if(type === 'image' || type === 'video') {
-              const base64File = await fileToBase64(res.assets[0].uri);
-              setMediaURL(base64File)
-              setMediaType(type);
-              setUploadImage(true);
-            } else {
-              console.log('unsupported media type:', type);
-            }
-          }
-      });
+  const handleMediaSelection = async () => {
+    const {mediaURL, mediaType} = await SelectMedia();
+    setMediaURL(mediaURL);
+    setMediaType(mediaType);
 }
     
-  useEffect(() => {
-    const setupWebSocket = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        wsRef.current = new WebSocket('ws://192.168.1.4:8080/ws', '', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-
-        wsRef.current.onopen = () => {
-          console.log("WebSocket connection open");
-          console.log("WebSocket Ready: ", wsRef.current.readyState);
+useEffect(() => {
+  const setupWebSocket = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      wsRef.current = new WebSocket('ws://192.168.1.3:8080/ws', '', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
         }
+      });
 
-        wsRef.current.onmessage = (event) => {
-          const rawData = event?.data;
-          try {
-            if (rawData === null || !rawData) {
-              console.error("raw data is undefined");
-            } else {
-              const message = JSON.parse(rawData);
-              if (isMountedRef.current) {
-                setReceivedMessage((prevMessages) => [...prevMessages, message]);
-              }
+      wsRef.current.onopen = () => {
+        console.log("WebSocket connection open");
+        console.log("WebSocket Ready: ", wsRef.current.readyState);
+      }
+
+      wsRef.current.onmessage = (event) => {
+        const rawData = event?.data;
+        try {
+          if (rawData === null || !rawData) {
+            console.error("raw data is undefined");
+          } else {
+            const message = JSON.parse(rawData);
+            if (isMountedRef.current) {
+              setReceivedMessage((prevMessages) => [...prevMessages, message]);
             }
-          } catch (e) {
-            console.error('error parsing json: ', e);
           }
+        } catch (e) {
+          console.error('error parsing json: ', e);
         }
-
-        wsRef.current.onerror = (error) => {
-          console.log("Error: ", error);
-        }
-
-        wsRef.current.onclose = (event) => {
-          console.log("WebSocket connection closed: ", event.reason);
-        }
-      } catch (e) {
-        console.error('unable to setup the websocket', err)
       }
+
+      wsRef.current.onerror = (error) => {
+        console.log("Error: ", error);
+      }
+
+      wsRef.current.onclose = (event) => {
+        console.log("WebSocket connection closed: ", event.reason);
+      }
+    } catch (e) {
+      console.error('unable to setup the websocket', err)
     }
+  }
 
-    setupWebSocket();
+  setupWebSocket();
 
-    return () => {
-      isMountedRef.current = false;
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
+  return () => {
+    isMountedRef.current = false;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.close();
+    }
+  };
+}, []);
 
   useEffect(() => {
     const fetchAllMessage = async () => {
@@ -272,7 +251,7 @@ function Message({ route }) {
                 placeholder="Enter message..."
                 placeholderTextColor="white"
             />
-            <FontAwesome onPress={UploadMedia} name="camera" size={24} color="white" />
+            <FontAwesome onPress={handleMediaSelection} name="camera" size={24} color="white" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
                 <Text style={tailwind`text-white`}>Send</Text>
             </Pressable>

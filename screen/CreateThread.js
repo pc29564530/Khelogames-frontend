@@ -11,32 +11,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { addNewThreadServices } from '../services/threadsServices';
-
-function getMediaTypeFromURL(url) {
-  const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
-  if (fileExtensionMatch) {
-    const fileExtension = fileExtensionMatch[1].toLowerCase();
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
-    const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'MP4'];
-
-    if (imageExtensions.includes(fileExtension)) {
-      return 'image';
-    } else if (videoExtensions.includes(fileExtension)) {
-      return 'video';
-    }
-  }
-}
-
-
-const fileToBase64 = async (filePath) => {
-  try {
-    const fileContent = await RFNS.readFile(filePath, 'base64');
-    return fileContent;
-  } catch (error) {
-    console.error('Error converting image to Base64:', error);
-    return null;
-  }
-};
+import { SelectMedia } from '../services/SelectMedia';
 
 function CreateThread() {
     const isFocused = useIsFocused();
@@ -52,33 +27,16 @@ function CreateThread() {
     const [communityType, setCommunityType] = useState(route.params?.communityType || 'Select Community')
     const threads = useSelector(state => state.threads.threads)
 
-    const SelectMedia =  async () => {
-
-        let options = { 
-            noData: true,
-            mediaType: 'mixed',
+    const handleMediaSelection = async () => {
+        try {
+          const {mediaURL, mediaType} = await SelectMedia();
+          setMediaURL(mediaURL);
+          setMediaType(mediaType);
+          setLikeCount(0);
+        } catch (err) {
+          console.error("Error selecting media ", err);
         }
-        
-         launchImageLibrary(options, async (res) => {
-          
-            if (res.didCancel) {
-                console.log('User cancelled photo picker');
-              } else if (res.error) {
-                console.log('ImagePicker Error: ', response.error);
-              } else {
-                const type = getMediaTypeFromURL(res.assets[0].uri);
-                
-                if(type === 'image' || type === 'video') {
-                  const base64File = await fileToBase64(res.assets[0].uri);
-                  setMediaURL(base64File)
-                  setMediaType(type);
-                } else {
-                  console.log('unsupported media type:', type);
-                }
-                setLikeCount(0) 
-              }
-          });
-    };
+    }
 
     const HandleSubmit = async () => {
         const thread = {
@@ -166,7 +124,7 @@ function CreateThread() {
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
             <View style={tailwind`flex-1 justify-end items-end p-4`}>
-              <Pressable style={tailwind`bg-gray-400 rounded-full p-2`} onPress={SelectMedia}>
+              <Pressable style={tailwind`bg-gray-400 rounded-full p-2`} onPress={handleMediaSelection}>
                   <FontAwesome name="image" size={25} color="white" />
               </Pressable>
             </View>
