@@ -23,7 +23,7 @@ const CreateTournament = () => {
     const [startOn, setStartOn] = useState('');
     const [endOn, setEndOn] = useState('');
     const navigation = useNavigation();
-    const formats = ['knockout', 'league', 'league+knockout', 'gourps+knockout', 'custom'];
+    const formats = ['group', 'league', 'knockout'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
     const handleFormatModal = () => {
@@ -83,13 +83,18 @@ const CreateTournament = () => {
                 organizer_name:user,
                 tournament_id: item.tournament_id
             }
-            const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
+            try {
+                const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.log("unable to add the organizer to the tournament: ", err);
+            }
+            navigation.navigate("Tournament");
+            //navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
 
         } catch (err) {
             console.log("unable to create a new tournament ", err);

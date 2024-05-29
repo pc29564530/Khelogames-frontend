@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions, Image } from 'react-native';
 import { useRef } from 'react';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';

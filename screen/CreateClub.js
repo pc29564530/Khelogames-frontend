@@ -6,23 +6,30 @@ import tailwind from 'twrnc';
 import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
+import { SelectMedia } from '../services/SelectMedia';
 
 const CreateClub = ({route}) => {
     const sports = route.params.sports;
     const navigation = useNavigation();
     const [clubName, setClubName] = useState('');
     const [sport, setSport] = useState('');
+    const [avatarURL, setAvatarURL] = useState('');
     const axiosInstance = useAxiosInterceptor();
+
+    const handleMediaSelection = async () => {
+        const {mediaURL, mediaType} = await SelectMedia();
+        setAvatarURL(mediaURL);
+    }
 
     const handleSubmit = async () => {
         try {
             const user = await AsyncStorage.getItem('User')
             const club = {
                 club_name: clubName,
-                sport: sport,
-                owner: user
+                avatar_url: avatarURL,
+                sport: sport
             }
-            const authToken = await AsyncStorage.getItem('AccessToken')
+            const authToken = await AsyncStorage.getItem('AccessToken');
             
             const response = await axiosInstance.post(`${BASE_URL}/createClub`, club, {
                 headers: {
@@ -30,21 +37,6 @@ const CreateClub = ({route}) => {
                     'Content-Type': 'application/json',
                 },
             })
-            if(response.data || response.data !== nil ){
-                try {
-                    await axiosInstance.get(`${BASE_URL}/getClubMember/${response.data.club_name}`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    setClubName('');
-                    setSport('');
-
-                } catch(err) {
-                    console.error("unable to add the club owner to member list: ", err)
-                }
-            }
         } catch (err) {
             console.error("unable to create the club ", err);
         }
@@ -72,7 +64,7 @@ const CreateClub = ({route}) => {
                     <View style={tailwind`border rounded-md bg-gray-200 w-20 h-20 items-center justify-center`}>
                         <Text style={tailwind`text-black text-lg`}>Upload Image</Text>
                     </View>
-                    <Pressable style={tailwind`border rounded-full w-8 h-8 bg-blue-400 items-center justify-center -mt-6 ml-15`}>
+                    <Pressable onPress={() => handleMediaSelection()} style={tailwind`border rounded-full w-8 h-8 bg-blue-400 items-center justify-center -mt-6 ml-15`}>
                         <FontAwesome name="upload" size={20} color="black" />
                     </Pressable>
                 </View>
