@@ -290,7 +290,6 @@ export const setSport = (sport) => {
 }
 
 export const setStandings = (standings) => {
-    console.log("Line 292: ", standings)
     return {
         type: 'SET_STANDING',
         payload: standings
@@ -298,7 +297,6 @@ export const setStandings = (standings) => {
 }
 
 export const setGroups = (groups) => {
-    console.log("Line no 299: ", groups)
     return {
         type: 'SET_GROUP',
         payload: groups
@@ -308,7 +306,7 @@ export const setGroups = (groups) => {
 export const addTeamToGroup = (teamId, groupId, tournamentId) => {
     return {
         type: 'ADD_TEAM_GROUP',
-        payloal: {teamId, groupId, tournamentId}
+        payload: {teamId, groupId, tournamentId}
     }
 }
 
@@ -316,6 +314,21 @@ export const addGroup = (groups) => {
     return {
         type: 'ADD_GROUP',
         payload: groups
+    }
+}
+
+//add club 
+export const createClub = (clubs) => {
+    return {
+        type: 'CREATE_CLUB',
+        payload: clubs
+    }
+}
+
+export const getClub = (clubs) => {
+    return {
+        type: 'GET_CLUB',
+        payload: clubs
     }
 }
 

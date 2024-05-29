@@ -7,6 +7,10 @@ import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { SelectMedia } from '../services/SelectMedia';
+import { useDispatch } from 'react-redux';
+import clubReducers from '../redux/reducers/clubReducers';
+import { createClub } from '../redux/actions/actions';
+
 
 const CreateClub = ({route}) => {
     const sports = route.params.sports;
@@ -15,6 +19,7 @@ const CreateClub = ({route}) => {
     const [sport, setSport] = useState('');
     const [avatarURL, setAvatarURL] = useState('');
     const axiosInstance = useAxiosInterceptor();
+    const dispatch = useDispatch();
 
     const handleMediaSelection = async () => {
         const {mediaURL, mediaType} = await SelectMedia();
@@ -36,7 +41,10 @@ const CreateClub = ({route}) => {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
-            })
+            });
+            const item = response.data || [];
+            dispatch(createClub(item));
+            navigation.navigate("Club");
         } catch (err) {
             console.error("unable to create the club ", err);
         }

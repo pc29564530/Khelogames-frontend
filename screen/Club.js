@@ -10,6 +10,7 @@ import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setSport } from "../redux/actions/actions";
 import { useDispatch, useSelector } from 'react-redux';
+import { getClub } from '../redux/actions/actions';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
@@ -25,10 +26,12 @@ const Club = () => {
     const navigation = useNavigation();
     const scrollViewRef = useRef(null);
     const axiosInstance = useAxiosInterceptor();
-    const [clubs, setClubs] = useState([]);
+    //const [clubs, setClubs] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
     const dispatch = useDispatch();
     const sport = useSelector(state => state.sportReducers.sport);
+    const clubs = useSelector((state) => state.clubReducers.clubs);
+
 
     useEffect(() => {
         dispatch(setSport("Football"));
@@ -59,7 +62,7 @@ const Club = () => {
                 
                 const item = response.data;
                 if(!item || item === null) {
-                    setClubs([]);
+                    dispatch(getClub([]));
                 } else {
                     const clubWithDisplayText = item.map((item,index) => {
                         let displayText = '';
@@ -72,7 +75,7 @@ const Club = () => {
                     });
                     const clubData = await Promise.all(clubWithDisplayText)
                     const allClubs = createRow(clubData,itemInRow)
-                    setClubs(allClubs);
+                    dispatch(getClub(allClubs));
                 }
             } catch (err) {
                 console.error("unable to fetch all team or club: ", err);
