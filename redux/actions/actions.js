@@ -336,3 +336,17 @@ export const addTournament = (tournament) => {
         payload: tournament
     }
 }
+
+export const setTeams = (teams) => {
+    return {
+        type: actionTypes.SET_TEAMS,
+        payload: teams
+    }
+}
+
+export const getTeams = (teams) => {
+    return {
+        type: actionTypes.GET_TEAMS,
+        payload: teams
+    }
+}

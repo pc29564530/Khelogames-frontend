@@ -58,3 +58,7 @@ export const ADD_GROUP = 'ADD_TEAM_GROUP';
 //club
 export const CREATE_CLUB = 'CREATE_CLUB';
 export const GET_CLUB = 'GET_CLUB';
+
+//set and get team
+export const SET_TEAMS = 'SET_TEAMS';
+export const GET_TEAMS = 'GET_TEAMS';

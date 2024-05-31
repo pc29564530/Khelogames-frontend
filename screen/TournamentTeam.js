@@ -5,17 +5,23 @@ import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { setTeams, getTeams } from '../redux/actions/actions';
 
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
-    const [teams, setTeams] = useState([]);
     const [teamDisplay, setTeamDisplay] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const dispatch = useDispatch();
+    const teams = useSelector((state) => state.teams.teams);
 
     useEffect(() => {
         fetchTeams();
+    }, []);
+
+    useEffect(() => {
         fetchTeamBySport();
     }, []);
 
@@ -29,7 +35,7 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            setTeams(response.data || []);
+            dispatch(getTeams(response.data || []));
         } catch (err) {
             console.error("unable to fetch the tournament teams: ", err);
         }
@@ -67,9 +73,15 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.status === 200) {
-                fetchTeams(); // Refresh the team list after adding
+            const respItem = response.data || [];
+            const teamWithData = {
+                id: respItem.team_id,
+                club_name: teamDisplay.find((team) => team.id === respItem.team_id).club_name,
+                avatar_url: teamDisplay.find((team) => team.id === respItem.team_id).avatar_url,
+                created_at: teamDisplay.created_at,
             }
+            dispatch(setTeams(teamWithData));
+            setIsModalVisible(false);
         } catch (err) {
             console.error("unable to add the tournament teams: ", err);
         }
@@ -84,7 +96,7 @@ const TournamentTeam = ({ route }) => {
     };
 
     return (
-        <ScrollView style={tailwind`mt-4 px-4 bg-gray-100`}>
+        <View style={tailwind`mt-2 px-4 bg-gray-100 mb-4`}>
             {currentRole === "admin" && (
                 <View style={tailwind`mt-2 flex items-end`}>
                     <Pressable onPress={handleTeamModal} style={tailwind`px-4 py-2 rounded-lg shadow-lg bg-blue-600 items-center`}>
@@ -92,11 +104,11 @@ const TournamentTeam = ({ route }) => {
                     </Pressable>
                 </View>
             )}
-            <View style={tailwind`mt-4`}>
+            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled={true} style={tailwind`mb-10`}>
                 {teams.map((item, index) => (
                     <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
                 ))}
-            </View>
+            </ScrollView>
             {isModalVisible && (
                 <Modal
                     transparent={true}
@@ -107,7 +119,7 @@ const TournamentTeam = ({ route }) => {
                     <Pressable onPress={handleCloseTeam} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-t-lg p-4 max-h-3/4`}>
                             <Text style={tailwind`text-xl font-bold mb-4`}>Teams List</Text>
-                            <ScrollView>
+                            <ScrollView style={tailwind`max-h-3/4`}>
                                 {teamDisplay.map((item, index) => (
                                     <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`py-2 border-b border-gray-200`}>
                                         <Text style={tailwind`text-lg text-gray-700`}>{item.club_name}</Text>
@@ -118,7 +130,7 @@ const TournamentTeam = ({ route }) => {
                     </Pressable>
                 </Modal>
             )}
-        </ScrollView>
+        </View>
     );
 };
 
@@ -128,7 +140,6 @@ const TeamItem = ({ item, onPress }) => (
             <Image source={{ uri: item.logo_url || 'default_logo_url' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
             <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.club_name}</Text>
         </View>
-        <Text style={tailwind`rounded-lg bg-blue-500 text-white px-4 py-2`}>A1</Text>
     </Pressable>
 );
 

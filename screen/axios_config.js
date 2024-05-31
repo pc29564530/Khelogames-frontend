@@ -3,6 +3,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { AUTH_URL } from '../constants/ApiConstants';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/actions/actions';
 
 
 
@@ -12,6 +14,7 @@ const axiosInstance = axios.create();
 
 function useAxiosInterceptor() {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
   
     useEffect(() => {
 
@@ -71,6 +74,7 @@ function useAxiosInterceptor() {
         if (username) {
           await axios.delete(`${AUTH_URL}/removeSession/${username}`)
         }
+        dispatch(logout())
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');
         await AsyncStorage.removeItem('User');
