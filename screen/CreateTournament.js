@@ -9,7 +9,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker'
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { addTournament } from '../redux/actions/actions'; 
+import { useDispatch } from 'react-redux';
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
@@ -23,6 +25,7 @@ const CreateTournament = () => {
     const [startOn, setStartOn] = useState('');
     const [endOn, setEndOn] = useState('');
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const formats = ['group', 'league', 'knockout'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
@@ -76,6 +79,7 @@ const CreateTournament = () => {
                 },
             });
             const item = response.data;
+            dispatch(addTournament(item))
             setTournament(item)
             setStartOn('');
             setEndOn('');

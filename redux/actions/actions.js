@@ -328,8 +328,11 @@ export const getClub = (clubs) => {
         type: actionTypes.GET_CLUB,
         payload: clubs
     }
+};
+
+export const addTournament = (tournament) => {
+    return {
+        type: actionTypes.ADD_TOURNAMENT,
+        payload: tournament
+    }
 }
-
-
-
-
