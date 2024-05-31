@@ -43,6 +43,11 @@ const tournamentsReducers = (state=initialState, action) => {
                 ...state,
                 groups: [state.groups, action.payload]
             }
+        case actionTypes.ADD_TOURNAMENT:
+            return {
+                ...state,
+                tournaments: [...state.tournaments, action.payload]
+            }
         default:
             return state
     }
