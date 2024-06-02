@@ -6,36 +6,10 @@ import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EmojiSelector from 'react-native-emoji-selector';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import RFNS from 'react-native-fs';
-import {launchImageLibrary} from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { BASE_URL } from '../constants/ApiConstants';
-
-const fileToBase64 = async (filePath) => {
-    try {
-      const fileContent = await RFNS.readFile(filePath, 'base64');
-      return fileContent;
-    } catch (error) {
-      console.error('Error converting image to Base64:', error);
-      return null;
-    }
-  };
-
-  function getMediaTypeFromURL(url) {
-    const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
-    if (fileExtensionMatch) {
-      const fileExtension = fileExtensionMatch[1].toLowerCase();
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
-      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov'];
-  
-      if (imageExtensions.includes(fileExtension)) {
-        return 'image';
-      } else if (videoExtensions.includes(fileExtension)) {
-        return 'video';
-      }
-    }
-  }
+import {SelectMedia} from '../services/SelectMedia';
 
 function Message({ route }) {
   const navigation = useNavigation();
@@ -57,60 +31,61 @@ function Message({ route }) {
     const {mediaURL, mediaType} = await SelectMedia();
     setMediaURL(mediaURL);
     setMediaType(mediaType);
-}
-    
-useEffect(() => {
-  const setupWebSocket = async () => {
-    try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      wsRef.current = new WebSocket('ws://192.168.1.3:8080/ws', '', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-
-      wsRef.current.onopen = () => {
-        console.log("WebSocket connection open");
-        console.log("WebSocket Ready: ", wsRef.current.readyState);
-      }
-
-      wsRef.current.onmessage = (event) => {
-        const rawData = event?.data;
-        try {
-          if (rawData === null || !rawData) {
-            console.error("raw data is undefined");
-          } else {
-            const message = JSON.parse(rawData);
-            if (isMountedRef.current) {
-              setReceivedMessage((prevMessages) => [...prevMessages, message]);
-            }
-          }
-        } catch (e) {
-          console.error('error parsing json: ', e);
-        }
-      }
-
-      wsRef.current.onerror = (error) => {
-        console.log("Error: ", error);
-      }
-
-      wsRef.current.onclose = (event) => {
-        console.log("WebSocket connection closed: ", event.reason);
-      }
-    } catch (e) {
-      console.error('unable to setup the websocket', err)
-    }
+    setUploadImage(true);
   }
+    
+  useEffect(() => {
+    const setupWebSocket = async () => {
+      try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        wsRef.current = new WebSocket('ws://192.168.1.4:8080/api/ws', '', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
 
-  setupWebSocket();
+        wsRef.current.onopen = () => {
+          console.log("WebSocket connection open");
+          console.log("WebSocket Ready: ", wsRef.current.readyState);
+        }
 
-  return () => {
-    isMountedRef.current = false;
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.close();
+        wsRef.current.onmessage = (event) => {
+          const rawData = event?.data;
+          try {
+            if (rawData === null || !rawData) {
+              console.error("raw data is undefined");
+            } else {
+              const message = JSON.parse(rawData);
+              if (isMountedRef.current) {
+                setReceivedMessage((prevMessages) => [...prevMessages, message]);
+              }
+            }
+          } catch (e) {
+            console.error('error parsing json: ', e);
+          }
+        }
+
+        wsRef.current.onerror = (error) => {
+          console.log("Error: ", error);
+        }
+
+        wsRef.current.onclose = (event) => {
+          console.log("WebSocket connection closed: ", event.reason);
+        }
+      } catch (e) {
+        console.error('unable to setup the websocket', err)
+      }
     }
-  };
-}, []);
+
+    setupWebSocket();
+
+    return () => {
+      isMountedRef.current = false;
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchAllMessage = async () => {

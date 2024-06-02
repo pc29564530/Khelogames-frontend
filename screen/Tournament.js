@@ -81,7 +81,7 @@ const Tournament = () => {
                         contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                     >
                         {sports.map((item, index) => (
-                            <Pressable key={index} style={tailwind`border rounded-full bg-blue-500 p-2 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                            <Pressable key={index} style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => handleSport(item)}>
                                 <Text style={tailwind`text-white`}>{item}</Text>
                             </Pressable>
                         ))}
