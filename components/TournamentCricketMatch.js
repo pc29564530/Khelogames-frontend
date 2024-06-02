@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getCricketMatchScore } from '../redux/actions/actions';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
-    const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
@@ -156,7 +155,6 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
             });
             const allMatchData = await Promise.all(matchData);
             dispatch(getCricketMatchScore(allMatchData))
-            setTournamentTeamData(allMatchData);
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }
@@ -170,8 +168,8 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
-                {tournamentTeamData?.length > 0 ? (
-                    tournamentTeamData.map((item, index) => (
+                {matches?.length > 0 ? (
+                    matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>

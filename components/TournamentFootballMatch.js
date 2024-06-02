@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getFootballMatchScore } from '../redux/actions/actions';
 
 const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
-    const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];

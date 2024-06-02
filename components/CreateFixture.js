@@ -8,7 +8,7 @@ import DateTimePicker from 'react-native-modern-datepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { addFootballScoreServices } from '../services/footballMatchServices';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal, sport }) => {
     const [team1, setTeam1] = useState(null);
@@ -16,8 +16,10 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
     const [date, setDate] = useState(new Date());
     const [startTime, setStartTime] = useState(new Date());
     const [endTime, setEndTime] = useState(new Date());
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [modalType, setModalType] = useState('');
+    const [isModalTeamVisible, setIsModalTeamVisible] = useState(false);
+    const [isModalDateVisible, setIsModalDateVisible] = useState(false);
+    const [isModalStartTimeVisible, setIsModalStartTimeVisible] = useState(false);
+    const [isModalEndTimeVisible, setIsModalEndTimeVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
 
@@ -34,12 +36,12 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
     };
 
     const handleSelectTeam = (item) => {
-        if (modalType === 'team1') {
+        if (team1 === null) {
             setTeam1(item.id);
         } else {
             setTeam2(item.id);
         }
-        setIsModalVisible(false);
+        setIsModalTeamVisible(false);
     };
 
     const handleSetFixture = async () => {
@@ -80,11 +82,6 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
         }
     };
 
-    const handleModalVisibility = (type) => {
-        setModalType(type);
-        setIsModalVisible(true);
-    };
-
     return (
         <View style={tailwind`justify-center items-center bg-gray-100`}>
             <View style={tailwind`bg-white rounded-lg shadow-lg p-6 w-11/12`}>
@@ -94,23 +91,23 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
                         <MaterialIcons name="close" size={24} color="gray" />
                     </Pressable>
                 </View>
-                <Pressable onPress={() => setIsModalVisible(true)} style={tailwind`mb-4 p-4 bg-blue-500 rounded-lg`}>
+                <Pressable onPress={() => setIsModalDateVisible(true)} style={tailwind`mb-4 p-4 bg-blue-500 rounded-lg`}>
                     <Text style={tailwind`text-white text-center`}>Select Date</Text>
                 </Pressable>
                 <View style={tailwind`flex-row justify-between mb-4`}>
-                    <Pressable onPress={() => handleModalVisibility('start')} style={tailwind`flex-1 p-4 bg-green-500 rounded-lg mr-2`}>
+                    <Pressable onPress={() => setIsModalStartTimeVisible(true)} style={tailwind`flex-1 p-4 bg-green-500 rounded-lg mr-2`}>
                         <Text style={tailwind`text-white text-center`}>Start Time</Text>
                     </Pressable>
-                    <Pressable onPress={() => handleModalVisibility('end')} style={tailwind`flex-1 p-4 bg-red-500 rounded-lg ml-2`}>
+                    <Pressable onPress={() => setIsModalEndTimeVisible(true)} style={tailwind`flex-1 p-4 bg-red-500 rounded-lg ml-2`}>
                         <Text style={tailwind`text-white text-center`}>End Time</Text>
                     </Pressable>
                 </View>
                 <View style={tailwind`flex-row justify-between mb-6`}>
-                    <Pressable onPress={() => handleModalVisibility('team1')} style={tailwind`flex-1 p-4 bg-yellow-500 rounded-lg mr-2`}>
+                    <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-1 p-4 bg-yellow-500 rounded-lg mr-2`}>
                         <Text style={tailwind`text-white text-center`}>Team 1</Text>
                     </Pressable>
                     <Text style={tailwind`self-center text-lg text-gray-700`}>Vs</Text>
-                    <Pressable onPress={() => handleModalVisibility('team2')} style={tailwind`flex-1 p-4 bg-yellow-500 rounded-lg ml-2`}>
+                    <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-1 p-4 bg-yellow-500 rounded-lg ml-2`}>
                         <Text style={tailwind`text-white text-center`}>Team 2</Text>
                     </Pressable>
                 </View>
@@ -119,34 +116,80 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
                 </Pressable>
             </View>
 
-            <Modal transparent={true} animationType="slide" visible={isModalVisible} onRequestClose={() => setIsModalVisible(false)}>
+            {isModalDateVisible && (
+            <Modal
+            transparent={true}
+            animationType="slide"
+            visible={isModalDateVisible}
+        >
+            <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+            <View style={tailwind`bg-white rounded-md p-4`}>
+                <DateTimePicker
+                    onSelectedChange={(date) => {
+                        setDate(date);
+                        setIsModalDateVisible(false);
+                    }}
+
+                />
+            </View>
+            </View>
+        </Modal>
+        )}
+        {isModalEndTimeVisible && (
+            <Modal
+            transparent={true}
+            animationType="slide"
+            visible={isModalEndTimeVisible}
+        >
+            <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+            <View style={tailwind`bg-white rounded-md p-4`}>
+                <DateTimePicker
+                    onSelectedChange={(endTime) => {
+                        setEndTime(endTime);
+                        setIsModalEndTimeVisible(false);
+                    }}
+                />
+            </View>
+            </View>
+        </Modal>
+        )}
+        {isModalStartTimeVisible && (
+            <Modal
+            transparent={true}
+            animationType="slide"
+            visible={isModalStartTimeVisible}
+        >
+            <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+            <View style={tailwind`bg-white rounded-md p-4`}>
+                <DateTimePicker
+                    onSelectedChange={(startTime) => {
+                        setStartTime(startTime);
+                        setIsModalStartTimeVisible(false);
+                    }}
+                />
+            </View>
+            </View>
+        </Modal>
+        )}
+        {isModalTeamVisible && (
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={isModalTeamVisible}
+            >
                 <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                    <View style={tailwind`bg-white rounded-t-lg p-4`}>
-                        {modalType === 'start' || modalType === 'end' || modalType === 'date' ? (
-                            <DateTimePicker
-                                onSelectedChange={(dateTime) => {
-                                    if (modalType === 'start') {
-                                        setStartTime(dateTime);
-                                    } else if (modalType === 'end') {
-                                        setEndTime(dateTime);
-                                    } else {
-                                        setDate(dateTime);
-                                    }
-                                    setIsModalVisible(false);
-                                }}
-                            />
-                        ) : (
-                            <ScrollView>
+                    <View style={tailwind`bg-white rounded-md p-4`}>
+                            <ScrollView nestedScrollEnabled={true}>
                                 {teams.map((item, index) => (
                                     <Pressable key={index} onPress={() => handleSelectTeam(item)} style={tailwind`p-4 border-b border-gray-200`}>
                                         <Text style={tailwind`text-lg text-gray-800`}>{item.club_name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
-                        )}
                     </View>
                 </View>
             </Modal>
+            )}
         </View>
     );
 };

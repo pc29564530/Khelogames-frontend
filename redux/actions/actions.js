@@ -246,19 +246,19 @@ export const getCricketStanding = (standing) => {
 //     }
 // }
 
-// export const addFootballMatchScore = (matchScore) => {
-//     return {
-//         type: actionTypes.ADD_FOOTBALL_MATCH,
-//         payload: matchScore
-//     }
-// }
+export const addFootballMatchScore = (matchScore) => {
+    return {
+        type: actionTypes.ADD_FOOTBALL_SCORE,
+        payload: matchScore
+    }
+}
 
-// export const addCricketMatchScore = (cricketMatchScore) => {
-//     return {
-//         type: actionTypes.ADD_CRICKET_MATCH,
-//         payload: cricketMatchScore
-//     }
-// }
+export const addCricketMatchScore = (cricketMatchScore) => {
+    return {
+        type: actionTypes.ADD_CRICKET_SCORE,
+        payload: cricketMatchScore
+    }
+}
 
 //Add stats function
 //get stats function
