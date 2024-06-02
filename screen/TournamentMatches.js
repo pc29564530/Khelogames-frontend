@@ -8,13 +8,16 @@ import CreateFixtue from '../components/CreateFixture';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
+import { useDispatch, useSelector } from 'react-redux';
+import { getTeams } from '../redux/actions/actions';
 
 const TournamentMatches = ({ route }) => {
     const { tournament, currentRole } = route.params;
-    const [teams, setTeams] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [organizerID, setOrganizerID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
+    const dispatch = useDispatch();
+    const teams = useSelector((state) => state.teams.teams);
 
     useEffect(() => {
         fetchTournamentOrganizer();
@@ -50,7 +53,7 @@ const TournamentMatches = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            setTeams(response.data || []);
+            dispatch(getTeams(response.data || []));
         } catch (err) {
             console.error("Unable to fetch teams: ", err);
         }
