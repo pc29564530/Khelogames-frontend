@@ -38,7 +38,15 @@ const TournamentMatches = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            setOrganizerID(response.data.organizer_id);
+            const item = response.data;
+            setOrganizerID(item.organizer_id)
+            //add this foreach when there is more than one organizer for tournament
+            // item.forEach(item => {
+            //     if (item.organizer_name.toLowerCase() === user.toLowerCase()) {
+            //         // setAdmin(true);
+            //         setOrganizerID(item.organizer_id);
+            //     }
+            // });
         } catch (err) {
             console.log("Unable to fetch the organizer: ", err);
         }

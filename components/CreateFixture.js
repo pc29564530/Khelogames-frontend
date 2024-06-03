@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -59,7 +59,7 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/${sport}/createTournamentMatch`, fixture, {
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/createTournamentMatch`, fixture,{
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json',
