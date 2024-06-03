@@ -1,5 +1,9 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, ScrollView} from 'react-native';
+=======
+import {View, Text, Pressable} from 'react-native';
+import Club from './Club';
+>>>>>>> ae4b7cb (added the club page and drawer size increase for profile menu)
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import Members from '../components/Members';
@@ -36,7 +40,7 @@ const ClubPage = ({route}) => {
             case "Stats":
                 return <Stats />;
             default:
-                return <Members clubData={clubData} />;
+                return <Members clubName={clubData.club_name} />;
         }
     }
     return (
