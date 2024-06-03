@@ -14,12 +14,15 @@ import footballMatchPlayerScoreReducers from "./fooballMatchPlayerScoreReducers"
 import footballMatchScoreReducers from "./footballMatchScoreReducers";
 import cricketMatchScore from "./cricketMatchScoreReducers";
 import cricketMatchPlayerScore from "./cricketMatchPlayerScoreReducers";
+<<<<<<< HEAD
 import tournamentsReducers from "./tournamentsReducers";
 import sportReducers from "./sportReducers";
 import clubReducers from './clubReducers';
 import teamsReducers from "./teamsReducers";
 import { cricketMatchScore } from "./cricketMatchScoreReducers";
 import { cricketMatchPlayerScore } from "./cricketMatchPlayerScoreReducers";
+=======
+>>>>>>> 0c9d6a8 (added the reducers for both cricket and football)
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
