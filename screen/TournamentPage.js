@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,9 +8,15 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
+import { GlobalContext } from '../context/GlobalContext';
 
 const TournamentPage = ({ route }) => {
+<<<<<<< HEAD
     const { tournament, currentRole, sport } = route.params;
+=======
+    const {sport, setSport, tournament, setTournament} = useContext(GlobalContext)
+    const { currentRole} = route.params;
+>>>>>>> 7a1ba1b (fix the api issue)
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [teams, setTeams] = useState([]);
@@ -91,7 +97,10 @@ const TournamentPage = ({ route }) => {
             console.error("unable to add the team to tournament: ", err);
         }
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7a1ba1b (fix the api issue)
     return (
         <View style={tailwind`flex-1`}>
             <ScrollView
