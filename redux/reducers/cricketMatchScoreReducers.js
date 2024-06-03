@@ -11,7 +11,7 @@ const cricketMatchScoreReducers = (state=initialstate, action) => {
                 ...state,
                 cricketMatchScore: action.payload
             }
-        case actionTypes.ADD_CRICKET_MATCHES:
+        case actionTypes.ADD_CRICKET_SCORE:
             return {
                 ...state,
                 cricketMatchScore: [...state.cricketMatchScore, action.payload]
