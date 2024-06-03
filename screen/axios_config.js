@@ -42,10 +42,6 @@ function useAxiosInterceptor() {
             try {
               const refreshToken = await AsyncStorage.getItem('RefreshToken');
               if (refreshToken) {
-<<<<<<< HEAD
-=======
-                  console.log("lin no 34 refresh token")
->>>>>>> 223d4f6 (change the url of api call auth_url)
                 const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
                   'refresh_token': refreshToken,
                 });
@@ -56,16 +52,7 @@ function useAxiosInterceptor() {
                   return axiosInstance(error.config);
                 } else {
                   // Failed to renew token or received an invalid token
-<<<<<<< HEAD
                   await handleTokenExpiry();
-=======
-                  const username = await AsyncStorage.getItem('User')
-                  await axios.delete(`${AUTH_URL}/removeSession/${username}`)
-                  await AsyncStorage.removeItem('AccessToken');
-                  await AsyncStorage.removeItem('RefreshToken');
-                  await AsyncStorage.removeItem('User');
-                  navigation.navigate('SignIn');
->>>>>>> 223d4f6 (change the url of api call auth_url)
                 }
               } else {
                 // No refresh token is available

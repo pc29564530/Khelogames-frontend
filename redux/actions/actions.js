@@ -260,20 +260,6 @@ export const addCricketMatchScore = (cricketMatchScore) => {
     }
 }
 
-export const addFootballMatchScore = (matchScore) => {
-    return {
-        type: 'ADD_FOOTBALL_MATCH',
-        payload: matchScore
-    }
-}
-
-export const addCricketMatchScore = (cricketMatchScore) => {
-    return {
-        type: 'ADD_CRICKET_MATCH',
-        payload: cricketMatchScore
-    }
-}
-
 //Add stats function
 //get stats function
 //update stats function

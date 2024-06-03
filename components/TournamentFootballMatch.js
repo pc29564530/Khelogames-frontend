@@ -73,7 +73,6 @@ const TournamentFootballMatch = ({ tournament, determineMatchStatus, formattedDa
                 }
             });
             const allMatchData = await Promise.all(matchData);
-            setTournamentTeamData(allMatchData);
             dispatch(getFootballMatchScore(allMatchData))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
