@@ -18,8 +18,6 @@ import tournamentsReducers from "./tournamentsReducers";
 import sportReducers from "./sportReducers";
 import clubReducers from './clubReducers';
 import teamsReducers from "./teamsReducers";
-import { cricketMatchScore } from "./cricketMatchScoreReducers";
-import { cricketMatchPlayerScore } from "./cricketMatchPlayerScoreReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
