@@ -25,7 +25,7 @@ export const getFootballMatches  = async ({axiosInstance, tournamentId, tourname
     }
 }
 
-export const addFootballScoreServices = async ({sport, dispatch, item, authToken, axiosInstance}) => {
+export const addFootballScoreServices = async ({sports, dispatch, item, authToken, axiosInstance}) => {
     try {
         const scoreData1 = {
             match_id:item.match_id,
@@ -39,13 +39,13 @@ export const addFootballScoreServices = async ({sport, dispatch, item, authToken
             team_id: item.team2_id,
             goal_score: 0
         }
-        const team1Response = await axiosInstance.post(`${BASE_URL}/${sport}/addFootballMatchScore`,scoreData1, {
+        const team1Response = await axiosInstance.post(`${BASE_URL}/${sports}/addFootballMatchScore`,scoreData1, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
             }
         });
-        const team2Response = await axiosInstance.post(`${BASE_URL}/${sport}/addFootballMatchScore`,scoreData2, {
+        const team2Response = await axiosInstance.post(`${BASE_URL}/${sports}/addFootballMatchScore`,scoreData2, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
