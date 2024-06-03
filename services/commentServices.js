@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BASE_URL } from "../constants/ApiConstants";
+import { BASE_URL, AUTH_URL } from "../constants/ApiConstants";
 import { addComments, setComments, setCommentText } from "../redux/actions/actions";
 
 export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {
@@ -16,7 +16,7 @@ export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {
                 dispatch(setComments([]));
             } else {
                 const itemComment = item.map(async (item,index) => {
-                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.owner}`);
+                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.owner}`);
                         if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                             const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                             return {...item, profile: profileResponse.data, displayText: usernameInitial.toUpperCase()}

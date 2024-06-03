@@ -17,14 +17,14 @@ const FootballDetails = ({route}) => {
     const handleTournamentPage = async (tournamentID) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            const response = await axiosInstance.get(`${BASE_URL}/getTournament/${tournamentID}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
             const item = response.data || [];
-            navigation.navigate("TournamentPage", {item:item, currentRole: 'admin'})
+            navigation.navigate("TournamentPage", {tournament:item, currentRole: 'admin', sport:item?.sports})
         } catch (err) {
             console.error("unable to fetch the tournament data: ", err)
         }

@@ -1,4 +1,4 @@
-import { BASE_URL } from "../constants/ApiConstants";
+import { AUTH_URL, BASE_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { addThreads, setThreads } from "../redux/actions/actions";
 
@@ -16,7 +16,7 @@ export const getAllThreadServices = async ({ dispatch, axiosInstance }) => {
             dispatch(setThreads([]));
         } else {
             const threadUser = item.map(async (item, index) => {
-                const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.username}`);
+                const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`);
                 let displayText = '';
                 if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                     const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';

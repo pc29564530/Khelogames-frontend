@@ -8,7 +8,7 @@ import {useSelector,useDispatch} from 'react-redux';
 import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile} from '../redux/actions/actions';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
-import { BASE_URL } from '../constants/ApiConstants';
+import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -107,7 +107,7 @@ function Profile({route}) {
         return;
       }
       if(following_owner === owner){
-        const response = await axios.get(`${BASE_URL}/getProfile/${owner}`);
+        const response = await axios.get(`${AUTH_URL}/getProfile/${owner}`);
         if (response.data === null) {
           setProfileData([]);
         } else {
@@ -124,7 +124,7 @@ function Profile({route}) {
           }
         }
       } else {
-        const response = await axios.get(`${BASE_URL}/getProfile/${following_owner}`)
+        const response = await axios.get(`${AUTH_URL}/getProfile/${following_owner}`)
        if( response.data == null ){
           setProfileData([])
         } else {

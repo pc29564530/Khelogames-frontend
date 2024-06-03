@@ -5,19 +5,18 @@ import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
-import { handleLikes, handleThreadComment, handleUser } from '../utils/ThreadUtils';
 import ThreadItem from './ThreadItems';
 
 const ThreadProfileCompement = ({owner}) => {
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
-    // const threads = useSelector((state) => state.threads.threads)
     const likesCount = useSelector((state) => state.Like)
     const [ownername,setOwnername] = useState(owner);
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
+    const [hasReplies, setHasReplies] = useState(true);
     const [displayText, setDisplayText] = useState('');
     const handleThreadComment = (item, id) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
@@ -65,14 +64,18 @@ const ThreadProfileCompement = ({owner}) => {
               'Content-Type': 'application/json',
             },
           });
+
+          if (response.data === null || response.data.length === 0) {
+              setHasReplies(false);
+              return;
+          }
           
           const item = response.data;
           if (item === null) {
             setThreadWithUserProfile([]);
-            // dispatch(setThreads([]));
           } else {
             const threadUser = item.map(async (item, index) => {
-              const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.username}`);
+              const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`);
               let displayText = '';
               if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                 const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
@@ -106,7 +109,11 @@ const ThreadProfileCompement = ({owner}) => {
 
     return (
         <ScrollView style={tailwind`flex-1 bg-black`} vertical={true} nestedScrollEnabled={true}>
-            {threadWithUserProfile.map((item,i) => (
+          {!hasReplies ? (
+                <View style={tailwind`flex-1 mt-2 shadow-lg bg-white h-40 w-full ml-6 mr-6 items-center justify-center`}>
+                    <Text style={tailwind`text-black text-xl`}>Not post thread yet</Text>
+                </View>
+            ) : (threadWithUserProfile.map((item,i) => (
                 <ThreadItem 
                     key={i}
                     item={item}
@@ -114,7 +121,9 @@ const ThreadProfileCompement = ({owner}) => {
                     handleThreadComment={handleThreadComment}
                     handleUser={handleUser}
                 />
-            ))}
+            ))
+            )
+          }
         </ScrollView>
     );
   };

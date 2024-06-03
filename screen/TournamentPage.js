@@ -10,12 +10,9 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 
 const TournamentPage = ({ route }) => {
-    const {item, currentRole, sport} = route.params;
-    console.log("item: ", item)
-    const tournament = item
+    const { tournament, currentRole, sport } = route.params;
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
-    const [scrollEnabled, setScrollEnabled] = useState(false);
     const [teams, setTeams] = useState([]);
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
@@ -25,13 +22,13 @@ const TournamentPage = ({ route }) => {
             case "Badminton":
                 return <TopTabBadminton />;
             case "Cricket":
-                return <TopTabCricket tournament={tournament} currentRole={currentRole}/>;
+                return <TopTabCricket tournament={tournament} currentRole={currentRole} />;
             case "Hockey":
                 return <TopTabHockey />;
             case "Tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} sport={sport} />;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole} />;
         }
     }
 
@@ -50,30 +47,31 @@ const TournamentPage = ({ route }) => {
         }
     }
 
-    navigation.setOptions({
-        headerTitle: '',
-        headerRight: () => (
-            <View style={tailwind`items-center justify-center mr-20`}>
-                {showSearchInput ? (
-                    <View style={tailwind` flex-row rounded-lg shadow-lg w-50 p-2 items-center justify-between`}>
-                        <TextInput
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            placeholder="Search teams..."
-                        />
-                        <Pressable onPress={handleSearchTeam}>
+    useEffect(() => {
+        navigation.setOptions({
+            headerTitle: '',
+            headerRight: () => (
+                <View style={tailwind`items-center justify-center mr-20`}>
+                    {showSearchInput ? (
+                        <View style={tailwind`flex-row rounded-lg shadow-lg w-50 p-2 items-center justify-between`}>
+                            <TextInput
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                                placeholder="Search teams..."
+                            />
+                            <Pressable onPress={handleSearchTeam}>
+                                <MaterialIcons name="search" size={24} color="black" />
+                            </Pressable>
+                        </View>
+                    ) : (
+                        <Pressable onPress={() => setShowSearchInput(true)}>
                             <MaterialIcons name="search" size={24} color="black" />
                         </Pressable>
-                    </View>
-                ) : (
-                    <Pressable onPress={() => setShowSearchInput(true)}>
-                        <MaterialIcons name="search" size={24} color="black" />
-                    </Pressable>
-                )}
-            </View>
-        )
-    })
-    
+                    )}
+                </View>
+            )
+        });
+    }, [showSearchInput, searchQuery]);
 
     const handleSetTeamTournament = async (item) => {
         try {
@@ -82,58 +80,57 @@ const TournamentPage = ({ route }) => {
                 team_id: item.id
             }
             const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`${BASE_URL}/addTeam`, addTeamTournament, {
+            await axiosInstance.post(`${BASE_URL}/${sport}/addTeam`, addTeamTournament, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
-            })
+            });
             navigation.goBack();
         } catch (err) {
             console.error("unable to add the team to tournament: ", err);
         }
     }
-    console.log("Tournament: ", tournament)
+
     return (
+        <View style={tailwind`flex-1`}>
             <ScrollView
-                contentContainerStyle={{height:870 }}
+                contentContainerStyle={{height: 930}}
                 scrollEnabled={true}
-                showsVerticalScrollIndicator={true}
             >
-                { showSearchInput? (
+                {showSearchInput ? (
                     <>
-                    {currentRole === "admin" && (
-                        <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
-                            { teams?.length>0 && teams.map((item, index) => (
-                                <Pressable key={index} style={tailwind` bg-red-500`} onPress={() => handleSetTeamTournament(item)} >
-                                    <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    )}
+                        {currentRole === "admin" && (
+                            <View style={tailwind`mt-10 bg-orange-300 gap-4`}>
+                                {teams.length > 0 && teams.map((item, index) => (
+                                    <Pressable key={index} style={tailwind`bg-red-500`} onPress={() => handleSetTeamTournament(item)}>
+                                        <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        )}
                     </>
-                ):(
+                ) : (
                     <View style={tailwind`flex-1`}>
-                        <View style={tailwind`justify-center sml-2 mr-2 items-center p-10`}>
+                        <View style={tailwind`justify-center items-center p-10`}>
                             <View style={tailwind`border rounded-full h-20 w-20 bg-red-400 items-center justify-center`}>
-                                <Text style={tailwind`text-2xl`}>{tournament.displayText}</Text>
+                                <Text style={tailwind`text-2xl`}>{tournament?.displayText}</Text>
                             </View>
                             <View style={tailwind`mt-2`}>
-                                <Text style={tailwind`text-xl`}>{tournament.tournament_name}</Text>
+                                <Text style={tailwind`text-xl`}>{tournament?.tournament_name}</Text>
                             </View>
                             <View style={tailwind`flex-row gap-2`}>
-                                <Text style={tailwind`text-lg`}>Teams: {tournament.teams_joined}</Text>
+                                <Text style={tailwind`text-lg`}>Teams: {tournament?.teams_joined}</Text>
                                 <Text style={tailwind`text-lg`}>|</Text>
-                                <Text style={tailwind`text-lg`}>{tournament.sport_type}</Text>
+                                <Text style={tailwind`text-lg`}>{tournament?.sport_type}</Text>
                             </View>
                         </View>
                         <View style={tailwind`flex-1`}>{checkSport()}</View>
-                        
                     </View>
                 )}
             </ScrollView>
+        </View>
     );
-    
 }
 
 export default TournamentPage;

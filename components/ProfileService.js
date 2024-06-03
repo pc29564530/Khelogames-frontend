@@ -5,7 +5,7 @@ const axiosInstance = useAxiosInterceptor();
 export const ProfileService=async(username)=>{
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getProfile/${username}`, null, {
+        const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${username}`, null, {
             headers:{
                 'Authorization':`Bearer ${authToken}`,
                 'Content-Type':'application/json',

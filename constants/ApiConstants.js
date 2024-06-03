@@ -1,4 +1,5 @@
-export const BASE_URL= `http://10.0.2.2:8080`;
+export const BASE_URL= `http://192.168.1.4:8080/api`;
+export const AUTH_URL = `http://192.168.1.4:8080/auth`
 export const SEND_OTP=`${BASE_URL}/send_otp`;
 export const CREATE_THREAD_URL=`${BASE_URL}/create_thread`;
 export const GET_ALL_THREAD_BY_COMMUNITY_URL=`${BASE_URL}/get_all_thread_by_communities`;
@@ -8,7 +9,7 @@ export const LOGIN_USER=`${BASE_URL}/login`;
 export const REMOVE_SESSION=`${BASE_URL}/removeSession`;
 export const RENEW_ACCESS_TOKEN=`${BASE_URL}/tokens`;
 export const GET_USER=`${BASE_URL}/user`;
-export const GET_PROFILE=`${BASE_URL}/getProfile`;
+export const GET_PROFILE=`${AUTH_URL}/getProfile`;
 export const JOIN_COMMUNITY=`${BASE_URL}/joinUserCommunity`;
 export const GET_USER_BY_COMMUNITY=`${BASE_URL}/getUserByCommunity`;
 export const GET_COMMUNITY_BY_USER=`${BASE_URL}/getCommunityByUser`;

@@ -6,36 +6,10 @@ import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EmojiSelector from 'react-native-emoji-selector';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import RFNS from 'react-native-fs';
-import {launchImageLibrary} from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { BASE_URL } from '../constants/ApiConstants';
-
-const fileToBase64 = async (filePath) => {
-    try {
-      const fileContent = await RFNS.readFile(filePath, 'base64');
-      return fileContent;
-    } catch (error) {
-      console.error('Error converting image to Base64:', error);
-      return null;
-    }
-  };
-
-  function getMediaTypeFromURL(url) {
-    const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
-    if (fileExtensionMatch) {
-      const fileExtension = fileExtensionMatch[1].toLowerCase();
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
-      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov'];
-  
-      if (imageExtensions.includes(fileExtension)) {
-        return 'image';
-      } else if (videoExtensions.includes(fileExtension)) {
-        return 'video';
-      }
-    }
-  }
+import {SelectMedia} from '../services/SelectMedia';
 
 function Message({ route }) {
   const navigation = useNavigation();
@@ -53,39 +27,18 @@ function Message({ route }) {
   const wsRef = useRef(null);
   const isMountedRef = useRef(true);
 
-  const UploadMedia = () => {
-    let options = { 
-        noData: true,
-        mediaType: 'mixed',
-    }
-    
-     launchImageLibrary(options, async (res) => {
-      
-        if (res.didCancel) {
-            console.log('User cancelled photo picker');
-          } else if (res.error) {
-            console.log('ImagePicker Error: ', response.error);
-          } else {
-            const type = getMediaTypeFromURL(res.assets[0].uri);
-            
-            if(type === 'image' || type === 'video') {
-              const base64File = await fileToBase64(res.assets[0].uri);
-              setMediaURL(base64File)
-              setMediaType(type);
-              setUploadImage(true);
-            } else {
-              console.log('unsupported media type:', type);
-            }
-          }
-      });
-}
+  const handleMediaSelection = async () => {
+    const {mediaURL, mediaType} = await SelectMedia();
+    setMediaURL(mediaURL);
+    setMediaType(mediaType);
+    setUploadImage(true);
+  }
     
   useEffect(() => {
     const setupWebSocket = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        wsRef.current = new WebSocket('ws://192.168.1.2:8080/ws', '', {
-
+        wsRef.current = new WebSocket('ws://192.168.1.4:8080/api/ws', '', {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -273,7 +226,7 @@ function Message({ route }) {
                 placeholder="Enter message..."
                 placeholderTextColor="white"
             />
-            <FontAwesome onPress={UploadMedia} name="camera" size={24} color="white" />
+            <FontAwesome onPress={handleMediaSelection} name="camera" size={24} color="white" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
                 <Text style={tailwind`text-white`}>Send</Text>
             </Pressable>

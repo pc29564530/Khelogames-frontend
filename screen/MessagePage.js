@@ -6,7 +6,7 @@ import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
 function MessagePage() {
@@ -34,7 +34,7 @@ function MessagePage() {
                 dispatch(getFollowingUser([]));
             } else {
                 const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
@@ -90,7 +90,7 @@ function MessagePage() {
                     
                     try {
                         const profileData = communityItem.map(async (item) => {
-                            const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${currentUser}`);
+                            const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${currentUser}`);
                             return {...item, profileData: profileResponse.data}
                         })
                         const communityWithProfile = await Promise.all(profileData);
@@ -124,7 +124,7 @@ function MessagePage() {
                 // dispatch(getFollowingUser([]));
             } else {
                 const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item}`);
+                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                         const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());

@@ -9,7 +9,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker'
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { addTournament } from '../redux/actions/actions'; 
+import { useDispatch } from 'react-redux';
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
@@ -23,7 +25,8 @@ const CreateTournament = () => {
     const [startOn, setStartOn] = useState('');
     const [endOn, setEndOn] = useState('');
     const navigation = useNavigation();
-    const formats = ['knockout', 'league', 'league+knockout', 'gourps+knockout', 'custom'];
+    const dispatch = useDispatch();
+    const formats = ['group', 'league', 'knockout'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
     const handleFormatModal = () => {
@@ -76,6 +79,7 @@ const CreateTournament = () => {
                 },
             });
             const item = response.data;
+            dispatch(addTournament(item))
             setTournament(item)
             setStartOn('');
             setEndOn('');
@@ -83,13 +87,18 @@ const CreateTournament = () => {
                 organizer_name:user,
                 tournament_id: item.tournament_id
             }
-            const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
+            try {
+                const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.log("unable to add the organizer to the tournament: ", err);
+            }
+            navigation.navigate("Tournament");
+            //navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
 
         } catch (err) {
             console.log("unable to create a new tournament ", err);
@@ -164,7 +173,7 @@ const CreateTournament = () => {
                 visible={isFormatVisible}
                 onRequestClose={handleFormatModal}
             >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Pressable onPress={handleFormatModal} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                     <View style={tailwind`bg-white rounded-md p-4`}>
                         {formats.map((item, index) => (
                             <Pressable key={index} onPress={() => handleFormatSelection(item)}>
@@ -172,7 +181,7 @@ const CreateTournament = () => {
                             </Pressable>
                         ))}
                     </View>
-                </View>
+                </Pressable>
             </Modal>
             {/* Sport type selection modal */}
             <Modal
@@ -181,7 +190,7 @@ const CreateTournament = () => {
                 visible={isSportVisible}
                 onRequestClose={handleSportModal}
             >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Pressable onPress={handleSportModal} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                     <View style={tailwind`bg-white rounded-md p-4`}>
                         {sports.map((item, index) => (
                             <Pressable key={index} onPress={() => handleSportSelection(item)}>
@@ -189,7 +198,7 @@ const CreateTournament = () => {
                             </Pressable>
                         ))}
                     </View>
-                </View>
+                </Pressable>
             </Modal>
             {isDurationVisible && (
                 <DateTimePicker 

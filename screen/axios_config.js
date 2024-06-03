@@ -2,7 +2,9 @@ import React, {useEffect} from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { AUTH_URL } from '../constants/ApiConstants';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/actions/actions';
 
 
 
@@ -12,8 +14,11 @@ const axiosInstance = axios.create();
 
 function useAxiosInterceptor() {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
   
     useEffect(() => {
+
+      //request of axios
       axiosInstance.interceptors.request.use(
         async (config) => {
           const accessToken = await AsyncStorage.getItem('AccessToken');
@@ -26,7 +31,8 @@ function useAxiosInterceptor() {
           return Promise.reject(error);
         }
       );
-  
+      
+      //response of axios
       axiosInstance.interceptors.response.use(
         (response) => {
           return response;
@@ -36,12 +42,9 @@ function useAxiosInterceptor() {
             try {
               const refreshToken = await AsyncStorage.getItem('RefreshToken');
               if (refreshToken) {
-                  console.log("lin no 34 refresh token")
-                const response = await axios.post(`${BASE_URL}/tokens/renew_access`, {
+                const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
                   'refresh_token': refreshToken,
                 });
-                console.log(response.data)
-                console.log("line no 38")
                 if (response.data.access_token) {
                   // Renewal was successful, update the access token
                   await AsyncStorage.setItem('AccessToken', response.data.access_token);
@@ -49,26 +52,37 @@ function useAxiosInterceptor() {
                   return axiosInstance(error.config);
                 } else {
                   // Failed to renew token or received an invalid token
-                  const username = await AsyncStorage.getItem('User')
-                  await axios.delete(`${BASE_URL}/removeSession/${username}`)
-                  await AsyncStorage.removeItem('AccessToken');
-                  await AsyncStorage.removeItem('RefreshToken');
-                  await AsyncStorage.removeItem('User');
-                  navigation.navigate('SignIn');
+                  await handleTokenExpiry();
                 }
               } else {
                 // No refresh token is available
-                navigation.navigate('SignIn');
+                await handleTokenExpiry();
               }
             } catch (err) {
               console.error("Error occurred while regenerating the access token: ", err);
-              navigation.navigate('SignIn');
+              await handleTokenExpiry();
             }
           }
           return Promise.reject(error);
         }
       );
     }, [navigation]);
+
+    const handleTokenExpiry = async () => {
+      try {
+        const username = await AsyncStorage.getItem('User');
+        if (username) {
+          await axios.delete(`${AUTH_URL}/removeSession/${username}`)
+        }
+        dispatch(logout())
+        await AsyncStorage.removeItem('AccessToken');
+        await AsyncStorage.removeItem('RefreshToken');
+        await AsyncStorage.removeItem('User');
+      } catch (error) {
+        console.error("Error during token expiry handling: ", error);
+      }
+      navigation.navigate('SignIn');
+    }
   
     return axiosInstance;
   }

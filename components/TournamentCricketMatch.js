@@ -1,13 +1,15 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCricketMatchScore } from '../redux/actions/actions';
 
 const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate, formattedTime, AsyncStorage, axiosInstance, BASE_URL}) => {
-    const [tournamentTeamData, setTournamentTeamData] = useState([]);
     const navigation = useNavigation();
-    
+    const dispatch = useDispatch();
+    const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -17,7 +19,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
     const getMatchScoreAndUpdate = async (matchId, batTeamId, bowlTeamId) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const matchScoreResponse = await axiosInstance.get(`${BASE_URL}/getCricketTeamPlayerScore`, {
+            const matchScoreResponse = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getCricketTeamPlayerScore`, {
                 params: {
                     match_id: matchId,
                     tournament_id: tournament.tournament_id,
@@ -29,7 +31,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                 }
             });
             const matchScoreData = matchScoreResponse.data || [];
-            const bowlerRunsConcededResponse = await axiosInstance.get(`${BASE_URL}/getCricketTeamPlayerScore`,{
+            const bowlerRunsConcededResponse = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getCricketTeamPlayerScore`,{
                 params: {
                     match_id: matchId,
                     tournament_id: tournament.tournament_id,
@@ -52,7 +54,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                         match_id: matchId,
                         team_id: batTeamId
                     }
-                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchRunsScore` ,batData,{
+                    await axiosInstance.put(`${BASE_URL}/${tournament.sport_type}/updateCricketMatchRunsScore` ,batData,{
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
@@ -65,14 +67,14 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                         team_id: bowlTeamId
                     }
 
-                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchWicket` ,bowlData,{
+                    await axiosInstance.put(`${BASE_URL}/${tournament.sport_type}/updateCricketMatchWicket` ,bowlData,{
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    await axiosInstance.put(`${BASE_URL}/updateCricketMatchExtras` ,{extras: extrasScore, match_id: matchId, team_id: batTeamId},{
+                    await axiosInstance.put(`${BASE_URL}/${tournament.sport_type}/updateCricketMatchExtras` ,{extras: extrasScore, match_id: matchId, team_id: batTeamId},{
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
@@ -90,7 +92,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
     const fetchTournamentMatchs = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getAllTournamentMatch`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getAllTournamentMatch`, {
                 params: {
                     tournament_id: tournament.tournament_id,
                     sports: tournament.sport_type
@@ -106,25 +108,25 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                     getMatchScoreAndUpdate(item.match_id, item.team2_id, item.team1_id);
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response1 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team1_id}`, null, {
+                    const response1 = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getClub/${item.team1_id}`, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const response2 = await axiosInstance.get(`${BASE_URL}/getClub/${item.team2_id}`, null, {
+                    const response2 = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getClub/${item.team2_id}`, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const response3 = await axiosInstance.get(`${BASE_URL}/getTournament/${item.tournament_id}`, null, {
+                    const response3 = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournament/${item.tournament_id}`, null, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const response4 = await axiosInstance.get(`${BASE_URL}/getCricketMatchScore`, {
+                    const response4 = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getCricketMatchScore`, {
                         params:{
                             match_id: item.match_id,
                             team_id: item.team1_id
@@ -135,7 +137,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                         }
                     })
 
-                    const response5 = await axiosInstance.get(`${BASE_URL}/getCricketMatchScore`, {
+                    const response5 = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getCricketMatchScore`, {
                         params:{
                             match_id: item.match_id,
                             team_id: item.team2_id
@@ -152,7 +154,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                 }
             });
             const allMatchData = await Promise.all(matchData);
-            setTournamentTeamData(allMatchData);
+            dispatch(getCricketMatchScore(allMatchData))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }
@@ -166,13 +168,13 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
-                {tournamentTeamData?.length > 0 ? (
-                    tournamentTeamData.map((item, index) => (
+                {matches?.length > 0 ? (
+                    matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>
-                                        <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
+                                        <Image source={{ uri: item?.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.team1_name}</Text>
                                     </View>
                                     {(determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End") && (
@@ -183,7 +185,7 @@ const TournamentCricketMatch = ({tournament, determineMatchStatus, formattedDate
                                 </View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>
-                                        <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
+                                        <Image source={{ uri: item?.team2_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.team2_name}</Text>
                                     </View>
                                     {(determineMatchStatus(item) === "Live" || determineMatchStatus(item) === "End") && (

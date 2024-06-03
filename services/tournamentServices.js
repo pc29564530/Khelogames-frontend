@@ -1,13 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
+import { setStandings, setGroups } from '../redux/actions/actions';
 
 export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getTournamentsBySport`, {
-            params:{
-                "sport_type":sport
-            },
+        //need to lowercase the word of sport 
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -37,16 +36,16 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
                     currentStatus = "live";
                 }
 
-                //set the date 
-                const dateStartStr = it.start_on;
-                const dateEndStr = it.end_on;
-                const timeStampStartOn = new Date(dateStartStr);
-                const timeStampEndOn = new Date(dateEndStr);
-                const options = {weekday: 'long', month:'long', day:'2-digit'}
-                const formattedStartOn = timeStampStartOn.toLocaleString('en-US', options);
-                const formattedEndOn = timeStampEndOn.toLocaleString('en-US', options);
-                it.start_on = formattedStartOn;
-                it.end_on = formattedEndOn;
+                // //set the date 
+                // const dateStartStr = it.start_on;
+                // const dateEndStr = it.end_on;
+                // const timeStampStartOn = new Date(dateStartStr);
+                // const timeStampEndOn = new Date(dateEndStr);
+                // const options = {weekday: 'long', month:'long', day:'2-digit'}
+                // const formattedStartOn = timeStampStartOn.toLocaleString('en-US', options);
+                // const formattedEndOn = timeStampEndOn.toLocaleString('en-US', options);
+                // it.start_on = formattedStartOn;
+                // it.end_on = formattedEndOn;
 
                 //set the display text
                 let displayText = '';
@@ -101,3 +100,74 @@ export const addNewTournamentBySport = async ({axiosInstance, data, navigation})
         console.error("unable to add new tournament and organizer: ", err);
     }
 }
+
+export const getTournamentByID = async ({axiosInstance, sport, id}) => {
+    try {
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournament/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
+        });
+    } catch (err) {
+        console.error("unable to get the tournament by id: ", err);
+    }
+}
+
+export const findTournamentByID = ({tournamentBySport, tournamentId, tournamentStatus}) => {
+    for (const status of tournamentStatus) {
+        const foundTournament = tournamentBySport[status]?.find(status => status.tournament_id===tournamentId);
+        if(foundTournament){
+            return foundTournament
+        };
+    }
+    return null;
+}
+
+export const fetchGroups = (tournament, axiosInstance) => {
+    return async (dispatch) => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
+                params: { tournament_id: tournament.tournament_id.toString() },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const groups = response.data || [];
+            dispatch(setGroups(groups));
+        } catch (err) {
+            console.error("Unable to fetch the group of tournament: ", err);
+        }
+    };
+};
+
+export const fetchStandings = (tournament, groups, axiosInstance) => {
+    return async (dispatch) => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            let standingData = [];
+            for (const item of groups) {
+                if (item !== undefined) {
+                    const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
+                        params: {
+                            tournament_id: tournament.tournament_id.toString(),
+                            group_id: item.group_id,
+                            sport_type: tournament.sport_type
+                        },
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    standingData.push({ groupName: item.group_name, standData: response.data });
+                }
+            }
+            dispatch(setStandings(standingData));
+        } catch (err) {
+            console.error("Unable to fetch the standings of tournament: ", err);
+        }
+    };
+};

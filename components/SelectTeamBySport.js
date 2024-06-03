@@ -4,34 +4,33 @@ import {View, Text, Modal, Pressable} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
+import { useDispatch } from 'react-redux';
+import { addTeamToGroup } from '../redux/actions/actions';
 
-const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
+const SelectTeamBySport = ({tournament, groups }) => {
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false)
     const [teamID, setTeamID] = useState(null);
     const [teams, setTeams] = useState([]);
     const [groupID, setGroupID] = useState(null);
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
-
-
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchTeam = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getTeams/${tournament.tournament_id}`, null, {
+                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournament.tournament_id}`, null, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json'
                     }
                 })
                 if(!response.data || response.data === null) {
-                    setTeams([])
+                    setTeams([]);
                 } else {
-                    setTeams(response.data)
-                    
+                    setTeams(response.data);
                 }
-    
             } catch (err) {
                 console.error("unable to fetch the team by sport: ", err);
             }
@@ -41,8 +40,7 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
 
 
     const handleTeamSelect = () => {
-        setIsModalTeamVisible(!isModalTeamVisible);
-        
+        setIsModalTeamVisible(!isModalTeamVisible); 
     }
 
     const handleSelectGroup = (item) => {
@@ -54,7 +52,7 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
         setIsModalGroupVisible(false);
     }
 
-    const handleCloseTeam = () => {
+    const handleTeamClose = () => {
         setIsModalTeamVisible(!isModalTeamVisible);
     }
 
@@ -87,19 +85,18 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                         "goal_difference":0,
                         "points":0
                     }
-                    const responseAddTeam = await axiosInstance.post(`${BASE_URL}/createTournamentStanding`, teamData, {
+                    const responseAddTeam = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/createTournamentStanding`, teamData, {
                         headers: {
                             'Authorization': `bearer ${authToken}`,
                             'Content-Type': 'application/json'
                         }
                     });
+                    const item = responseAddTeam.data || [];
+                    dispatch(addTeamToGroup(item));
                 } catch (err) {
                     console.log("unable to add the team to standing: ", err)
                 }
             }
-
-            closeTeamBySport()
-
         } catch (err) {
             console.error("unable to fetch the team by sport: ", err);
         }
@@ -130,9 +127,9 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                     transparent={true}
                     animationType="slide"
                     visible={isModalTeamVisible}
-                    onRequestClose={handleCloseTeam}
+                    onRequestClose={handleTeamClose}
                 >
-                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                    <Pressable onPress={handleTeamClose} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
                             {teams.map((item,index) => (
                                 <Pressable key={index} onPress={() => handleTeamSelection(item.id)} style={tailwind`mt-2 p-1`}>
@@ -140,26 +137,26 @@ const SelectTeamBySport = ({tournament, group, closeTeamBySport }) => {
                                 </Pressable>
                             ))}
                         </View>
-                    </View>
+                    </Pressable>
                 </Modal>
             )}
-
+            
             {isModalGroupVisible && (
-                        <Modal
-                                transparent={true}
-                                animationType="slide"
-                                visible={isModalGroupVisible}
-                                onRequestClose={handleCloseGroup}
-                            >
-                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isModalGroupVisible}
+                        onRequestClose={handleCloseGroup}
+                >
+                    <Pressable onPress={handleCloseGroup} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            {group.map((item,index) => (
+                            {groups.map((item,index) => (
                                 <Pressable key={index} onPress={() => handleSelectGroup(item)} style={tailwind`mt-2 p-1`}>
                                     <Text style={tailwind`text-black text-lg`}>{item.group_name}</Text>
                                 </Pressable>
                             ))}
                         </View>
-                    </View>
+                    </Pressable>
                 </Modal>
             )}
         </View>

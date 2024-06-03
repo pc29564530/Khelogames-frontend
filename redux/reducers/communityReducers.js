@@ -6,7 +6,7 @@ const initialState = {
 
 const communityReducers = (state=initialState, action) => {
     switch (action.type) {
-        case actionTypes.COMMUNITY:
+        case actionTypes.GET_COMMUNITY:
             return {
                 ...state,
                 community:action.payload

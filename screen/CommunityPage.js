@@ -17,6 +17,14 @@ function CommunityPage({route}) {
     const [memberCount, setMemeberCount] = useState(1);
     const axiosInstance = useAxiosInterceptor();
     const communityPageData = route.params?.item;
+
+    useEffect(() => {
+        fetchCommunityJoinedByUser();
+    },[]);
+
+    useEffect(() => {
+        fetchCommunityLength();
+    }, []);
     
     const fetchCommunityJoinedByUser = async () => {
         try {
@@ -30,7 +38,7 @@ function CommunityPage({route}) {
             dispatch(getJoinedCommunity(response.data))
 
         } catch (e) {
-            console.error('Unable to get the joined communities', e);
+            console.error('unable to get the joined communities', e);
         }
     };
     
@@ -72,11 +80,6 @@ function CommunityPage({route}) {
             console.error(err);
         }
     }
-
-    useEffect(() => {
-        fetchCommunityJoinedByUser();
-        fetchCommunityLength();
-    },[])
 
     navigation.setOptions({
         headerTitle: '',

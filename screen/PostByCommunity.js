@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {setThreads, setLikes} from '../redux/actions/actions';
 import Video from 'react-native-video';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const PostByCommunity = ({route}) => {
@@ -63,10 +63,10 @@ const PostByCommunity = ({route}) => {
         try {
           const user = await AsyncStorage.getItem('User');
           if(username === undefined || username === null) {
-            const response = await axiosInstance.get(`${BASE_URL}/user/${user}`);
+            const response = await axiosInstance.get(`${AUTH_URL}/user/${user}`);
             navigation.navigate('Profile', { username: response.data.username });
           } else {
-            const response = await axiosInstance.get(`${BASE_URL}/user/${username}`);
+            const response = await axiosInstance.get(`${AUTH_URL}/user/${username}`);
             navigation.navigate('Profile', { username: response.data.username });
           }
   
@@ -93,7 +93,7 @@ const PostByCommunity = ({route}) => {
             dispatch(setThreads([]));
             } else {
             const threadUser = item.map(async (item,index) => {
-                const profileResponse = await axiosInstance.get(`${BASE_URL}/getProfile/${item.username}`);
+                const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`);
                 if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
                 const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
                 setDisplayText(usernameInitial.toUpperCase());
