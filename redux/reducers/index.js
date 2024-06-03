@@ -10,7 +10,6 @@ import joinedCommunityReducer from "./joinedCommunityReducer";
 import communityReducers from "./communityReducers"
 import editProfileReducers from "./editProfileReducers";
 import profileReducers from "./profileReducers";
-<<<<<<< HEAD
 import footballMatchPlayerScoreReducers from "./fooballMatchPlayerScoreReducers";
 import footballMatchScoreReducers from "./footballMatchScoreReducers";
 import cricketMatchScore from "./cricketMatchScoreReducers";
@@ -19,10 +18,8 @@ import tournamentsReducers from "./tournamentsReducers";
 import sportReducers from "./sportReducers";
 import clubReducers from './clubReducers';
 import teamsReducers from "./teamsReducers";
-=======
-import { footballMatchPlayerScore } from "./fooballMatchPlayerScoreReducers";
-import { footballMatchScore } from "./footballMatchScoreReducers";
->>>>>>> f1b6b8b (added the functionality of football and cricket in redux)
+import { cricketMatchScore } from "./cricketMatchScoreReducers";
+import { cricketMatchPlayerScore } from "./cricketMatchPlayerScoreReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
