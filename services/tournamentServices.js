@@ -2,11 +2,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { setStandings, setGroups } from '../redux/actions/actions';
 
-export const getTournamentBySport = async ({axiosInstance, sport}) => {
+export const getTournamentBySport = async ({axiosInstance, sport, category}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
         //need to lowercase the word of sport 
-        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentByLevel`, {
+            params: {
+                category: category
+            },
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
