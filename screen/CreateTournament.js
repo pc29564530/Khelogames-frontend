@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addTournament } from '../redux/actions/actions'; 
 import { useDispatch } from 'react-redux';
+import CountryPicker from 'react-native-country-picker-modal';
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
@@ -25,6 +26,9 @@ const CreateTournament = () => {
     const [startOn, setStartOn] = useState('');
     const [endOn, setEndOn] = useState('');
     const navigation = useNavigation();
+    const [category, setCategory] = useState('');
+    const [isCountryPicker, setIsCountryPicker] = useState(false);
+    const [isCategoryVisible, setIsCategoryVisible] = useState(false);
     const dispatch = useDispatch();
     const formats = ['group', 'league', 'knockout'];
     const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
@@ -61,14 +65,17 @@ const CreateTournament = () => {
             } else if (!endOn) {
                 alert("Please select the end date.");
             } else {
+                console.log("L 68L :", )
                 data = {
                     tournament_name: tournamentName,
                     sport_type: sport,
                     format: format,
                     teams_joined: 0,
                     start_on: startOn,
-                    end_on: endOn
+                    end_on: endOn,
+                    category: category.name
                 }
+                console.log("Line no 87: ", data)
             }
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
@@ -83,6 +90,7 @@ const CreateTournament = () => {
             setTournament(item)
             setStartOn('');
             setEndOn('');
+
             const organizerData = {
                 organizer_name:user,
                 tournament_id: item.tournament_id
@@ -97,6 +105,8 @@ const CreateTournament = () => {
             } catch (err) {
                 console.log("unable to add the organizer to the tournament: ", err);
             }
+
+
             navigation.navigate("Tournament");
             //navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
 
@@ -115,6 +125,15 @@ const CreateTournament = () => {
             setIsDurationVisible(!isDurationVisible);
             return;
         }
+     }
+
+     const handleCategory = (item) => {
+        if (item == 'Country'){
+            setIsCountryPicker(true);
+        } else {
+            setCategory('Global')
+        }
+        setIsCategoryVisible(false);
      }
 
     return (
@@ -160,12 +179,35 @@ const CreateTournament = () => {
                         <AntDesign name="calendar" size={24} color="black"/>
                         <Text>Duration</Text>
                     </Pressable>
+                    <Pressable style={tailwind`items-center`} onPress={() => setIsCategoryVisible(true)}>
+                        <MaterialIcons name="category" size={24} color="black" />
+                        <Text>Category</Text>
+                    </Pressable>
                 </View>
                 {/* Submit button */}
                 <Pressable style={tailwind`border rounded-md`} onPress={handleCreatedTournament}>
                     <Text style={tailwind`text-lg p-1 bg-pink-300`}>Next</Text>
                 </Pressable>
             </View>
+            {isCategoryVisible && (
+                <Modal 
+                    transparent={true}
+                    animationType='slide'
+                    visible={isCategoryVisible}
+                    onRequestClose={() => setIsCategoryVisible(false)}
+                >
+                    <Pressable onPress={() => setIsCategoryVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <Pressable onPress={() => handleCategory('Global')}>
+                                <Text style={tailwind`text-xl py-2`}>Global</Text>
+                            </Pressable>
+                            <Pressable onPress={() => handleCategory('Country')}>
+                                <Text style={tailwind`text-xl py-2`}>Country</Text>
+                            </Pressable>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
             {/* Format selection modal */}
             <Modal
                 transparent={true}
@@ -208,6 +250,20 @@ const CreateTournament = () => {
                     is24Hour={true}
                     display='default'
                     onChange={handleDateChange}
+                />
+            )}
+            {isCountryPicker && (
+                <CountryPicker
+                    withFilter
+                    withFlag
+                    withCountryNameButton
+                    withAlphaFilter
+                    withCallingCode
+                    withEmoji
+                    countryCode={category}
+                    onSelect={(selectedCountry) => setCategory(selectedCountry)}
+                    visible={isCountryPicker}
+                    onClose={() => setIsCountryPicker(false)}
                 />
             )}
         </View>
