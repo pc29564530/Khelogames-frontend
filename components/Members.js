@@ -15,7 +15,6 @@ const Members = ({clubData}) => {
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
     const navigation = useNavigation();
-
     useEffect(() => {
         const fetchPlayerProfile = async () => {
             try {
