@@ -2,14 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { setStandings, setGroups } from '../redux/actions/actions';
 
-export const getTournamentBySport = async ({axiosInstance, sport, category}) => {
+export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
         //need to lowercase the word of sport 
-        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentByLevel`, {
-            params: {
-                category: category
-            },
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -128,49 +125,45 @@ export const findTournamentByID = ({tournamentBySport, tournamentId, tournamentS
     return null;
 }
 
-export const fetchGroups = (tournament, axiosInstance) => {
-    return async (dispatch) => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
-                params: { tournament_id: tournament.tournament_id.toString() },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            const groups = response.data || [];
-            dispatch(setGroups(groups));
-        } catch (err) {
-            console.error("Unable to fetch the group of tournament: ", err);
-        }
-    };
+export const fetchGroups = async ({tournament, axiosInstance, dispatch}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
+            params: { tournament_id: tournament.tournament_id.toString() },
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        const groups = response.data || [];
+        dispatch(setGroups(groups));
+    } catch (err) {
+        console.error("Unable to fetch the group of tournament: ", err);
+    }
 };
 
-export const fetchStandings = (tournament, groups, axiosInstance) => {
-    return async (dispatch) => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            let standingData = [];
-            for (const item of groups) {
-                if (item !== undefined) {
-                    const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
-                        params: {
-                            tournament_id: tournament.tournament_id.toString(),
-                            group_id: item.group_id,
-                            sport_type: tournament.sport_type
-                        },
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    standingData.push({ groupName: item.group_name, standData: response.data });
-                }
+export const fetchStandings = async ({tournament, groups, axiosInstance, dispatch}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        let standingData = [];
+        for (const item of groups) {
+            if (item !== undefined) {
+                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
+                    params: {
+                        tournament_id: tournament.tournament_id.toString(),
+                        group_id: item.group_id,
+                        sport_type: tournament.sport_type
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                standingData.push({ groupName: item.group_name, standData: response.data });
             }
-            dispatch(setStandings(standingData));
-        } catch (err) {
-            console.error("Unable to fetch the standings of tournament: ", err);
         }
-    };
+        dispatch(setStandings(standingData));
+    } catch (err) {
+        console.error("Unable to fetch the standings of tournament: ", err);
+    }
 };
