@@ -65,7 +65,6 @@ const CreateTournament = () => {
             } else if (!endOn) {
                 alert("Please select the end date.");
             } else {
-                console.log("L 68L :", )
                 data = {
                     tournament_name: tournamentName,
                     sport_type: sport,
@@ -73,9 +72,8 @@ const CreateTournament = () => {
                     teams_joined: 0,
                     start_on: startOn,
                     end_on: endOn,
-                    category: category.name
+                    category: category==='Global'?category:category.name
                 }
-                console.log("Line no 87: ", data)
             }
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
@@ -87,16 +85,13 @@ const CreateTournament = () => {
             });
             const item = response.data;
             dispatch(addTournament(item))
-            setTournament(item)
-            setStartOn('');
-            setEndOn('');
-
             const organizerData = {
                 organizer_name:user,
                 tournament_id: item.tournament_id
             }
+
             try {
-                const responseData = await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
+                await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -105,10 +100,7 @@ const CreateTournament = () => {
             } catch (err) {
                 console.log("unable to add the organizer to the tournament: ", err);
             }
-
-
-            navigation.navigate("Tournament");
-            //navigation.navigate("TournamentDesciption", {tournament_id: item.tournament_id});
+            navigation.navigate("TournamentPage" , {tournament: item, currentRole: 'user', sport: item.sport_type});
 
         } catch (err) {
             console.log("unable to create a new tournament ", err);
@@ -131,7 +123,7 @@ const CreateTournament = () => {
         if (item == 'Country'){
             setIsCountryPicker(true);
         } else {
-            setCategory('Global')
+            setCategory(item)
         }
         setIsCategoryVisible(false);
      }
