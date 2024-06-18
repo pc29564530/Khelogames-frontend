@@ -1,5 +1,4 @@
-import React, { useState} from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, Pressable } from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,15 +13,14 @@ function JoinCommunity() {
     const handleCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`${BASE_URL}/joinUserCommunity/${item}`, null, {
+            await axiosInstance.post(`${BASE_URL}/addJoinedCommuity`, {community_name: item}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 }
             });
-            console.log(response.data);
         } catch (err) {
-            console.error(err);
+            console.error("unable to join the community", err);
         }
     };
 

@@ -19,6 +19,7 @@ const Tournament = () => {
     const [currentRole, setCurrentRole] = useState('');
     const [category, setCategory] = useState('Global')
     const [isCountryPicker, setIsCountryPicker] = useState(false);
+    const [selectedSport, sestSelectedSport] = useState("Football");
     const dispatch = useDispatch();
     const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
     const [isDropDown, setIsDropDown] = useState(false);
@@ -67,6 +68,7 @@ const Tournament = () => {
     })
 
     const handleSport = (item) => {
+        sestSelectedSport(item)
         dispatch(setSport(item));
     } 
 
@@ -85,7 +87,7 @@ const Tournament = () => {
                         contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                     >
                         {sports.map((item, index) => (
-                            <Pressable key={index} style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                            <Pressable key={index} style={[tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
                                 <Text style={tailwind`text-white`}>{item}</Text>
                             </Pressable>
                         ))}

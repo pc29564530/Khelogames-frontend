@@ -8,9 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setSport } from "../redux/actions/actions";
 import { useDispatch, useSelector } from 'react-redux';
-import { getClub } from '../redux/actions/actions';
+import { getClub, setSport } from '../redux/actions/actions';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
@@ -28,10 +27,14 @@ const Club = () => {
     const axiosInstance = useAxiosInterceptor();
     //const [clubs, setClubs] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
+    const [selectedSport, setSelectedSport] = useState("Football");
     const dispatch = useDispatch();
     const sport = useSelector(state => state.sportReducers.sport);
     const clubs = useSelector((state) => state.clubReducers.clubs);
-
+    
+    useEffect(() => {
+        dispatch(setSport("Football"));
+    }, []);
 
     useEffect(() => {
         dispatch(setSport("Football"));
@@ -102,6 +105,7 @@ const Club = () => {
     }
 
     const handleSport = (item) => {
+        setSelectedSport(item)
         dispatch(setSport(item));
     }
 
@@ -133,7 +137,7 @@ const Club = () => {
                     contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                 >
                     {sports.map((item, index) => (
-                        <Pressable key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                        <Pressable key={index} style={[tailwind`border rounded-md p-1.5 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
                             <Text style={tailwind`text-black`}>{item}</Text>
                         </Pressable>
                     ))}
