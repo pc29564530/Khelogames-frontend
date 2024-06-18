@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {ScrollView} from 'react-native';
+import {ScrollView, View, Text} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
