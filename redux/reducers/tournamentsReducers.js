@@ -31,17 +31,23 @@ const tournamentsReducers = (state=initialState, action) => {
                 groups: action.payload
             }
         case actionTypes.ADD_TEAM_GROUP:
-            const updateGroup = state.groups.map((grp) => {
-                (grp.id === action.payload.groupId && grp.tournament_id === action.payload.tournamentId)?{...grp, teams:[...grp.teams, action.payload.teamId]}:grp
+            const updatedGroups = state.groups.map((grp) => {
+                if (grp.id === action.payload.groupId && grp.tournament_id === action.payload.tournamentId) {
+                    return {
+                        ...grp,
+                        teams: [...grp.teams, action.payload.teamId]
+                    };
+                }
+                return grp;
             });
             return {
                 ...state,
-                groups: updateGroup
-            }
+                groups: updatedGroups
+            };
         case actionTypes.ADD_GROUP:
             return {
                 ...state,
-                groups: [state.groups, action.payload]
+                groups: [...state.groups, action.payload]
             }
         case actionTypes.ADD_TOURNAMENT:
             return {

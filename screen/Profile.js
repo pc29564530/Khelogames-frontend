@@ -1,4 +1,3 @@
-//need to refactor the code to smaller function 
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar} from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -19,7 +18,6 @@ function Profile({route}) {
     const navigation = useNavigation();
     const [profileData, setProfileData] = useState([]);
     const following = useSelector((state) => state.user.following);
-    const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
@@ -29,18 +27,15 @@ function Profile({route}) {
 
     const handleReduxFollow = async () => {
       try {
-          setIsFollowing(true)
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(
-            `${BASE_URL}/create_follow/${following_owner}`,
-            {},
-            {
+          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${following_owner}`,{},{
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
               }
             }
           );
+          console.log(response.data)
           if(response.statusCode === 200 ) {
             dispatch(setFollowUser(response.data));
           }
@@ -146,7 +141,6 @@ function Profile({route}) {
   useFocusEffect(
     React.useCallback(() => {
       fetchFollowing();
-      setIsFollowing(following.some((item) => item === following_owner))
       const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
         if(following_owner === authUser) {
@@ -267,7 +261,7 @@ function Profile({route}) {
                   <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
                 </Pressable>
                 <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleFollowButton}>
-                    <Text style={ tailwind`text-white text-xl font-bold`}>{isFollowing ? 'Following' : 'Follow'}</Text>
+                    <Text style={ tailwind`text-white text-xl font-bold`}>{following.some((item) => item === following_owner) ? 'Following' : 'Follow'}</Text>
                 </TouchableOpacity>
               </View>
               <View style={tailwind`flex-1`}>

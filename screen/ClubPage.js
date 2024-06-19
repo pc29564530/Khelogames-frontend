@@ -3,11 +3,9 @@ import {View, Text, Pressable, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import Members from '../components/Members';
-import Fixture from '../components/Fixture';
 import ClubFootballMatch from '../components/ClubFootballMatch';
 import ClubCricketMatch from '../components/ClubCricketMatch';
 import Stats from '../components/Stats';
-import { GlobalContext } from '../context/GlobalContext';
 
 
 const subCategorys = [ "Members", "Fixture"];
@@ -36,7 +34,7 @@ const ClubPage = ({route}) => {
             case "Stats":
                 return <Stats />;
             default:
-                return <Members clubName={clubData.club_name} />;
+                return <Members clubData={clubData} />;
         }
     }
     return (

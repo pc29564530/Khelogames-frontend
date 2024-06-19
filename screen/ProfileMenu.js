@@ -12,6 +12,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { logoutServies } from '../services/authServies';
+import { handleUser } from '../utils/ThreadUtils';
 
 const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 
@@ -176,7 +177,6 @@ function ProfileMenu() {
   const addPlayerProfile = () => {
     navigation.navigate("AddPlayerToClub");
   }
-
   return (
     <View style={tailwind`flex-1 bg-gray-900 p-4`}>
       <View style={tailwind`mb-5 items-center`}>
@@ -198,7 +198,7 @@ function ProfileMenu() {
 
       <ScrollView>
         <View style={tailwind`mt-5`}>
-          <Pressable onPress={() => handleNavigation('Profile')} style={tailwind`flex-row items-center py-2`}>
+          <Pressable onPress={() => handleUser({username: profileData.owner, navigation})} style={tailwind`flex-row items-center py-2`}>
             <FontAwesome name="user" size={24} color="white" />
             <Text style={tailwind`text-2xl text-white pl-4`}>Profile</Text>
           </Pressable>

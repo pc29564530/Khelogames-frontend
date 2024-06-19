@@ -7,6 +7,7 @@ import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
 import { ScrollView } from 'react-native-gesture-handler';
 import SelectTeamBySport from '../components/SelectTeamBySport';
+import { useFocusEffect } from '@react-navigation/native';
 import { fetchStandings, fetchGroups } from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -23,15 +24,17 @@ const TournamentStanding = ({route}) => {
     const dispatch = useDispatch();
 
 
-    useEffect(() => {
-        dispatch(fetchGroups(tournament, axiosInstance));
-    }, [dispatch, tournament, axiosInstance]);
+    
+    useFocusEffect(
+        React.useCallback(() => {
+         fetchGroups({tournament:tournament, axiosInstance:axiosInstance, dispatch: dispatch})
+    }, [tournament, axiosInstance]));
 
     useEffect(() => {
         if (groups.length > 0) {
-            dispatch(fetchStandings(tournament, groups, axiosInstance));
+            fetchStandings({tournament:tournament, groups:groups, axiosInstance:axiosInstance, dispatch:dispatch});
         }
-    }, [dispatch, tournament, groups, axiosInstance]);
+    }, [ tournament, groups, axiosInstance]);
     
     const handleAddGroup = async () => {
         try {

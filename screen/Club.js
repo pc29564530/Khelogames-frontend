@@ -8,9 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setSport } from "../redux/actions/actions";
 import { useDispatch, useSelector } from 'react-redux';
-import { getClub } from '../redux/actions/actions';
+import { getClub, setSport } from '../redux/actions/actions';
 
 let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
@@ -28,10 +27,14 @@ const Club = () => {
     const axiosInstance = useAxiosInterceptor();
     //const [clubs, setClubs] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
+    const [selectedSport, setSelectedSport] = useState("Football");
     const dispatch = useDispatch();
     const sport = useSelector(state => state.sportReducers.sport);
     const clubs = useSelector((state) => state.clubReducers.clubs);
-
+    
+    useEffect(() => {
+        dispatch(setSport("Football"));
+    }, []);
 
     useEffect(() => {
         dispatch(setSport("Football"));
@@ -102,6 +105,7 @@ const Club = () => {
     }
 
     const handleSport = (item) => {
+        setSelectedSport(item)
         dispatch(setSport(item));
     }
 
@@ -133,7 +137,7 @@ const Club = () => {
                     contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                 >
                     {sports.map((item, index) => (
-                        <Pressable key={index} style={tailwind`border rounded-md bg-orange-200 p-1.5 mr-2 ml-2`} onPress={() => handleSport(item)}>
+                        <Pressable key={index} style={[tailwind`border rounded-md p-1.5 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
                             <Text style={tailwind`text-black`}>{item}</Text>
                         </Pressable>
                     ))}
@@ -142,21 +146,33 @@ const Club = () => {
                     <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                 </Pressable>
             </View>
-            <View style={tailwind`p-4 relative gap-4`}>
+            <ScrollView 
+                contentContainerStyle={{justifyContent:'center'}}
+                style={tailwind`p-4 gap-2`}>
                 {clubs.map((clubRow, index) => (
                         <View key={index} style={tailwind`flex-row gap-4`}>
-                            {clubRow.map((item, subIndex) => (
-                                <View style={tailwind`w-relative`}>
-                                    <Pressable key={subIndex} style={tailwind`border rounded-md h-20 w-20 items-center justify-center`} onPress={() => handleClub(item)}>
-                                        <Text style={tailwind`text-black text-5xl items-center justify-center`}>{item.avatar_url ? <Image source={{ uri: item.avatar_url }} style={{ width: 100, height: 100 }} /> : item.club_name.charAt(0).toUpperCase()}</Text>
-                                    </Pressable>
-                                    <Text style={tailwind`text-sm w-20 items-center`}>{item.club_name}</Text>
-                                </View>
-                                
-                            ))}
+                            {Array.isArray(clubRow) ? (clubRow?.map((item, subIndex) => (
+                                <Pressable key={subIndex} style={tailwind` relative border rounded-lg h-24 w-24 items-center justify-center mb-2 shadow-md`} onPress={() => handleClub(item)}>
+                                    {item.avatar_url ? (
+                                        <Image source={{ uri: item.avatar_url }} style={tailwind`h-20 w-20 rounded-full`} />
+                                    ) : (
+                                        <Text style={tailwind`text-black text-3xl font-bold`}>{item.club_name.charAt(0).toUpperCase()}</Text>
+                                    )}
+                                    <Text style={tailwind`text-sm text-center mt-2`}>{item.club_name}</Text>
+                                </Pressable>
+                            ))):(
+                                <Pressable style={tailwind` relative border rounded-lg h-24 w-24 items-center justify-center mb-2 shadow-md`} onPress={() => handleClub(clubRow)}>
+                                    {clubRow.avatar_url ? (
+                                        <Image source={{ uri: clubRow.avatar_url }} style={tailwind`h-20 w-20 rounded-full`} />
+                                    ) : (
+                                        <Text style={tailwind`text-black text-3xl font-bold`}>{clubRow.club_name.charAt(0).toUpperCase()}</Text>
+                                    )}
+                                    <Text style={tailwind`text-sm text-center mt-2`}>{clubRow.club_name}</Text>
+                                </Pressable>
+                            )}
                         </View>
                     ))}
-            </View>
+            </ScrollView>
         </View>
     );
 }
