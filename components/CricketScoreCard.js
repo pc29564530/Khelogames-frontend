@@ -8,7 +8,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const convertBallToOvers = (item) => {
     const overs = Math.floor(item/6);
-    const remainingBall = 137%6;
+    const remainingBall = item%6;
     return `${overs}.${remainingBall}`;
 }
 
@@ -29,8 +29,7 @@ const CricketScoreCard = ({ route }) => {
     const [battingData, setBattingData] = useState([]);
     const [bowlingData, setBowlingData] = useState([]);
     const [batTeam, setBatTeam] = useState(homeTeamID);
-    const [ballTeam, setBallTeam] = useState(awayTeamID)
-    console.log("Score: card: ", matchData)
+    const [ballTeam, setBallTeam] = useState(awayTeamID);
 
     useEffect(() => {
         const fetchBatting = async () => {
@@ -39,7 +38,6 @@ const CricketScoreCard = ({ route }) => {
                     match_id: matchID,
                     team_id: batTeam===homeTeamID?homeTeamID:awayTeamID,
                 };
-                console.log("batt temp: ", temp)
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getPlayerScoreFunc`, {
                     params: temp,
@@ -48,7 +46,6 @@ const CricketScoreCard = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("BattingScore: ", battingScore.data.battingTeam?.name)
                 setBattingData(battingScore.data || []);
             } catch (err) {
                 console.error("unable to fetch batting score: ", err);
@@ -64,7 +61,6 @@ const CricketScoreCard = ({ route }) => {
                     match_id: matchID,
                     team_id: batTeam===homeTeamID?awayTeamID:homeTeamID,
                 };
-                console.log("Bowl Team: ", temp)
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketBowlerFunc`,  {
                     params: temp,
@@ -73,7 +69,7 @@ const CricketScoreCard = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("BowlingScore: ", bowlingScore.data.bowlingTeam?.name)
+                setBallTeam(bowlingScore.data.bowlingTeam || {});
                 setBowlingData(bowlingScore.data || []);
             } catch (err) {
                 console.error("unable to fetch bowling score: ", err);
@@ -87,19 +83,16 @@ const CricketScoreCard = ({ route }) => {
         setIsUpdateBattingVisible(true);
     };
 
-    const handleUpdateBowling = (item) => {
-        console.log("Bowling Data: ", item)
+    const handleUpdatePlayerBowling = (item) => {
         setUpdateBowling(item);
-        setIsUpdateBowlingVisible(false);
+        setIsUpdateBowlingVisible(true);
     }
+
     const handleUpdateRuns = (runs) => {
-        console.log("updage onew")
-        console.log("Update Batt: ", updateBatting)
         updateBatting.runsScored = updateBatting.runsScored + runs;
     };
 
     const handleUpdateBalls = () => {
-        console.log("Update Ball: ", updateBatting.ballFaced)
         updateBatting.ballFaced = updateBatting.ballFaced + 1;
     };
 
@@ -115,7 +108,6 @@ const CricketScoreCard = ({ route }) => {
     };
 
     const  handleBowlingBalls = () => {
-        console.log("Ball Bowling: ", updateBowling.ball)
         updateBowling.ball = updateBowling.ball + 1;
     }
 
@@ -138,7 +130,7 @@ const CricketScoreCard = ({ route }) => {
     const battingRenderItem = ({ item }) => (
         <View style={tailwind`flex-row justify-between py-2 px-4 border-b border-gray-200`}>
             <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-lg font-bold`}>{item.player.name}</Text>
+                <Text style={tailwind`text-lg font-bold`}>{item?.player?.name}</Text>
             </View>
             <View style={tailwind`flex-1 flex-row justify-between`}>
                 <View style={tailwind`flex-1 text-center`}>
@@ -166,7 +158,7 @@ const CricketScoreCard = ({ route }) => {
     const bowlingRenderItem = ({ item }) => (
         <View style={tailwind`flex-row justify-between py-2 px-4 border-b border-gray-200`}>
             <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-lg font-bold`}>{item.player?.name}</Text>
+                <Text style={tailwind`text-lg font-bold`}>{item?.player?.name}</Text>
             </View>
             <View style={tailwind`flex-1 flex-row justify-between`}>
                 <View style={tailwind`flex-1 text-center`}>
@@ -185,26 +177,25 @@ const CricketScoreCard = ({ route }) => {
                     <Text style={tailwind`text-lg font-bold`}>{item.noBall}</Text>
                 </View>
             </View>
-            <Pressable onPress={() => setIsUpdateBowlingVisible(true)}>
+            <Pressable onPress={() => handleUpdatePlayerBowling(item)}>
                 <MaterialIcon name="update" size={24} />
             </Pressable>
         </View>
     );
 
-    console.log("UpdateBatting: ", updateBatting)
+
 
     const handleUpdateBatting = async () => {
         try {
             const data = {
                 batsman_id: updateBatting.player.id,
                 match_id: matchID,
-                team_id: currentTeam,
+                team_id: bowlingData.bowlingTeam.id,
                 runs_scored: updateBatting.runsScored,
                 balls_faced: updateBatting.ballFaced,
                 fours: updateBatting.fours,
                 sixes: updateBatting.sixes
             }
-            console.log("Data: ", data)
             const authToken = await AsyncStorage.getItem('AccessToken')
             const response = await axiosInstance.put(`${BASE_URL}/Cricket/updateCricketBat`, data, {
                 headers: {
@@ -212,14 +203,37 @@ const CricketScoreCard = ({ route }) => {
                     'Content-Type': 'application/json',
                 }
             })
-            console.log("udpagte data; ", response.data)
             setIsUpdateBattingVisible(false)
         } catch (err) {
             console.error("unable to update the batting score: ", err);
         }
     }
-    console.log("BattTeam: ", battingData.battingTeam)
-    console.log("bowlTeam: ", bowlingData)
+
+    const handleUpdateBowling = async () => {
+        try {
+            const data = {
+                bowler_id: updateBowling.player.id,
+                match_id: matchID,
+                team_id: bowlingData.bowlingTeam.id,
+                ball: updateBowling.ball,
+                runs: updateBowling.runs,
+                wickets: updateBowling.wickets,
+                wide: updateBowling.wide,
+                no_ball: updateBowling.noBall
+            }
+            const authToken = await AsyncStorage.getItem('AccessToken')
+            const response = await axiosInstance.put(`${BASE_URL}/Cricket/updateCricketBall`, data, {
+                headers: {
+                    'Authorization': `bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            setIsUpdateBowlingVisible(false)
+        } catch (err) {
+            console.error("unable to update the bowling data: ", err);
+        }
+    }
+    
     return (
         <View style={tailwind`flex-1 p-4`}>
             <View style={tailwind`flex-row justify-evenly items-center mb-4 `}>
@@ -278,7 +292,7 @@ const CricketScoreCard = ({ route }) => {
                 >
                     <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateBattingVisible(false)}>
                         <View style={tailwind`p-10 bg-white rounded-xl`}>
-                            <Text style={tailwind`text-lg font-bold`}>{updateBatting.player.name}</Text>
+                            <Text style={tailwind`text-lg font-bold`}>{updateBatting.player?.name}</Text>
                             <View style={tailwind`flex-row justify-between py-2`}>
                                 <Text style={tailwind`text-xl`}>Runs:</Text>
                                 <View style={tailwind`flex-row justify-between gap-4`}>
@@ -316,7 +330,7 @@ const CricketScoreCard = ({ route }) => {
                                 <Text style={tailwind`text-xl`}>Sixes:</Text>
                                 <View style={tailwind`flex-row gap-2`}>
                                     <Text style={tailwind`text-lg font-bold`}>{updateBatting.sixes}</Text>
-                                <Pressable style={tailwind`rounded bg-gray-200 p-1`} onPress={() => handleUpdateSixes()}>
+                                    <Pressable style={tailwind`rounded bg-gray-200 p-1`} onPress={() => handleUpdateSixes()}>
                                         <Text style={tailwind`text-xl`}>+</Text>
                                     </Pressable>
                                 </View>
@@ -340,7 +354,7 @@ const CricketScoreCard = ({ route }) => {
                 >
                     <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateBowlingVisible(false)}>
                         <View style={tailwind`p-10 bg-white rounded-xl`}>
-                            <Text style={tailwind`text-lg font-bold`}>{updateBowling.player.name}</Text>
+                            <Text style={tailwind`text-lg font-bold`}>{updateBowling.player?.name}</Text>
                             <View style={tailwind`flex-row justify-between py-2`}>
                                 <Text style={tailwind`text-xl`}>Balls:</Text>
                                 <View style={tailwind`flex-row gap-2`}>
