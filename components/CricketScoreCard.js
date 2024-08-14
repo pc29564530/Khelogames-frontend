@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, FlatList, Modal, TouchableOpacity } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
+import { View, Text, Pressable, FlatList, Modal, TouchableOpacity, ScrollView } from 'react-native';
 
 import tailwind from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -123,7 +122,7 @@ const CricketScoreCard = ({ route }) => {
                     team_id: batTeam===homeTeamID?homeTeamID:awayTeamID,
                 };
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const wicketFallen = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketWickets`,  {
+                const wicketFallen = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketWickets`, {
                     params: temp,
                     headers: {
                         'Authorization': `bearer ${authToken}`,
@@ -157,9 +156,9 @@ const CricketScoreCard = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            setIsWicketModalVisible(false);
             setWicketFall(wicketFallen.data || []);
             setShowOverPicker(false);
+            setIsWicketModalVisible(false);
         } catch (err) {
             console.error("unable to fetch bowling score: ", err);
         }
@@ -188,8 +187,7 @@ const CricketScoreCard = ({ route }) => {
         updateBatting.fours = updateBatting.fours + 1;
     };
 
-    const 
-    handleUpdateSixes = () => {
+    const handleUpdateSixes = () => {
         handleUpdateRuns(6);
         updateBatting.sixes = updateBatting.sixes + 1;
     };
@@ -215,25 +213,25 @@ const CricketScoreCard = ({ route }) => {
     }
 
     const battingRenderItem = ({ item }) => (
-        <View style={tailwind`flex-row justify-between py-2 px-4 border-b border-gray-200`}>
+        <View style={tailwind`flex-row justify-between py-3 px-4 border-b border-gray-200 bg-white`}>
             <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-lg font-bold`}>{item?.player?.name}</Text>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item?.player?.name}</Text>
             </View>
             <View style={tailwind`flex-1 flex-row justify-between`}>
                 <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.runsScored}</Text>
+                    <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.runsScored}</Text>
                 </View>
                 <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.ballFaced}</Text>
+                    <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.ballFaced}</Text>
                 </View>
                 <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.fours}</Text>
+                    <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.fours}</Text>
                 </View>
                 <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.sixes}</Text>
+                    <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.sixes}</Text>
                 </View>
                 <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{Math.floor(item.runsScored / item.ballFaced)}</Text>
+                    <Text style={tailwind`text-lg font-medium text-gray-800`}>{Math.floor(item.runsScored / item.ballFaced)}</Text>
                 </View>
             </View>
             <Pressable onPress={() => handleUpdatePlayerScore(item)}>
@@ -243,32 +241,48 @@ const CricketScoreCard = ({ route }) => {
     );
 
     const bowlingRenderItem = ({ item }) => (
-        <View style={tailwind`flex-row justify-between py-2 px-4 border-b border-gray-200`}>
-            <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-lg font-bold`}>{item?.player?.name}</Text>
+        <View style={tailwind`flex-row justify-between py-3 px-4 border-b border-gray-200 bg-white`}>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item?.player?.name}</Text>
             </View>
-            <View style={tailwind`flex-1 flex-row justify-between`}>
-                <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{convertBallToOvers(item.ball)}</Text>
-                </View>
-                <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.runs}</Text>
-                </View>
-                <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.wickets}</Text>
-                </View>
-                <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.wide}</Text>
-                </View>
-                <View style={tailwind`flex-1 text-center`}>
-                    <Text style={tailwind`text-lg font-bold`}>{item.noBall}</Text>
-                </View>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{convertBallToOvers(item.ball)}</Text>
+            </View>
+            <View style={tailwind`flex-1 text-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.runs}</Text>
+            </View>
+            <View style={tailwind`flex-1 text-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.wickets}</Text>
+            </View>
+            <View style={tailwind`flex-1 text-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.wide}</Text>
+            </View>
+            <View style={tailwind`flex-1 text-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.noBall}</Text>
             </View>
             <Pressable onPress={() => handleUpdatePlayerBowling(item)}>
                 <MaterialIcon name="update" size={24} />
             </Pressable>
         </View>
     );
+
+    const wicketsRenderItem = ({ item }) => (
+        <View style={tailwind`flex-row justify-between py-3 px-4 border-b border-gray-200 bg-white`}>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.wicketNumber}</Text>
+            </View>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.batsman.name}</Text>
+            </View>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.score}</Text>
+            </View>
+            <View style={tailwind`flex-1 items-center`}>
+                <Text style={tailwind`text-lg font-medium text-gray-800`}>{convertBallToOvers(item.Overs)}</Text>
+            </View>
+        </View>
+    );
+    
 
 
 
@@ -337,6 +351,7 @@ const CricketScoreCard = ({ route }) => {
 
     return (
         <View style={tailwind`flex-1 p-4`}>
+            <ScrollView>
             <View style={tailwind`flex-row justify-evenly items-center mb-4 `}>
                 <Pressable onPress={() => setBatTeam(homeTeamID)} style={tailwind`rounded bg-red-200 p-2`}>
                     <Text style={tailwind`text-lg font-bold`}>{matchData.homeTeam.name }</Text>
@@ -346,19 +361,19 @@ const CricketScoreCard = ({ route }) => {
                 </Pressable>
             </View>
             <View style={tailwind`flex-1 p-4`}>
-                <Text>Batting</Text>
+                <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`} >Batting</Text>
                 <FlatList
                     data={battingData.innings}
                     renderItem={battingRenderItem}
                     keyExtractor={(item) => item.player.id.toString()}
                     ListHeaderComponent={() => (
                         <View style={tailwind`flex-row justify-between py-2 px-4 bg-gray-100`}>
-                            <Text style={tailwind`text-lg font-bold`}>Batter</Text>
-                            <Text style={tailwind`text-lg font-bold`}>R</Text>
-                            <Text style={tailwind`text-lg font-bold`}>B</Text>
-                            <Text style={tailwind`text-lg font-bold`}>4s</Text>
-                            <Text style={tailwind`text-lg font-bold`}>6s</Text>
-                            <Text style={tailwind`text-lg font-bold`}>RR</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Batter</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>R</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>B</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>4s</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>6s</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>RR</Text>
                         </View>
                     )}
                 />
@@ -366,19 +381,19 @@ const CricketScoreCard = ({ route }) => {
 
             {/* Bowling */}
             <View style={tailwind`flex-1 p-4`}>
-                <Text>Bowling</Text>
+                <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Bowling</Text>
                 <FlatList
                     data={bowlingData.innings}
                     renderItem={bowlingRenderItem}
                     keyExtractor={(item) => item.player.id.toString()}
                     ListHeaderComponent={() => (
                         <View style={tailwind`flex-row justify-between py-2 px-4 bg-gray-100`}>
-                            <Text style={tailwind`text-lg font-bold`}>Bowler</Text>
-                            <Text style={tailwind`text-lg font-bold`}>O</Text>
-                            <Text style={tailwind`text-lg font-bold`}>R</Text>
-                            <Text style={tailwind`text-lg font-bold`}>W</Text>
-                            <Text style={tailwind`text-lg font-bold`}>WI</Text>
-                            <Text style={tailwind`text-lg font-bold`}>NB</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Bowler</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>O</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>R</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>W</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>WI</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>NB</Text>
                         </View>
                     )}
                 />
@@ -386,25 +401,38 @@ const CricketScoreCard = ({ route }) => {
 
             {/* Fall of Wickets:  */}
 
-            <View style={tailwind`flex-1 p-4`}>
-                <Text styl={tailwind`text-2xl`}>Fall of Wickets </Text>
-                <Pressable onPress={() => handleWicketFallen()} style={tailwind`items-end border p-2`}>
-                    <Text styl={tailwind`text-xl`}>Add Wickets Fall</Text>
+            <View style={tailwind`flex-1 p-4 bg-gray-50`}>
+                <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>
+                    Fall of Wickets
+                </Text>
+
+                <Pressable 
+                    onPress={() => handleWicketFallen()} 
+                    style={tailwind`bg-blue-600 p-3 rounded-lg shadow-md mb-6 justify-center items-center`}
+                >
+                    <Text style={tailwind`text-white text-lg font-semibold`}>
+                        Add Wickets Fall
+                    </Text>
                 </Pressable>
+
                 <FlatList 
                     data={wicketFall}
-                    keyExtractor={(item) => item.battingTeam.id.toString()}
+                    renderItem={wicketsRenderItem}
+                    keyExtractor={(item) => item.batsman.id.toString()}
                     ListHeaderComponent={() => (
-                        <View style={tailwind`flex-row justify-between py-2 px-4 bg-gray-100`}>
-                            <Text style={tailwind`text-lg font-bold`}>Wkt No.</Text>
-                            <Text style={tailwind`text-lg font-bold`}>Player</Text>
-                            <Text style={tailwind`text-lg font-bold`}>Score</Text>
-                            <Text style={tailwind`text-lg font-bold`}>Over</Text>
+                        <View style={tailwind`flex-row justify-between py-3 px-4 bg-blue-100 rounded-md`}>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Wkt No.</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Player</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Score</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-700`}>Over</Text>
                         </View>
                     )}
+                    contentContainerStyle={tailwind`bg-white rounded-lg shadow-md`}
                 />
-                
             </View>
+
+            </ScrollView>
+            
 
             {isUpdateBattingVisible && (
                 <Modal
@@ -540,7 +568,7 @@ const CricketScoreCard = ({ route }) => {
                 visible={isWicketModalVisible}
                 onRequestClose={() => setIsWicketModalVisible(false)}
               >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsWicketModalVisible(false)}>
                   <View style={tailwind`bg-white rounded-md shadow-md p-4`}>
                     <Text style={tailwind`text-2xl font-bold mb-4`}>Fall of Wickets</Text>
 
@@ -586,7 +614,7 @@ const CricketScoreCard = ({ route }) => {
                       <Text style={tailwind`text-lg`}>Update Bowling</Text>
                     </Pressable>
                   </View>
-                </View>
+                </Pressable>
 
                 {showBatsmanPicker && (
                   <Modal animationType="slide" transparent={true} visible={showBatsmanPicker}>
@@ -715,6 +743,7 @@ const CricketScoreCard = ({ route }) => {
                 )}
               </Modal>
             )}
+
         </View>
     );
 };
