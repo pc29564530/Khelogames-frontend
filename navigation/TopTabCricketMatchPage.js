@@ -1,15 +1,13 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
-
-import CricketTeamSquad from '../components/CricketTeamSquad';
+import CricketMatchDetail from '../screen/CricketMatchDetail';
 import CricketScoreCard from '../components/CricketScoreCard'; 
+import CricketTeamSquad from '../components/CricketTeamSquad';
+
 
 const TopTabCricketMatchPage = ({matchData, matchID, homeTeamID, awayTeamID}) => {
-        console.log("Match Data in navigation : ", matchData)
-        console.log("matchId: ", matchID)
-        console.log("homeid:", homeTeamID )
-        console.log("awayid:", awayTeamID )
+
         const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -19,21 +17,21 @@ const TopTabCricketMatchPage = ({matchData, matchID, homeTeamID, awayTeamID}) =>
                     headerShown:true
                 }}
             >
-                {/* <TopTab.Screen 
+                <TopTab.Screen 
                     name="Detail"
                     component={CricketMatchDetail}
-                    initialParams={{matchData}}
-                /> */}
+                    initialParams={{matchData:matchData}}
+                />
                 <TopTab.Screen 
                     name="Scorecard"
                     component={CricketScoreCard}
                     initialParams={{ matchData:matchData, matchID: matchID, homeTeamID:homeTeamID, awayTeamID: awayTeamID}}
                 />
-                {/* <TopTab.Screen 
+                <TopTab.Screen 
                     name="Squad"
                     component={CricketTeamSquad}
-                    initialParams={{ matchID: matchID, homeTeamID:homeTeamID, awayTeamID: awayTeamID}}
-                /> */}
+                    initialParams={{ matchData: matchData}}
+                />
         </TopTab.Navigator>
     );
 }
