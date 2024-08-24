@@ -1,6 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
-import { setStandings, setGroups } from '../redux/actions/actions';
+import { setStandings, setGroups, getTeams } from '../redux/actions/actions';
+const filePath = require('../assets/status_code.json');
+
+const convertSecondToTimestamp = (timeStamp) => {
+    const dt = new Date(timeStamp*1000)
+    return dt;
+}
 
 export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
@@ -10,7 +16,7 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
-              },
+            },
         })
         const item = response.data;
         if (!item || item === null) {
@@ -18,34 +24,15 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
         } else {
             
             const dataWithDisplayText = item.map((it, index) => {
-
-                //currentStatus
-                const startDate = new Date(it.start_on);
-                const endDate = new Date(it.end_on);
-                const currentDate = new Date();
-                const remainingStartTime = startDate.getTime()-currentDate.getTime();
-                const remainingEndTime = endDate.getTime()-currentDate.getTime();
-                const days = Math.ceil(remainingStartTime/(100*3600*24));
-                const endDays = Math.ceil(remainingEndTime/(1000*3600*24));
+                 it.start_timestamp = convertSecondToTimestamp(it.start_timestamp);
                 let currentStatus;
-                if(days>0){
+                if(it.status_code === 'not_started'){
                     currentStatus = "upcoming";
-                } else if(endDays<0) {
+                } else if(it.status_code === 'finished') {
                     currentStatus = "ended";
                 } else {
                     currentStatus = "live";
                 }
-
-                // //set the date 
-                // const dateStartStr = it.start_on;
-                // const dateEndStr = it.end_on;
-                // const timeStampStartOn = new Date(dateStartStr);
-                // const timeStampEndOn = new Date(dateEndStr);
-                // const options = {weekday: 'long', month:'long', day:'2-digit'}
-                // const formattedStartOn = timeStampStartOn.toLocaleString('en-US', options);
-                // const formattedEndOn = timeStampEndOn.toLocaleString('en-US', options);
-                // it.start_on = formattedStartOn;
-                // it.end_on = formattedEndOn;
 
                 //set the display text
                 let displayText = '';
@@ -128,8 +115,8 @@ export const findTournamentByID = ({tournamentBySport, tournamentId, tournamentS
 export const fetchGroups = async ({tournament, axiosInstance, dispatch}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentGroups`, {
-            params: { tournament_id: tournament.tournament_id.toString() },
+        const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getTournamentGroups`, {
+            params: { tournament_id: tournament.id.toString() },
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -148,11 +135,11 @@ export const fetchStandings = async ({tournament, groups, axiosInstance, dispatc
         let standingData = [];
         for (const item of groups) {
             if (item !== undefined) {
-                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTournamentStanding`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getTournamentStanding`, {
                     params: {
-                        tournament_id: tournament.tournament_id.toString(),
+                        tournament_id: tournament.id.toString(),
                         group_id: item.group_id,
-                        sport_type: tournament.sport_type
+                        sports: tournament.sports
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -167,3 +154,18 @@ export const fetchStandings = async ({tournament, groups, axiosInstance, dispatc
         console.error("Unable to fetch the standings of tournament: ", err);
     }
 };
+
+export const getTeamsByTournamentID  = async ({tournamentID, sports,  AsyncStorage, axiosInstance}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken')
+        const response = await axiosInstance.get(`${BASE_URL}/${sports}/getTournamentTeam/${tournamentID}`, {
+            headers: {
+                'Authorization': `bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data || [];
+    } catch (err) {
+        console.log("unable to fetch the team by tournament id: %v", err);
+    }
+}
