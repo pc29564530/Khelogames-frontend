@@ -6,8 +6,7 @@ import FootballLineUp from '../screen/FootballLineUp';
 
 function FootballMatchPageContent({matchData}) {
     const TopTab = createMaterialTopTabNavigator();
-    // const {tournamentData} = route.params;
-    console.log("tab bar: ", matchData.start_time)
+    
     return (
         <TopTab.Navigator
                 screenOptions={{

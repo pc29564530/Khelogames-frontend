@@ -12,7 +12,8 @@ import { formattedDate } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 
 const FootballMatchPage = ({route}) => {
-    const matchData = route.params.matchData;
+    const matchData = route.params.item;
+    console.log("Matches: page: ", matchData)
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState();
     const axiosInstance = useAxiosInterceptor();

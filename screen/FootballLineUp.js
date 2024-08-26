@@ -12,7 +12,7 @@ const FootballLineUp = ({ route }) => {
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
     const axiosInstance = useAxiosInterceptor();
-   const matchData = route.params.matchData;
+    const matchData = route.params.matchData;
     const handleToggle = (team) => {
         if (team === 'homeTeam') {
             setHomeModalVisible(true);
@@ -76,7 +76,6 @@ const FootballLineUp = ({ route }) => {
                                 <Text>{item.country}</Text>
                             </View>
                         </View>
-                    
                     </View>
                 ))}
             </View>
@@ -86,10 +85,10 @@ const FootballLineUp = ({ route }) => {
     return (
         <ScrollView style={tailwind`flex-1 p-4`}>
             <View style={tailwind`flex-row justify-evenly  items-center ml-2 mr-2 gap-2`}>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, team1ModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`] } onPress={() => handleToggle('homeTeam')}> 
+                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, homeModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`] } onPress={() => handleToggle('homeTeam')}> 
                     <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, team2ModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`]} onPress={() => handleToggle('awayTeam')}>
+                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, awayModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`]} onPress={() => handleToggle('awayTeam')}>
                     <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.awayTeam.name}</Text>
                 </Pressable>
             </View>
