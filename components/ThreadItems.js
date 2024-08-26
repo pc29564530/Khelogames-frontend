@@ -5,6 +5,8 @@ import Video from 'react-native-video';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { formattedTime } from '../utils/FormattedDateTime';
+import { formattedDate } from '../utils/FormattedDateTime';
 
 const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosInstance, handleComment}) => {
   const navigation = useNavigation();
@@ -19,23 +21,24 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
     <View style={tailwind`bg-black mt-5`}>
       <View>
         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => handleUser({username: item.username, navigation})}>
-          {item.profile?.avatar_url ? (
-            <Image source={{ uri: item.profile.avatar_url }} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-500`} />
+          {item?.avatar_url ? (
+            <Image source={{ uri: item?.avatar_url }} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-500`} />
           ) : (
             <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
               <Text style={tailwind`text-red-500 text-6x3`}>
-                {item.displayText}
+                {item.display_text}
               </Text>
             </View>
           )}
           <View style={tailwind`ml-3`}>
             <View>
-              <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
+              <Text style={tailwind`font-bold text-white`}>{item && item.full_name ? item.full_name : ''}</Text>
             </View>
             <View style={tailwind`flex-row gap-1`}>
               <Text style={tailwind`text-white`}>@{item.username}</Text>
               <Text style={tailwind`text-white`}>-</Text>
-              <Text style={tailwind`text-white`}>{item.created_at}</Text>
+              <Text style={tailwind`text-white`}>{formattedDate(item.created_at)}</Text>
+              <Text style={tailwind`text-white`}>{formattedTime(item.created_at)}</Text>
             </View>
           </View>
 
