@@ -1,41 +1,40 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import FixturePage from '../screen/FixturePage';
+import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
-import { determineMatchStatus } from '../utils/MatchStatus';
 import {findTournamentByID} from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
 import { getTournamentBySport } from '../services/tournamentServices';
+import { convertToISOString } from '../utils/FormattedDateTime';
 
-const ClubFootballMatch = ({clubData}) => {
-    const [match, setMatch] = useState([]);
+const ClubFootballMatch = ({teamData}) => {
+    const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
-    const [tournamentName, setTournamentName] = useState();
-    const [currentRole, setCurrentRole] = useState('');
     const axiosInstance = useAxiosInterceptor();
+    const [currentRole, setCurrentRole] = useState('');
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const sport = useSelector(state => state.sportReducers.sport);
-    const tournament = useSelector(state => state.tournamentsReducers.tournament);
-    const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
+    const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
+    const tournament = useSelector((state) => state.tournamentsReducers.tournament);
+    const sport = useSelector((state) => state.sportReducers.sport);
+
     useEffect(() => {
-        fetchTournamentMatch();
+        fetchClubMatch();
     }, []);
 
-    const fetchTournamentMatch = async () => {
+    const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${sport}/getMatchByClubName` ,{
+            const response = await axiosInstance.get(`${BASE_URL}/Football/getMatchByTeamFunc`, {
                 params: {
-                    id: clubData.id.toString()
+                    id: teamData.id.toString()
                 },
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -43,91 +42,42 @@ const ClubFootballMatch = ({clubData}) => {
                 },
             });
 
-            if(!response.data || response.data === null ){
-                setMatch([]);
+            if (!response.data) {
+                setMatches([]);
             } else {
-                const item = response.data;
-                const matchData = item.map( async (itm, index) => {
-                    try {
-                        const responseScore1 = await axiosInstance.get(`${BASE_URL}/${sport}/getFootballMatchScore`, {
-                            params:{
-                                match_id: itm.match_id,
-                                team_id: itm.team1_id
-                            },
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`,
-                                'Content-Type': 'application/json',
-                            }
-                        });
-
-                        const responseScore2 = await axiosInstance.get(`${BASE_URL}/${sport}/getFootballMatchScore`, {
-                            params:{
-                                match_id: itm.match_id,
-                                team_id: itm.team2_id
-                            },
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`,
-                                'Content-Type': 'application/json',
-                            }
-                        });
-
-                        if(responseScore1.data === null && responseScore2.data === null) {
-                            return {...itm, responseScore1: [], responseScore2: []}
-                        } else {
-                            return {...itm, responseScore1: responseScore1.data, responseScore2: responseScore2.data}
-                        }
-                        
-                    } catch (err) {
-                        console.error("unable to get the score using tournament match", err)
-                    }
-                })
-
-                const matchDataWithScore = await Promise.all(matchData);
-
-                setMatch(matchDataWithScore)
-                const tournamentIDSet = new Set();
-                const tournamentData = [];
-                item.forEach((itm) => {
-                    if(!tournamentIDSet.has(itm.tournament_id)){
-                        tournamentIDSet.add(itm.tournament_id)
-                        tournamentData.push({
-                            ...itm,
-                            tournament_id: itm.tournament_id,
-                            tournament_name: itm.tournament_name
-                        })
-                    }
-                });
-
-                setTournamentName(tournamentData);
-             }
+                setMatches(response.data.filter(item => item !== null));
+            }
         } catch (err) {
-            console.log("unable to get the tournament match ", err);
+            console.log("unable to get the matches by teams ", err);
         }
-    }
-    const handleFixtureStatus = async (item) => {
-        navigation.navigate("FootballMatchPage", {matchData:item, determineMatchStatus:determineMatchStatus, formattedDate:formattedDate, formattedTime:formattedTime})
-    }
-    useFocusEffect(
-        useCallback(() => {
-            setIsDropDownVisible(false);
-        }, [])
-    );
+    };
+
+    const handleMatchPage = (item) => {
+        navigation.navigate("FootballMatchPage", { item });
+    };
+
     const handleDropDown = () => {
         setIsDropDownVisible(true);
-    }
+    };
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        setIsDropDownVisible(false);
         const tournamentId = tournamentItem.tournament_id;
         const tournamentStatus = ["live", "previous", "upcoming"];
-        const tournamentBySport = await getTournamentBySport({axiosInstance, sport});
+        const tournamentBySport = await getTournamentBySport({ axiosInstance, sport });
         dispatch(getTournamentBySportAction(tournamentBySport));
-        const foundTournament = findTournamentByID({tournamentBySport, tournamentId, tournamentStatus});
-        if(foundTournament !== null){
+        const foundTournament = findTournamentByID({ tournamentBySport, tournamentId, tournamentStatus });
+        if (foundTournament !== null) {
             dispatch(getTournamentByIdAction(foundTournament));
         }
-        navigation.navigate("TournamentPage", {tournament: tournament, currentRole: currentRole});
+        navigation.navigate("TournamentPage", { tournament, currentRole });
     }
+
+    let tournamentsID = new Set();
+    matches.map((item) => {
+        tournamentsID.add(item.tournament.id);
+    })
+
+    var tournamentItem;
 
     return (
         <ScrollView style={tailwind`mt-4`}>
@@ -136,40 +86,54 @@ const ClubFootballMatch = ({clubData}) => {
                 <AntDesign name="down"  size={10} color="black" />
             </Pressable>
             <ScrollView>
-                {match.length>0 && match.map((item, index) => (
-                    <Pressable key={index} style={tailwind`mb-4 p-1 bg-white rounded-lg shadow-md`} onPress={() => handleFixtureStatus(item)} >
-                        <View style={tailwind`items-start justify-center ml-2`}>
-                            <Text style={tailwind``}>{item.tournament_name}</Text>
-                        </View>
-                        <View style={tailwind`flex-row items-center`}>
-                            <View style={tailwind` justify-between mb-2 gap-1 p-2 mt-1`}>
-                                <View style={tailwind`items-center flex-row`}>
-                                    <Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
-                                    <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team1_name}</Text>
+            {matches?.length > 0 ? (
+                    matches.map((item, index) => (
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
+                            <View>
+                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
+                                    <View style={tailwind`flex-row`}>
+                                        {/* //<Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayTeam.name}</Text>
+                                    </View>
+                                    {(item.status !== "not_started") && (
+                                        <View>
+                                            <Text>{item.awayScore.score}</Text>
+                                        </View>
+                                    )}
                                 </View>
-                                <View style={tailwind` items-center flex-row`}>
-                                    <Image source={{ uri: item.team2_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full`} />
-                                    <Text style={tailwind`ml-2 text-md font-semibold text-gray-800`}>{item.team2_name}</Text>
+                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
+                                    <View style={tailwind`flex-row`}>
+                                        {/* <Image source={{ uri: item.home_team_name }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.homeTeam.name}</Text>
+                                    </View>
+                                    {item.status !== "not_started"  && (
+                                        <View>
+                                            <Text>{item.homeScore.score}</Text>
+                                        </View>
+                                    )}
                                 </View>
                             </View>
-                            <View style={tailwind`bg-gray-400 w-0.2 mx-4 h-10`}></View>
-                            <View style={tailwind` justify-between`}>
-                            {(determineMatchStatus(item)==="Live" || determineMatchStatus(item) === "End")  &&  (
-                                <>
-                                    <Text style={tailwind`text-black`}>{!item.responseScore1.goal_for?(0):item.responseScore1.goal_for }</Text>
-                                    <Text style={tailwind`text-black`}>{!item.responseScore2.goal_for?(0):item.responseScore2.goal_for}</Text>
-                                </>
+                            <View style={tailwind`h-16 items-center justify-center w-0.2 bg-black`}></View>
+                            {item.status === "not_started" ? (
+                                <View style={tailwind`items-center justify-evenly`}>
+                                    <View style={tailwind`justify-center items-start`}>
+                                        <Text style={tailwind`text-gray-600`}>{formattedDate(convertToISOString(item.startTimeStamp))}</Text>
+                                    </View>
+                                    
+                                    <View style={tailwind`justify-center items-start`}>
+                                        <Text style={tailwind`text-gray-600`}>{formattedTime(convertToISOString(item.startTimeStamp))}</Text>
+                                    </View>
+                                </View>
+                            ):(
+                                <View style={tailwind`justify-center items-start`}>
+                                    <Text style={tailwind`text-gray-600`}>{item.status}</Text>
+                                </View>
                             )}
-                            {determineMatchStatus(item)==="Not Started" && (
-                                <>
-                                    <Text style={tailwind`text-black`}>{formattedDate(item.date_on)}</Text>
-                                    <Text style={tailwind`text-black`}>{formattedTime(item.start_time)}</Text>
-                                </>
-                            )}
-                            </View>
-                        </View>
-                </Pressable>
-                ))}
+                        </Pressable>
+                    ))
+                ) : (
+                    <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
+                )}
             </ScrollView>
                 {isDropDownVisible && (
                     <Modal
@@ -178,23 +142,28 @@ const ClubFootballMatch = ({clubData}) => {
                         visible={isDropDownVisible}
                         onRequestClose = {() => setIsDropDownVisible(!isDropDownVisible)}
                     >
-                        <View style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`}>
+                        <Pressable style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`} onPress={() => setIsDropDownVisible(false)}>
                             <View style={tailwind`bg-white rounded-md p-4`}>
-                                {tournamentName && tournamentName?.map((item, index) => (
-                                    <Pressable
-                                        key={index}
-                                        style={tailwind`bg-white p-2`}
-                                        onPress={() => {handleTournamentNavigate(item)}}
-                                    >
-                                        <Text>{item.tournament_name}</Text>
-                                    </Pressable>
-                                ))}
+                                {[...tournamentsID]?.map((tournamentID, index) => {
+                                    const tournamentItem = matches.find((item) => item.tournament.id === tournamentID );
+                                    return (
+                                        <Pressable
+                                            key={index}
+                                            style={tailwind`bg-white p-2`}
+                                            onPress={() => {
+                                                handleTournamentNavigate(tournamentItem)
+                                            }}
+                                        >
+                                            <Text>{tournamentItem?.tournament?.name}</Text>
+                                        </Pressable>
+                                    )
+                                })}
                             </View>
-                        </View>
+                        </Pressable>
                     </Modal>
                 )}
         </ScrollView>
     );
 }
 
-export default ClubFootballMatch;
+export default ClubFootballMatch;                                                                                                                                             

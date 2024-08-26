@@ -181,8 +181,8 @@ const CreateTournament = () => {
                     <Pressable onPress={() => setIsStatusVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <ScrollView style={tailwind`bg-white rounded-md p-4 h-2/4`}>
                             {status?.map((item, index) => (
-                                <Pressable key={index} onPress={() => {setStatusCode(item.description); setIsStatusVisible(false);}}>
-                                    <Text style={tailwind`text-xl py-2`}>{item.description}</Text>
+                                <Pressable key={index} onPress={() => {setStatusCode(item.type); setIsStatusVisible(false);}}>
+                                    <Text style={tailwind`text-xl py-2`}>{item.type}</Text>
                                 </Pressable>
                             ))}
                         </ScrollView>
