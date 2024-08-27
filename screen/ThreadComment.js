@@ -75,7 +75,7 @@ function ThreadComment ({route}) {
                         }
                         
                         <View style={tailwind`ml-3`}>
-                          <Text style={tailwind`font-bold text-white text-lg`}>{item.profile.full_name}</Text>
+                          <Text style={tailwind`font-bold text-white text-lg`}>{item.full_name}</Text>
                           <Text style={tailwind`text-white`}>@{item.username}</Text>
                         </View>
                       </Pressable>
