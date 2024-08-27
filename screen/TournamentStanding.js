@@ -1,14 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, Modal, TextInput} from 'react-native';
+import {View, Text, Pressable, Modal, TextInput, ScrollView} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
-import { ScrollView } from 'react-native-gesture-handler';
 import SelectTeamBySport from '../components/SelectTeamBySport';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchStandings, fetchGroups } from '../services/tournamentServices';
+import { fetchStandings, fetchGroups, addGroup, getTeamsByTournamentID } from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 
 
@@ -21,6 +20,7 @@ const TournamentStanding = ({route}) => {
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
     const groups = useSelector((state) => state.tournamentsReducers.groups);
     const standings = useSelector((state) => state.tournamentsReducers.standings);
+    const teams = useSelector((state) => state.teams.teams);
     const dispatch = useDispatch();
 
 
@@ -44,14 +44,14 @@ const TournamentStanding = ({route}) => {
                 tournament_id: tournament.tournament_id,
                 group_strength: groupStrength
             }
-            const response = await axiosInstance.post(`${BASE_URL}/createTournamentGroup`,groupData, {
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sports}/createTournamentGroup`,groupData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             } )
             const item = response.data || [];
-            dispatch(add_group(item));
+            dispatch(addGroup(item));
         } catch (err) {
             console.error("unable to add the group: ", err)
         }
@@ -75,7 +75,7 @@ const TournamentStanding = ({route}) => {
     }
 
     const handleTeamSelection = () => {
-        setIsModalTeamSelection(!setIsModalTeamSelection)
+        setIsModalTeamSelection(false)
     }
     
   return (
@@ -128,7 +128,7 @@ const TournamentStanding = ({route}) => {
                                 <Text>+</Text>
                             </Pressable>
                         </View>
-                        <Pressable onPress={handleAddGroup} style={tailwind`bg-blue-500 p-2 rounded-lg`}>
+                        <Pressable onPress={() => handleAddGroup()} style={tailwind`bg-blue-500 p-2 rounded-lg`}>
                             <Text style={tailwind`text-white`}>Save</Text>
                         </Pressable>
                     </View>
@@ -143,7 +143,7 @@ const TournamentStanding = ({route}) => {
                         >
                 <Pressable onPress={() => handleTeamClose()} style={tailwind`flex-1 justify-end bg-black bg-opacity-50 rounded-lg bg-black items-center justify-end`}>
                     <View style={tailwind`bg-white p-4 rounded-lg h-80 w-full`}>
-                        <Pressable onPress={() => handleTeamSelection}>
+                    <Pressable onPress={() => handleTeamSelection}>
                             <SelectTeamBySport tournament={tournament} groups={groups}/>
                         </Pressable>
                     </View>

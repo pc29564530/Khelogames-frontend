@@ -4,39 +4,29 @@ import {View, Text, Modal, Pressable} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
-import { useDispatch } from 'react-redux';
-import { addTeamToGroup } from '../redux/actions/actions';
+import { useDispatch, useSelector } from 'react-redux';
+import { addTeamToGroup, getTeams } from '../redux/actions/actions';
 
 const SelectTeamBySport = ({tournament, groups }) => {
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false)
     const [teamID, setTeamID] = useState(null);
-    const [teams, setTeams] = useState([]);
     const [groupID, setGroupID] = useState(null);
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
+    const teams = useSelector((state) => state.teams.teams)
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const fetchTeam = async () => {
+        const fetchTeams = async () => {
             try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournament.tournament_id}`, null, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                if(!response.data || response.data === null) {
-                    setTeams([]);
-                } else {
-                    setTeams(response.data);
-                }
+                const tournamentTeams = await getTeamsByTournamentID({tournamentID: tournament.id, sports: tournament.id, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
+                dispatch(getTeams(tournamentTeams))
             } catch (err) {
-                console.error("unable to fetch the team by sport: ", err);
+                console.log("unable to fetch the teams from tournament id: ", err)
             }
         }
-        fetchTeam();
-    }, []);
+        fetchTeams()
+    }, [])
 
 
     const handleTeamSelect = () => {
@@ -60,11 +50,13 @@ const SelectTeamBySport = ({tournament, groups }) => {
         try {
             const data = {
                 group_id: groupID,
-                tournament_id: tournament.tournament_id,
+                tournament_id: tournament.id,
                 team_id: teamID
             }
+            console.log("Group Data: ", data);
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/addGroupTeam`,data, {
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sports}/addGroupTeam`, {
+                params:data,
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -132,8 +124,8 @@ const SelectTeamBySport = ({tournament, groups }) => {
                     <Pressable onPress={handleTeamClose} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
                             {teams.map((item,index) => (
-                                <Pressable key={index} onPress={() => handleTeamSelection(item.id)} style={tailwind`mt-2 p-1`}>
-                                    <Text style={tailwind`text-black text-lg`}>{item.club_name}</Text>
+                                <Pressable key={index} onPress={() => handleTeamSelection(item.team_id)} style={tailwind`mt-2 p-1`}>
+                                    <Text style={tailwind`text-black text-lg`}>{item.team_name}</Text>
                                 </Pressable>
                             ))}
                         </View>

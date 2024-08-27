@@ -7,6 +7,7 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTeams, getTeams } from '../redux/actions/actions';
+import { getTeamsByTournamentID } from '../services/tournamentServices';
 
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
@@ -18,6 +19,14 @@ const TournamentTeam = ({ route }) => {
     const teams = useSelector((state) => state.teams.teams);
 
     useEffect(() => {
+        const fetchTeams = async () => {
+            try {
+                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, sports:tournament.sports, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
+                dispatch(getTeams(tournamentTeams));
+            } catch (err) {
+                console.error("unable to fetch the tournament teams: ", err);
+            }
+        };
         fetchTeams();
     }, []);
 
@@ -25,26 +34,10 @@ const TournamentTeam = ({ route }) => {
         fetchTeamBySport();
     }, []);
 
-    const fetchTeams = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const tournamentID = tournament.tournament_id;
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournamentID}`, {
-                headers: {
-                    'Authorization': `bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            dispatch(getTeams(response.data || []));
-        } catch (err) {
-            console.error("unable to fetch the tournament teams: ", err);
-        }
-    };
-
     const fetchTeamBySport = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getClubsBySport`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getTeamsBySport`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -63,11 +56,11 @@ const TournamentTeam = ({ route }) => {
     const handleAddTeam = async (item) => {
         try {
             const addTeam = {
-                tournament_id: tournament.tournament_id,
+                tournament_id: tournament.id,
                 team_id: item
             };
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sport_type}/addTeam`, addTeam, {
+            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sports}/addTournamentTeam`, addTeam, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -76,9 +69,8 @@ const TournamentTeam = ({ route }) => {
             const respItem = response.data || [];
             const teamWithData = {
                 id: respItem.team_id,
-                club_name: teamDisplay.find((team) => team.id === respItem.team_id).club_name,
-                avatar_url: teamDisplay.find((team) => team.id === respItem.team_id).avatar_url,
-                created_at: teamDisplay.created_at,
+                team_name: teamDisplay.find((team) => team.id === respItem.team_id).name,
+                media_url: teamDisplay.find((team) => team.id === respItem.team_id).media_url,
             }
             dispatch(setTeams(teamWithData));
             setIsModalVisible(false);
@@ -122,7 +114,7 @@ const TournamentTeam = ({ route }) => {
                             <ScrollView style={tailwind`max-h-3/4`}>
                                 {teamDisplay.map((item, index) => (
                                     <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`py-2 border-b border-gray-200`}>
-                                        <Text style={tailwind`text-lg text-gray-700`}>{item.club_name}</Text>
+                                        <Text style={tailwind`text-lg text-gray-700`}>{item.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
@@ -137,8 +129,8 @@ const TournamentTeam = ({ route }) => {
 const TeamItem = ({ item, onPress }) => (
     <Pressable onPress={onPress} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-4 flex-row justify-between items-center`}>
         <View style={tailwind`flex-row items-center`}>
-            <Image source={{ uri: item.logo_url || 'default_logo_url' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
-            <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.club_name}</Text>
+            <Image source={{ uri: item.media_url || 'default_logo_url' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
+            <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.team_name}</Text>
         </View>
     </Pressable>
 );

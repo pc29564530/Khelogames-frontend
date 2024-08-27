@@ -79,7 +79,7 @@ const PostByCommunity = ({route}) => {
 
         try {
             const authToken = AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.get(`${BASE_URL}/getAllThreadByCommunity/${community.communities_name}`,null, {
+            const response = await axiosInstance.get(`${BASE_URL}/GetAllThreadsByCommunityDetailsFunc/${community.communities_name}`,null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -89,22 +89,9 @@ const PostByCommunity = ({route}) => {
             const item = response.data;
 
             if(item === null){
-            setThreadWithUserProfile([]);
-            dispatch(setThreads([]));
+              dispatch(setThreads([]));
             } else {
-            const threadUser = item.map(async (item,index) => {
-                const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`);
-                if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                setDisplayText(usernameInitial.toUpperCase());
-                } else {
-                setDisplayText(''); // Reset displayText if the avatar is present
-                }
-                return {...item, profile: profileResponse.data}
-            });
-            const threadsWithUserData = await Promise.all(threadUser);
-            setThreadWithUserProfile(threadsWithUserData);
-            dispatch(setThreads(threadsWithUserData))
+              dispatch(setThreads(item))
             }
 
         } catch(e) {

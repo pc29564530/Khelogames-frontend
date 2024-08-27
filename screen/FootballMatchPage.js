@@ -7,44 +7,45 @@ import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FootballMatchPageContent from '../navigation/FootballMatchPageContent';
+import { formattedTime } from '../utils/FormattedDateTime';
+import { formattedDate } from '../utils/FormattedDateTime';
+import { convertToISOString } from '../utils/FormattedDateTime';
 
 const FootballMatchPage = ({route}) => {
-    const {matchData, determineMatchStatus, formattedDate, formattedTime} = route.params;
-    const [match, setMatch] = useState([]);
-    // if(matchData) {
-    //     setMatch(matchData);
-    // }
+    const matchData = route.params.item;
+    console.log("Matches: page: ", matchData)
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState();
     const axiosInstance = useAxiosInterceptor();
-    const navigation = useNavigation();
-    console.log("Line no 20: ", matchData)
-   
     return (
         <View style={tailwind`flex-1 mt-2`}>
             <View style={tailwind` h-45 bg-black flex-row items-center justify-center gap-10`}>
                 <View>
-                    <Text style={tailwind`text-white text-2xl`}>{matchData.team1_name}</Text>
-                    {(determineMatchStatus(matchData) === "Live" || determineMatchStatus(matchData) === "End") && (
+                    <Text style={tailwind`text-white text-2xl`}>{matchData.homeTeam.name}</Text>
+                    {(matchData.status !== "not_started") && (
                         <View style={tailwind`flex-row`}>
-                            <Text style={tailwind`text-white text-2xl`}>{matchData?.team1_score}</Text>
+                            <Text style={tailwind`text-white text-2xl`}>{matchData?.homeScore.score}</Text>
                         </View>
                     )}
                 </View>
                 <View style={tailwind`border-l-2 border-white h-20`} />
                 <View>
-                    <Text style={tailwind`text-white text-2xl`}>{matchData.team2_name}</Text>
-                    {(determineMatchStatus(matchData) === "Live" || determineMatchStatus(matchData) === "End") && (
+                    <Text style={tailwind`text-white text-2xl`}>{matchData.awayTeam.name}</Text>
+                    {(matchData.status !== "not_started") && (
                         <View style={tailwind`flex-row`}>
-                            <Text style={tailwind`text-white text-2xl`}>{matchData?.team2_score}</Text>
+                            <Text style={tailwind`text-white text-2xl`}>{matchData?.awayScore.score}</Text>
                         </View>
                     )}
                 </View>
                 <View>
-                    {determineMatchStatus(matchData) === "Not Started" && (
-                        <View style={tailwind`flex-1`}>
-                            <Text style={tailwind`text-black text-2xl`}>{formattedDate(matchData?.date_on)}</Text>
-                            <Text style={tailwind`text-black`}>{formattedTime(matchData.start_time)}</Text>
+                    {matchData.status === "not_started" && (
+                        <View>
+                            <View style={tailwind``}>
+                                <Text style={tailwind`text-white`}>{formattedDate(convertToISOString(matchData.startTimeStamp))}</Text>
+                            </View>
+                            <View style={tailwind``}>
+                                <Text style={tailwind`text-white`}>{formattedTime(convertToISOString(matchData.startTimeStamp))}</Text>
+                            </View>
                         </View>
                     )}
                 </View>

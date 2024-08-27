@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {View, Text, Pressable, TextInput, Modal} from 'react-native';
+import {View, Text, Pressable, Modal, ScrollView} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
@@ -8,16 +8,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
-
+const filePath = require('../assets/position.json');
 const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 
 const CreatePlayerProfile = () => {
-    const [playerName, setPlayerName] = useState('');
-    const [playerBio, setPlayerBio] = useState('');
+
+    //const [playerBio, setPlayerBio] = useState('');
     const [playerSport, setPlayerSport] = useState('');
+    const [mediaUrl, setMediaUrl] = useState('');
+    const [position, setPosition] = useState('');
     const [playerCountry, setPlayerCountry] = useState('');
     const [isSportVisible, setIsSportVisible] = useState(false);
     const [isCountryPicker, setIsCountryPicker] = useState(false);
+    const [isPositionsVisible, setIsPositionsVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
     const navigation  = useNavigation();
     const handleSportSelection = (sport) => {
@@ -28,25 +31,23 @@ const CreatePlayerProfile = () => {
     const handleAddPlayer = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
+            const username = await AsyncStorage.getItem('User')
             const data = {
-                    player_name:playerName,
-                    player_avatar_url: "",
-                    player_bio: "",
-                    player_category: "",
-                    player_sport: playerSport,
-                    nation: playerCountry.name
+                    name:username,
+                    positions: position,
+                    sports: playerSport,
+                    country: playerCountry.name
             }
             console.log(data)
-            const response = await axiosInstance.post(`${BASE_URL}/addPlayerProfile`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/newPlayer`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             });
             setPlayerCountry('');
-            setPlayerName('');
             setPlayerSport('');
-            setPlayerBio('');
+            setPosition('');
             navigation.goBack();
         } catch (err) {
             console.error("unable to add the player data: ", err);
@@ -64,25 +65,18 @@ const CreatePlayerProfile = () => {
                     <FontAwesome name="upload" size={10} color="black" />
                 </Pressable>
             </View>
-            <View style={tailwind`ml-4 mt-4`}>
-                <TextInput
-                    value={playerName}
-                    onChangeText={setPlayerName}
-                    placeholder="Player Name..."
-                    placeholderTextColor="black"
-                    style={tailwind`border-b-2 border-gray-200 text-lg mb-4`}
-                />
-            </View>
-            <View style={tailwind`ml-4 mt-4`}>
-                <TextInput
-                    value={playerBio}
-                    onChangeText={setPlayerBio}
-                    placeholder="Bio..."
-                    placeholderTextColor="black"
-                    style={tailwind`border-b-2 border-gray-200 text-lg mb-4`}
-                    multiline
-                />
-            </View>
+            <Pressable  style={tailwind` flex-row ml-4 mt-4 rounded-lg border w-50 justify-center`} onPress={() => setIsPositionsVisible(true)}>
+                <Text style={tailwind` text-xl mb-4 `} >Positions</Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color="black"/>
+            </Pressable>
+            <Pressable  style={tailwind` flex-row ml-4 mt-4 rounded-lg border w-50 justify-center`} onPress={() => setIsCountryPicker(true)}>
+                <Text style={tailwind` text-xl mb-4 `} >Country</Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color="black"/>
+            </Pressable>
+            <Pressable  style={tailwind` flex-row ml-4 mt-4 rounded-lg border w-50 justify-center`} onPress={() => setIsSportVisible(true)}>
+                <Text style={tailwind` text-xl mb-4 `} >Sport</Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color="black"/>
+            </Pressable>
             <View style={tailwind`absolute bottom-0 w-full bg-white p-2 items-end flex-row justify-between`}>
                 <View style={tailwind`flex-row gap-5`}>
                     <Pressable style={tailwind`items-center`} onPress={() => setIsSportVisible(true)} >
@@ -130,7 +124,26 @@ const CreatePlayerProfile = () => {
                     </Pressable>
                 </Modal>
             )}
-
+            {isPositionsVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isPositionsVisible}
+                    onRequestClose={handleCloseModal}
+                >
+                    <Pressable onPress={() => setIsPositionsVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <ScrollView>
+                                {filePath["positions"].map((item, index ) => (
+                                    <Pressable key={index} onPress={() => {setPosition(item.code), setIsPositionsVisible(false)}} style={tailwind`p-2  border-b-2 border-gray-200`}> 
+                                        <Text style={tailwind`text-xl`}>{item.name}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
         </View>
     );
 }

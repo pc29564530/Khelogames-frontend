@@ -31,15 +31,7 @@ const Club = () => {
     const dispatch = useDispatch();
     const sport = useSelector(state => state.sportReducers.sport);
     const clubs = useSelector((state) => state.clubReducers.clubs);
-    
-    useEffect(() => {
-        dispatch(setSport("Football"));
-    }, []);
 
-    useEffect(() => {
-        dispatch(setSport("Football"));
-    }, []);
-    
     useEffect(() => {
         const roleStatus = async () => {
             const checkRole = await AsyncStorage.getItem('Role');
@@ -56,7 +48,7 @@ const Club = () => {
         const getClubData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${sport}/getClubsBySport`,{
+                const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTeamsBySport`,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -69,16 +61,16 @@ const Club = () => {
                 } else {
                     const clubWithDisplayText = item.map((item,index) => {
                         let displayText = '';
-                        if(!item.avatar_url || item.avatar_url === null) {
-                            const usernameInitial = item.club_name ? item.club_name.charAt(0) : '';
+                        if(!item.media_url || item.media_url === null) {
+                            const usernameInitial = item.name ? item.name.charAt(0) : '';
                             displayText = usernameInitial.toUpperCase();
                         }
     
                         return {...item, displayText: displayText}
                     });
-                    const clubData = await Promise.all(clubWithDisplayText)
-                    const allClubs = createRow(clubData,itemInRow)
-                    dispatch(getClub(allClubs));
+                    const teamData = await Promise.all(clubWithDisplayText)
+                    const allTeams = createRow(teamData,itemInRow)
+                    dispatch(getClub(allTeams));
                 }
             } catch (err) {
                 console.error("unable to fetch all team or club: ", err);
@@ -93,7 +85,7 @@ const Club = () => {
     });
 
     const handleAddClub = () => {
-        navigation.navigate('CreateClub', {sports: sports});
+        navigation.navigate('CreateClub', {sports: sport});
     }
 
     const scrollRight = () => {
@@ -101,7 +93,7 @@ const Club = () => {
     }
 
     const handleClub = (item) => {
-        navigation.navigate('ClubPage', {clubData: item, sport: sport})
+        navigation.navigate('ClubPage', {teamData: item, sport: sport})
     }
 
     const handleSport = (item) => {
@@ -118,11 +110,11 @@ const Club = () => {
         ),
         headerRight: () => (
             <View>
-                {currentRole === "admin" && (
+                {/* {currentRole === "admin" && ( */}
                     <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddClub()}>
                         <MaterialIcons name="add" size={24} color="black"/>
                     </Pressable>
-                )}
+                {/* )} */}
             </View>
         )
     })
@@ -153,25 +145,25 @@ const Club = () => {
                         <View key={index} style={tailwind`flex-row gap-4`}>
                             {Array.isArray(clubRow) ? (clubRow?.map((item, subIndex) => (
                                 <Pressable key={subIndex} style={tailwind` relative border rounded-lg h-24 w-24 items-center justify-center mb-2 shadow-md`} onPress={() => handleClub(item)}>
-                                    {item.avatar_url ? (
-                                        <Image source={{ uri: item.avatar_url }} style={tailwind`h-20 w-20 rounded-full`} />
+                                    {item.media_url ? (
+                                        <Image source={{ uri: item.media_url }} style={tailwind`h-20 w-20 rounded-full`} />
                                     ) : (
-                                        <Text style={tailwind`text-black text-3xl font-bold`}>{item.club_name.charAt(0).toUpperCase()}</Text>
+                                        <Text style={tailwind`text-black text-3xl font-bold`}>{item.name.charAt(0).toUpperCase()}</Text>
                                     )}
-                                    <Text style={tailwind`text-sm text-center mt-2`}>{item.club_name}</Text>
+                                    <Text style={tailwind`text-sm text-center mt-2`}>{item.name}</Text>
                                 </Pressable>
                             ))):(
                                 <Pressable style={tailwind` relative border rounded-lg h-24 w-24 items-center justify-center mb-2 shadow-md`} onPress={() => handleClub(clubRow)}>
-                                    {clubRow.avatar_url ? (
-                                        <Image source={{ uri: clubRow.avatar_url }} style={tailwind`h-20 w-20 rounded-full`} />
+                                    {clubRow.media_url ? (
+                                        <Image source={{ uri: clubRow.media_url }} style={tailwind`h-20 w-20 rounded-full`} />
                                     ) : (
-                                        <Text style={tailwind`text-black text-3xl font-bold`}>{clubRow.club_name.charAt(0).toUpperCase()}</Text>
+                                        <Text style={tailwind`text-black text-3xl font-bold`}>{clubRow.name.charAt(0).toUpperCase()}</Text>
                                     )}
-                                    <Text style={tailwind`text-sm text-center mt-2`}>{clubRow.club_name}</Text>
+                                    <Text style={tailwind`text-sm text-center mt-2`}>{clubRow.name}</Text>
                                 </Pressable>
                             )}
                         </View>
-                    ))}
+                ))}
             </ScrollView>
         </View>
     );

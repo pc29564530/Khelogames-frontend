@@ -10,18 +10,19 @@ import Stats from '../components/Stats';
 
 const subCategorys = [ "Members", "Fixture"];
 
-const sportPage = (clubData, sport) => {
+const sportPage = (teamData, sport) => {
+    console.log("Sports: ", sport)
     switch (sport) {
         case "Cricket":
-            return <ClubCricketMatch  clubData={clubData}/>;
+            return <ClubCricketMatch  teamData={teamData}/>;
         default:
-            return <ClubFootballMatch  clubData={clubData}/>;
+            return <ClubFootballMatch  teamData={teamData}/>;
     }
 }
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
-    const {clubData, sport} = route.params;
+    const {teamData, sport} = route.params;
     const [subCategory, setSubCategory] = useState('');
 
     const  handleSubCategory = async (item) => {
@@ -30,22 +31,22 @@ const ClubPage = ({route}) => {
     const rerenderSubCategory = () => {
         switch (subCategory) {
             case "Fixture":
-                return sportPage(clubData, sport);
+                return sportPage(teamData, sport);
             case "Stats":
                 return <Stats />;
             default:
-                return <Members clubData={clubData} />;
+                return <Members teamData={teamData} />;
         }
     }
     return (
         <View style={tailwind`m-4`}>
             <View style={tailwind`flex-row items-center justify-start gap-5`}>
                 <View style={tailwind`border rounded-md w-20 h-20 bg-orange-400 items-center justify-center`}>
-                    <Text style={tailwind`text-black text-5xl items-center justify-center`}>{clubData.displayText}</Text>
+                    <Text style={tailwind`text-black text-5xl items-center justify-center`}>{teamData.short_name}</Text>
                 </View>
                 <View >
-                    <Text style={tailwind`text-2xl text-black `}>{clubData.club_name}</Text>
-                    <Text style={tailwind`text-xl text-black `}>{sport}</Text>
+                    <Text style={tailwind`text-2xl text-black `}>{teamData.name}</Text>
+                    <Text style={tailwind`text-xl text-black `}>{teamData.sports}</Text>
                 </View>
             </View>
             <View style={tailwind`flex-row  mt-2`}>

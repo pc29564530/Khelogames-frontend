@@ -6,12 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
-import { formattedTime } from '../utils/FormattedDateTime';
 import { formattedDate } from '../utils/FormattedDateTime';
+import { formattedTime } from '../utils/FormattedDateTime';
+import { convertToISOString } from '../utils/FormattedDateTime';
 
 const FootballDetails = ({route}) => {
     const matchData = route.params.matchData;
-    console.log("Match Data: ", matchData)
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const handleTournamentPage = async (tournamentID) => {
@@ -32,8 +32,8 @@ const FootballDetails = ({route}) => {
     }
     return (
         <View style={tailwind`flex-1`}>
-            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(matchData.tournament_id)}>
-                <Text>{matchData.tournament_name}</Text>
+            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(matchData.tournament.id)}>
+                <Text style={tailwind` text-2xl`}>{matchData.tournament.name}</Text>
                 <MaterialCommunityIcons name="greater-than" size={24} color="black" />
             </Pressable>
            <View style={tailwind`mt-2`}>
@@ -41,10 +41,10 @@ const FootballDetails = ({route}) => {
                 <View style={tailwind`flex-row justify-between items-center gap-2 ml-2 mr-2 `}>
                    
                     <Pressable style={tailwind`flex-1 items-center shadow-lg rounded-lg p-4 bg-white mt-2 justify-between`}>
-                        <Text >{matchData.team1_name}</Text>
+                        <Text >{matchData.homeTeam.name}</Text>
                     </Pressable>
                     <Pressable style={tailwind`flex-1 items-center shadow-lg rounded-lg p-4 bg-white mt-2 justify-between`}>
-                        <Text>{matchData.team2_name}</Text>
+                        <Text>{matchData.awayTeam.name}</Text>
                     </Pressable>
                 </View>
            </View>
@@ -52,11 +52,11 @@ const FootballDetails = ({route}) => {
                 <Text style={tailwind`text-2xl ml-2`}>Details</Text>
                 <View style={tailwind`flex-row justify-between ml-2 mr-2`}>
                     <Text>Date</Text>
-                    <Text>{formattedDate(matchData.date_on)}</Text>
+                    <Text>{formattedDate(convertToISOString(matchData.startTimeStamp))}</Text>
                 </View>
                 <View style={tailwind`flex-row justify-between ml-2 mr-2`}>
                     <Text>Time</Text>
-                    <Text>{formattedTime(matchData.start_time)}</Text>
+                    <Text>{formattedTime(convertToISOString(matchData.startTimeStamp))}</Text>
                 </View>
            </View>
         </View>

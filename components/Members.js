@@ -7,7 +7,7 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 
 
-const Members = ({clubData}) => {
+const Members = ({teamData}) => {   
     const axiosInstance = useAxiosInterceptor();
     const [member, setMember] = useState([]);
     const [searchPlayer, setSearchPlayer] = useState('');
@@ -15,23 +15,19 @@ const Members = ({clubData}) => {
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
     const navigation = useNavigation();
+
     useEffect(() => {
         const fetchPlayerProfile = async () => {
             try {
-                const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getAllPlayerProfile`, {
-                    headers: {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/getAllPlayers`, {
+                    headers:{
                         'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
+                        'Content-Type':'application/json',
                     },
                 })
-
-                const item = response.data;
-                if(!item || item === null) {
-                    setPlayerProfile([]);
-                } else {
-                    setPlayerProfile(item);
-                }
+                const item = response.data || [];
+                setPlayerProfile(item)
             } catch (err) {
                 console.error("unable to get the player profile: ", err);
             }
@@ -43,8 +39,8 @@ const Members = ({clubData}) => {
         const fetchMembers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${clubData.sport}/getClubMember`, {
-                    params: { club_id: clubData.id.toString()},
+                const response = await axiosInstance.get(`${BASE_URL}/${teamData.sports}/getTeamsMemberFunc`, {
+                    params: { team_id: teamData.id.toString()},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -54,29 +50,7 @@ const Members = ({clubData}) => {
                 if(!item || item === null ){
                     setMember([]);
                 } else {
-                    const responseWithProfile = await response.data.map( async (item, index) => {
-                        try {
-                            if(item && item !== null) {
-                                const profileData = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
-                                    params: { player_id: item.player_id.toString()},
-                                    headers: {
-                                        'Authorization': `Bearer ${authToken}`,
-                                        'Content-Type': 'application/json',
-                                    },
-                                });
-                                let displayText = '';
-                                if (!profileData.data?.avatar_url || profileData.data?.avatar_url === '') {
-                                    const usernameInitial = profileData.data.player_name ? profileData.data.player_name.charAt(0) : '';
-                                    displayText = usernameInitial.toUpperCase();
-                                }
-                                return {...item, profile: profileData.data,clubName: clubData.club_name, displayText: displayText }
-                            }
-                        } catch (err) {
-                            console.error("unable to get the profile of user ", err)
-                        }
-                    });
-                    const clubMemberWithProfile = await Promise.all(responseWithProfile)
-                    setMember(clubMemberWithProfile)
+                    setMember(item);
                 }
             } catch(err) {
                 console.error("unable to fetch all member of team/club ", err)
@@ -84,7 +58,6 @@ const Members = ({clubData}) => {
         }
         fetchMembers();
     }, []);
-    //need to change in player profile backend to reterive the profile of the player
     const handleProfile = (itm) => {
         navigation.navigate('PlayerProfile', {profileData:itm} );
     }
@@ -92,11 +65,11 @@ const Members = ({clubData}) => {
     const handleAddPlayer = async (selectedItem) => {
         try {
             const data = {
-                club_id:clubData.club_id,
+                team_id:teamData.id,
                 player_id: selectedItem.id
             }
             const authToken = await AsyncStorage.getItem('AcessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/addClubMember`,data, {
+            const response = await axiosInstance.post(`${BASE_URL}/${teamData.sports}/addTeamsMemberFunc`,data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -135,17 +108,23 @@ const Members = ({clubData}) => {
                 {member?.map((item,index) => (
                     <Pressable key={index} style={tailwind`  p-1 h-15 mt-1`} onPress={() => handleProfile({itm: item})}>
                             <View style={tailwind`flex-row items-center`}>
-                                {item.profile && item.profile.player_avatar_url ?(
-                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
+                                {item.media_url && item.media_url ?(
+                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.media_url}}  />
                                 ) : (
                                     <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                         <Text style={tailwind`text-red-500 text-6x3`}>
-                                            {item?.displayText}
+                                            {item?.short_name[0]}
                                         </Text>
                                     </View>
                                 )}
-                                <View  style={tailwind`text-black p-2 mb-1`}>
-                                    <Text style={tailwind`text-black font-bold text-xl `}>{item?.profile?.player_name}</Text>
+                                <View style={tailwind``}>
+                                    <View  style={tailwind`text-black p-1 mb-1`}>
+                                        <Text style={tailwind`text-black text-xl `}>{item?.player_name}</Text>
+                                    </View>
+                                    <View  style={tailwind`flex-row items-start justify-evenly`}>
+                                        <Text style={tailwind`text-black text-md `}>{item?.position}</Text>
+                                        <Text style={tailwind`text-black text-md`}>{item.country}</Text>
+                                    </View>
                                 </View>
                             </View>
                             <View style={tailwind`border-b border-white mt-2`}></View>
