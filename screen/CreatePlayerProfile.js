@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {View, Text, Pressable, Modal} from 'react-native';
+import {View, Text, Pressable, Modal, ScrollView} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
@@ -8,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
-import { ScrollView } from 'react-native-gesture-handler';
 const filePath = require('../assets/position.json');
 const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
 

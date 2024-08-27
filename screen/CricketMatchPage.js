@@ -8,7 +8,6 @@ import TopTabCricketMatchPage from '../navigation/TopTabCricketMatchPage';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const filePath = require('../assets/status_code.json');
 
 
@@ -16,7 +15,6 @@ const CricketMatchPage = ({route}) => {
     const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
     const [statusCode, setStatusCode] = useState('');
     const [status, setStatus] = useState([]);
-    //const [data, setData] = useState([]);
     const {item, sports} = route.params;
     const matchData = item;
     const axiosInstance = useAxiosInterceptor();
@@ -34,65 +32,6 @@ const CricketMatchPage = ({route}) => {
         readJSONFile();
     }, []);
 
-    // useEffect(() => {
-    //     const fetchMatch = async () => {
-    //         try {
-    //             const authToken = await AsyncStorage.getItem("AccessToken");
-    //             const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/`)
-    //         } catch (err) {
-
-    //         }
-    //     }
-    //     fetchMatch()
-    // }, []);
-
-    // useEffect(() => {
-    //     const fetchPlayerScore = async () => {
-    //         try {
-    //             const data = {
-    //                 match_id:matchData.match_id,
-    //                 tournament_id:matchData.tournament_id,
-    //                 team_id:matchData.team1_id
-    //             }
-    //             const authToken = await AsyncStorage.getItem('AccessToken');
-    //             const response = await axiosInstance.get(`${BASE_URL}/getCricketTeamPlayerScore`,{
-    //                 params:{
-    //                     match_id:matchData.match_id.toString(),
-    //                     tournament_id:matchData.tournament_id.toString(),
-    //                     team_id:matchData.team1_id.toString()
-    //                 },
-    //                 headers: {
-    //                     'Authorization': `Bearer ${authToken}`,
-    //                     'Content-Type': 'application/json'
-    //                 }
-    //             });
-    //             const item = response.data;
-    //             if(!item || item === null) {
-    //                 setData([]);
-    //             } else {
-    //                 const resposneWithPlayerProfile = item.map( async (itm, index) => {
-    //                     const responsePlayerProfile = await axiosInstance.get(`${BASE_URL}/getPlayerProfile`, {
-    //                         params:{
-    //                             player_id:itm.player_id.toString()
-    //                         },
-    //                         headers: {
-    //                             'Authorization': `Bearer ${authToken}`,
-    //                             'Content-Type': 'application/json'
-    //                         }
-    //                     })
-    //                     return {...itm, playerProfile: responsePlayerProfile.data}
-    //                 })
-    //                 const data = await Promise.all(resposneWithPlayerProfile);
-    //                 setData(data);
-    //             }
-
-    //         } catch(err) {
-    //             console.error("unable to fetch the match data", err)
-    //         }
-    //     }
-    //     fetchPlayerScore()
-    // }, [])
-
     const handleAddPlayerBattingOrBowlingStats = () => {
         navigation.navigate("AddCricketMatchPlayer", {homeTeamID:matchData.home_team_id, team2ID: matchData.team2_id, team1Name: matchData.team1_name, team2Name: matchData.team2_name, tournamentID: matchData.tournament_id, matchID: matchData.match_id});
     }
@@ -104,8 +43,6 @@ const CricketMatchPage = ({route}) => {
     const handleUpdateStatus = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            console.log("AutyhToken: ", authToken)
-            console.log("MatchData: ", matchData.match_id)
             const data = {
                 id: matchData.match_id,
                 status_code: item
@@ -116,7 +53,6 @@ const CricketMatchPage = ({route}) => {
                     'Content-Type': 'application/json'
                 }
             })
-            console.log(response)
             setIsUpdateStatusModalVisible(false);
         } catch (err) {
             console.log("unable to update the status of the match: ",err)
@@ -135,19 +71,9 @@ const CricketMatchPage = ({route}) => {
                <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => setIsUpdateStatusModalVisible(true)}>
                         <MaterialIcons name="edit" size={24} color="black"/>
                 </Pressable>
-                {/* <Pressable onPress={() => handleEditScore()} style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`}>
-                    <FontAwesome name="edit" size={24} color="black" />
-                </Pressable> */}
-                {/* {currentRole === "admin" && ( */}
-                    {/* <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddPlayerBattingOrBowlingStats()}>
-                        <MaterialIcons name="add" size={24} color="black"/>
-                    </Pressable> */}
-                {/* )} */}
             </View>
         )
     })
-    console.log("Entering Cricket Match Page")
-    console.log("Page Match Data: ", matchData.awayScore)
     return (
         <View style={tailwind`flex-1 mt-4`}>
             <View style={tailwind` h-45 bg-black flex-row items-center justify-center gap-20`}>
@@ -186,7 +112,7 @@ const CricketMatchPage = ({route}) => {
                     </>
                 )}
                 </View>
-            </View>{console.log("MatchID: ", matchData.awayTeam.id)}
+            </View>
             <TopTabCricketMatchPage matchData={matchData} matchID={matchData.matchId} homeTeamID={matchData.homeTeam.id} awayTeamID={matchData.awayTeam.id}/>
             {isUpdateStatusModalVisible && (
                 <Modal 

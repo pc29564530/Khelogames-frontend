@@ -10,7 +10,6 @@ import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 
 const CricketMatchDetail = ({route}) => {
-    // const [matchData, setMatchData] = useState({});
     const [isTossed, setIsTossed] = useState(false);
     const axiosInstance = useAxiosInterceptor();
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
@@ -119,10 +118,10 @@ const CricketMatchDetail = ({route}) => {
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>
                             <Text style={tailwind`text-xl font-bold text-blue-900 mb-4`}>Select Team for Toss</Text>
                             <View style={tailwind`flex-row justify-between mb-4`}>
-                                <Pressable onPress={() => handleTeam(matchData.homeTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.homeTeam.homeTeamID && tailwind`bg-blue-200`]}>
+                                <Pressable onPress={() => handleTeam(matchData.homeTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.homeTeam.id && tailwind`bg-blue-200`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.homeTeam.name}</Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(matchData.awayTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.awayTeam.awayTeamID && tailwind`bg-blue-200`]}>
+                                <Pressable onPress={() => handleTeam(matchData.awayTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.awayTeam.id && tailwind`bg-blue-200`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.awayTeam.name}</Text>
                                 </Pressable>
                             </View>

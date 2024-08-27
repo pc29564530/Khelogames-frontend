@@ -108,8 +108,8 @@ const Members = ({teamData}) => {
                 {member?.map((item,index) => (
                     <Pressable key={index} style={tailwind`  p-1 h-15 mt-1`} onPress={() => handleProfile({itm: item})}>
                             <View style={tailwind`flex-row items-center`}>
-                                {item.player_logo && item.player_logo ?(
-                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.player_logo}}  />
+                                {item.media_url && item.media_url ?(
+                                    <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.media_url}}  />
                                 ) : (
                                     <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                         <Text style={tailwind`text-red-500 text-6x3`}>
