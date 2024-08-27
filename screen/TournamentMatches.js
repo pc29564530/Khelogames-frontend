@@ -19,112 +19,17 @@ const TournamentMatches = ({ route }) => {
     const dispatch = useDispatch();
     const teams = useSelector((state) => state.teams.teams);
 
-    useEffect(() => {
-        fetchTournamentOrganizer();
-        fetchTournamentTeams();
-    }, []);
-
-    const fetchTournamentOrganizer = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`${BASE_URL}/getOrganizer`, {
-                params: {
-                    tournament_id: tournament.tournament_id.toString(),
-                    organizer_name: user
-                },
-                headers: {
-                    'Authorization': `bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const item = response.data;
-            setOrganizerID(item.organizer_id)
-            //add this foreach when there is more than one organizer for tournament
-            // item.forEach(item => {
-            //     if (item.organizer_name.toLowerCase() === user.toLowerCase()) {
-            //         // setAdmin(true);
-            //         setOrganizerID(item.organizer_id);
-            //     }
-            // });
-        } catch (err) {
-            console.log("Unable to fetch the organizer: ", err);
-        }
-    };
-
-    const fetchTournamentTeams = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sport_type}/getTeams/${tournament.tournament_id}`, {
-                headers: {
-                    'Authorization': `bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            dispatch(getTeams(response.data || []));
-        } catch (err) {
-            console.error("Unable to fetch teams: ", err);
-        }
-    };
-
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
     };
 
-    const determineMatchStatus = (item) => {
-        const startTimeStr = item.start_time;
-        const endTimeStr = item.end_time;
-
-        const matchStartDateTime = new Date(startTimeStr);
-        const matchEndDateTime = new Date(endTimeStr);
-        const currentDateTime = new Date();
-
-        if (isNaN(matchStartDateTime) || isNaN(matchEndDateTime)) {
-            console.error("date time format error");
-            return "";
-        }
-
-        let status;
-        if (currentDateTime < matchStartDateTime) {
-            status = "Not Started";
-        } else if (currentDateTime > matchEndDateTime) {
-            status = "End";
-        } else {
-            status = "Live";
-        }
-        return status;
-    };
-
-    const formattedDate = (item) => {
-        const timestampDate = new Date(item);
-        const optionsDate = { weekday: 'long', month: 'long', day: '2-digit' };
-        return timestampDate.toLocaleDateString('en-US', optionsDate);
-    };
-
-    const formattedTime = (item) => {
-        const timestampStr = item;
-        const [datePart, timePart] = timestampStr.split('T');
-        const [hour, minute] = timePart.split(':').map(Number);
-
-        let adjustedHour = hour;
-        if (adjustedHour > 12) {
-            adjustedHour %= 12;
-        } else if (adjustedHour === 0) {
-            adjustedHour = 12;
-        }
-        const period = hour < 12 ? 'AM' : 'PM';
-        return `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
-    };
-
     const tournamentMatchBySport = (sport) => {
+        console.log("Line no 27: sports: ", sport)
         switch (sport) {
             case "Cricket":
                 return (
                     <TournamentCricketMatch
                         tournament={tournament}
-                        determineMatchStatus={determineMatchStatus}
-                        formattedDate={formattedDate}
-                        formattedTime={formattedTime}
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
@@ -134,9 +39,6 @@ const TournamentMatches = ({ route }) => {
                 return (
                     <TournamentFootballMatch
                         tournament={tournament}
-                        determineMatchStatus={determineMatchStatus}
-                        formattedDate={formattedDate}
-                        formattedTime={formattedTime}
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
@@ -167,13 +69,13 @@ const TournamentMatches = ({ route }) => {
                                     teams={teams}
                                     organizerID={organizerID}
                                     handleCloseFixtureModal={handleCloseFixtureModal}
-                                    sport={tournament.sport_type}
+                                    sport={tournament.sports}
                                 />
                             </View>
                         </View>
                     </Modal>
                 )}
-                {tournamentMatchBySport(tournament.sport_type)}
+                {tournamentMatchBySport(tournament.sports)}
             </View>
         </ScrollView>
     );

@@ -11,7 +11,6 @@ import { getTeamsByTournamentID } from '../services/tournamentServices';
 
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
-    console.log("Sport: ", tournament.sports)
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const [teamDisplay, setTeamDisplay] = useState([]);
@@ -34,8 +33,6 @@ const TournamentTeam = ({ route }) => {
     useEffect(() => {
         fetchTeamBySport();
     }, []);
-
-    
 
     const fetchTeamBySport = async () => {
         try {
@@ -75,7 +72,6 @@ const TournamentTeam = ({ route }) => {
                 team_name: teamDisplay.find((team) => team.id === respItem.team_id).name,
                 media_url: teamDisplay.find((team) => team.id === respItem.team_id).media_url,
             }
-            console.log("TeamWithData: ", teamWithData)
             dispatch(setTeams(teamWithData));
             setIsModalVisible(false);
         } catch (err) {
@@ -90,8 +86,6 @@ const TournamentTeam = ({ route }) => {
     const handleTeamModal = () => {
         setIsModalVisible(true);
     };
-
-    console.log("Teams: ", teams)
 
     return (
         <View style={tailwind`mt-2 px-4 bg-gray-100 mb-4`}>
