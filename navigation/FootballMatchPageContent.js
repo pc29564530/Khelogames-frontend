@@ -3,6 +3,7 @@ import tailwind from 'twrnc';
 import TournamentStanding from '../screen/TournamentStanding';
 import FootballDetails from '../screen/FootballDetails';
 import FootballLineUp from '../screen/FootballLineUp';
+import FootballIncidents from '../screen/FootballIncidents';
 
 function FootballMatchPageContent({matchData}) {
     const TopTab = createMaterialTopTabNavigator();
@@ -24,6 +25,11 @@ function FootballMatchPageContent({matchData}) {
                 <TopTab.Screen 
                     name="Detail"
                     component={FootballDetails}
+                    initialParams={{matchData:matchData}}
+                />
+                <TopTab.Screen
+                    name="Incident"
+                    component={FootballIncidents}
                     initialParams={{matchData:matchData}}
                 />
                 <TopTab.Screen 
