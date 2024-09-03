@@ -5,33 +5,11 @@ import tailwind from 'twrnc';
 
 const AddFootballIncidentlayer = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedPlayer, setSelectedPlayer, teamID}) => {
     
-    // const handleSelectedPlayer = (item) => {
-    //     console.log("Selected Player line no 9: ", item)
-    //     setSelectedPlayer(item);
-    // }
-    // console.log("Selected Player : ", selectedPlayer)
     return (
         <View>
             <View style={tailwind`mb-4 items-start justify-between`}>
                 <View style={tailwind``}>
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player:</Text>
-                    {/* {teamID===homeTeam.id?(
-                        <View>
-                            {homePlayer.map((item,index) => (
-                                <Pressable onPress={() => handleSelectedPlayer(item)} key={index}>
-                                    <Text>{item.player_name}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    ):(
-                        <View>
-                            {awayPlayer?.map((item,index) => (
-                                <Pressable onPress={() => handleSelectedPlayer(item)} key={index}>
-                                    <Text>{item.player_name}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    )} */}
                     <Dropdown 
                         style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
                         options={teamID === homeTeam.id ? homePlayer : awayPlayer}

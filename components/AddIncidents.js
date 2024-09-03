@@ -13,8 +13,6 @@ import { BASE_URL } from '../constants/ApiConstants';
 const incidentsTypes = ["goal", "penalty", "fouls", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitutions"];
 
 const AddIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
-    console.log("Away Player: ", awayPlayer);
-    console.log("Home Player: ", homePlayer);
     const scrollViewRef = useRef(null);
     const axiosInstance = useAxiosInterceptor();
     const [selectedMinute, setSelectedMinute] = useState();
@@ -57,8 +55,8 @@ const AddIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) =>
                     "periods":selectedHalf,
                     "incident_type":selectedIncident,
                     "incident_time":selectedMinute,
-                    "player_in_id":selectedPlayerIn,
-                    "player_out_id":selectedPlayerOut,
+                    "player_in_id":selectedPlayerIn.id,
+                    "player_out_id":selectedPlayerOut.id,
                     "description":description
                 }
                 console.log("Data: ", data)
@@ -75,7 +73,7 @@ const AddIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) =>
                     "periods":selectedHalf,
                     "incident_type":selectedIncident,
                     "incident_time":selectedMinute,
-                    "player_id":selectedPlayer,
+                    "player_id":selectedPlayer.id,
                     "description":description
                 }
                 console.log("Data: ", data)
@@ -91,7 +89,7 @@ const AddIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) =>
             console.error("unable to add football incident: ", err)
         }
     };
-    console.log("Line no 67 :", selectedPlayer)
+    
     return (
         <View style={tailwind``}>
             <View>
