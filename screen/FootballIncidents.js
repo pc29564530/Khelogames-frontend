@@ -76,6 +76,8 @@ const FootballIncidents = ({route}) => {
         fetchIncidents()
     }, []);
 
+    console.log("Incident: ", incidents)
+
     return (
         <View style={tailwind`flex`}>
             <View style={tailwind`items-end mb-4`}>
@@ -95,11 +97,11 @@ const FootballIncidents = ({route}) => {
                                             <View style={tailwind``}>
                                                 <View style={tailwind`flex-row`}>
                                                     <Text>In:</Text>
-                                                    <Text>{item.substitutions_in_player.name}</Text>
+                                                    <Text>{item.player_in.name}</Text>
                                                 </View>
                                                 <View style={tailwind`flex-row`}>
                                                     <Text>Out:</Text>
-                                                    <Text>{item.substitutions_out_player.name}</Text>
+                                                    <Text>{item.player_out.name}</Text>
                                                 </View>
                                             </View>
                                             <View style={tailwind`h-10 w-1 bg-gray-400 mx-4`} />
@@ -110,6 +112,13 @@ const FootballIncidents = ({route}) => {
                                         </View>
                                     ) : (
                                         <View style={tailwind`flex-row items-center`}>
+                                            {item.home_score && item.away_score && (
+                                                <View style={tailwind`flex-row`}>
+                                                    <Text>{item.home_score.goals}</Text>
+                                                    <Text>-</Text>
+                                                    <Text>{item.away_score.goals}</Text>
+                                                </View>
+                                            )}
                                             <View style={tailwind``}>
                                                     <Text>{item.player.name}</Text>
                                                     <Text>{item.incident_type}</Text>

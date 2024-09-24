@@ -30,6 +30,25 @@ const FootballDetails = ({route}) => {
         }
         
     }
+
+
+    useEffect(() => {
+
+        const addFootballScore = async () => {
+            const authToken = await AsyncStorage.getItem('AccessToken')
+            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        if (matchData.status_code === "started") {
+            addFootballScore()
+        }
+    }, []);
+
     return (
         <View style={tailwind`flex-1`}>
             <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(matchData.tournament.id)}>
