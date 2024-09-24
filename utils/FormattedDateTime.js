@@ -21,3 +21,9 @@ export const formattedTime = (item) => {
     const formattedTime = `${adjustedHour}:${minute < 10 ? '0' + minute : minute} ${period}`;
     return formattedTime;
 }
+
+export const convertToISOString = (item) => {
+    const date = new Date(item*1000);
+    const isoString = date.toISOString();
+    return isoString;
+}
