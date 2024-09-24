@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState , useEffect} from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
-
+const positions = require('../assets/position.json');
 
 const FootballLineUp = ({ route }) => {
     const [homeModalVisible, setHomeModalVisible] = useState(true);
@@ -22,6 +22,17 @@ const FootballLineUp = ({ route }) => {
             setAwayModalVisible(true);
         }
     };
+
+    const selectPosition = (item) => {
+        var pos;
+        positions["positions"].map(( itm ) => {
+            if (itm.code === item) {
+                pos =  itm.name;
+                return;
+            }
+        })
+        return pos;
+    }
 
     useEffect(() => {
         const fetchHomePlayer = async () => {
@@ -72,7 +83,7 @@ const FootballLineUp = ({ route }) => {
                         <View>
                             <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
                             <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                <Text>{selectPosition(item.position)}</Text>
+                                <Text>{selectPosition(item?.position)}</Text>
                                 <Text>{item.country}</Text>
                             </View>
                         </View>

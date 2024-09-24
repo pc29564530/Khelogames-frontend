@@ -1,0 +1,20 @@
+{
+    "positions": [
+      { "code": "BT", "name": "Batsman" },
+      { "code": "BL", "name": "Bowler" },
+      { "code": "AR", "name": "All-Rounder" },
+      { "code": "WK", "name": "Wicket-Keeper" },
+      { "code": "AL", "name": "All-Rounder Lower Order" },
+      { "code": "GK", "name": "Goalkeeper" },
+      { "code": "DF", "name": "Defender" },
+      { "code": "MF", "name": "Midfielder" },
+      { "code": "FW", "name": "Forward" },
+      { "code": "ST", "name": "Striker" },
+      { "code": "LW", "name": "Left Winger" },
+      { "code": "RW", "name": "Right Winger" },
+      { "code": "CM", "name": "Central Midfielder" },
+      { "code": "DM", "name": "Defensive Midfielder" },
+      { "code": "AM", "name": "Attacking Midfielder" }
+    ]
+  }
+  
