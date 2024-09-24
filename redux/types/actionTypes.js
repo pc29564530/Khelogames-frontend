@@ -48,7 +48,7 @@ export const GET_TOURNAMENT_BY_ID = 'GET_TOURNAMENT_BY_ID';
 export const ADD_TOURNAMENT = 'ADD_TOURNAMENT';
 
 //set the sport
-export const SET_SPORT = 'SET_SPORT';
+export const SET_GAMES = 'SET_GAMES';
 
 export const SET_STANDING = 'SET_STANDING';
 export const SET_GROUP = 'SET_GROUP';
@@ -66,3 +66,6 @@ export const GET_TEAMS = 'GET_TEAMS';
 //set matches of sport
 export const SET_MATCHES = 'SET_MATCHES';
 export const GET_MATCHES = 'GET_MATCHES';
+
+//set the current game of tournament or match or team
+export const SET_GAME = 'SET_GAME';

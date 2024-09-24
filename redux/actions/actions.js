@@ -280,10 +280,17 @@ export const getTournamentByIdAction = (tournament) => {
     }
 } 
 
-export const setSport = (sport) => {
+export const setGames = (games) => {
     return {
-        type: actionTypes.SET_SPORT,
-        payload: sport
+        type: actionTypes.SET_GAMES,
+        payload: games
+    }
+}
+
+export const setGame = (game) => {
+    return {
+        type: actionTypes.SET_GAME,
+        payload: game
     }
 }
 
