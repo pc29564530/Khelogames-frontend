@@ -15,7 +15,7 @@ const CricketMatchPage = ({route}) => {
     const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
     const [statusCode, setStatusCode] = useState('');
     const [status, setStatus] = useState([]);
-    const {item, sports} = route.params;
+    const {item, game} = route.params;
     const matchData = item;
     const axiosInstance = useAxiosInterceptor();
     const navigation= useNavigation();
@@ -47,7 +47,7 @@ const CricketMatchPage = ({route}) => {
                 id: matchData.match_id,
                 status_code: item
             }
-            const response = await axiosInstance.put(`${BASE_URL}/${sports}/updateMatchStatus`, data,{
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus`, data,{
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'

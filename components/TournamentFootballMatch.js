@@ -10,7 +10,7 @@ import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 
-const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
+const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, game}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
@@ -23,7 +23,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
 
     const fetchTournamentMatchs = async () => {
         try {
-            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentId: tournament.id, tournamentSport: tournament.sports});  
+            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentId: tournament.id, game: game});  
             if(item === null ){
                 return item;
             }

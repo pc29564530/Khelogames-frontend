@@ -12,27 +12,26 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTeams } from '../redux/actions/actions';
 
 const TournamentMatches = ({ route }) => {
-    const { tournament, currentRole } = route.params;
+    const { tournament, currentRole, game } = route.params;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [organizerID, setOrganizerID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
-    const dispatch = useDispatch();
     const teams = useSelector((state) => state.teams.teams);
 
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
     };
 
-    const tournamentMatchBySport = (sport) => {
-        console.log("Line no 27: sports: ", sport)
-        switch (sport) {
-            case "Cricket":
+    const tournamentMatchBySport = (game) => {
+        switch (game.name) {
+            case "cricket":
                 return (
                     <TournamentCricketMatch
                         tournament={tournament}
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
+                        game={game}
                     />
                 );
             default:
@@ -42,6 +41,7 @@ const TournamentMatches = ({ route }) => {
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
+                        game={game}
                     />
                 );
         }
@@ -69,13 +69,13 @@ const TournamentMatches = ({ route }) => {
                                     teams={teams}
                                     organizerID={organizerID}
                                     handleCloseFixtureModal={handleCloseFixtureModal}
-                                    sport={tournament.sports}
+                                    sport={game.name}
                                 />
                             </View>
                         </View>
                     </Modal>
                 )}
-                {tournamentMatchBySport(tournament.sports)}
+                {tournamentMatchBySport(game)}
             </View>
         </ScrollView>
     );
