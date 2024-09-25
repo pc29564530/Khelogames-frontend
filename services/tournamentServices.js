@@ -11,8 +11,7 @@ const convertSecondToTimestamp = (timeStamp) => {
 export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        //need to lowercase the word of sport 
-        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournamentsBySport`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${sport.name}/getTournamentsBySport/${sport.id}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -23,7 +22,7 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
             return [];
         } else {
             
-            const dataWithDisplayText = item.map((it, index) => {
+            const dataWithDisplayText = item?.tournament.map((it, index) => {
                  it.start_timestamp = convertSecondToTimestamp(it.start_timestamp);
                 let currentStatus;
                 if(it.status_code === 'not_started'){
@@ -53,7 +52,7 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
                 }
                 categarizedTournament[category].push(item);
             })
-            return categarizedTournament;
+            return {game: item.game, tournament: categarizedTournament};
         }
     } catch (err) {
         console.error("unable to fetch tournament ", err)
@@ -155,10 +154,10 @@ export const fetchStandings = async ({tournament, groups, axiosInstance, dispatc
     }
 };
 
-export const getTeamsByTournamentID  = async ({tournamentID, sports,  AsyncStorage, axiosInstance}) => {
+export const getTeamsByTournamentID  = async ({tournamentID, game,  AsyncStorage, axiosInstance}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken')
-        const response = await axiosInstance.get(`${BASE_URL}/${sports}/getTournamentTeam/${tournamentID}`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentTeam/${tournamentID}`, {
             headers: {
                 'Authorization': `bearer ${authToken}`,
                 'Content-Type': 'application/json'
