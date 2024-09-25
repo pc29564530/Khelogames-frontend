@@ -7,11 +7,11 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { getTournamentByID, getTournamentBySport } from '../services/tournamentServices';
-import { getTournamentBySportAction, getTournamentByIdAction, setSport } from '../redux/actions/actions';
+import { getTournamentBySportAction, getTournamentByIdAction, setGames, setGame } from '../redux/actions/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import CountryPicker from 'react-native-country-picker-modal';
+import { sportsServices } from '../services/sportsServices';
 
-let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
 const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
@@ -19,19 +19,28 @@ const Tournament = () => {
     const [currentRole, setCurrentRole] = useState('');
     const [category, setCategory] = useState('international')
     const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const [selectedSport, sestSelectedSport] = useState("Football");
+    const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const dispatch = useDispatch();
     const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
     const [isDropDown, setIsDropDown] = useState(false);
-    const sport = useSelector(state => state.sportReducers.sport);
+    const games = useSelector(state => state.sportReducers.games);
+    const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
         dispatch(getTournamentByIdAction(item));
-        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole, sport: sport})
+        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole, game: game})
     }
 
     useEffect(() => {
-        dispatch(setSport("Football"));
+        const fetchData = async () => {
+            try {
+                const data = await sportsServices({axiosInstance});
+                dispatch(setGames(data));
+            } catch (error) {
+                console.error("unable to fetch games data: ", error)
+            }
+        };
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -43,11 +52,12 @@ const Tournament = () => {
     }, []);
     useEffect(() => {
         const fetchTournament = async () => {
-            const tournamentData = await getTournamentBySport({axiosInstance: axiosInstance, sport: sport, category: category});
-            dispatch(getTournamentBySportAction(tournamentData));
+            const {gameData, tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game, category: category});
+            dispatch(setGames(gameData))
+            dispatch(getTournamentBySportAction(tournament));
         }
         fetchTournament();
-    }, [sport, category]);
+    }, [game, category]);
     
     navigation.setOptions({
         headerTitle:'',
@@ -68,15 +78,13 @@ const Tournament = () => {
     })
 
     const handleSport = (item) => {
-        sestSelectedSport(item)
-        dispatch(setSport(item));
+        setSelectedSport(item);
+        dispatch(setGame(item));
     } 
 
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
     }
-
-    //console.log("tournaments: ", tournaments)
 
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
@@ -88,9 +96,9 @@ const Tournament = () => {
                         ref={scrollViewRef}
                         contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                     >
-                        {sports.map((item, index) => (
+                        {games && games?.map((item, index) => (
                             <Pressable key={index} style={[tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
-                                <Text style={tailwind`text-white`}>{item}</Text>
+                                <Text style={tailwind`text-white`}>{item.name}</Text>
                             </Pressable>
                         ))}
                     </ScrollView>
@@ -102,7 +110,7 @@ const Tournament = () => {
                     <Text style={tailwind`text-lg`}>{category}</Text>
                     <MaterialIcons name="keyboard-arrow-down" size={30} color="black" />
                 </Pressable>
-                {Object?.keys(tournaments)?.map((tournamentItem, index) => (
+                {tournaments && Object?.keys(tournaments)?.map((tournamentItem, index) => (
                     <View key={index} style={tailwind`mt-6`}>
                         <Text style={tailwind`text-xl font-bold mb-2 p-2 ml-4 text-blue-800`}>{tournamentItem.charAt(0).toUpperCase() + tournamentItem.slice(1)}</Text>
                         {tournaments[tournamentItem] && tournaments[tournamentItem].length>0?(
@@ -128,13 +136,13 @@ const Tournament = () => {
                                             </View> */}
                                         </View>
                                         <View style={tailwind`mt-auto`}>
-                                            <Text style={tailwind`text-black text-lg font-semibold`} numberOfLines={1}>{item.tournament_name}</Text>
+                                            <Text style={tailwind`text-black text-lg font-semibold`} numberOfLines={1}>{item.name}</Text>
                                             <View style={tailwind`flex-row justify-between items-center mt-2`}>
                                                 {/* <View style={tailwind`flex-row items-center`}>
                                                     <AntDesign name="team" size={14} color="black" />
                                                     <Text style={tailwind`text-sm text-black ml-1`}>{item.teams_joined}</Text>
                                                 </View> */}
-                                                <Text style={tailwind`text-black text-sm ml-1`}>{item.sports}</Text>
+                                                {/* <Text style={tailwind`text-black text-sm ml-1`}>{}</Text> */}
                                             </View>
                                         </View>
                                     </Pressable>

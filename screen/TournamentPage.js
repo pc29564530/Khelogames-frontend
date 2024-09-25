@@ -10,25 +10,25 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 
 const TournamentPage = ({ route }) => {
-    const { tournament, currentRole, sport } = route.params;
+    const { tournament, currentRole, game } = route.params;
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [teams, setTeams] = useState([]);
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
 
-    const checkSport = () => {
-        switch (sport) {
-            case "Badminton":
+    const checkSport = (game) => {
+        switch (game.name) {
+            case "badminton":
                 return <TopTabBadminton />;
-            case "Cricket":
-                return <TopTabCricket tournament={tournament} currentRole={currentRole} />;
-            case "Hockey":
+            case "cricket":
+                return <TopTabCricket tournament={tournament} currentRole={currentRole} game={game} />;
+            case "hockey":
                 return <TopTabHockey />;
-            case "Tennis":
+            case "tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} />;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole} game = {game}/>;
         }
     }
 
@@ -116,15 +116,15 @@ const TournamentPage = ({ route }) => {
                                 <Text style={tailwind`text-2xl`}>{tournament?.displayText}</Text>
                             </View>
                             <View style={tailwind`mt-2`}>
-                                <Text style={tailwind`text-xl`}>{tournament?.tournament_name}</Text>
+                                <Text style={tailwind`text-xl`}>{tournament?.name}</Text>
                             </View>
                             <View style={tailwind`flex-row gap-2`}>
                                 <Text style={tailwind`text-lg`}>Teams: {tournament?.teams_joined}</Text>
                                 <Text style={tailwind`text-lg`}>|</Text>
-                                <Text style={tailwind`text-lg`}>{tournament?.sport_type}</Text>
+                                <Text style={tailwind`text-lg`}>{game.name}</Text>
                             </View>
                         </View>
-                        <View style={tailwind`flex-1`}>{checkSport()}</View>
+                        <View style={tailwind`flex-1`}>{checkSport(game)}</View>
                     </View>
                 )}
             </ScrollView>

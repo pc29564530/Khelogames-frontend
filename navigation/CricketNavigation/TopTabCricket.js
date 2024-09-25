@@ -7,7 +7,7 @@ import TournamentCricketStats from '../screen/TournamentCricketStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
 
-function TopTabCricket({tournament}) {
+function TopTabCricket({tournament, game}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -20,12 +20,12 @@ function TopTabCricket({tournament}) {
                 <TopTab.Screen 
                     name="Info"
                     component={TournamentCricketInfo}
-                    initialParams={{tournament:tournament}}
+                    initialParams={{tournament:tournament, game: game}}
                 />
                 <TopTab.Screen 
                     name="Team"
                     component={TournamentTeam}
-                    initialParams={{tournament:tournament, currentRole: currentRole}}
+                    initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
                 />
                 <TopTab.Screen 
                     name="Stats"
@@ -34,12 +34,12 @@ function TopTabCricket({tournament}) {
                 <TopTab.Screen 
                     name="TournamentMatches"
                     component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    initialParams={{tournament:tournament, currentRole:currentRole, game: game}}
                 />
                 <TopTab.Screen 
                     name="Standing"
                     component={TournamentStanding}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    initialParams={{tournament:tournament, currentRole:currentRole, game: game}}
                 />
         </TopTab.Navigator>
     );
