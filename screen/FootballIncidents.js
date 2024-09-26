@@ -5,7 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
-import AddIncidents from '../components/AddIncidents';
+import AddFootballModalIncident from '../components/AddFootballModalIncidents';
 
 const FootballIncidents = ({route}) => {
     const [incidentModalVisible, setIncidentModalVisible] = useState(false);
@@ -19,7 +19,7 @@ const FootballIncidents = ({route}) => {
         const fetchHomePlayer = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const homeResponse = await axiosInstance.get(`${BASE_URL}/Football/getTeamsMemberFunc`, {
+                const homeResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc`, {
                     params:{
                         team_id: matchData.homeTeam.id.toString()
                     },
@@ -36,7 +36,7 @@ const FootballIncidents = ({route}) => {
         const fetchAwayPlayer = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const awayResponse = await axiosInstance.get(`${BASE_URL}/Football/getTeamsMemberFunc`, {
+                const awayResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc`, {
                     params:{
                         team_id: matchData.awayTeam.id.toString()
                     },
@@ -61,7 +61,7 @@ const FootballIncidents = ({route}) => {
                 const data = {
                     "match_id":matchData.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/Football/getFootballIncidents`, {
+                const response = await axiosInstance.get(`${BASE_URL}/football/getFootballIncidents`, {
                     params:data,
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -76,10 +76,26 @@ const FootballIncidents = ({route}) => {
         fetchIncidents()
     }, []);
 
-    console.log("Incident: ", incidents)
+    useEffect(() => {
+        const fetchPenaltyShootout = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken");
+                const response = await axiosInstance.get(`${BASE_URL}/football/getFootballPenalty`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                })
+            } catch (err) {
+                console.error("unable to fetch the penalty shootout: ", err)
+            }
+        }
+        fetchPenaltyShootout();
+    }, []);
 
     return (
-        <View style={tailwind`flex`}>
+        <View style={tailwind`flex-1 bg-white`}>
+            <View style={tailwind``}>
             <View style={tailwind`items-end mb-4`}>
                 <Pressable 
                     onPress={() => setIncidentModalVisible(true)} 
@@ -88,10 +104,16 @@ const FootballIncidents = ({route}) => {
                     <Text style={tailwind`text-white text-lg font-semibold`}>Add Incident</Text>
                 </Pressable>
             </View>
+                {/* <ScrollView style={tailwind`p-4`}>
+                    <View style={tailwind`flex-row justify-between`}>
+
+                    </View>
+                </ScrollView> */}
+            </View>
                 <View style={tailwind`border border-gray-200 shadow-md rounded-md `}>
                         {incidents.map((item, index) => (
 
-                            <View key={index} style={[tailwind`p-4 border-b border-gray-200 justify-between`, item.team_id === matchData.homeTeam.id?tailwind`items-start`:tailwind`items-end`]}>
+                            <View key={index} style={[tailwind`p-4 border-b border-gray-200 justify-between`, item.team_id === matchData.homeTeam.id?tailwind`justify-start`:tailwind`justify-end`]}>
                                 {item.incident_type === "substitutions" ? (
                                         <View style={tailwind`flex-row items-center`}>
                                             <View style={tailwind``}>
@@ -137,20 +159,21 @@ const FootballIncidents = ({route}) => {
                             </View>
                         ))}
                 </View>
-            {incidentModalVisible && (
-                <Modal
-                    transparent={true}
-                    animatedType="slide"
-                    visible={incidentModalVisible}
-                    onRequestClose={() => setIncidentModalVisible(false)}
-                >
-                    <Pressable onPress={() => setIncidentModalVisible(false)}style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-8`}>
-                            <AddIncidents matchData={matchData} awayPlayer={awayPlayer} homePlayer={homePlayer} awayTeam={matchData.awayTeam} homeTeam={matchData.homeTeam}/>
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
+                
+                {incidentModalVisible && (
+                    <Modal
+                        transparent={true}
+                        animatedType="slide"
+                        visible={incidentModalVisible}
+                        onRequestClose={() => setIncidentModalVisible(false)}
+                    >
+                        <Pressable onPress={() => setIncidentModalVisible(false)}style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                            <View style={tailwind`bg-white rounded-md p-8`}>
+                                <AddFootballModalIncident matchData={matchData} awayPlayer={awayPlayer} homePlayer={homePlayer} awayTeam={matchData.awayTeam} homeTeam={matchData.homeTeam}/>
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
         </View>
     );
 }
