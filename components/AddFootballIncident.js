@@ -6,6 +6,7 @@ import Dropdown from 'react-native-modal-dropdown';
 
 const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamID, setTeamID] = useState(homeTeam.id);
     const [description, setDescription] = useState('');
@@ -35,31 +36,28 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
         }
     }
 
-
     return (
         <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>
             {/* Header Section */}
             <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football Penalty</Text>
-
             {/* Select Period */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
                 <View style={tailwind`flex-row items-center justify-between`}>
                     <Pressable 
                         style={[tailwind`p-3 rounded-lg`, teamID === 'first_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
-                        onPress={() => setTeamID('first_half')}
+                        onPress={() => selectedHalf('first_half')}
                     >
                         <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
                     </Pressable>
                     <Pressable 
                         style={[tailwind`p-3 rounded-lg`, teamID === 'second_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
-                        onPress={() => setTeamID('second_half')}
+                        onPress={() => selectedHalf('second_half')}
                     >
                         <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
                     </Pressable>
                 </View>
             </View>
-
             {/* Minute Selector */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Incident Time (Minute):</Text>
@@ -73,7 +71,6 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     )}
                 />
             </View>
-
             {/* Team Selector */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
@@ -92,7 +89,6 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     </Pressable>
                 </View>
             </View>
-
             {/* Player Selector */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
@@ -119,7 +115,6 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     </View>
                 </Dropdown>
             </View>
-
             {/* Description Input */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Description:</Text>
@@ -130,7 +125,6 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     onChangeText={setDescription}
                 />
             </View>
-
             {/* Confirm Button */}
             <Pressable 
                 style={tailwind`p-4 bg-blue-600 rounded-lg shadow-lg flex items-center justify-center`}
@@ -141,5 +135,4 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
         </ScrollView>
     );
 }
-
 export default AddFootballIncident;

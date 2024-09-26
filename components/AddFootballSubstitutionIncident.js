@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Pressable, Modal, Picker, Image} from 'react-native';
+import {View, Text, TextInput, Pressable, Picker, Image} from 'react-native';
 import useAxiosInterceptor from "../screen/axios_config";
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,18 +10,12 @@ import Dropdown from 'react-native-modal-dropdown';
 const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
     const [selectedPlayerIn, setSelectedPlayerIn] = useState(null);
     const [selectedPlayerOut, setSelectedPlayerOut] = useState(null);
+    const [selectedHalf, setSelectedHalf] = useState("first_half");
+    const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamID, setTeamID] = useState(null);
-    const axiosInstance = useAxiosInterceptor()
+    const axiosInstance = useAxiosInterceptor();
 
-    // const handleSelectPlayerIn = (item) => {
-    //     setSelectedPlayerIn(item);
-    //     //setSubstitutionInPlayer(item.id);
-    // }
-
-    // const handleSelectPlayerOut = (item) => {
-    //     setSelectedPlayerOut(item);
-    //    // setSubstitutionOutPlayer(item.id)
-    // }
+    const minutes = Array.from({length:90}, (_,i)=> i+1);
 
     const handleAddSubstitution = async () => {
         try {
@@ -36,12 +30,12 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                 "player_out_id":selectedPlayerOut.id,
                 "description":description
             }
-            const response = await axiosInstance.post(`${BASE_URL}/Football/addFootballIncidents`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidentsSubs`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
-            })
+            });
         } catch (err) {
             console.error("unable to add the substitution: ", err);
         }
@@ -49,17 +43,16 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
 
     return (
         <View style={tailwind``}>
-
             {/* Added the events: */}
             <View>
                 <View>
                     <Text>Edit Periods</Text>
                 </View>
                 <View style={tailwind`flex-row items-center  justify-between`}>
-                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => handlePeriods("first_half")}>
+                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setSelectedHalf("first_half")}>
                         <Text>1st Half</Text>
                     </Pressable>
-                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => handlePeriods("second_half")}>
+                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setSelectedHalf("second_half")}>
                         <Text>2nd Half</Text>
                     </Pressable>
                 </View>
@@ -150,9 +143,7 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                         onChangeText={setDescription}
                     />
                 </View>
-                
             </View>
-
             {/* Confirm Button */}
             <Pressable 
                 style={tailwind`p-4 bg-blue-600 rounded-lg shadow-lg flex items-center justify-center`}
