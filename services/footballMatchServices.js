@@ -5,7 +5,7 @@ import { addFootballMatchScore } from "../redux/actions/actions";
 export const getFootballMatches  = async ({axiosInstance, tournamentId, game}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/${game}/getAllTournamentMatch`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch`, {
             params: {
                 tournament_id: tournamentId.toString(),
             },

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Pressable, Modal, Image, ScrollView} from 'react-native';
+import {View, Text, TextInput, Pressable, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 
-const AddFootbalShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
+const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [goalScore, setGoalScore] = useState();
     const [teamID, setTeamID] = useState(homeTeam.id);
@@ -17,13 +17,18 @@ const AddFootbalShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
     const handleAddShootout = async () => {
         try {
             const data = {
-                match_id: matchData.id,
-                team_id: teamID,
-                player_id: selectedPlayer.id,
-                scored: goalScore
+                "match_id":matchData.id,
+                "team_id":teamID,
+                "periods":'',
+                "incident_type":selectedIncident,
+                "incident_time":0,
+                "player_id":selectedPlayer.id,
+                "description":'',
+                "penalty_shootout_scored":goalScore
             }
+            console.log("Penalty Shootout Data: ", data)
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.post(`${BASE_URL}/addFootballPenalty`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidents`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -121,4 +126,4 @@ const AddFootbalShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
     );
 }
 
-export default AddFootbalShootout;
+export default AddFootballShootout;

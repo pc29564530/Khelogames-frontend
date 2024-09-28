@@ -26,6 +26,8 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
             setMissedPenaltyVisible(true);
         } else if (item === "substitutions"){
             setSubstitutionModalVisible(true);
+        } else if(item === "penalty_shootout"){
+            setShootoutModalVisible(true);
         }
         setSelectedIncident(item);
     }
@@ -129,6 +131,7 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 homePlayer={homePlayer} 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
                             />
                         </View>
                     </Pressable>
