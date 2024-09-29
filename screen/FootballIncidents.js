@@ -126,26 +126,45 @@ const FootballIncidents = ({route}) => {
                 </Pressable>
             </View>
 
-            <View style={tailwind`flex-row justify-between mb-4`}>
-                <Text style={tailwind`text-lg font-bold`}>PEN</Text>
-                <View style={tailwind`flex-row`}>
+            <View style={tailwind`flex-row`}>
+                <Text style={tailwind`text-lg font-bold items-center`}>PEN</Text>
+                {/* <View style={tailwind`flex-row`}>
                     <Text style={tailwind`text-lg`}>{matchData.homeTeam.name}</Text>
                     <Text style={tailwind`text-lg font-bold`}> - </Text>
                     <Text style={tailwind`text-lg`}>{matchData.awayTeam.name}</Text>
-                </View>
+                </View> */}
             </View>
 
             <View style={tailwind`justify-between mb-4`}>
             {penaltyShootoutIncidents.map((item, index) => (
-                <View key={index} style={[tailwind`p-4 border-b border-red-200 justify-between`]}>
+                <View key={index} style={[tailwind`p-4 justify-between`]}>
                     {item.team_id===matchData.homeTeam.id ? (
                         <View style={tailwind`justify-start  flex-row gap-2 `}>
-                            <View style={tailwind`h-10 w-1 bg-gray-400 mx-4`} />
-                            <View style={tailwind`flex-row`}>
-                                <Text style={tailwind`font-bold text-2xl`}>{item.home_score.goals}</Text>
-                                <Text style={tailwind`font-bold text-2xl`}>-</Text>
-                                <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
-                            </View>
+                            {item.penalty_shootout_scored ===  true ? (
+                                <>
+                                <View>
+                                    <Text style={tailwind`text-2xl`}>⚽</Text>
+                                </View>
+                                <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
+                                <View style={tailwind`flex-row`}>
+                                    <Text style={tailwind`font-bold text-2xl`}>{item.home_score.goals}</Text>
+                                    <Text style={tailwind`font-bold text-2xl`}>-</Text>
+                                    <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
+                                </View>
+                                </>
+                            ):(
+                                <>
+                                <View>
+                                    <Text style={tailwind`text-2xl`}>🚫</Text>
+                                    <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
+                                </View>
+                                <View style={tailwind`flex-row`}>
+                                    <Text style={tailwind`font-light text-2xl`}>{item.home_score.goals}</Text>
+                                    <Text style={tailwind`font-bold text-2xl`}>-</Text>
+                                    <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
+                                </View>
+                                </>
+                            )}
                             <Text style={tailwind`font-bold text-2xl`}>{item.player.name}</Text>
                         </View>
                     ): (
@@ -156,7 +175,16 @@ const FootballIncidents = ({route}) => {
                                 <Text style={tailwind`font-bold text-2xl`}>-</Text>
                                 <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
                             </View>
-                            <View style={tailwind`h-10 w-1 bg-gray-400 mx-4`} />
+                            <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
+                            {item.penalty_shootout_scored ===  true ? (
+                                <View>
+                                    <Text style={tailwind`text-2xl`}>⚽</Text>
+                                </View>
+                            ):(
+                                <View>
+                                    <Text style={tailwind`text-2xl`}>🚫</Text>
+                                </View>
+                            )}
                         </View>
                     )}
                     

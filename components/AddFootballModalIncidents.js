@@ -5,8 +5,9 @@ import tailwind from 'twrnc';
 import AddFootballSubstitution from './AddFootballSubstitutionIncident';
 import AddFootballShootout from './AddFootballShootoutIncident';
 import AddFootballIncident from './AddFootballIncident';
+import AddFootballPeriods from './AddFootballPeriods';
 
-const incidentsTypes = ["goal", "penalty", "fouls", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitutions", "penalty_shootout"];
+const incidentsTypes = ["goal", "penalty", "fouls", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitutions", "penalty_shootout", "periods"];
 
 const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
     const scrollViewRef = useRef(null);
@@ -16,6 +17,7 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
     const [shootoutModalVisible, setShootoutModalVisible ] = useState(false);
     const [penaltyModalVisible, setPenaltyModalVisible] = useState(false);
     const [missedPenaltyVisible, setMissedPenaltyVisible] = useState(false);
+    const [periodsModalVisible, setPeriodsModalVisible] = useState(false);
 
     const handleIncident = (item) => {
         if (item === "penalty_shootout") {
@@ -26,9 +28,9 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
             setMissedPenaltyVisible(true);
         } else if (item === "substitutions"){
             setSubstitutionModalVisible(true);
-        } else if(item === "penalty_shootout"){
-            setShootoutModalVisible(true);
-        }
+        } else if(item === "periods") {
+            setPeriodsModalVisible(true);
+        } 
         setSelectedIncident(item);
     }
 
@@ -40,7 +42,6 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
         <View style={tailwind``}>
             <View>
                 <View>
-                    {/* <Text>Select Incident</Text> */}
                     <View style={tailwind`flex-row mt-5`}>
                     <ScrollView
                         horizontal
@@ -127,6 +128,26 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                     <Pressable onPress={() => setShootoutModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
                             <AddFootballShootout matchData={matchData} 
+                                awayPlayer={awayPlayer} 
+                                homePlayer={homePlayer} 
+                                awayTeam={matchData.awayTeam} 
+                                homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
+                            />
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
+            {periodsModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={periodsModalVisible}
+                    onRequestClose={() => setPeriodsModalVisible(false)}
+                >
+                    <Pressable onPress={() => setPeriodsModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <AddFootballPeriods matchData={matchData} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
                                 awayTeam={matchData.awayTeam} 

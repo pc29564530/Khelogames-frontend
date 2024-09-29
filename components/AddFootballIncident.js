@@ -44,15 +44,18 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
                 <View style={tailwind`flex-row items-center justify-between`}>
-                    <Pressable 
+                    {periodsData.map((item,index) => {
+                        <Pressable 
                         style={[tailwind`p-3 rounded-lg`, teamID === 'first_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
-                        onPress={() => selectedHalf('first_half')}
+                        onPress={() => setSelectedHalf('first_half')}
                     >
-                        <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
+                        <Text style={tailwind`text-white font-semibold`}>{item}</Text>
                     </Pressable>
+                    })}
+                    
                     <Pressable 
                         style={[tailwind`p-3 rounded-lg`, teamID === 'second_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
-                        onPress={() => selectedHalf('second_half')}
+                        onPress={() => setSelectedHalf('second_half')}
                     >
                         <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
                     </Pressable>
