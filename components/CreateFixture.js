@@ -10,8 +10,9 @@ import { addFootballScoreServices } from '../services/footballMatchServices';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
 import { useDispatch, useSelector } from 'react-redux';
 const matchTypes = ['Team', 'Individual', 'Double'];
+const filePath = require('../assets/status_code.json');
 
-const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal, sport }) => {
+const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal, game }) => {
   const [team1, setTeam1] = useState(null);
   const [team2, setTeam2] = useState(null);
   const [startTime, setStartTime] = useState(null);
@@ -60,7 +61,7 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
 
       console.log("Fixture: ", fixture)
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.post(`${BASE_URL}/${tournament.sports}/createTournamentMatch`, fixture,{
+      const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture,{
         headers: {
           'Authorization': `bearer ${authToken}`,
           'Content-Type': 'application/json',

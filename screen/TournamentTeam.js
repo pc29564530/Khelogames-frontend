@@ -10,7 +10,7 @@ import { setTeams, getTeams } from '../redux/actions/actions';
 import { getTeamsByTournamentID } from '../services/tournamentServices';
 
 const TournamentTeam = ({ route }) => {
-    const { tournament, currentRole } = route.params;
+    const { tournament, currentRole, game } = route.params;
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const [teamDisplay, setTeamDisplay] = useState([]);
@@ -21,7 +21,7 @@ const TournamentTeam = ({ route }) => {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, sports:tournament.sports, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
+                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
                 dispatch(getTeams(tournamentTeams));
             } catch (err) {
                 console.error("unable to fetch the tournament teams: ", err);
@@ -37,7 +37,7 @@ const TournamentTeam = ({ route }) => {
     const fetchTeamBySport = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getTeamsBySport`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -45,12 +45,12 @@ const TournamentTeam = ({ route }) => {
             });
             setTeamDisplay(response.data || []);
         } catch (err) {
-            console.error("unable to fetch the team by sport: ", err);
+            console.error("unable to fetch the team by game: ", err);
         }
     };
 
     const handleTeam = (item) => {
-        navigation.navigate('ClubPage', { clubData: item, sport: item.sports });
+        navigation.navigate('ClubPage', { clubData: item, sport: game });
     };
 
     const handleAddTeam = async (item) => {
@@ -97,7 +97,7 @@ const TournamentTeam = ({ route }) => {
                 </View>
             )}
             <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled={true} style={tailwind`mb-10`}>
-                {teams.map((item, index) => (
+                {teams?.map((item, index) => (
                     <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
                 ))}
             </ScrollView>
@@ -130,7 +130,7 @@ const TeamItem = ({ item, onPress }) => (
     <Pressable onPress={onPress} style={tailwind`mt-2 rounded-lg shadow-lg bg-white p-4 flex-row justify-between items-center`}>
         <View style={tailwind`flex-row items-center`}>
             <Image source={{ uri: item.media_url || 'default_logo_url' }} style={tailwind`w-14 h-14 rounded-full bg-gray-200`} />
-            <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.team_name}</Text>
+            <Text style={tailwind`ml-4 text-lg text-gray-800 font-semibold`}>{item.name}</Text>
         </View>
     </Pressable>
 );

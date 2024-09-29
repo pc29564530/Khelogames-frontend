@@ -1,3 +1,4 @@
+import React from 'react';
 import {View, Text, Pressable, ScrollView, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,7 +10,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 
-const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
+const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, game}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
@@ -22,10 +23,9 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     const fetchTournamentMatchs = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getAllTournamentMatch`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch`, {
                 params: {
                     tournament_id: tournament.id,
-                    sports: tournament.sports
                 },
                 headers: {
                     'Authorization': `bearer ${authToken}`,
@@ -41,7 +41,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     };
 
     const handleCricketMatchPage = (item) => {
-        navigation.navigate("CricketMatchPage", {item: item, sports: tournament.sports})
+        navigation.navigate("CricketMatchPage", {item: item, game: game.name})
     }
 
     return (
@@ -50,7 +50,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                 {matches?.length > 0 ? (
                     matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleCricketMatchPage(item)}>
-                            {console.log(Object.keys(item.awayScore).length)}
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>
