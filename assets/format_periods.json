@@ -1,0 +1,8 @@
+{
+    "formatPeriod":[
+      {"name":"Full Time", "slug":"full_time", "short_name": "FT"},
+      {"name":"Half Time", "slug": "half_time", "short_name":"HT"},
+      {"name": "Extra Half Time", "slug":"extra_half_time", "short_name": "EHT"},
+      {"name": "Extra Full Time", "slug": "extra_full_time", "short_name": "EFT"}
+    ]
+  }
