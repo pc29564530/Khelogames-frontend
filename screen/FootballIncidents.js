@@ -71,7 +71,6 @@ const FootballIncidents = ({route}) => {
                         'Content-Type': 'application/json',
                     },
                 })
-                console.log("Incident: ", response.data[1].incidents)
                 setIncidents(response.data[1].incidents || []);
             } catch (err) {
                 console.error("unable to fetch the incident: ", err)
@@ -86,7 +85,6 @@ const FootballIncidents = ({route}) => {
             data = {
                 match_id: matchData.id
             }
-            console.log("match id: ", data)
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken");
                 const response = await axiosInstance.get(`${BASE_URL}/football/getFootballPenalty`, {
@@ -101,7 +99,6 @@ const FootballIncidents = ({route}) => {
 
                 const item = response.data || [];
                 
-                console.log("Shootout: ", item)
                 setPenaltyH(response.data || []);
 
             } catch (err) {

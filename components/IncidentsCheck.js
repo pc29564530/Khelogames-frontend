@@ -4,14 +4,14 @@ import tailwind from 'twrnc';
 
 
 const incidentEmojis = {
-    goal: '⚽',            // Goal
-    penalty: '🏅',         // Penalty
+    goal: '⚽',
+    penalty: '🏅',
     missed: '🚫',
-    foul: '❌',            // Foul
-    free_kick: '🚀',       // Free Kick
-    substitution: '🔁',   // Substitution (new emoji)
-    yellow_card: '🟨',     // Yellow Card
-    red_card: '🟥'         // Red Card
+    foul: '❌',
+    free_kick: '🚀',
+    substitution: '🔁',
+    yellow_card: '🟨',
+    red_card: '🟥'
 };
 
 const incidentTypeCheck = (incidentType) => {
@@ -52,7 +52,7 @@ const IncidentCheck = ({ incidents, matchData }) => {
               {item.incident_type === 'substitutions' ? (
                 <View style={tailwind`flex-row items-center`}>
                     <View style={tailwind`items-center p-2`}>
-                        <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incidentType)}</Text>
+                        <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incident_type)}</Text>
                         <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
@@ -67,14 +67,14 @@ const IncidentCheck = ({ incidents, matchData }) => {
                     </View>
                   </View>
                   <View style={tailwind`items-center p-2`}>
-                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incidentType)}</Text>
+                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incident_type)}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                 </View>
               ) : (
                 <View style={tailwind`flex-row items-center`}>
                     <View style={tailwind`items-center`}>
-                        <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incidentType)}</Text>
+                        <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incident_type)}</Text>
                         <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                     </View>
                     <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
@@ -111,7 +111,7 @@ const IncidentCheck = ({ incidents, matchData }) => {
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   <View style={tailwind`items-center p-2`}>
-                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incidentType)}</Text>
+                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incident_type)}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                 </View>
@@ -131,7 +131,7 @@ const IncidentCheck = ({ incidents, matchData }) => {
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   <View style={tailwind`items-center`}>
-                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incidentType)}</Text>
+                    <Text style={tailwind`text-xl`}>{incidentTypeCheck(item.incident_type)}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                 </View>
