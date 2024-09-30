@@ -6,6 +6,7 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import AddFootballModalIncident from '../components/AddFootballModalIncidents';
+import IncidentCheck from '../components/IncidentsCheck';
 
 const FootballIncidents = ({route}) => {
     const [incidentModalVisible, setIncidentModalVisible] = useState(false);
@@ -113,146 +114,79 @@ const FootballIncidents = ({route}) => {
 
     incidents.sort((a,b) => b.id - a.id);
     const penaltyShootoutIncidents = incidents.filter(item => item.incident_type === 'penalty_shootout');
-    console.log("penalty shootout: ", penaltyShootoutIncidents)
     return (
         <ScrollView style={tailwind`flex-1 bg-white`}>
-            <View style={tailwind``}>
-            <View style={tailwind`items-end mb-4`}>
-                <Pressable 
-                    onPress={() => setIncidentModalVisible(true)} 
-                    style={tailwind`bg-blue-600 rounded-lg p-3 shadow-md`}
-                >
-                    <Text style={tailwind`text-white text-lg font-semibold`}>Add Incident</Text>
-                </Pressable>
-            </View>
-
-            <View style={tailwind`flex-row`}>
-                <Text style={tailwind`text-lg font-bold items-center`}>PEN</Text>
-                {/* <View style={tailwind`flex-row`}>
-                    <Text style={tailwind`text-lg`}>{matchData.homeTeam.name}</Text>
-                    <Text style={tailwind`text-lg font-bold`}> - </Text>
-                    <Text style={tailwind`text-lg`}>{matchData.awayTeam.name}</Text>
-                </View> */}
-            </View>
-
-            <View style={tailwind`justify-between mb-4`}>
-            {penaltyShootoutIncidents.map((item, index) => (
-                <View key={index} style={[tailwind`p-4 justify-between`]}>
-                    {item.team_id===matchData.homeTeam.id ? (
-                        <View style={tailwind`justify-start  flex-row gap-2 `}>
-                            {item.penalty_shootout_scored ===  true ? (
-                                <>
-                                <View>
-                                    <Text style={tailwind`text-2xl`}>⚽</Text>
-                                </View>
-                                <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
-                                <View style={tailwind`flex-row`}>
-                                    <Text style={tailwind`font-bold text-2xl`}>{item.home_score.goals}</Text>
-                                    <Text style={tailwind`font-bold text-2xl`}>-</Text>
-                                    <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
-                                </View>
-                                </>
-                            ):(
-                                <>
-                                <View>
-                                    <Text style={tailwind`text-2xl`}>🚫</Text>
-                                    <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
-                                </View>
-                                <View style={tailwind`flex-row`}>
-                                    <Text style={tailwind`font-light text-2xl`}>{item.home_score.goals}</Text>
-                                    <Text style={tailwind`font-bold text-2xl`}>-</Text>
-                                    <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
-                                </View>
-                                </>
-                            )}
-                            <Text style={tailwind`font-bold text-2xl`}>{item.player.name}</Text>
-                        </View>
-                    ): (
-                        <View style={tailwind`flex-row justify-end gap-2`}>
-                            <Text style={tailwind`font-bold text-2xl`}>{item.player.name}</Text>
-                            <View style={tailwind`flex-row`}>
-                                <Text style={tailwind`font-bold text-2xl`}>{item.home_score.goals}</Text>
-                                <Text style={tailwind`font-bold text-2xl`}>-</Text>
-                                <Text style={tailwind`font-bold text-2xl`}>{item.away_score.goals}</Text>
-                            </View>
-                            <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
-                            {item.penalty_shootout_scored ===  true ? (
-                                <View>
-                                    <Text style={tailwind`text-2xl`}>⚽</Text>
-                                </View>
-                            ):(
-                                <View>
-                                    <Text style={tailwind`text-2xl`}>🚫</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-                    
+            <View style={tailwind`p-4`}>
+                <View style={tailwind`items-end mb-6`}>
+                    <Pressable 
+                        onPress={() => setIncidentModalVisible(true)} 
+                        style={tailwind`bg-blue-600 rounded-lg p-3 shadow-lg`}
+                    >
+                        <Text style={tailwind`text-white text-lg font-semibold`}>Add Incident</Text>
+                    </Pressable>
                 </View>
-            ))}
-            </View>
-            </View>
-                <View style={tailwind`border border-gray-200 shadow-md rounded-md `}>
-                {incidents.filter(item => item.incident_type !== 'penalty_shootout')
-                    .map((item, index) => (
-                        <View key={index} style={[tailwind`p-4 border-b border-gray-200 justify-between`, item.team_id === matchData.homeTeam.id?tailwind`justify-start`:tailwind`justify-end`]}>
-                        {item.incident_type === "substitutions" ? (
-                            <View style={tailwind`flex-row items-center`}>
-                            <View style={tailwind``}>
-                                <View style={tailwind`flex-row`}>
-                                <Text>In:</Text>
-                                <Text>{item.player_in.name}</Text>
-                                </View>
-                                <View style={tailwind`flex-row`}>
-                                <Text>Out:</Text>
-                                <Text>{item.player_out.name}</Text>
-                                </View>
+    
+                <View style={tailwind`mb-4`}>
+                    <Text style={tailwind`text-lg font-bold mb-2 items-center`}>PEN</Text>
+                    <View style={tailwind`gap-4`}>
+                        {penaltyShootoutIncidents.map((item, index) => (
+                            <View key={index} style={tailwind` p-4 bg-gray-100 rounded-lg shadow-md`}>
+                                {item.team_id === matchData.homeTeam.id ? (
+                                    <View style={tailwind`flex-row justify-start gap-2`}>
+                                        <Text style={tailwind`text-2xl mr-4`}>{item.penalty_shootout_scored ? '⚽' : '🚫'}</Text>
+                                        <Text style={tailwind`h-10 w-0.2 bg-gray-400`}/>
+                                        <Text style={tailwind`text-xl font-semibold mr-6`}>{item.player.name}</Text>
+                                        <Text style={tailwind`text-xl`}>{item.home_score.goals} - {item.away_score.goals}</Text>
+                                    </View>
+                                ) : (
+                                    <View style={tailwind`flex-row justify-end gap-2`}>
+                                        <Text style={tailwind`text-xl`}>{item.home_score.goals} - {item.away_score.goals}</Text>
+                                        <Text style={tailwind`text-xl font-semibold mx-6`}>{item.player.name}</Text>
+                                        <Text style={tailwind`h-10 w-0.2 bg-gray-400`}/>
+                                        <Text style={tailwind`text-2xl`}>{item.penalty_shootout_scored ? '⚽' : '🚫'}</Text>
+                                    </View>
+                                )}
                             </View>
-                            <View style={tailwind`h-10 w-1 bg-gray-400 mx-4`} />
-                            <View style={tailwind`items-center p-2`}>
-                                <Image src="" style={tailwind`rounded-full bg-yellow-200 h-5 w-5`}/>
-                                <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
-                            </View>
-                            </View>
-                        ) : (
-                            <View style={tailwind`flex-row items-center`}>
-                            {item.home_score && item.away_score && (
-                                <View style={tailwind`flex-row`}>
-                                <Text>{item.home_score.goals}</Text>
-                                <Text>-</Text>
-                                <Text>{item.away_score.goals}</Text>
-                                </View>
-                            )}
-                            <View style={tailwind``}>
-                                <Text>{item.player.name}</Text>
-                                <Text>{item.incident_type}</Text>
-                            </View>
-                            <View style={tailwind`h-10 w-1 bg-gray-400 mx-4`} />
-                            <View style={tailwind`items-center`}>
-                                <Image src="" style={tailwind`rounded-full bg-yellow-200 h-5 w-5`}/>
-                                <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
-                            </View>
-                            </View>
-                        )}
-                        </View>
-                    ))}
+                        ))}
+                    </View>
                 </View>
-                
+    
+                <View style={tailwind`mb-4`}>
+                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>Extra Time</Text>
+                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "extra_time"))} matchData={matchData}/>
+    
+                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>Full Time</Text>
+                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "full_time"))} matchData={matchData}/>
+    
+                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full`}>Half Time</Text>
+                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "first_half"))} matchData={matchData}/>
+                </View>
+    
                 {incidentModalVisible && (
                     <Modal
                         transparent={true}
-                        animatedType="slide"
+                        animationType="slide"
                         visible={incidentModalVisible}
                         onRequestClose={() => setIncidentModalVisible(false)}
                     >
-                        <Pressable onPress={() => setIncidentModalVisible(false)}style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                            <View style={tailwind`bg-white rounded-md p-8`}>
-                                <AddFootballModalIncident matchData={matchData} awayPlayer={awayPlayer} homePlayer={homePlayer} awayTeam={matchData.awayTeam} homeTeam={matchData.homeTeam}/>
+                        <Pressable onPress={() => setIncidentModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                            <View style={tailwind`bg-white rounded-t-lg p-8`}>
+                                <AddFootballModalIncident 
+                                    matchData={matchData} 
+                                    awayPlayer={awayPlayer} 
+                                    homePlayer={homePlayer} 
+                                    awayTeam={matchData.awayTeam} 
+                                    homeTeam={matchData.homeTeam}
+                                />
                             </View>
                         </Pressable>
                     </Modal>
                 )}
+            </View>
         </ScrollView>
     );
 }
+
+
+
 export default FootballIncidents; 
