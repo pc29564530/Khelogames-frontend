@@ -7,7 +7,7 @@ import AddFootballShootout from './AddFootballShootoutIncident';
 import AddFootballIncident from './AddFootballIncident';
 import AddFootballPeriods from './AddFootballPeriods';
 
-const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period"];
+const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period", "corner_kick"];
 
 const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
     const scrollViewRef = useRef(null);

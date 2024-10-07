@@ -111,6 +111,13 @@ const FootballIncidents = ({route}) => {
 
     incidents.sort((a,b) => b.id - a.id);
     const penaltyShootoutIncidents = incidents.filter(item => item.incident_type === 'penalty_shootout');
+    const firstHalf = incidents.filter(item => item.periods === "first_half" && item.incident_type !== 'penalty_shootout');
+    const secondHalf = incidents.filter(item => item.periods === "second_half" && item.incident_type !== 'penalty_shootout');
+    const extraHalfTime = incidents.filter(item => item.periods === "extra_half_time" && item.incident_type !== 'penalty_shootout');
+    const halfTime = incidents.filter(item => (item.incident_type === "period" && item.periods === "half_time") );
+    const fullTime = incidents.filter(item => (item.incident_type === "period" && item.periods === "full_time") );
+    const extraTime = incidents.filter(item => (item.incident_type === "period" && item.periods === "extra_time") );
+
     return (
         <ScrollView style={tailwind`flex-1 bg-white`}>
             <View style={tailwind`p-4`}>
@@ -147,17 +154,48 @@ const FootballIncidents = ({route}) => {
                         ))}
                     </View>
                 </View>
+                <View style={tailwind`mb-4`}>
+                    <View>
+                        {extraTime.length > 0 ? (
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`} >ET</Text>
+                        ):(
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>Extra Half Time</Text>
+                        )}
+                    </View>
+                    <View style={tailwind`gap-4`}>
+                        <IncidentCheck incident={extraHalfTime} matchData={matchData}/>
+                    </View>
+                </View>
+                <View style={tailwind`mb-4`}>
+                    <View>
+                        {fullTime.length > 0 ? (
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>FT</Text>
+                        ):  (
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>2nd half</Text>
+                        )}
+                    </View>
+                    <View style={tailwind`gap-4`}>
+                        <IncidentCheck incident={secondHalf} matchData={matchData}/>
+                    </View>
+                </View>
+                
     
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>Extra Time</Text>
-                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "extra_time"))} matchData={matchData}/>
-    
-                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>Full Time</Text>
-                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "full_time"))} matchData={matchData}/>
-    
-                    <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full`}>Half Time</Text>
-                    <IncidentCheck incidents={incidents.filter(item => (item.incident_type !== 'penalty_shootout' && item.periods === "first_half"))} matchData={matchData}/>
+                    <View>
+                        {halfTime.length > 0 ? (
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>HT</Text>
+                        ):(
+                            <Text style={tailwind`text-lg font-bold text-center bg-red-200 p-2 w-full rounded-full mb-4`}>1st half</Text>
+                        )}
+                    </View>    
+                    <View style={tailwind`gap-4`}>
+                        <IncidentCheck incident={firstHalf} matchData={matchData}/>
+                    </View>
                 </View>
+                
+               
+                
+                
     
                 {incidentModalVisible && (
                     <Modal
@@ -184,6 +222,4 @@ const FootballIncidents = ({route}) => {
     );
 }
 
-
-
-export default FootballIncidents; 
+export default FootballIncidents;
