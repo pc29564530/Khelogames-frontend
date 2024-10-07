@@ -7,7 +7,7 @@ import AddFootballShootout from './AddFootballShootoutIncident';
 import AddFootballIncident from './AddFootballIncident';
 import AddFootballPeriods from './AddFootballPeriods';
 
-const incidentsTypes = ["goal", "penalty", "fouls", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitutions", "penalty_shootout", "periods"];
+const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period", "corner_kick"];
 
 const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
     const scrollViewRef = useRef(null);
@@ -26,9 +26,9 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
             setPenaltyModalVisible(true);
         } else if(item === "penalty_miss"){
             setMissedPenaltyVisible(true);
-        } else if (item === "substitutions"){
+        } else if (item === "substitution"){
             setSubstitutionModalVisible(true);
-        } else if(item === "periods") {
+        } else if(item === "period") {
             setPeriodsModalVisible(true);
         } 
         setSelectedIncident(item);
