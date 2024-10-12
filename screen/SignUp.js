@@ -13,8 +13,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { Google } from '@mui/icons-material';
-
+import Config from 'react-native-config';
 
 
 
@@ -25,14 +24,16 @@ function SignUp() {
     const [modalVisible, setModalVisible] = useState(false);
     const [otp, setOTP] = useState('');
     const navigation = useNavigation();
-
+    console.log("WEb client id: ", Config.WEB_CLIENT_ID)
     useEffect(() => {
       GoogleSignin.configure({
         scopes: ['profile', 'email'],
-        offlineAccess:false,
-        webClientId: process.env("WEB_CLIENT_ID")
+        offlineAccess: false,
+        webClientId: Config.WEB_CLIENT_ID
       });
-    }, [])
+    }, []);
+
+
 
     const handleVerify = async () => {
         try {
@@ -61,28 +62,46 @@ function SignUp() {
       try {
         await GoogleSignin.hasPlayServices()
         const user = await GoogleSignin.signIn()
-      
-        setUserInfo(user.data);
+        console.log("User: ", user)
+        const response = await axios.get(`${AUTH_URL}/google/handleGoogleRedirect`)
+        // console.log("Line no 65: ", user)
+        setUserInfo(user.data || []);
         setModalVisible(true);
       } catch (err) {
         console.error("unable to redirect to google sign in page: ", err)
       }
     }
 
-    const handleGoogleSignUp = async (item) => {
+    const handleGoogleSignUp = async (userInfo) => {
       try {
-        const tokens = await GoogleSignin.getTokens();
-        if (tokens === null || tokens === undefined) {
-          console.error("Tokens are undefined");
-          return;
-        }
-        const data = {
-          idToken: tokens.idToken,
-          accessToken: tokens.accessToken,
-        };
         const response = await axios.post(`${AUTH_URL}/google/handleGoogleCallback`,{
-          code: item.idToken
-        } )
+          code: userInfo.idToken
+        });
+        const item = response.data
+        console.log("Item: ", item)
+        // if (item !== NULL) {
+        //   if (response.data.access_token) {
+        //     await AsyncStorage.setItem("AccessToken", response.data.access_token);
+        //   }
+        //   if (response.data.user && response.data.user.username) {
+        //     await AsyncStorage.setItem("User", response.data.user.username);
+        //   }
+        //   if (response.data.refresh_token) {
+        //     await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
+        //   } 
+        //   if (response.data.access_token_expires_at) {
+        //     await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.access_token_expires_at);
+        //   }
+        //   if (response.data.refresh_token_expires_at) {
+        //     await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
+        //   }
+        //   setRefresh(response.data.refresh_token);
+        //   setAccess(response.data.access_token);
+        //   setAExpire(response.data.access_token_expires_at);
+        //   setRExpire(response.data.access_token_expires_at);
+        //   item.isNewUser===true ? navigation.navigate('JoinCommunity'):  navigation.navigate('Home');
+        // }
+
       } catch (err) {
         console.error("unable to signup using gmail: ", err)
       }
@@ -138,9 +157,12 @@ function SignUp() {
       </View>
 
       <View style={tailwind`mt-10 mr-20 ml-20 flex-row`}>
-        <Pressable onPress={() => handleMailSignUp()} style={tailwind`bg-blue-500 hover:bg-blue-700 rounded-md py-3 px-4`}>
-            <Text style={tailwind`text-white text-center font-bold`}>Mail</Text>
+        <Pressable onPress={() => handleMailSignUp()} style={tailwind`bg-white py-3 px-4`}>
+            <AntDesign name="google" size={24} />
         </Pressable>
+        {/* <Pressable onPress={() => handleFacebookSignup()} style={tailwind`bg-white py-3 px-4`}>
+            <FontAwesome name="facebook-square" size={24} />
+        </Pressable> */}
       </View>
       {modalVisible && (
         <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
@@ -148,9 +170,10 @@ function SignUp() {
             <View style={tailwind`w-11/12 mt-10`}>
               <Text style={tailwind`text-2xl font-bold`}>Select an account</Text>
             </View>
-            {userInfo && userInfo.user && (
+            {userInfo && userInfo.idToken && (
               <View style={tailwind`w-11/12 mt-5`}>
-                <Pressable onPress={() => { handleGoogleSignUp(userInfo); setModalVisible(false) }} style={tailwind`flex-row items-center`}>
+                {console.log("line no 192: ", userInfo)}
+                <Pressable onPress={(item) => { handleGoogleSignUp(userInfo); setModalVisible(false) }} style={tailwind`flex-row items-center`}>
                   <Image source={{ uri: userInfo.user.photo }} style={tailwind`w-10 h-10 rounded-full`} />
                   <View style={tailwind`ml-5`}>
                     <Text style={tailwind`text-lg font-bold`}>{userInfo.user.name}</Text>
