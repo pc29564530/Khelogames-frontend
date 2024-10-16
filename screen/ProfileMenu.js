@@ -14,7 +14,7 @@ import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { logoutServies } from '../services/authServies';
 import { handleUser } from '../utils/ThreadUtils';
 
-const logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+const logoPath = require('/Users/pawan/project/clone/Khelogames-frontend/assets/images/Khelogames.png');
 
 function ProfileMenu() {
   const dispatch = useDispatch();
@@ -48,7 +48,7 @@ function ProfileMenu() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const authUser = await AsyncStorage.getItem('User');
+        const authUser = await AsyncStorage.getItem("User");
         const response = await axios.get(`${AUTH_URL}/getProfile/${authUser}`);
         if (!response.data.avatar_url || response.data.avatar_url === '') {
           const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
