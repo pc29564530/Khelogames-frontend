@@ -37,14 +37,16 @@ const User = ({ route }) => {
       try {
         const newAccount = { username, mobile_number: mobileNumberA?mobileNumberA:null, role: 'user', gmail: gmailA?gmailA:null };
         const response = await axios.post(`${AUTH_URL}/users`, newAccount);
+
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser (response.data.user));
+        
         if (response.data) {
           if (response.data.access_token) {
             await AsyncStorage.setItem("AccessToken", response.data.access_token);
           }
           if (response.data.user && response.data.user.username) {
-            await AsyncStorage.setItem("User ", response.data.user.username);
+            await AsyncStorage.setItem("User", response.data.user.username);
           }
           if (response.data.refresh_token) {
             await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);
@@ -55,7 +57,7 @@ const User = ({ route }) => {
           if (response.data.refresh_token_expires_at) {
             await AsyncStorage.setItem("RefreshTokenExpiresAt", response.data.refresh_token_expires_at);
           }
-          console.log("ResponseData for Account Creation ", response.data);
+
           setRefresh(response.data.refresh_token);
           setAccess(response.data.access_token);
           setAExpire(response.data.access_token_expires_at);
