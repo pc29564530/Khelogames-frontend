@@ -64,22 +64,6 @@ export default function EditProfile() {
         }
     }
 
-    const handleCover = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put(`${BASE_URL}/updateCover`,{cover_url: coverUrl, cover_type: coverType}, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            } );
-            setCoverUrl(response.data.cover_url);
-            setCoverType(response.data.cover_type)
-        } catch (e) {
-            console.error("unable to update the cover: ", err)
-        }
-    }
-
     const handleFullName = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -151,35 +135,6 @@ export default function EditProfile() {
         }
     };
 
-    const uploadCoverimage =  async () => {
-        try {
-            let options = { 
-                noData: true,
-                mediaType: 'image',
-            };
-    
-            const res = await launchImageLibrary(options);
-    
-            if (res.didCancel) {
-                console.log('User cancelled photo picker');
-            } else if (res.error) {
-                console.log('ImagePicker Error: ', response.error);
-            } else {
-                const type = getMediaTypeFromURL(res.assets[0].uri);
-                
-                if(type === 'image') {
-                    const base64File = await fileToBase64(res.assets[0].uri);
-                    setCoverUrl(base64File);
-                    setCoverType(type)
-                    handleCover();
-                } else {
-                    console.log('unsupported media type: ', type);
-                }
-            }
-        } catch (e) {
-            console.error("unable to load cover image", e);
-        }
-    };
 
     const fetchUserProfile = async () => {
         try {
@@ -225,31 +180,42 @@ export default function EditProfile() {
     });
     
     return (
-        <KeyboardAvoidingView style={tailwind`flex-1 bg-black`} >
-            <View style={tailwind`flex-2/5 w-full h-60`}>
-                <Image
-                    style={tailwind`h-60 object-cover bg-yellow-500`}
-                    source={{uri: coverUrl||'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',}}
-                />
-                <Pressable style={tailwind`-mt-16 ml-70 bg-red-500 w-20 h-15 rounded-md p-4 items-center`} onPress={uploadCoverimage}>
-                    <FontAwesome  name="upload" size={24} color="white" />
-                </Pressable>
+    <KeyboardAvoidingView style={tailwind`flex-1 bg-black gap-10`}>
+        <View tyle={tailwind`flex flex-row justify-center items-start mt-4 mr-10`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>Edit Profile</Text>
+        </View>
+        <View style={tailwind`flex flex-row justify-center items-center mt-4`}>
+            <View style={tailwind`flex-2/5 p-4`} >
+                    <Image
+                        style={tailwind`h-24 w-24 rounded-full border-2 bg-white -mt-12`}
+                        source={{
+                            uri: avatarUrl||'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
+                        }}
+                    />
+                    <Pressable  style={tailwind` -mt-12 ml-18 rounded-full bg-red-500 w-8 h-8 p-1 items-center` } onPress={uploadAvatarimage}>
+                        <FontAwesome name="upload" size={20} color="white" />
+                    </Pressable>
+                    </View>
+
             </View>
-            <View style={tailwind`flex-2/5 p-4`}>
-                <Image
-                    style={tailwind`h-24 w-24 rounded-full border-2 bg-white -mt-12`}
-                    source={{
-                        uri: avatarUrl||'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
-                    }}
-                />
-                <Pressable  style={tailwind` -mt-12 ml-18 rounded-full bg-red-500 w-8 h-8 p-1 items-center` } onPress={uploadAvatarimage}>
-                    <FontAwesome name="upload" size={20} color="white" />
-                </Pressable>
-            </View>
-            <View style={tailwind`mt-20 flex-2/5 gap-10`}>
-                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={fullName}  onChangeText={setFullName} placeholder='Enter the Full Name' placeholderTextColor="white" onEndEditing={handleFullName}/>
-                <TextInput style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}  value={bio} onChangeText={setBio} placeholder='Enter About you' placeholderTextColor="white" onEndEditing={handleBio}/>
-            </View>
-        </KeyboardAvoidingView>
+        <View style={tailwind`flex-2/5 gap-10 p-4`}>
+            <TextInput
+            style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Full Name"
+            placeholderTextColor="white"
+            onEndEditing={handleFullName}
+            />
+            <TextInput
+            style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}
+            value={bio}
+            onChangeText={setBio}
+            placeholder="About You"
+            placeholderTextColor="white"
+            onEndEditing={handleBio}
+            />
+        </View>
+    </KeyboardAvoidingView>
     );
 };

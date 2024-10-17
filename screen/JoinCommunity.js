@@ -13,7 +13,7 @@ function JoinCommunity() {
     const handleCommunity = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await axiosInstance.post(`${BASE_URL}/addJoinedCommuity`, {community_name: item}, {
+            await axiosInstance.post(`${BASE_URL}/addJoinCommunity`, {community_name: item}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

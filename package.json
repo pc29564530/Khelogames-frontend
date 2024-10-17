@@ -1,7 +1,7 @@
 {
   "name": "KhelogamesApp",
   "version": "1.0.0",
-  "proxy": "http://192.168.1.2:8080",
+    "proxy": "http://192.168.1.4:8080",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
@@ -18,6 +18,7 @@
     "@react-native-community/cli": "^11.3.8",
     "@react-native-community/datetimepicker": "^7.7.0",
     "@react-native-community/masked-view": "^0.1.11",
+    "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-native-picker/picker": "^2.7.7",
     "@react-native/gradle-plugin": "^0.72.11",
     "@react-native/metro-config": "^0.72.11",
@@ -31,6 +32,7 @@
     "@rneui/base": "^4.0.0-rc.7",
     "@rneui/themed": "^4.0.0-rc.8",
     "axios": "^1.4.0",
+    "dotenv": "^16.4.5",
     "evil-icons": "^1.10.1",
     "js-yaml": "^4.1.0",
     "metro-react-native-babel-preset": "^0.77.0",
@@ -40,6 +42,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "^0.72.4",
+    "react-native-config": "^1.5.3",
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-eject": "^0.2.0",
     "react-native-emoji-selector": "^0.2.0",
@@ -71,6 +74,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "react-native-dotenv": "^3.4.11",
     "tailwindcss": "^3.3.5"
   },
   "private": true

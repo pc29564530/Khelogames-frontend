@@ -35,7 +35,6 @@ function Profile({route}) {
               }
             }
           );
-          console.log(response.data)
           if(response.statusCode === 200 ) {
             dispatch(setFollowUser(response.data));
           }
@@ -247,7 +246,7 @@ function Profile({route}) {
           <View style={tailwind`flex-1`}>
             {showEditProfileButton ? (
             <>
-              <Pressable style={tailwind`items-center p-2 border rounded-md bg-red-500 `} onPress={handleEditProfile}>
+              <Pressable style={tailwind`items-center p-2 border rounded-md bg-red-500 `} onPress={() => handleEditProfile() }>
                   <Text style={ tailwind`text-white text-xl font-bold`}>Edit Profile</Text>
               </Pressable>
               <View style={tailwind`flex-1`}>
