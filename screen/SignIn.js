@@ -34,8 +34,8 @@ function SignIn() {
         try {
             const verifyMobileNumber = {mobile_number: mobileNumber, otp: otp}
             const response = await axios.post(`${AUTH_URL}/createMobileSignin`, verifyMobileNumber);
-
-            dispatch(verifyOTP(response.data))
+            const item = response.data;
+            dispatch(verifyOTP(item))
             dispatch(setMobileNumberVerified(true))
             await AsyncStorage.setItem("AccessToken", item.access_token);
             await AsyncStorage.setItem("Role", item.user.role);
@@ -55,15 +55,15 @@ function SignIn() {
         const verifyMobileNumber = await axios.get(`${AUTH_URL}/getUserByMobileNumber`, {
           params: {mobile_number: mobileNumber}
         })
-        if (verifyMobileNumber.data.mobile_number === mobileNumber ){
-            throw new Error("Mobile number already exists");
+        if (verifyMobileNumber.data.mobile_number !== mobileNumber ){
+            throw new Error("Mobile number does not exists, please sign up");
         } else {
           const response = await axios.post(`${AUTH_URL}/send_otp`, {mobile_number: mobileNumber})
           dispatch({type: 'SEND_OTP', payload:response.data})
         }
         
       } catch (err) {
-        if (err.message === "Mobile number already exists"){
+        if (err.message === "Mobile number does not exists, please sign up"){
           console.error(err.message);
         } else {
           console.error("Unable to send the otp from ui: ", err);

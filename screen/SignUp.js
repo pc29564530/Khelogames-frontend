@@ -74,7 +74,6 @@ function SignUp() {
         await GoogleSignin.signOut()
         const userData = await GoogleSignin.signIn();
         setUserInfo(userData.data);
-        console.log("line no 87: ", userData.data)
         await axios.get(`${AUTH_URL}/google/handleGoogleRedirect`)
         handleRedirect(userData.data.idToken);
 
