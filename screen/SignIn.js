@@ -145,7 +145,7 @@ function SignIn() {
         </View> */}
   
         <View style={tailwind`mb-6`}>
-          <Pressable onPress={handleGoogleRedirect} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
+          <Pressable onPress={() => handleGoogleRedirect()} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
             <AntDesign name="google" size={24} color="black" />
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Sign In using Gmail</Text>
           </Pressable>
