@@ -132,7 +132,10 @@ function SignIn() {
     }
     
     return (
-      <View style={tailwind`flex-1 justify-center bg-black p-6`}>
+      <View style={tailwind`flex-1 bg-black m-6`}>
+        <View style={tailwind`items-center`}>
+          <Image src={{uri: logoPath}}style={tailwind`rounded-full h-30 w-30 bg-white`}/>
+        </View>
         <View style={tailwind`items-center mb-10`}>
           <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign Up / Sign In</Text>
         </View>
