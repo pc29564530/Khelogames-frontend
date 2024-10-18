@@ -100,7 +100,6 @@ function SignIn() {
               gmail: userInfo.user.email
             }
           });
-
           if (verifyGmail.data.gmail === userInfo.user.email) {
             const response = await axios.post(`${AUTH_URL}/google/createGoogleSignIn`,{
               code: idToken
@@ -116,7 +115,12 @@ function SignIn() {
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
           } else {
-            throw new Error("Gmail does not exists, Please Sign Up")
+            const response = await axios.post(`${AUTH_URL}/google/createGoogleSignUp`,{
+              code: idToken
+            }); 
+            const item = response.data;
+            setUserInfo(item)
+            navigation.navigate('User',{gmail: item})
           }
         } catch(err) {
           if (err.message === "Gmail does not exists, Please Sign Up"){
@@ -130,15 +134,15 @@ function SignIn() {
     return (
       <View style={tailwind`flex-1 justify-center bg-black p-6`}>
         <View style={tailwind`items-center mb-10`}>
-          <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign In</Text>
+          <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign Up / Sign In</Text>
         </View>
-  
-        <View style={tailwind`mb-6`}>
+        {/* Remove signup/signin using mobile */}
+        {/* <View style={tailwind`mb-6`}>
           <Pressable style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`} onPress={() => setModalVisible(true)}>
           <AntDesign name="mobile1" size={24} color="black" />
             <Text style={tailwind`text-lg font-semibold text-gray-800`}>Login using mobile</Text>
           </Pressable>
-        </View>
+        </View> */}
   
         <View style={tailwind`mb-6`}>
           <Pressable onPress={handleGoogleRedirect} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
@@ -146,11 +150,12 @@ function SignIn() {
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Sign In using Gmail</Text>
           </Pressable>
         </View>
-        <View style={tailwind`mb-6`}>
+        {/* Remove Sign Up  */}
+        {/* <View style={tailwind`mb-6`}>
           <Pressable onPress={() => navigation.navigate("SignUp")} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Add New Account</Text>
           </Pressable>
-        </View>
+        </View> */}
         {modalVisible && (
             <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
               <View onPress={() => setModalVisible(false)} style={tailwind`flex-1 justify-center items-center bg-white`}>
