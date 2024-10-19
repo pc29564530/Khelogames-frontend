@@ -64,7 +64,7 @@ function Profile({route}) {
   }
 
   const handleFollowButton = async () => {
-    if(following) {
+    if(following.some((item) => item === otherOwner)) {
        handleReduxUnFollow();
     } else {
        handleReduxFollow();
@@ -271,10 +271,10 @@ function Profile({route}) {
             ) : (
               <>
               <View style={tailwind` p-2  flex-row gap-5`}>
-                <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleMessage}>
+                <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={() => handleMessage()}>
                   <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
                 </Pressable>
-                <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleFollowButton}>
+                <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={() => handleFollowButton()}>
                     <Text style={ tailwind`text-white text-xl font-bold`}>{following.some((item) => item === otherOwner) ? 'Following' : 'Follow'}</Text>
                 </TouchableOpacity>
               </View>
