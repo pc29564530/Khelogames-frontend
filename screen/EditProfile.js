@@ -44,68 +44,6 @@ export default function EditProfile() {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
 
-    //to create the username for personal use no one can change the user after creation
-    const handleAvatar = async (base64, type) => {
-        try {
-            const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.put(`${BASE_URL}/updateAvatar`,{avatar_url: base64, avatar_type: type}, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            } );
-
-            dispatch(setProfileAvatar(response.data.avatar_url))
-            setAvatarUrl(response.data.avatar_url);
-            setAvatarType(response.data.avatar_type);
-
-        } catch (e) {
-            console.error("unable to update the avatar: ", err)
-        }
-    }
-
-    const handleFullName = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-    
-            const profileData = {
-                full_name: fullName,
-            };
-    
-            const response = await axiosInstance.put(`${BASE_URL}/updateFullName`, profileData, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            dispatch(setEditFullName(response.data.full_name));
-            setFullName(response.data.full_name);
-        } catch (e) {
-            console.error("Unable to update full name: ", e);
-        }
-    };
-
-    const handleBio = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-    
-            const profileData = {
-                bio: bio,
-            };
-    
-            const response = await axiosInstance.put(`${BASE_URL}/updateBio`, profileData, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            dispatch(setEditDescription(response.data.bio));
-            setBio(response.data.bio);
-        } catch (e) {
-            console.error("Unable to update Bio: ", e);
-        }
-    };
-
     const uploadAvatarimage =  async () => {
         try {
             let options = { 
@@ -178,6 +116,34 @@ export default function EditProfile() {
         },
         headerTintColor:'white'
     });
+
+    const handleEditProfile = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
+            const data = {
+                full_name: fullName,
+                bio: bio,
+                avatar_url: avatarUrl,
+            }
+            console.log("data: ", data)
+
+            const response = await axiosInstance.put(`${BASE_URL}/updateProfile`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const item = response.data || [];
+            dispatch(setEditFullName(item.full_name))
+            dispatch(setProfileAvatar(response.data.avatar_url))
+            dispatch(setEditDescription(response.data.bio));
+
+        } catch (err) {
+            console.error("unable to update edit the profile ", err)
+        }
+    }
     
     return (
     <KeyboardAvoidingView style={tailwind`flex-1 bg-black gap-10`}>
@@ -205,7 +171,6 @@ export default function EditProfile() {
             onChangeText={setFullName}
             placeholder="Full Name"
             placeholderTextColor="white"
-            onEndEditing={handleFullName}
             />
             <TextInput
             style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}
@@ -213,8 +178,12 @@ export default function EditProfile() {
             onChangeText={setBio}
             placeholder="About You"
             placeholderTextColor="white"
-            onEndEditing={handleBio}
             />
+        </View>
+        <View style={tailwind`flex-1/5 gap-10 p-4`}>
+            <Pressable onPress={() => handleEditProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 `} >
+                <Text style={tailwind`text-white text-xl font-bold`}>Save</Text>
+            </Pressable>
         </View>
     </KeyboardAvoidingView>
     );
