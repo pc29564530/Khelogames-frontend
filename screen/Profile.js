@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar} from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar, ScrollView, Alert} from 'react-native';
+import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
@@ -9,7 +9,6 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
-import { ScrollView } from 'react-native-gesture-handler';
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
@@ -23,12 +22,12 @@ function Profile({route}) {
     const [displayText, setDisplayText] = useState('');
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
-    const following_owner  = route.params?.username;
+    const otherOwner  = route.params?.username;
 
     const handleReduxFollow = async () => {
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${following_owner}`,{},{
+          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${otherOwner}`,{},{
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -45,10 +44,9 @@ function Profile({route}) {
     }
     const handleReduxUnFollow = async () => {
       try {
-        setIsFollowing(false)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `${BASE_URL}/unFollow/${following_owner}`,
+          `${BASE_URL}/unFollow/${otherOwner}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -66,7 +64,7 @@ function Profile({route}) {
   }
 
   const handleFollowButton = async () => {
-    if(isFollowing) {
+    if(following) {
        handleReduxUnFollow();
     } else {
        handleReduxFollow();
@@ -100,7 +98,7 @@ function Profile({route}) {
         console.log("User not found in AsyncStorage.");
         return;
       }
-      if(following_owner === owner){
+      if(otherOwner === owner){
         const response = await axios.get(`${AUTH_URL}/getProfile/${owner}`);
         if (response.data === null) {
           setProfileData([]);
@@ -118,7 +116,7 @@ function Profile({route}) {
           }
         }
       } else {
-        const response = await axios.get(`${AUTH_URL}/getProfile/${following_owner}`)
+        const response = await axios.get(`${AUTH_URL}/getProfile/${otherOwner}`)
        if( response.data == null ){
           setProfileData([])
         } else {
@@ -142,11 +140,11 @@ function Profile({route}) {
       fetchFollowing();
       const verifyUser = async () => {
         const authUser = await AsyncStorage.getItem("User");
-        if(following_owner === authUser) {
+        if(otherOwner === authUser) {
           setShowEditProfileButton(true);
           setCurrentUser(authUser);
         } else {
-          setCurrentUser(following_owner);
+          setCurrentUser(otherOwner);
         }
       }
       verifyUser();
@@ -188,8 +186,39 @@ function Profile({route}) {
     followingCount()
   }, [])
 
-  const handleMessage = () => {
-    navigation.navigate("Message", {profileData: profileData})
+  // handle message used to open the message box
+  const handleMessage = async () => {
+    try {
+          const authToken = await AsyncStorage.getItem("AccessToken");
+          const currentUser = await AsyncStorage.getItem("User");
+          const data = {
+            following_owner:currentUser,
+            follower_owner:otherOwner
+          }
+          const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
+            params: {
+              following_owner:currentUser,
+              follower_owner:otherOwner
+            },
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            }
+          })
+          console.log("check; ", connectionEstablished.data)
+          if (connectionEstablished.data){
+            navigation.navigate("Message", {profileData: profileData})
+          } else {
+            Alert.alert(
+              "Connection Error",
+              `You are not followed by ${otherOwner}. You cannot send a message.`,
+              [{ text: "OK" }]
+            )
+          }
+    } catch (err) {
+        console.error("Failed to connect the user: ", err)
+    }
+    
   }
 
   const handleEditProfile = () => {
@@ -205,20 +234,6 @@ function Profile({route}) {
   })
     return(
       <ScrollView contentContainerStyle={{height:900}}>
-        {/* <View style={tailwind`w-full`}>
-            {profileData.cover_url ? (
-                <Image
-                    style={tailwind`h-60 w-full bg-yellow-500`}
-                    source={{uri:profileData.cover_url}}
-                />
-            ):(
-              <Image 
-                style={tailwind`h-60 w-full bg-yellow-500`}
-                source={CoverImage}
-              />
-            )}
-            
-        </View>  */}
         <View style={tailwind`flex-1 p-4 bg-black`}>
           <View style={tailwind`flex-row gap-8`}>
             {profile && profile.avatar_url ? (
@@ -260,7 +275,7 @@ function Profile({route}) {
                   <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
                 </Pressable>
                 <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={handleFollowButton}>
-                    <Text style={ tailwind`text-white text-xl font-bold`}>{following.some((item) => item === following_owner) ? 'Following' : 'Follow'}</Text>
+                    <Text style={ tailwind`text-white text-xl font-bold`}>{following.some((item) => item === otherOwner) ? 'Following' : 'Follow'}</Text>
                 </TouchableOpacity>
               </View>
               <View style={tailwind`flex-1`}>
