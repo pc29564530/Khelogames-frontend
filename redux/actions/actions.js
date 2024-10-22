@@ -357,3 +357,11 @@ export const getTeams = (teams) => {
         payload: teams
     }
 }
+
+export const checkIsFollowing = (isFollowing) => {
+    console.log("isFollwoing: ", isFollowing)
+    return {
+        type: actionTypes.IS_FOLLOWING,
+        payload: isFollowing
+    }
+} 

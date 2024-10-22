@@ -4,6 +4,7 @@ const initialState = {
     user: [],
     following: [],
     follower: [],
+    isFollowing: false,
 }
 
 const userReducers = (state=initialState, action) => {
@@ -29,10 +30,14 @@ const userReducers = (state=initialState, action) => {
                 following: action.payload 
             }
         case actionTypes.UNFOLLOW_USER:
-            console.log(user)
             return {
                 ...state,
                 following: state.following.filter((user) => user !== action.payload),
+            }
+        case actionTypes.IS_FOLLOWING:
+            return {
+                ...state,
+                isFollowing: action.payload
             }
         default: 
             return state
