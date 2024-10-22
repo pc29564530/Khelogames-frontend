@@ -228,20 +228,18 @@ function Profile({route}) {
           }
           const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
             params: {
-              following_owner:currentUser,
-              follower_owner:otherOwner
+              following_owner:otherOwner
             },
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
             }
           })
-          console.log("check; ", connectionEstablished.data)
           if (connectionEstablished.data){
             navigation.navigate("Message", {profileData: profileData})
           } else {
             Alert.alert(
-              "Connection Error",
+              "No Mutual Connection Found",
               `You are not followed by ${otherOwner}. You cannot send a message.`,
               [{ text: "OK" }]
             )
