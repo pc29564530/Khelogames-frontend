@@ -128,6 +128,24 @@ export const fetchGroups = async ({tournament, axiosInstance, dispatch}) => {
     }
 };
 
+
+export const fetchAllGroups = async ({axiosInstance, dispatch: dispatch}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.get(`${BASE_URL}/getGroups`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        const groups = response.data || [];
+        dispatch(setGroups(groups));
+    } catch (err) {
+        console.error("Unable to fetch the group of tournament: ", err);
+    }
+};
+
+
 export const fetchStandings = async ({tournament, groups, axiosInstance, dispatch}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
