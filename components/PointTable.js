@@ -11,7 +11,6 @@ const PointTable = ({ standingsData, game }) => {
     let tableHead;
     let formattedData = [];
     if (Array.isArray(standingsData) && standingsData.length > 0) {
-        //const sportType = standingsData[0]?.sport_type;
 
         if (game.name === "football") {
             tableHead = ["Team", "M", "W", "L", "D", "GD", "Pts"];
