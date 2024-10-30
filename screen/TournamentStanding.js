@@ -40,10 +40,8 @@ const TournamentStanding = ({route}) => {
     }, [axiosInstance]));
 
     useEffect(() => {
-        if (groups.length > 0) {
-            fetchStandings({tournament:tournament, groups:groups, axiosInstance:axiosInstance, dispatch:dispatch});
-        }
-    }, [ tournament, groups, axiosInstance]);
+            fetchStandings({tournament:tournament, axiosInstance:axiosInstance, dispatch:dispatch, game: game});
+    }, [ tournament, axiosInstance, dispatch]);
 
     const handleGroupSelect = (item) => {
         setSelectedGroup(item)
@@ -101,7 +99,7 @@ const TournamentStanding = ({route}) => {
             console.error("unable to add the group: ", err)
         }
     }
-    
+
   return (
     <ScrollView style={tailwind`mt-4`}>
         <View style={tailwind``}>
@@ -109,6 +107,22 @@ const TournamentStanding = ({route}) => {
                 <Text style={tailwind`text-xl font-bold`}>Create Standing</Text>
             </Pressable>
         </View>
+        <View style={tailwind`p-4`}>
+            {standings?.length > 0 ? (
+                standings.map((group, index) => (
+                    <View key={index} style={tailwind`mb-8`}>
+                        <Text style={tailwind`text-lg font-bold mb-2`}>{group.group_name}</Text>
+                        <PointTable standingsData={group.team_row} game={game} />
+                    </View>
+                ))
+            ) : (
+                <View style={tailwind`rounded-lg bg-white shadow-lg h-40 items-center justify-center`}>
+                    <Text style={tailwind`text-black pt-16 text-lg`}>No standings available</Text>
+                </View>
+            )}
+        </View>
+
+
         {isModalCreateStandingVisible && 
             <Modal
                 animationType="slide"

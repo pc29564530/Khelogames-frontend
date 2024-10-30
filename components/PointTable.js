@@ -1,24 +1,27 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import tailwind from 'twrnc';
+import { useSelector } from 'react-redux';
 
 
 
-const PointTable = ({ standingsData }) => {
+const PointTable = ({ standingsData, game }) => {
+    console.log("GaMe: ", game)
+    console.log("Standing data: ", standingsData)
     let tableHead;
     let formattedData = [];
     if (Array.isArray(standingsData) && standingsData.length > 0) {
-        const sportType = standingsData[0]?.sport_type;
+        //const sportType = standingsData[0]?.sport_type;
 
-        if (sportType === "Football") {
-            tableHead = ["Team", "W", "L", "D", "GD", "Pts"];
+        if (game.name === "football") {
+            tableHead = ["Team", "M", "W", "L", "D", "GD", "Pts"];
             formattedData = standingsData.map(item => [
-                item.club_name, item.wins, item.loss, item.draw, item.goal_difference, item.points
+                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.goal_difference, item.points
             ]);
-        } else if (sportType === "Cricket") {
-            tableHead = ["Team", "W", "L", "D", "Pts"];
+        } else if (game.name === "cricket") {
+            tableHead = ["Team", "M", "W", "L", "D", "Pts"];
             formattedData = standingsData.map(item => [
-                item.club_name, item.wins, item.loss, item.draw, item.points
+                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.points
             ]);
         }
     }

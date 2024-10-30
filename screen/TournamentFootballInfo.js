@@ -23,7 +23,7 @@ const TournamentFootballInfo = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 })
-                const item = response.data;
+                const item = response.data || [];
                 const timestampStr = item.tournament_start;
                 const timestampDate = new Date(timestampStr);
                 const options = { weekday: 'long', month: 'long', day: '2-digit' };
