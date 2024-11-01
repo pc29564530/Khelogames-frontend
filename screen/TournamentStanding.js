@@ -15,7 +15,7 @@ import { TextFormatOutlined } from '@mui/icons-material';
 
 
 const TournamentStanding = ({route}) => {
-    const {tournament, currentRole, game} = route.params;
+    const {tournament, currentRole} = route.params;
     const axiosInstance = useAxiosInterceptor();
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false);
     const [groupName, setGroupName] = useState('');
@@ -27,6 +27,7 @@ const TournamentStanding = ({route}) => {
     const groups = useSelector((state) => state.tournamentsReducers.groups);
     const standings = useSelector((state) => state.tournamentsReducers.standings);
     const teams = useSelector((state) => state.teams.teams);
+    const game = useSelector(state => state.sportReducers.game);
     
     const [isModalCreateStandingVisible, setIsCreateStandingVisible] = useState(false);
     const dispatch = useDispatch();

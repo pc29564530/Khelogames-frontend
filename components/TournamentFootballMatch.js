@@ -10,10 +10,11 @@ import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 
-const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, game}) => {
+const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
+    const game = useSelector(state => state.sportReducers.game);
 
     useFocusEffect(
         React.useCallback(() => {

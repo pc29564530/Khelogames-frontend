@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import {View, Text, Pressable, ScrollView, Image, Modal} from 'react-native';
 import useAxiosInterceptor from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,8 +28,13 @@ const Tournament = () => {
     const scrollViewRef = useRef(null);
     const handleTournamentPage = (item) => {
         dispatch(getTournamentByIdAction(item));
-        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole, game: game})
+        navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole})
     }
+
+    useEffect(() => {
+        const defaultSport = { id: 1, name: 'football', min_players: 11};
+        dispatch(setGame(defaultSport));
+    }, [dispatch]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,11 +58,10 @@ const Tournament = () => {
     useEffect(() => {
         const fetchTournament = async () => {
             const {gameData, tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game, category: category});
-            dispatch(setGames(gameData))
             dispatch(getTournamentBySportAction(tournament));
         }
         fetchTournament();
-    }, [games, category]);
+    }, [game, category]);
     
     navigation.setOptions({
         headerTitle:'',
@@ -77,10 +81,10 @@ const Tournament = () => {
         )
     })
 
-    const handleSport = (item) => {
+    const handleSport = useCallback((item) => {
         setSelectedSport(item);
         dispatch(setGame(item));
-    } 
+    }, [game]) 
 
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})

@@ -10,10 +10,11 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 
-const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, game}) => {
+const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
+    const game = useSelector(state => state.sportReducers.game);
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();

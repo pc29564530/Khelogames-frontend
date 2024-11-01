@@ -12,11 +12,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTeams } from '../redux/actions/actions';
 
 const TournamentMatches = ({ route }) => {
-    const { tournament, currentRole, game } = route.params;
+    const { tournament, currentRole } = route.params;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [organizerID, setOrganizerID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
     const teams = useSelector((state) => state.teams.teams);
+    const game = useSelector((state) => state.sportsReducers.game)
 
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
@@ -31,7 +32,6 @@ const TournamentMatches = ({ route }) => {
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
-                        game={game}
                     />
                 );
             default:
@@ -41,7 +41,6 @@ const TournamentMatches = ({ route }) => {
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
-                        game={game}
                     />
                 );
         }
@@ -69,13 +68,12 @@ const TournamentMatches = ({ route }) => {
                                     teams={teams}
                                     organizerID={organizerID}
                                     handleCloseFixtureModal={handleCloseFixtureModal}
-                                    sport={game.name}
                                 />
                             </View>
                         </View>
                     </Modal>
                 )}
-                {tournamentMatchBySport(game)}
+                {tournamentMatchBySport()}
             </View>
         </ScrollView>
     );
