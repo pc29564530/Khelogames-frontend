@@ -4,11 +4,13 @@ import { View, Text } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
+import { useSelector } from 'react-redux';
 
 const TournamentCricketInfo = ({route}) => {
     const tournament = route.params.tournament;
     const [organizationData, setOrganizationData] = useState(null);
     const axiosInstance = useAxiosInterceptor();
+    const game = useSelector(state => state.sportReducers.game);
 
     useEffect(() => {
         const fetchTournamentOrganization = async () => {
