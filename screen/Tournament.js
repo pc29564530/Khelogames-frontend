@@ -57,7 +57,7 @@ const Tournament = () => {
             dispatch(getTournamentBySportAction(tournament));
         }
         fetchTournament();
-    }, [game, category]);
+    }, [games, category]);
     
     navigation.setOptions({
         headerTitle:'',
