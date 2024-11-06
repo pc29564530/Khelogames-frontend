@@ -70,3 +70,5 @@ export const GET_MATCHES = 'GET_MATCHES';
 
 //set the current game of tournament or match or team
 export const SET_GAME = 'SET_GAME';
+
+export const GET_MATCH = 'GET_MATCH';

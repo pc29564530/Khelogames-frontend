@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { getFootballMatches } from '../services/footballMatchServices';
 import { useDispatch, useSelector } from 'react-redux';
-import { getFootballMatchScore } from '../redux/actions/actions';
+import { getFootballMatchScore, getMatch } from '../redux/actions/actions';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
@@ -15,12 +15,18 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
     const game = useSelector(state => state.sportReducers.game);
+    //const [matchData, setMatchData] = useState();
+    const match = useSelector((state) => state.matches.match);
 
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
-        }, [])
+        }, [dispatch])
     );
+
+    useEffect(() => {
+        console.log("Match : ", match)
+    }, [match]);
 
     const fetchTournamentMatchs = async () => {
         try {
@@ -34,8 +40,11 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
         }
     };
 
+
     const handleFootballMatchPage = (item) => {
-        navigation.navigate("FootballMatchPage", {matchData:item});
+        // setMatchData(item)
+        dispatch(getMatch(item))
+        navigation.navigate("FootballMatchPage", {matchID: item.id});
     }
 
     return (
@@ -43,7 +52,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
             <View style={tailwind`p-4`}>
                 {matches?.length > 0 ? (
                     matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleFootballMatchPage(item)}>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => {handleFootballMatchPage(item)}}>
                             <View>
                                 <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
                                     <View style={tailwind`flex-row`}>
