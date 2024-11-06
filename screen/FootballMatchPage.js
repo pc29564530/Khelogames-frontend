@@ -93,32 +93,32 @@ const FootballMatchPage = ({ route }) => {
 
     return (
         <View style={tailwind`flex-1`}>
-            <View style={tailwind`h-45 bg-black flex-row items-center justify-center gap-10 p-4`}>
-                <View>
-                    <Text style={tailwind`text-white text-xl`}>{match.status}</Text>
-                </View>
-                <View>
+            <View style={tailwind`p-4 bg-black items-center `}>
+                <Text style={tailwind`text-white text-xl font-semibold`}>{match.status.toUpperCase()}</Text>
+            </View>
+            <View style={tailwind`h-45 bg-black flex-row items-center justify-center gap-2 p-2`}>
+                <View style={tailwind`flex-row gap-2 justify-between`}>
                     <Text style={tailwind`text-white text-3xl font-bold`}>{match.homeTeam.name}</Text>
                     {(match.status !== "not_started") && (
-                        <View style={tailwind`flex-row gap-2 items-center`}>
-                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.homeScore.score}</Text>
-                            {match.status === "finished" && match.result === match.homeTeam.id && (
+                        <View style={tailwind` gap-2 items-center`}>
+                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.homeScore.homeScore.score}</Text>
+                            {/* {match.status === "finished" && match.result === match.homeTeam.id && (
                                 <Text style={tailwind`text-white text-lg`}>won</Text>
-                            )}
+                            )} */}
                         </View>
                     )}
                 </View>
-                <View style={tailwind`border-l-2 border-white h-20`} />
-                <View>
-                    <Text style={tailwind`text-white text-3xl font-bold`}>{match.awayTeam.name}</Text>
+                <View style={tailwind`h-1 w-5 border-t-2 border-white px-2 py-0.5`} />
+                <View style={tailwind`flex-row justify-between gap-2`}>
                     {(match.status !== "not_started") && (
                         <View style={tailwind`flex-row gap-2 items-center`}>
-                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.awayScore.score}</Text>
-                            {match.status === "finished" && match.result === match.awayTeam.id && (
+                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.awayScore.awayScore.score}</Text>
+                            {/* {match.status === "finished" && match.result === match.awayTeam.id && (
                                 <Text style={tailwind`text-white text-lg`}>won</Text>
-                            )}
+                            )} */}
                         </View>
                     )}
+                    <Text style={tailwind`text-white text-3xl font-bold`}>{match.awayTeam.name}</Text>
                 </View>
                 <View>
                     {match.status === "not_started" && (

@@ -17,13 +17,12 @@ const TournamentMatches = ({ route }) => {
     const [organizerID, setOrganizerID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
     const teams = useSelector((state) => state.teams.teams);
-    const game = useSelector((state) => state.sportsReducers.game)
-
+    const game = useSelector(state => state.sportReducers.game);
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
     };
 
-    const tournamentMatchBySport = (game) => {
+    const tournamentMatchBySport = () => {
         switch (game.name) {
             case "cricket":
                 return (
