@@ -128,27 +128,52 @@ export const fetchGroups = async ({tournament, axiosInstance, dispatch}) => {
     }
 };
 
-export const fetchStandings = async ({tournament, groups, axiosInstance, dispatch}) => {
+
+export const fetchAllGroups = async ({axiosInstance, dispatch: dispatch}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        let standingData = [];
-        for (const item of groups) {
-            if (item !== undefined) {
-                const response = await axiosInstance.get(`${BASE_URL}/${tournament.sports}/getTournamentStanding`, {
-                    params: {
-                        tournament_id: tournament.id.toString(),
-                        group_id: item.group_id,
-                        sports: tournament.sports
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                standingData.push({ groupName: item.group_name, standData: response.data });
-            }
+        const response = await axiosInstance.get(`${BASE_URL}/getGroups`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        const groups = response.data || [];
+        dispatch(setGroups(groups));
+    } catch (err) {
+        console.error("Unable to fetch the group of tournament: ", err);
+    }
+};
+
+
+export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        if (game.name === "football") {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding`, {
+                params: {
+                    tournament_id: tournament.id.toString(),
+                },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            dispatch(setStandings(response.data || []));
+        } else if (game.name === "cricket") {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding`, {
+                params: {
+                    tournament_id: tournament.id.toString(),
+                },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            dispatch(setStandings(response.data || []));
         }
-        dispatch(setStandings(standingData));
+        
+        
     } catch (err) {
         console.error("Unable to fetch the standings of tournament: ", err);
     }

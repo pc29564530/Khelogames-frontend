@@ -10,13 +10,14 @@ import { setTeams, getTeams } from '../redux/actions/actions';
 import { getTeamsByTournamentID } from '../services/tournamentServices';
 
 const TournamentTeam = ({ route }) => {
-    const { tournament, currentRole, game } = route.params;
+    const { tournament, currentRole } = route.params;
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const [teamDisplay, setTeamDisplay] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
     const teams = useSelector((state) => state.teams.teams);
+    const game = useSelector(state => state.sportReducers.game);
 
     useEffect(() => {
         const fetchTeams = async () => {

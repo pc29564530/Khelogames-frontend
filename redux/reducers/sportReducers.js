@@ -2,7 +2,7 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
     games: [],
-    game: {}
+    game: { id: 1, name: 'football', min_players: 11}
 }
 
 const sportReducers = (state=initialState, action) => {

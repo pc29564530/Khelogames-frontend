@@ -20,12 +20,12 @@ function TopTabCricket({tournament, currentRole, game}) {
                 <TopTab.Screen 
                     name="Info"
                     component={TournamentCricketInfo}
-                    initialParams={{tournament:tournament, game: game}}
+                    initialParams={{tournament:tournament}}
                 />
                 <TopTab.Screen 
                     name="Team"
                     component={TournamentTeam}
-                    initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 
                     name="Stats"
@@ -34,12 +34,12 @@ function TopTabCricket({tournament, currentRole, game}) {
                 <TopTab.Screen 
                     name="Matches"
                     component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole:currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
                 <TopTab.Screen 
                     name="Standing"
                     component={TournamentStanding}
-                    initialParams={{tournament:tournament, currentRole:currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
         </TopTab.Navigator>
     );

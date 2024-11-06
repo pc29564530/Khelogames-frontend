@@ -5,9 +5,11 @@ import TournamentFootballStats from '../screen/TournamentFootballStats';
 import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
 import TournamentMatches from '../screen/TournamentMatches';
+import { useSelector } from 'react-redux';
 
-function TopTabFootball({tournament, currentRole, game}) {
+function TopTabFootball({tournament, currentRole}) {
     const TopTab = createMaterialTopTabNavigator();
+    const game = useSelector(state => state.sportReducers.game);
     return (
         <TopTab.Navigator
                 screenOptions={{
@@ -25,27 +27,27 @@ function TopTabFootball({tournament, currentRole, game}) {
                 <TopTab.Screen 
                     name="Details"
                     component={TournamentFootballInfo}
-                    initialParams={{tournament:tournament, game: game}}
+                    initialParams={{tournament:tournament}}
                 /> 
                 <TopTab.Screen 
                     name="Team"
                     component={TournamentTeam}
-                    initialParams={{tournament:tournament, currentRole:currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
                 <TopTab.Screen 
                     name="Stats"
                     component={TournamentFootballStats}
-                    initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen  
                     name="Matches"
                     component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 
                     name="Standing"
                     component={TournamentStanding}
-                    initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
+                    initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
         </TopTab.Navigator>
     );

@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 const matchTypes = ['Team', 'Individual', 'Double'];
 const filePath = require('../assets/status_code.json');
 
-const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal, game }) => {
+const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal }) => {
   const [team1, setTeam1] = useState(null);
   const [team2, setTeam2] = useState(null);
   const [startTime, setStartTime] = useState(null);
@@ -22,8 +22,10 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
   const [isModalDateVisible, setIsModalDateVisible] = useState(false);
   const [isModalStartTimeVisible, setIsModalStartTimeVisible] = useState(false);
   const [isModalEndTimeVisible, setIsModalEndTimeVisible] = useState(false);
+  const [result, setResult] = useState(null);
   const [matchType, setMatchType] = useState('');
   const axiosInstance = useAxiosInterceptor();
+  const game = useSelector(state => state.sportReducers.game);
   const dispatch = useDispatch();
 
   const modifyDateTime = (newDateTime) => {
@@ -57,6 +59,7 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
         end_timestamp: endTime?modifyDateTime(endTime):'',
         type: matchType,
         status_code: "not_started",
+        result: result
       };
 
       console.log("Fixture: ", fixture)

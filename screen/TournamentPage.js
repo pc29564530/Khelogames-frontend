@@ -10,8 +10,9 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 
 const TournamentPage = ({ route }) => {
-    const { tournament, currentRole, game } = route.params;
+    const { tournament, currentRole } = route.params;
     const [searchQuery, setSearchQuery] = useState('');
+    const game = useSelector(state => state.sportReducers.game);
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [teams, setTeams] = useState([]);
     const axiosInstance = useAxiosInterceptor();
@@ -22,13 +23,13 @@ const TournamentPage = ({ route }) => {
             case "badminton":
                 return <TopTabBadminton />;
             case "cricket":
-                return <TopTabCricket tournament={tournament} currentRole={currentRole} game={game} />;
+                return <TopTabCricket tournament={tournament} currentRole={currentRole}/>;
             case "hockey":
                 return <TopTabHockey />;
             case "tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} game = {game}/>;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole}/>;
         }
     }
 

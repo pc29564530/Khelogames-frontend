@@ -18,6 +18,7 @@ import tournamentsReducers from "./tournamentsReducers";
 import sportReducers from "./sportReducers";
 import clubReducers from './clubReducers';
 import teamsReducers from "./teamsReducers";
+import matchesReducers from "./matchesReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
     cricketMatchScore: cricketMatchScore,
     tournamentsReducers: tournamentsReducers,
     sportReducers: sportReducers,
+    matches: matchesReducers,
     clubReducers: clubReducers,
     teams: teamsReducers
 });

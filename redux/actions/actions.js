@@ -364,4 +364,11 @@ export const checkIsFollowing = (isFollowing) => {
         type: actionTypes.IS_FOLLOWING,
         payload: isFollowing
     }
-} 
+}
+
+export const getMatch = (match) => {
+    return {
+        type: actionTypes.GET_MATCH,
+        payload: match
+    }
+}

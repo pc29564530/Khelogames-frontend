@@ -4,11 +4,13 @@ import { View, Text } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
+import { useSelector } from 'react-redux';
 
 const TournamentFootballInfo = ({ route }) => {
     const tournament = route.params.tournament;
     const [organizationData, setOrganizationData] = useState(null);
     const axiosInstance = useAxiosInterceptor();
+    const game = useSelector(state => state.sportReducers.game);
 
     useEffect(() => {
         const fetchTournamentOrganization = async () => {
@@ -23,7 +25,7 @@ const TournamentFootballInfo = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 })
-                const item = response.data;
+                const item = response.data || [];
                 const timestampStr = item.tournament_start;
                 const timestampDate = new Date(timestampStr);
                 const options = { weekday: 'long', month: 'long', day: '2-digit' };
