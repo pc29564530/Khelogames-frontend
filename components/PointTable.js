@@ -1,13 +1,10 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import tailwind from 'twrnc';
-import { useSelector } from 'react-redux';
 
 
 
 const PointTable = ({ standingsData, game }) => {
-    console.log("GaMe: ", game)
-    console.log("Standing data: ", standingsData)
     let tableHead;
     let formattedData = [];
     if (Array.isArray(standingsData) && standingsData.length > 0) {
