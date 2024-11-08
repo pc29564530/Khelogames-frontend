@@ -61,27 +61,34 @@ const Tournament = () => {
     useEffect(() => {
         const fetchTournament = async () => {
             const {gameData, tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game, category: category});
-            dispatch(getTournamentBySportAction(tournament));
+                    dispatch(getTournamentBySportAction(tournament["tournament"]));
         }
         fetchTournament();
     }, [game, category]);
+        
+    
     navigation.setOptions({
-        headerTitle:'',
-        headerLeft:()=>(
-            <Pressable onPress={()=>navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-            </Pressable>
-        ),
-        headerRight:() => (
-            <View>
-                {currentRole === 'admin' && (
-                     <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => navigation.navigate("CreateTournament")}>
-                        <MaterialIcons name="add" size={24} color="black"/>
+            headerTitle: '',
+            headerStyle: tailwind`bg-white shadow-md`, // Add a shadow for depth
+            headerLeft: () => (
+                <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
+                    <AntDesign name="arrowleft" size={24} color="black" />
+                </Pressable>
+            ),
+            headerRight: () => (
+                <View style={tailwind`flex-row items-center`}>
+                    <Pressable onPress={() => setIsDropDown(true)} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4`}>
+                        <Text style={tailwind`text-lg text-white`}>{category}</Text>
+                        <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
                     </Pressable>
-                )}
-            </View>
-        )
-    })
+                    {currentRole === 'admin' && (
+                        <Pressable style={tailwind`p-2 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateTournament")}>
+                            <MaterialIcons name="add" size={24} color="white" />
+                        </Pressable>
+                    )}
+                </View>
+            )
+        });
 
     const handleSport = useCallback((item) => {
         setSelectedSport(item);
@@ -94,8 +101,8 @@ const Tournament = () => {
 
      // Filter tournaments based on category and status
      const filteredTournaments = () => {
-        const filtered = tournaments["tournament"]["tournament"].filter(tournament => {
-            return tournament.level === category || tournament.status_code === status;
+        const filtered = tournaments["tournament"].filter(tournament => {
+            return tournament.level === category;
         });
         setFilterTournaments(filtered)
     };
@@ -123,13 +130,9 @@ const Tournament = () => {
                         <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                     </Pressable>
                 </View>
-                <Pressable onPress={() => {setIsDropDown(true)}} style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2 mt-4 w-30 flex-row justify-between`}>
-                    <Text style={tailwind`text-lg`}>{category}</Text>
-                    <MaterialIcons name="keyboard-arrow-down" size={30} color="black" />
-                </Pressable>
-                <Pressable onPress={() => {setIsStatusDropDown(true)}} style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2 mt-4 w-30 flex-row justify-between`}>
-                    <Text style={tailwind`text-lg`}>{status}</Text>
-                    <MaterialIcons name="keyboard-arrow-down" size={30} color="black" />
+                <Pressable onPress={() => {setIsStatusDropDown(true); selectStatus()}} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4 m-4`}>
+                        <Text style={tailwind`text-lg text-white`}>{status}</Text>
+                        <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
                 </Pressable>
                 {filterTournaments?.map((item, index) => (
                     <View key={index} style={tailwind`mt-6`}>
