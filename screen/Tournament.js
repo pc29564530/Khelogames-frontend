@@ -18,7 +18,7 @@ const Tournament = () => {
     const navigation = useNavigation();
     const [currentRole, setCurrentRole] = useState('');
     const [category, setCategory] = useState('international');
-    const [status, setStatus] = useState('in_progress'); // New state for status
+    const [status, setStatus] = useState('in_progress');
     const [isCountryPicker, setIsCountryPicker] = useState(false);
     const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const dispatch = useDispatch();
@@ -101,6 +101,7 @@ const Tournament = () => {
 
      // Filter tournaments based on category and status
      const filteredTournaments = () => {
+        console.log('Tournamet:' , tournaments)
         const filtered = tournaments["tournament"].filter(tournament => {
             return tournament.level === category;
         });
@@ -130,7 +131,7 @@ const Tournament = () => {
                         <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                     </Pressable>
                 </View>
-                <Pressable onPress={() => {setIsStatusDropDown(true); selectStatus()}} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4 m-4`}>
+                <Pressable onPress={() => {setIsStatusDropDown(true)}} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4 m-4`}>
                         <Text style={tailwind`text-lg text-white`}>{status}</Text>
                         <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
                 </Pressable>
