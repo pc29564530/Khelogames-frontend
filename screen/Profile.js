@@ -254,12 +254,21 @@ function Profile({route}) {
     navigation.navigate('EditProfile')
   };
 
+const addPlayerProfile = () => {
+  navigation.navigate("CreatePlayerProfile");
+}
+
   navigation.setOptions({
     headerTitle:'',
     headerStyle:{
       backgroundColor: 'black'
     },
-    headerTintColor: 'white'
+    headerTintColor: 'white',
+    headerRight: ()=> (
+      <Pressable onPress={() => addPlayerProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 mr-4`}>
+        <Text style={tailwind`text-white`}>Create Player</Text>
+      </Pressable>
+    )
   })
 
   const isFollowingConditionCheck = () => {

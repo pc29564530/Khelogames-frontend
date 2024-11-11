@@ -14,8 +14,6 @@ import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { logoutServies } from '../services/authServies';
 import { handleUser } from '../utils/ThreadUtils';
 
-const logoPath = require('/Users/pawan/project/clone/Khelogames-frontend/assets/images/Khelogames.png');
-
 function ProfileMenu() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -170,13 +168,7 @@ function ProfileMenu() {
   const handleCommunityPage = (item) => {
     navigation.navigate('CommunityPage', { communityData: item });
   };
-  const handleTournamentPage = () => {
-    navigation.navigate("Tournament");
-  }
 
-  const addPlayerProfile = () => {
-    navigation.navigate("AddPlayerToClub");
-  }
   return (
     <View style={tailwind`flex-1 bg-gray-900 p-4`}>
       <View style={tailwind`mb-5 items-center`}>
@@ -204,10 +196,10 @@ function ProfileMenu() {
           </Pressable>
 
           {/* {currentRole === 'admin' && ( */}
-            <Pressable onPress={() => handleNavigation('CreatePlayerProfile')} style={tailwind`flex-row items-center py-2`}>
+            {/* <Pressable onPress={() => handleNavigation('CreatePlayerProfile')} style={tailwind`flex-row items-center py-2`}>
               <FontAwesome name="user" size={24} color="white" />
               <Text style={tailwind`text-2xl text-white pl-4`}>Player Profile</Text>
-            </Pressable>
+            </Pressable> */}
           {/* )} */}
 
           <Pressable onPress={() => handleNavigation('Club')} style={tailwind`flex-row items-center py-2`}>
@@ -231,7 +223,7 @@ function ProfileMenu() {
             <ScrollView style={tailwind`mt-5`}>
               {myCommunityData.map((item, index) => (
                 <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2`}>
-                  <Image source={logoPath} style={tailwind`h-12 w-12 bg-red-500 rounded-md mr-4`} />
+                  <Image source="" style={tailwind`h-12 w-12 bg-red-500 rounded-md mr-4`} />
                   <Text style={tailwind`text-2xl text-white`}>{item.community_name}</Text>
                 </Pressable>
               ))}

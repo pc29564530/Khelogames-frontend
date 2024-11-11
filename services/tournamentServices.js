@@ -22,37 +22,37 @@ export const getTournamentBySport = async ({axiosInstance, sport}) => {
             return [];
         } else {
             
-            const dataWithDisplayText = item?.tournament.map((it, index) => {
-                 it.start_timestamp = convertSecondToTimestamp(it.start_timestamp);
-                let currentStatus;
-                if(it.status_code === 'not_started'){
-                    currentStatus = "upcoming";
-                } else if(it.status_code === 'finished') {
-                    currentStatus = "ended";
-                } else {
-                    currentStatus = "live";
-                }
+            // const dataWithDisplayText = item?.tournament.map((it, index) => {
+            //      it.start_timestamp = convertSecondToTimestamp(it.start_timestamp);
+            //     let currentStatus;
+            //     if(it.status_code === 'not_started'){
+            //         currentStatus = "upcoming";
+            //     } else if(it.status_code === 'finished') {
+            //         currentStatus = "ended";
+            //     } else {
+            //         currentStatus = "live";
+            //     }
 
-                //set the display text
-                let displayText = '';
-                const usernameInitial = it.tournament_name ? it.tournament_name.charAt(0) : '';
-                displayText = usernameInitial.toUpperCase();
-                return {...it, displayText: displayText, currentStatus:currentStatus}
-            });
-            const tournamentWithDisplayText = await Promise.all(dataWithDisplayText)
-            const categarizedTournament = {live:[], upcoming:[], previous:[]};
-            tournamentWithDisplayText.forEach((item) => {
-                let category;
-                if(item.currentStatus === "live"){
-                    category = "live";
-                } else if(item.currentStatus === "ended") {
-                    category = "previous";
-                } else {
-                    category = "upcoming"
-                }
-                categarizedTournament[category].push(item);
-            })
-            return {game: item.game, tournament: categarizedTournament};
+            //     //set the display text
+            //     let displayText = '';
+            //     const usernameInitial = it.tournament_name ? it.tournament_name.charAt(0) : '';
+            //     displayText = usernameInitial.toUpperCase();
+            //     return {...it, displayText: displayText, currentStatus:currentStatus}
+            // });
+            // const tournamentWithDisplayText = await Promise.all(dataWithDisplayText)
+            // const categarizedTournament = {live:[], upcoming:[], previous:[]};
+            // tournamentWithDisplayText.forEach((item) => {
+            //     let category;
+            //     if(item.currentStatus === "live"){
+            //         category = "live";
+            //     } else if(item.currentStatus === "ended") {
+            //         category = "previous";
+            //     } else {
+            //         category = "upcoming"
+            //     }
+            //     categarizedTournament[category].push(item);
+            // })
+            return { tournament: item};
         }
     } catch (err) {
         console.error("unable to fetch tournament ", err)
