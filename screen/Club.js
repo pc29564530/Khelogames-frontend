@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions, Image } from 'react-native';
 import { useRef } from 'react';
 import tailwind from 'twrnc';
@@ -9,9 +9,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClub, setSport } from '../redux/actions/actions';
+import { getClub, setGames, setGame } from '../redux/actions/actions';
+import { sportsServices } from '../services/sportsServices';
 
-let sports = ["Football", "Cricket", "Chess", "VolleyBall", "Hockey", "Athletics", "Car Racing"];
 
 const createRow = (items, itemInRow) => {
     const row=[];
@@ -25,12 +25,29 @@ const Club = () => {
     const navigation = useNavigation();
     const scrollViewRef = useRef(null);
     const axiosInstance = useAxiosInterceptor();
-    //const [clubs, setClubs] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
-    const [selectedSport, setSelectedSport] = useState("Football");
+    const [selectedSport, setSelectedSport] = useState("football");
     const dispatch = useDispatch();
-    const sport = useSelector(state => state.sportReducers.sport);
+    const games = useSelector(state => state.sportReducers.games);
+    const game = useSelector(state => state.sportReducers.game);
     const clubs = useSelector((state) => state.clubReducers.clubs);
+
+    useEffect(() => {
+        const defaultSport = { id: 1, name: 'football', min_players: 11};
+        dispatch(setGame(defaultSport));
+    }, []);
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const data = await sportsServices({axiosInstance});
+                dispatch(setGames(data));
+            } catch (error) {
+                console.error("unable to fetch games data: ", error)
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         const roleStatus = async () => {
@@ -48,29 +65,19 @@ const Club = () => {
         const getClubData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTeamsBySport`,{
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
-                })
+                });
                 
                 const item = response.data;
+                console.log("team: ", item.teams)
                 if(!item || item === null) {
                     dispatch(getClub([]));
                 } else {
-                    const clubWithDisplayText = item.map((item,index) => {
-                        let displayText = '';
-                        if(!item.media_url || item.media_url === null) {
-                            const usernameInitial = item.name ? item.name.charAt(0) : '';
-                            displayText = usernameInitial.toUpperCase();
-                        }
-    
-                        return {...item, displayText: displayText}
-                    });
-                    const teamData = await Promise.all(clubWithDisplayText)
-                    const allTeams = createRow(teamData,itemInRow)
-                    dispatch(getClub(allTeams));
+                    dispatch(getClub(item.teams))
                 }
             } catch (err) {
                 console.error("unable to fetch all team or club: ", err);
@@ -78,14 +85,14 @@ const Club = () => {
         }
         
         getClubData()
-    }, [sport])
+    }, [])
 
     navigation.setOptions({
         headerTitle:'Club'
     });
 
     const handleAddClub = () => {
-        navigation.navigate('CreateClub', {sports: sport});
+        navigation.navigate('CreateClub', {games: games});
     }
 
     const scrollRight = () => {
@@ -93,12 +100,12 @@ const Club = () => {
     }
 
     const handleClub = (item) => {
-        navigation.navigate('ClubPage', {teamData: item, sport: sport})
+        navigation.navigate('ClubPage', {teamData: item, game: game})
     }
 
     const handleSport = (item) => {
-        setSelectedSport(item)
-        dispatch(setSport(item));
+        setSelectedSport(item.name)
+        dispatch(setGame(item));
     }
 
     navigation.setOptions({
@@ -128,9 +135,9 @@ const Club = () => {
                     ref={scrollViewRef}
                     contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
                 >
-                    {sports.map((item, index) => (
-                        <Pressable key={index} style={[tailwind`border rounded-md p-1.5 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
-                            <Text style={tailwind`text-black`}>{item}</Text>
+                    {games?.map((item, index) => (
+                        <Pressable key={index} style={[tailwind`border rounded-md p-1.5 mr-2 ml-2`, selectedSport===item.name?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
+                            <Text style={tailwind`text-black`}>{item.name}</Text>
                         </Pressable>
                     ))}
                 </ScrollView>
