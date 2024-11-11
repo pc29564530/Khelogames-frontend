@@ -10,10 +10,9 @@ import Stats from '../components/Stats';
 
 const subCategorys = [ "Members", "Fixture"];
 
-const sportPage = (teamData, sport) => {
-    console.log("Sports: ", sport)
-    switch (sport) {
-        case "Cricket":
+const sportPage = (teamData, game) => {
+    switch (game) {
+        case "cricket":
             return <ClubCricketMatch  teamData={teamData}/>;
         default:
             return <ClubFootballMatch  teamData={teamData}/>;
@@ -22,7 +21,7 @@ const sportPage = (teamData, sport) => {
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
-    const {teamData, sport} = route.params;
+    const {teamData, game} = route.params;
     const [subCategory, setSubCategory] = useState('');
 
     const  handleSubCategory = async (item) => {
@@ -31,7 +30,7 @@ const ClubPage = ({route}) => {
     const rerenderSubCategory = () => {
         switch (subCategory) {
             case "Fixture":
-                return sportPage(teamData, sport);
+                return sportPage(teamData, game);
             case "Stats":
                 return <Stats />;
             default:
@@ -46,7 +45,7 @@ const ClubPage = ({route}) => {
                 </View>
                 <View >
                     <Text style={tailwind`text-2xl text-black `}>{teamData.name}</Text>
-                    <Text style={tailwind`text-xl text-black `}>{teamData.sports}</Text>
+                    <Text style={tailwind`text-xl text-black `}>{teamData.game}</Text>
                 </View>
             </View>
             <View style={tailwind`flex-row  mt-2`}>

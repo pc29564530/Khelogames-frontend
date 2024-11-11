@@ -254,7 +254,6 @@ function Profile({route}) {
     navigation.navigate('EditProfile')
   };
 
-
 const addPlayerProfile = () => {
   navigation.navigate("CreatePlayerProfile");
 }
