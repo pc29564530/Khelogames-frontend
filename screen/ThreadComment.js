@@ -2,11 +2,11 @@ import React, {useState, useRef, useEffect } from 'react';
 import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
 import { addComments, setCommentText, setLikes } from '../redux/actions/actions';
-import Comment from './Comment';
 import useAxiosInterceptor from './axios_config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useSelector, useDispatch} from 'react-redux';
-import tailwind from 'twrnc'
+import Comment from '../components/Comment'
+import tailwind from 'twrnc';
 import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
@@ -16,22 +16,22 @@ import { addThreadComment } from '../services/commentServices';
 function ThreadComment ({route}) {
     const navigation = useNavigation();
     const commentInputRef = useRef();
-    const { item, itemId} = route.params;
+    const { item } = route.params;
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
     const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like));
-    const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === itemId)).like_count)
+    const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === item.id)).like_count)
 
       const handleReduxSubmit = async () => {
-        addThreadComment({commentText: commentText, dispatch: dispatch, itemId: itemId, axiosInstance: axiosInstance})
+        addThreadComment({commentText: commentText, dispatch: dispatch, itemId: item.id, axiosInstance: axiosInstance})
     }
 
     useEffect(()=> {
       const handleLikeCount = async () => {
         try {
           const authToken =  await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.get(`${BASE_URL}/getThread/${itemId}`, null , {
+          const response = await axiosInstance.get(`${BASE_URL}/getThread/${item.id}`, null , {
             headers: { 
               'Authorization': `Bearer ${authToken}`,
               'content-type': 'application/json'
