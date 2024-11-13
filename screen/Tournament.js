@@ -17,13 +17,15 @@ const Tournament = () => {
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
     const [currentRole, setCurrentRole] = useState('');
-    const [category, setCategory] = useState('international');
-    const [status, setStatus] = useState('in_progress');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [isCountryPicker, setIsCountryPicker] = useState(false);
+    const [typeFilterModal, setTypeFilterModal] = useState(false);
+    const [statusFilterModal, setStatusFilterModal] = useState(false);
     const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const dispatch = useDispatch();
     const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
-    const [filterTournaments, setFilterTournaments] = useState([]);
+    const [filterTournaments, setFilterTournaments] = useState(tournaments["tournament"]);
     const [isDropDown, setIsDropDown] = useState(false);
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
@@ -60,11 +62,11 @@ const Tournament = () => {
     }, []);
     useEffect(() => {
         const fetchTournament = async () => {
-            const {gameData, tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game, category: category});
+            const {tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
                     dispatch(getTournamentBySportAction(tournament["tournament"]));
         }
         fetchTournament();
-    }, [game, category]);
+    }, [game]);
         
     
     navigation.setOptions({
@@ -74,43 +76,34 @@ const Tournament = () => {
                 <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
                     <AntDesign name="arrowleft" size={24} color="black" />
                 </Pressable>
-            ),
-            headerRight: () => (
-                <View style={tailwind`flex-row items-center`}>
-                    <Pressable onPress={() => setIsDropDown(true)} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4`}>
-                        <Text style={tailwind`text-lg text-white`}>{category}</Text>
-                        <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
-                    </Pressable>
-                    {currentRole === 'admin' && (
-                        <Pressable style={tailwind`p-2 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateTournament")}>
-                            <MaterialIcons name="add" size={24} color="white" />
-                        </Pressable>
-                    )}
-                </View>
             )
         });
 
     const handleSport = useCallback((item) => {
         setSelectedSport(item);
         dispatch(setGame(item));
-    }, [game]) 
+    }, [game])
 
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
     }
 
-     // Filter tournaments based on category and status
-     const filteredTournaments = () => {
-        console.log('Tournamet:' , tournaments)
-        const filtered = tournaments["tournament"].filter(tournament => {
-            return tournament.level === category;
+    const filteredTournaments = () => {
+        const filtered = tournaments["tournament"]?.filter(tournament => {
+            return tournament.level === typeFilter && tournament.status_code === statusFilter;
         });
-        setFilterTournaments(filtered)
+        if(filtered?.length>0){
+            setFilterTournaments(filtered)
+        } else {
+            setFilterTournaments(tournaments["tournament"])
+        }
+        
     };
      useEffect(() => {
-        filteredTournaments()
-     }, [category, status])
-     
+        filteredTournaments();
+     }, [typeFilter, statusFilter, game]);
+     console.log("Filter Tournament: ", filterTournaments)
+     console.log("Tournaments: ", tournaments)
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
             <ScrollView nestedScrollEnabled={true}>
@@ -131,39 +124,102 @@ const Tournament = () => {
                         <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                     </Pressable>
                 </View>
-                <Pressable onPress={() => {setIsStatusDropDown(true)}} style={tailwind`border rounded-lg bg-blue-500 p-2 flex-row items-center justify-between mr-4 m-4`}>
-                        <Text style={tailwind`text-lg text-white`}>{status}</Text>
-                        <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
-                </Pressable>
+                <View style={tailwind`flex-row mt-5 gap-2`}>
+                    <View>
+                        <Text style={tailwind`text-xl`}>Filter by:</Text>
+                    </View>
+                    <Pressable style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => setTypeFilterModal(true)}>
+                        <Text style={tailwind`text-white`}>Type</Text>
+                    </Pressable>
+                    <Pressable style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => setStatusFilterModal(true)}>
+                        <Text style={tailwind`text-white`}>Status</Text>
+                    </Pressable> 
+                </View>
+                {/* Display Selected Filters */}
+                {(typeFilter !== "all" || statusFilter !== "all") && (
+                    <View style={tailwind`flex-row flex-wrap mt-2 justify-evenly items-start`}>
+                        {typeFilter !== "all" && (
+                            <View style={tailwind`rounded-lg p-2 shadow-lg bg-white`}>
+                                <Text style={tailwind`text-lg mr-4`}>{typeFilter}</Text>
+                            </View>
+                        )}
+                        {statusFilter !== "all" && (
+                            <View style={tailwind`rounded-lg p-2 shadow-lg bg-white`}>
+                                <Text style={tailwind`text-lg`}>{statusFilter}</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
                 {filterTournaments?.map((item, index) => (
                     <View key={index} style={tailwind`mt-6`}>
-                         <Pressable
-                                        style={tailwind`border rounded-lg w-40 h-52 p-2 mr-4 relative bg-white shadow-lg`}
-                                        onPress={() => handleTournamentPage(item)}
-                                    >
-                                        <View style={tailwind`rounded-lg p-1 flex-row justify-between mb-2`}>
-                                            <View style={tailwind`flex-row items-center bg-yellow-300 rounded-lg px-2 py-1`}>
-                                                <Text style={tailwind`text-black text-sm`}>{item.status_code}</Text>
-                                            </View>
-                                            {/* <View style={tailwind`flex-row items-center bg-purple-200 p-1 rounded-lg px-2 py-1`}>
-                                                <Text style={tailwind`text-black text-xs font-semibold`}>{item.format}</Text>
-                                            </View> */}
-                                        </View>
-                                        <View style={tailwind`mt-auto`}>
-                                            <Text style={tailwind`text-black text-lg font-semibold`} numberOfLines={1}>{item.name}</Text>
-                                            <View style={tailwind`flex-row justify-between items-center mt-2`}>
-                                                {/* <View style={tailwind`flex-row items-center`}>
-                                                    <AntDesign name="team" size={14} color="black" />
-                                                    <Text style={tailwind`text-sm text-black ml-1`}>{item.teams_joined}</Text>
-                                                </View> */}
-                                                {/* <Text style={tailwind`text-black text-sm ml-1`}>{}</Text> */}
-                                            </View>
-                                        </View>
-                                    </Pressable>
-                        <Text style={tailwind`text-xl font-bold mb-2 p-2 ml-4 text-blue-800`}>{item.name.charAt(0).toUpperCase() + item.name.slice(1)}</Text>
+                        <Pressable
+                            style={tailwind` rounded-md w-full relative bg-white shadow-lg`}
+                            onPress={() => handleTournamentPage(item)}
+                        >
+                            <View style={tailwind`mt-auto p-2 flex-row`}>
+                                <Text style={tailwind`text-black text-lg font-semibold`}>{item.name}</Text>
+
+                            </View>
+                        </Pressable>
                     </View>
                 ))}
             </ScrollView>
+            <View style={tailwind`absolute bottom-12 right-4`}>
+                {/* {currentRole === 'admin' && ( */}
+                    <Pressable style={tailwind`p-2 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateTournament")}>
+                        <MaterialIcons name="add" size={24} color="white" />
+                    </Pressable>
+                {/* )} */}
+            </View>
+            {/* Full-Screen Type Filter Modal */}
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={typeFilterModal}
+                onRequestClose={() => setTypeFilterModal(false)}
+            >
+                <Pressable onPress={() => setTypeFilterModal(false)} style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                    <View onPress={tailwind`bg-white rounded-lg p-6 w-2/4`}>
+                        <View style={tailwind`bg-white p-2`}>
+                            <Pressable onPress={() => {setTypeFilter("all"); setTypeFilterModal(false)}}>
+                                <Text style={tailwind`text-xl text-black`}>All</Text>
+                            </Pressable>
+                            <Pressable onPress={() => {setTypeFilter("international"); setTypeFilterModal(false)}}>
+                                <Text style={tailwind`text-xl text-black`}>International</Text>
+                            </Pressable>
+                            <Pressable onPress={() => {setTypeFilter("country"); setTypeFilterModal(false); setIsCountryPicker(true)}}>
+                                <Text style={tailwind`text-xl text-black`}>Country</Text>
+                            </Pressable>
+                            <Pressable onPress={() => {setTypeFilter("local"); setTypeFilterModal(false); setIsCountryPicker(true)}}>
+                                <Text style={tailwind`text-xl text-black`}>Local</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={statusFilterModal}
+                onRequestClose={() => setStatusFilterModal(false)}
+            >
+                <Pressable onPress={() => {() => setStatusFilterModal(false)}} style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                    <View onPress={tailwind`bg-white rounded-lg p-6 w-2/4`}>
+                        <View style={tailwind`bg-white p-2`}>
+                        <Text style={tailwind`text-xl text-center mb-4`}>Select Status</Text>
+                        <Pressable onPress={() => {setStatusFilter("all"); setStatusFilterModal(false)}}>
+                            <Text style={tailwind`text-xl text-black`}>All</Text>
+                        </Pressable>
+                        <Pressable onPress={() => {setStatusFilter("not_started"); setStatusFilterModal(false)}}>
+                            <Text style={tailwind`text-xl text-black`}>Upcoming</Text>
+                        </Pressable>
+                        <Pressable onPress={() => {setStatusFilter("live"); setStatusFilterModal(false)}}>
+                            <Text style={tailwind`text-xl text-black`}>Live</Text>
+                        </Pressable>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
             {isCountryPicker && (
                 <CountryPicker
                     withFilter
@@ -173,57 +229,13 @@ const Tournament = () => {
                     withCallingCode
                     withEmoji
                     onSelect={(selectedCountry) => {
-                        setCategory(selectedCountry.name);
+                        setTypeFilter(selectedCountry.name);
                         setIsCountryPicker(false);
                         setIsDropDown(false);
                     }}
                     visible={isCountryPicker}
                     onClose={() => {setIsCountryPicker(false)}}
                 />
-            )}
-            {isDropDown && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isDropDown}
-                    onRequestClose={() => setIsDropDown(false)}
-                >
-                    <Pressable onPress={() => setIsDropDown(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            <Pressable onPress={() => {setCategory('international'); setIsDropDown(false)}}>
-                                <Text>International</Text>
-                            </Pressable>
-                            <Pressable onPress={() =>{setCategory('country'); setIsCountryPicker(true)}}>
-                                <Text>Country</Text>
-                            </Pressable>
-                            <Pressable onPress={() => {setCategory('local'); setIsCountryPicker(true)}}>
-                                <Text>Local</Text>
-                            </Pressable>
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
-            {isStatusDropDown && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isStatusDropDown}
-                    onRequestClose={() => setIsStatusDropDown(false)}
-                >
-                    <Pressable onPress={() => setIsDropDown(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            <Pressable onPress={() => {setStatus('not_started'); setIsStatusDropDown(false)}}>
-                                <Text>Upcoming</Text>
-                            </Pressable>
-                            <Pressable onPress={() =>{setStatus('in_progress'); setIsStatusDropDown(false)}}>
-                                <Text>Live</Text>
-                            </Pressable>
-                            <Pressable onPress={() => {setStatus('finished'); setIsStatusDropDown(false)}}>
-                                <Text>Ended</Text>
-                            </Pressable>
-                        </View>
-                    </Pressable>
-                </Modal>
             )}
         </View>
     );
