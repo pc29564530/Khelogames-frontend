@@ -25,12 +25,12 @@ const Tournament = () => {
     const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const dispatch = useDispatch();
     const tournaments = useSelector(state => state.tournamentsReducers.tournaments);
-    const [filterTournaments, setFilterTournaments] = useState(tournaments["tournament"]);
+    const [filterTournaments, setFilterTournaments] = useState(tournaments["tournaments"]);
     const [isDropDown, setIsDropDown] = useState(false);
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
-    const [isStatusDropDown, setIsStatusDropDown] = useState(false);
     const scrollViewRef = useRef(null);
+
     const handleTournamentPage = (item) => {
         dispatch(getTournamentByIdAction(item));
         navigation.navigate("TournamentPage" , {tournament: item, currentRole: currentRole})
@@ -62,16 +62,19 @@ const Tournament = () => {
     }, []);
     useEffect(() => {
         const fetchTournament = async () => {
-            const {tournament} = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
-                    dispatch(getTournamentBySportAction(tournament["tournament"]));
+            const tournament = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
+            dispatch(getTournamentBySportAction(tournament["tournament"]));
         }
-        fetchTournament();
-    }, [game]);
+        
+        if(game?.name){
+            fetchTournament();
+        }
+    }, [game, axiosInstance, dispatch]);
         
     
     navigation.setOptions({
             headerTitle: '',
-            headerStyle: tailwind`bg-white shadow-md`, // Add a shadow for depth
+            headerStyle: tailwind`bg-white shadow-md`,
             headerLeft: () => (
                 <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
                     <AntDesign name="arrowleft" size={24} color="black" />
@@ -88,22 +91,21 @@ const Tournament = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
     }
 
-    const filteredTournaments = () => {
+    const filteredTournaments = useCallback(() => {
         const filtered = tournaments["tournament"]?.filter(tournament => {
-            return tournament.level === typeFilter && tournament.status_code === statusFilter;
+            return (tournament.game_id === game.id && (typeFilter === "all" || tournament.level === typeFilter) && (statusFilter === "all" || tournament.status_code === statusFilter));
         });
-        if(filtered?.length>0){
-            setFilterTournaments(filtered)
-        } else {
-            setFilterTournaments(tournaments["tournament"])
-        }
-        
-    };
+
+        setFilterTournaments(filtered || tournaments["tournament"]);
+    }, [tournaments, game, typeFilter, statusFilter]);
+
+
+
      useEffect(() => {
         filteredTournaments();
-     }, [typeFilter, statusFilter, game]);
-     console.log("Filter Tournament: ", filterTournaments)
-     console.log("Tournaments: ", tournaments)
+     }, [tournaments, game, typeFilter, statusFilter]);
+
+
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
             <ScrollView nestedScrollEnabled={true}>
