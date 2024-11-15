@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import CreateFixtue from '../components/CreateFixture';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
-import { useDispatch, useSelector } from 'react-redux';
-import { getTeams } from '../redux/actions/actions';
+import { useSelector } from 'react-redux';
 
-const TournamentMatches = ({ route }) => {
+const TournamentMatches = ({ route, navigation }) => {
     const { tournament, currentRole } = route.params;
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [organizerID, setOrganizerID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
     const teams = useSelector((state) => state.teams.teams);
     const game = useSelector(state => state.sportReducers.game);
+    
     const handleCloseFixtureModal = () => {
         setIsModalVisible(false);
     };
@@ -46,16 +44,14 @@ const TournamentMatches = ({ route }) => {
     };
 
     return (
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} nestedScrollEnabled={true}>
-            <View style={tailwind`flex-1 bg-gray-100`}>
-                <View style={tailwind`p-4 flex-row justify-between items-center bg-white shadow-md`}>
-                    <Text style={tailwind`text-xl font-bold text-gray-800`}>{tournament?.name}</Text>
+        <View style={tailwind`flex-1 bg-gray-100`}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} nestedScrollEnabled={true}>
+                <View style={tailwind`bg-white shadow-lg w-full py-4`}>
                     <Pressable
                         onPress={() => setIsModalVisible(!isModalVisible)}
-                        style={tailwind`rounded-lg bg-purple-500 p-2 flex-row items-center`}
+                        style={tailwind` bg-red-400 p-2 items-center w-full`}
                     >
-                        <Text style={tailwind`text-lg text-white mr-2`}>Set Fixture</Text>
-                        <MaterialIcons name="add" size={24} color="white" />
+                        <Text style={tailwind`text-lg text-black mr-2`}>Create Match</Text>
                     </Pressable>
                 </View>
                 {isModalVisible && (
@@ -65,7 +61,6 @@ const TournamentMatches = ({ route }) => {
                                 <CreateFixtue
                                     tournament={tournament}
                                     teams={teams}
-                                    organizerID={organizerID}
                                     handleCloseFixtureModal={handleCloseFixtureModal}
                                 />
                             </View>
@@ -73,8 +68,8 @@ const TournamentMatches = ({ route }) => {
                     </Modal>
                 )}
                 {tournamentMatchBySport()}
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 };
 

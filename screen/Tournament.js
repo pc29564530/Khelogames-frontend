@@ -11,6 +11,7 @@ import { getTournamentBySportAction, getTournamentByIdAction, setGames, setGame 
 import { useDispatch, useSelector } from 'react-redux';
 import CountryPicker from 'react-native-country-picker-modal';
 import { sportsServices } from '../services/sportsServices';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 
 const Tournament = () => {
@@ -99,12 +100,9 @@ const Tournament = () => {
         setFilterTournaments(filtered || tournaments["tournament"]);
     }, [tournaments, game, typeFilter, statusFilter]);
 
-
-
      useEffect(() => {
         filteredTournaments();
      }, [tournaments, game, typeFilter, statusFilter]);
-
 
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
@@ -131,7 +129,7 @@ const Tournament = () => {
                         <Text style={tailwind`text-xl`}>Filter by:</Text>
                     </View>
                     <Pressable style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => setTypeFilterModal(true)}>
-                        <Text style={tailwind`text-white`}>Type</Text>
+                        <Text style={tailwind`text-white`}>Categories</Text>
                     </Pressable>
                     <Pressable style={tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`} onPress={() => setStatusFilterModal(true)}>
                         <Text style={tailwind`text-white`}>Status</Text>
@@ -158,9 +156,9 @@ const Tournament = () => {
                             style={tailwind` rounded-md w-full relative bg-white shadow-lg`}
                             onPress={() => handleTournamentPage(item)}
                         >
-                            <View style={tailwind`mt-auto p-2 flex-row`}>
-                                <Text style={tailwind`text-black text-lg font-semibold`}>{item.name}</Text>
-
+                            <View style={tailwind`mt-auto p-2 flex-row gap-4`}>
+                                <FontAwesome name="trophy" size={26} color="gold"  style={tailwind`rounded-full p-2 bg-gray-100`}/>
+                                <Text style={tailwind`text-black text-xl font-semibold py-2`}>{item.name}</Text>
                             </View>
                         </Pressable>
                     </View>

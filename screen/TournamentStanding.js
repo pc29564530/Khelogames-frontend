@@ -83,9 +83,10 @@ const TournamentStanding = ({route}) => {
         try {
             
             const authToken = await AsyncStorage.getItem('AccessToken');
+            console.log(selectedGroup.id)
             const groupData = {
-                group_id: selectedGroup.id,
                 tournament_id: tournament.id,
+                group_id: selectedGroup.id,
                 team_id: id
             }
 
@@ -205,7 +206,7 @@ const TournamentStanding = ({route}) => {
                                     </View>
                                 )}
                             />
-                            <Pressable onPress={() => handleGroupTeam()} style={tailwind`mt-4 p-4 bg-blue-500 rounded-lg`}>
+                            <Pressable onPress={() => handleTeamToGroup()} style={tailwind`mt-4 p-4 bg-blue-500 rounded-lg`}>
                                 <Text style={tailwind`text-white text-center`}>Submit Teams</Text>
                             </Pressable>
                         </View>

@@ -47,52 +47,61 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
         navigation.navigate("FootballMatchPage", {matchID: item.id});
     }
 
+    //console.log("Matches: ", matches)
+
+
     return (
         <ScrollView>
-            <View style={tailwind`p-4`}>
+            <View style={tailwind`p-1`}>
                 {matches?.length > 0 ? (
                     matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => {handleFootballMatchPage(item)}}>
-                            <View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
-                                    <View style={tailwind`flex-row`}>
-                                        {/* //<Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayTeam.name}</Text>
-                                    </View>
-                                    {(item.status !== "not_started") && (
-                                        <View>
-                                            <Text>{item.awayScore.score}</Text>
-                                        </View>
-                                    )}
-                                </View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
-                                    <View style={tailwind`flex-row`}>
-                                        {/* <Image source={{ uri: item.home_team_name }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.homeTeam.name}</Text>
-                                    </View>
-                                    {item.status !== "not_started"  && (
-                                        <View>
-                                            <Text>{item.homeScore.score}</Text>
-                                        </View>
-                                    )}
-                                </View>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md justify-between w-full`} onPress={() => {handleFootballMatchPage(item)}}>
+                            <View style={tailwind`flex-row items-start justify-between`}>
+                                <Text>{item.group_name}</Text>
+                                <Text>Match {index+1}</Text>
                             </View>
-                            <View style={tailwind`h-16 items-center justify-center w-0.2 bg-black`}></View>
-                            {item.status === "not_started" ? (
-                                <View style={tailwind`items-center justify-evenly`}>
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedDate(convertToISOString(item.startTimeStamp))}</Text>
+                            <View style={tailwind`flex-row`}>
+                                <View style={tailwind`w-70`}>
+                                    <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
+                                        <View style={tailwind`flex-row`}>
+                                            <Image source={{ uri: item.awayTeam.media_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> 
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayTeam.name}</Text>
+                                        </View>
+                                        {(item.status !== "not_started") && (
+                                            <View>
+                                                <Text>{item.awayScore.score}</Text>
+                                            </View>
+                                        )}
                                     </View>
-                                    
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedTime(convertToISOString(item.startTimeStamp))}</Text>
+                                    <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
+                                        <View style={tailwind`flex-row`}>
+                                            <Image source={{ uri: item.homeTeam.media_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} />
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.homeTeam.name}</Text>
+                                        </View>
+                                        {item.status !== "not_started"  && (
+                                            <View>
+                                                <Text>{item.homeScore.score}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
-                            ):(
-                                <View style={tailwind`justify-center items-start`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.status}</Text>
-                                </View>
-                            )}
+                                <View style={tailwind`h-16 items-center justify-center w-0.2 bg-black`}></View>
+                                {item.status === "not_started" ? (
+                                    <View style={tailwind`items-center justify-evenly px-2`}>
+                                        <View style={tailwind`justify-center items-start`}>
+                                            <Text style={tailwind`text-gray-600`}>{formattedDate(convertToISOString(item.startTimeStamp))}</Text>
+                                        </View>
+                                        
+                                        <View style={tailwind`justify-center items-start`}>
+                                            <Text style={tailwind`text-gray-600`}>{formattedTime(convertToISOString(item.startTimeStamp))}</Text>
+                                        </View>
+                                    </View>
+                                ):(
+                                    <View style={tailwind`justify-center items-start px-2`}>
+                                        <Text style={tailwind`text-gray-600`}>{item.status}</Text>
+                                    </View>
+                                )}
+                            </View>
                         </Pressable>
                     ))
                 ) : (

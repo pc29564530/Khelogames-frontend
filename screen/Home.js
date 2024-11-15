@@ -40,9 +40,6 @@ function Home() {
             <Pressable style={tailwind`p-2 border border-white rounded-md bg-white-800`}>
               <Text style={tailwind`text-white text-lg font-semibold`}>Explore</Text>
             </Pressable>
-            <Pressable onPress={() => handleNavigation('Tournament')} style={tailwind`p-2 border border-white rounded-md bg-gray-800`}>
-              <Text style={tailwind`text-white text-lg font-semibold`}>Tournament</Text>
-            </Pressable>
             <Pressable style={tailwind`p-2 border border-white rounded-md bg-gray-800`}>
               <Text style={tailwind`text-white text-lg font-semibold`}>Live</Text>
             </Pressable>
