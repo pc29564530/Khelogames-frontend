@@ -6,7 +6,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import BottomTab from './BottomTab';
 import { useNavigation } from '@react-navigation/native';
-const KhelogamesLogo = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+//const KhelogamesLogo = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
 const Stack = createStackNavigator();
 
 const StackNavigation = () => {
@@ -21,7 +21,7 @@ const StackNavigation = () => {
         header: ({ navigation }) => {
           return (
             <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-black`}>
-              <Image source={KhelogamesLogo} style={tailwind`h-16 w-16`} />
+              <Image source={""} style={tailwind`h-16 w-16`} />
               <View style={tailwind`flex-row items-center gap-3`}>
                 <FontAwesome
                   name="search"

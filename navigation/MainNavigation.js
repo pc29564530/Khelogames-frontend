@@ -37,6 +37,7 @@ import AddCricketMatchPlayer from '../screen/AddCricketMatchPlayer';
 import EditMatchScore from '../screen/EditMatchScore';
 import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
+import Follow from '../screen/Follow';
 
 const Stack = createStackNavigator();
 
@@ -117,6 +118,7 @@ export default function MainNavigation() {
                         <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage}/>
                         <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} />
+                        <Stack.Screen name="Follow" component={Follow} />
                     </>
                 ):(
                     <>

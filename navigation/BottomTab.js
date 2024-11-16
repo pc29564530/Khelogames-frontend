@@ -7,7 +7,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
 import AddContent from '../components/AddContent';
-import Follow from '../screen/Follow';
 import tailwind from 'twrnc';
 import AddContentStack from './AddContentStack';
 import Tournament from '../screen/Tournament';
