@@ -10,9 +10,9 @@ const PointTable = ({ standingsData, game }) => {
     if (Array.isArray(standingsData) && standingsData.length > 0) {
 
         if (game.name === "football") {
-            tableHead = ["Team", "M", "W", "L", "D", "GD", "Pts"];
+            tableHead = ["Team", "M", "W", "L", "D", "G","GA", "GD", "Pts"];
             formattedData = standingsData.map(item => [
-                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.goal_difference, item.points
+                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.goal_for, item.goal_against, item.goal_difference, item.points
             ]);
         } else if (game.name === "cricket") {
             tableHead = ["Team", "M", "W", "L", "D", "Pts"];
@@ -24,18 +24,22 @@ const PointTable = ({ standingsData, game }) => {
     const standingData = colForm(formattedData);
 
     return (
-        <View style={tailwind`p-4 bg-white rounded-md shadow-md justify-center`}>
-            <View style={tailwind`flex-row justify-between items-center py-2 border-gray-300 `}>
-                {standingData?.map((colData, colIndex) => (
-                    <View style={tailwind``}>
-                        <Text style={tailwind`text-black`}>{tableHead[colIndex]}</Text>
-                        {colData.map((rowData, rowIndex) => (
-                            <Text style={tailwind`items-center justify-center mt-2`} key={rowIndex}>{rowData}</Text>
+        <>
+            {standingData?.length>0 && (
+                <View style={tailwind`p-4 bg-white rounded-md shadow-md justify-center`}>
+                    <View style={tailwind`flex-row justify-between items-center py-2 border-gray-300 `}>
+                        {standingData?.map((colData, colIndex) => (
+                            <View style={tailwind``}>
+                                <Text style={tailwind`text-black font-semibodl`}>{tableHead[colIndex]}</Text>
+                                {colData.map((rowData, rowIndex) => (
+                                    <Text style={tailwind`items-center justify-center mt-2`} key={rowIndex}>{rowData}</Text>
+                                ))}
+                            </View>
                         ))}
                     </View>
-                ))}
             </View>
-        </View>
+            )}
+        </>
     );
 }
 

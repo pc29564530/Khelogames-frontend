@@ -42,12 +42,9 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
 
 
     const handleFootballMatchPage = (item) => {
-        // setMatchData(item)
         dispatch(getMatch(item))
         navigation.navigate("FootballMatchPage", {matchID: item.id});
     }
-
-    //console.log("Matches: ", matches)
 
 
     return (
