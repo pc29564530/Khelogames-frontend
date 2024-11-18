@@ -26,7 +26,6 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
   const [matchType, setMatchType] = useState('');
   const axiosInstance = useAxiosInterceptor();
   const game = useSelector(state => state.sportReducers.game);
-  const dispatch = useDispatch();
 
   const modifyDateTime = (newDateTime) => {
     if (!newDateTime) {
@@ -42,9 +41,9 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
 
   const handleSelectTeam = (item) => {
     if (team1 === null) {
-      setTeam1(item.team_id);
+      setTeam1(item.id);
     } else {
-      setTeam2(item.team_id);
+      setTeam2(item.id);
     }
     setIsModalTeamVisible(false);
   };
@@ -91,13 +90,13 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
           <View style={tailwind`flex-1 mr-2`}>
             <Text style={tailwind`text-lg text-gray-700`}>Team 1</Text>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`p-4 bg-yellow-500 rounded-lg`}>
-              <Text style={tailwind`text-white text-center`}>{team1 ? teams.find((item) => item.team_id === team1).name : "Select Team"}</Text>
+              <Text style={tailwind`text-white text-center`}>{team1 ? teams.find((item) => item.id === team1).name : "Select Team"}</Text>
             </Pressable>
           </View>
           <View style={tailwind`flex-1 ml-2`}>
             <Text style={tailwind`text-lg text-gray-700`}>Team 2</Text>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`p-4 bg-yellow-500 rounded-lg`}>
-              <Text style={tailwind`text-white text-center`}>{team2? teams.find((item) => item.team_id === team2).name : "Select Team"}</Text>
+              <Text style={tailwind`text-white text-center`}>{team2? teams.find((item) => item.id === team2).name : "Select Team"}</Text>
             </Pressable>
           </View>
         </View>
@@ -175,17 +174,26 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
           animationType="slide"
           visible={isModalTeamVisible}
         >
-          <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+          <Pressable onPress={() => setIsModalTeamVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
             <View style={tailwind`bg-white rounded-md p-4`}>
               <ScrollView nestedScrollEnabled={true}>
                 {teams.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleSelectTeam(item)} style={tailwind`p-4 border-b border-gray-200`}>
-                    <Text style={tailwind`text-lg text-black`}>{item.team_name}</Text>
-                  </Pressable>
+                  <Pressable key={index} onPress={() => handleSelectTeam(item)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
+                    {item.media_url !== "" ? (
+                      <Image source="" style={tailwind`rounded-full h-10 w-10 bg-orange-200`}/>
+                    ):(
+                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
+                        <Text style={tailwind` text-black text-xl`}>{item.short_name}</Text>
+                      </View>
+                    )}
+                    <View style={tailwind`py-1`}>
+                        <Text style={tailwind`text-lg text-black`}>{item.name}</Text>
+                    </View>
+                  </Pressable> 
                 ))}
               </ScrollView>
             </View>
-          </View>
+          </Pressable>
         </Modal>
       )}
     </View>

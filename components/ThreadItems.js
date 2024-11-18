@@ -17,7 +17,6 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
   const handleVolume = () => {
     console.log('changing the volume of video')
   }
-  console.log("Item: ", item)
   return (
     <Pressable onPress={() => navigation.navigate("ThreadComment", item={item} )} style={tailwind`bg-black mt-5`}>
       <View>

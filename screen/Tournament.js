@@ -61,6 +61,7 @@ const Tournament = () => {
         }
         checkRole();
     }, []);
+    
     useEffect(() => {
         const fetchTournament = async () => {
             const tournament = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
