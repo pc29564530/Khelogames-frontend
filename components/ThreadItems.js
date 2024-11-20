@@ -18,7 +18,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
     console.log('changing the volume of video')
   }
   return (
-    <View style={tailwind`bg-black mt-5`}>
+    <Pressable onPress={() => navigation.navigate("ThreadComment", item={item} )} style={tailwind`bg-black mt-5`}>
       <View>
         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => handleUser({username: item.username, navigation})}>
           {item?.avatar_url ? (
@@ -85,7 +85,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, axiosI
         )}
       </View>
       <View style={tailwind`border-b border-white mt-2`}></View>
-    </View>
+    </Pressable>
   );
 };
 

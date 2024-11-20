@@ -7,9 +7,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
 import AddContent from '../components/AddContent';
-import Follow from '../screen/Follow';
 import tailwind from 'twrnc';
 import AddContentStack from './AddContentStack';
+import Tournament from '../screen/Tournament';
 
 const Tab = createBottomTabNavigator();
 
@@ -45,8 +45,8 @@ const BottomTab = () => {
            Icon = <MaterialIcons name="forum" size={25} color="white"/>;
          } else if(route.name === "Add") {
            Icon = <MaterialIcons name="add-box" size={25} color="white"/>;
-         } else if(route.name === "Follow") {
-           Icon = <MaterialIcons name="connect-without-contact" size={25} color="white"/>;
+         } else if(route.name === "Tournament") {
+           Icon = <FontAwesome name="trophy" size={25} color="white" />;
          }
          return Icon;
        } 
@@ -54,7 +54,7 @@ const BottomTab = () => {
    >
      <Tab.Screen name="Home" component={Home} />
      <Tab.Screen name="Community" component={Community} />
-     <Tab.Screen name="Follow" component={Follow} />
+     <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen
        name="Add"
        component={AddContentStack}

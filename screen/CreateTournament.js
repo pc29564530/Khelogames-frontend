@@ -1,86 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, TextInput, Modal, ScrollView } from 'react-native';
+import { View, Text, Pressable, TextInput, Modal} from 'react-native';
 import tailwind from 'twrnc';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'; 
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { addTournament } from '../redux/actions/actions'; 
-import { useDispatch } from 'react-redux';
+import DateTimePicker from 'react-native-modern-datepicker';
 import CountryPicker from 'react-native-country-picker-modal';
+import { useSelector, useDispatch } from 'react-redux';
+import { BASE_URL } from '../constants/ApiConstants';
+import { addTournament } from '../redux/actions/actions';
 
-const filePath = require('../assets/status_code.json');
 
 const CreateTournament = () => {
-    const [country, setCountry] = useState('');
     const [tournamentName, setTournamentName] = useState('');
-    const [isFormatVisible, setIsFormatVisible] = useState(false);
-    const [statusCode, setStatusCode] = useState('');
-    const [isStatusVisible, setIsStatusVisible] = useState(false);
-    const [status, setStatus] = useState([]);
-    const [isSportVisible, setIsSportVisible] = useState(false);
-    const [isDurationVisible, setIsDurationVisible] = useState(false);
-    const [isLevelVisible, setIsLevelVisible] = useState(false);
-    const [tournament, setTournament] = useState([]);
-    const [sport, setSport] = useState('');
-    const axiosInstance = useAxiosInterceptor();
-    const [startOn, setStartOn] = useState('');
-    const [endOn, setEndOn] = useState('');
-    const navigation = useNavigation();
-    const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const [isCategoryVisible, setIsCategoryVisible] = useState(false);
+    const [sport, setSport] = useState(null);
+    const [startOn, setStartOn] = useState(null);
+    const [country, setCountry] = useState('');
     const [category, setCategory] = useState('');
+    const axiosInstance = useAxiosInterceptor();
+
+    const [isSportVisible, setIsSportVisible] = useState(false);
+    const [isLevelVisible, setIsLevelVisible] = useState(false);
+    const [isCountryPicker, setIsCountryPicker] = useState(false);
+    const [isDurationVisible, setIsDurationVisible] = useState(false);
+    const games = useSelector(state => state.sportReducers.games);
     const dispatch = useDispatch();
-    const formats = ['group', 'league', 'knockout'];
-    const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
-    const levels = ['international', 'country', 'local'];
-
-    useEffect(() => {
-        const readJSONFile = async () => {
-            try {
-                setStatus(filePath['status_codes']);
-            } catch (error) {
-                console.error('Error reading or parsing json file:', error);
-            }
-        };
-
-        readJSONFile();
-    }, []);
-
-    const handleDurationModal = () => {
-        setIsDurationVisible(!isDurationVisible);
-    }
-
-    const handleSportModal = () => {
-        setIsSportVisible(!isSportVisible);
-    }
-
-    const handleSportSelection = (selectedSport) => {
-        setSport(selectedSport);
-        setIsSportVisible(false);
-    }
-
-    const handleCreatedTournament = async () => {
+    const levels = ['International', 'Country', 'Local'];
+    const navigation = useNavigation();
+    const game = useSelector((state) => state.sportReducers.game);
+    
+    const handleCreateTournament = async () => {
         try {
-            let data;
-            if (!startOn) {
-                alert("Please select the start timestamp.");
-            } else {
-                data = {
-                    tournament_name: tournamentName,
+            const data = {
+                    name: tournamentName,
                     sports: sport,
                     country: category==='international'?'':country,
                     level: category,
-                    start_timestamp: startOn,
-                    status_code: statusCode
+                    start_timestamp: modifyDateTime(startOn),
+                    game_id: game.id
                 }
-                console.log("Data: ", data)
-            }
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.post(`${BASE_URL}/createTournament`, data, {
@@ -89,142 +49,182 @@ const CreateTournament = () => {
                     'Content-Type': 'application/json',
                 },
             });
+
             const item = response.data;
             dispatch(addTournament(item));
-            const organizerData = {
-                organizer_name: user,
-                tournament_id: item.tournament_id,
-            };
+            // const organizerData = {
+            //     organizer_name: user,
+            //     tournament_id: item.tournament_id,
+            // };
 
-            try {
-                await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            } catch (err) {
-                console.log("Unable to add the organizer to the tournament: ", err);
-            }
+            // try {
+            //     await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData, {
+            //         headers: {
+            //             'Authorization': `Bearer ${authToken}`,
+            //             'Content-Type': 'application/json',
+            //         },
+            //     });
+            // } catch (err) {
+            //     console.log("Unable to add the organizer to the tournament: ", err);
+            // }
             navigation.navigate("TournamentPage", { tournament: item, currentRole: 'user', sport: item.sport_type });
 
         } catch (err) {
             console.log("Unable to create a new tournament ", err);
         }
-    }
+    };
 
-    const handleDateChange = (event, selectedDate) => {
-        const currentDate = selectedDate || startOn;
-        setStartOn(currentDate);
-        setIsDurationVisible(false);
-    }
-
-    const handleCategory = (item) => {
-        if (item === 'country' || item === 'local') {
-            setIsCountryPicker(true);
-            setCategory(item);
-        } else {
-            setCategory(item);
-        }
-        setIsLevelVisible(false)
-        
-    }
+    const modifyDateTime = (newDateTime) => {
+        if (!newDateTime) {
+            console.error('new date time is undefined');
+            return null;
+          }
+          const [datePart, timePart] = newDateTime.split(' ');
+          const [year, month, day] = datePart.split('/').map(Number);
+          const [hour, minute] = timePart.split(':').map(Number);
+          const matchDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute));
+          return matchDateTime;
+      };
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-gray-100`}>
-            <View style={tailwind`p-4`}>
-                <View style={tailwind`border rounded-md h-60 w-full bg-white justify-center items-center`}>
-                    <Pressable style={tailwind`absolute bottom-0 left-0 m-2`} onPress={() => {}}>
-                        <EvilIcons name="trophy" size={40} color="black" />
-                        <Text>Logo</Text> 
-                    </Pressable>
-                </View>
-                <View style={tailwind`mt-4`}>
-                    <TextInput 
-                        value={tournamentName} 
-                        onChangeText={setTournamentName} 
-                        placeholder="Tournament Name.." 
-                        placeholderTextColor="gray" 
-                        style={tailwind`text-xl border-b-2 border-gray-400 pb-2`}
-                    />
-                </View>
-                <Pressable onPress={handleSportModal} style={tailwind`mt-4 border-b-2 border-gray-400 pb-2`}>
-                    <Text style={tailwind`text-xl text-gray-600`}>Select Sport</Text>
-                </Pressable>
-                {/* <Pressable onPress={() => setIsCategoryVisible(true)} style={tailwind`mt-4 border-b-2 border-gray-400 pb-2`}>
-                    <Text style={tailwind`text-xl text-gray-600`}>Select Country</Text>
-                </Pressable> */}
-                <Pressable onPress={handleDurationModal} style={tailwind`mt-4 border-b-2 border-gray-400 pb-2`}>
-                    <Text style={tailwind`text-xl text-gray-600`}>Select Start Date</Text>
-                </Pressable>
-                <Pressable onPress={() => setIsStatusVisible(true)} style={tailwind`mt-4 border-b-2 border-gray-400 pb-2`}>
-                    <Text style={tailwind`text-xl text-gray-600`}>Select Status Code</Text>
-                </Pressable>
-                <Pressable onPress={() => setIsLevelVisible(true)} style={tailwind`mt-4 border-b-2 border-gray-400 pb-2`}>
-                    <Text style={tailwind`text-xl text-gray-600`}>Select Level</Text>
-                </Pressable>
-                <View style={tailwind`mt-6 items-end`}>
-                    <Pressable style={tailwind`bg-blue-500 p-3 rounded-md`} onPress={handleCreatedTournament}>
-                        <Text style={tailwind`text-lg text-white`}>Create Tournament</Text>
-                    </Pressable>
-                </View>
+        <View style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
+            {/* Header */}
+            <View style={tailwind`items-center mb-6`}>
+                <FontAwesome name="trophy" size={60} color="gold" />
+                <Text style={tailwind`text-2xl font-bold text-gray-800 mt-2`}>
+                    Create Tournament
+                </Text>
             </View>
 
-            {isStatusVisible && (
-                <Modal 
-                    transparent={true}
-                    animationType='slide'
-                    visible={isStatusVisible}
-                    
-                    onRequestClose={() => setIsStatusVisible(false)}
-                >
-                    <Pressable onPress={() => setIsStatusVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <ScrollView style={tailwind`bg-white rounded-md p-4 h-2/4`}>
-                            {status?.map((item, index) => (
-                                <Pressable key={index} onPress={() => {setStatusCode(item.type); setIsStatusVisible(false);}}>
-                                    <Text style={tailwind`text-xl py-2`}>{item.type}</Text>
-                                </Pressable>
-                            ))}
-                        </ScrollView>
-                    </Pressable>
-                </Modal>
-            )}
+            {/* Input Fields */}
+            <TextInput
+                style={tailwind`border-b border-gray-300 text-lg py-2 mb-6`}
+                placeholder="Tournament Name"
+                placeholderTextColor="gray"
+                value={tournamentName}
+                onChangeText={setTournamentName}
+            />
 
-            {isLevelVisible && (
-                <Modal 
-                    transparent={true}
-                    animationType='slide'
-                    visible={isLevelVisible}
-                    onRequestClose={() => setIsLevelVisible(false)}
-                >
-                    <Pressable onPress={() => setIsLevelVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            <Pressable onPress={() => handleCategory('international')}>
-                                <Text style={tailwind`text-xl py-2`}>International</Text>
-                            </Pressable>
-                            <Pressable onPress={() => handleCategory('country')}>
-                                <Text style={tailwind`text-xl py-2`}>Country</Text>
-                            </Pressable>
-                            <Pressable onPress={() => handleCategory('local')}>
-                                <Text style={tailwind`text-xl py-2`}>Local</Text>
-                            </Pressable>
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
+            {/* Sport Selection */}
+            <Pressable
+                onPress={() => setIsSportVisible(true)}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+            >
+                <Text style={tailwind`text-gray-600 text-lg`}>
+                    {sport || 'Select Sport'}
+                </Text>
+                <AntDesign name="down" size={20} color="gray" />
+            </Pressable>
 
+            {/* Country Selection */}
+            <Pressable
+                onPress={() => setIsCountryPicker(true)}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+            >
+                <Text style={tailwind`text-gray-600 text-lg`}>
+                    {country ? `Country: ${country}` : 'Select Country'}
+                </Text>
+                <AntDesign name="down" size={20} color="gray" />
+            </Pressable>
+
+            {/* Level Selection */}
+            <Pressable
+                onPress={() => setIsLevelVisible(true)}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+            >
+                <Text style={tailwind`text-gray-600 text-lg`}>
+                    {category || 'Select Level'}
+                </Text>
+                <AntDesign name="down" size={20} color="gray" />
+            </Pressable>
+
+            {/* Date Picker */}
+            <Pressable
+                onPress={() => setIsDurationVisible(true)}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-6`}
+            >
+                <Text style={tailwind`text-gray-600 text-lg`}>
+                    {startOn ? startOn: 'Select Start Date'}
+                </Text>
+                <AntDesign name="calendar" size={20} color="gray" />
+            </Pressable>
+
+            {/* Submit Button */}
+            <Pressable
+                style={tailwind`bg-blue-600 py-3 rounded-lg items-center`}
+                onPress={() => handleCreateTournament()}
+            >
+                <Text style={tailwind`text-white text-lg font-semibold`}>
+                    Create Tournament
+                </Text>
+            </Pressable>
+
+            {/* Modals */}
             {isSportVisible && (
                 <Modal
                     transparent={true}
                     animationType="slide"
                     visible={isSportVisible}
-                    onRequestClose={handleSportModal}
                 >
-                    <Pressable onPress={handleSportModal} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            {sports.map((item, index) => (
-                                <Pressable key={index} onPress={() => handleSportSelection(item)}>
-                                    <Text style={tailwind`text-xl py-2`}>{item}</Text>
+                    <Pressable
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        onPress={() => setIsSportVisible(false)}
+                    >
+                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                            {games?.map((item, index) => (
+                                <Pressable
+                                    key={index}
+                                    onPress={() => {
+                                        setSport(item.name);
+                                        setIsSportVisible(false);
+                                    }}
+                                    style={tailwind`py-2 border-b border-gray-200`}
+                                >
+                                    <Text style={tailwind`text-lg text-gray-800`}>
+                                        
+                                        {item.name}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
+
+            {isCountryPicker && (
+                <CountryPicker
+                    withFilter
+                    withFlag
+                    countryCode={country}
+                    onSelect={(country) => setCountry(country.cca2)}
+                    visible={isCountryPicker}
+                    onClose={() => setIsCountryPicker(false)}
+                />
+            )}
+
+            {isLevelVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isLevelVisible}
+                >
+                    <Pressable
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        onPress={() => setIsLevelVisible(false)}
+                    >
+                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                            {levels.map((item) => (
+                                <Pressable
+                                    key={item}
+                                    onPress={() => {
+                                        setCategory(item.toLocaleLowerCase());
+                                        setIsLevelVisible(false);
+                                    }}
+                                    style={tailwind`py-2 border-b border-gray-200`}
+                                >
+                                    <Text style={tailwind`text-lg text-gray-800`}>
+                                        {item}
+                                    </Text>
                                 </Pressable>
                             ))}
                         </View>
@@ -233,32 +233,25 @@ const CreateTournament = () => {
             )}
 
             {isDurationVisible && (
-                <DateTimePicker 
-                    testID='dateTimePicker'
-                    value={startOn ? startOn : new Date()}
-                    mode='date'
-                    is24Hour={true}
-                    display='default'
-                    onChange={handleDateChange}
-                />
+                <Modal
+                transparent={true}
+                animationType="slide"
+                visible={isDurationVisible}
+              >
+                <Pressable onPress={() => setIsDurationVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                  <View style={tailwind`bg-white rounded-md p-4`}>
+                    <DateTimePicker
+                            onSelectedChange={(startOn) => {
+                            setStartOn(startOn);
+                            setIsDurationVisible(false);
+                        }}
+                    />
+                    </View>
+                </Pressable>
+              </Modal>
             )}
-
-            {isCountryPicker && (
-                <CountryPicker
-                    withFilter
-                    withFlag
-                    withCountryNameButton
-                    withAlphaFilter
-                    withCallingCode
-                    withEmoji
-                    countryCode={country}
-                    onSelect={(selectedCountry) => { setCountry(selectedCountry.cca2); setIsCountryPicker(false); }}
-                    visible={isCountryPicker}
-                    onClose={() => setIsCountryPicker(false)}
-                />
-            )}
-        </ScrollView>
+        </View>
     );
-}
+};
 
 export default CreateTournament;

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View, Image, Text} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import useAxiosInterceptor from './axios_config';
+import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { getThreadComment } from '../services/commentServices';
 

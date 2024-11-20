@@ -89,15 +89,18 @@ const TournamentTeam = ({ route }) => {
     };
 
     return (
-        <View style={tailwind`mt-2 px-4 bg-gray-100 mb-4`}>
-            {currentRole === "admin" && (
-                <View style={tailwind`mt-2 flex items-end`}>
-                    <Pressable onPress={handleTeamModal} style={tailwind`px-4 py-2 rounded-lg shadow-lg bg-blue-600 items-center`}>
-                        <Text style={tailwind`text-md text-white font-semibold`}>Select Team</Text>
+        <View style={tailwind` bg-gray-100 mb-4`}>
+            {/* {currentRole === "admin" && ( */}
+                <View style={tailwind`bg-white shadow-lg w-full py-4`}>
+                    <Pressable
+                        onPress={() => setIsModalVisible(!isModalVisible)}
+                        style={tailwind` bg-red-400 p-2 items-center w-full b`}
+                    >
+                        <Text style={tailwind`text-lg text-black mr-2`}>Add Team</Text>
                     </Pressable>
                 </View>
-            )}
-            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled={true} style={tailwind`mb-10`}>
+            {/* )} */}
+            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled={true} style={tailwind``}>
                 {teams?.map((item, index) => (
                     <TeamItem key={index} item={item} onPress={() => handleTeam(item)} />
                 ))}

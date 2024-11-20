@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'reac
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -207,9 +207,9 @@ function ProfileMenu() {
             <Text style={tailwind`text-2xl text-white pl-4`}>Club/Team</Text>
           </Pressable>
 
-          <Pressable onPress={() => handleNavigation('Tournament')} style={tailwind`flex-row items-center py-2`}>
-            <MaterialCommunityIcons name="tournament" size={24} color="white" />
-            <Text style={tailwind`text-2xl text-white pl-4`}>Tournament</Text>
+          <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-2`}>
+            <MaterialIcons name="connect-without-contact" size={25} color="white"/>
+            <Text style={tailwind`text-2xl text-white pl-4`}>Follow</Text>
           </Pressable>
         </View>
 

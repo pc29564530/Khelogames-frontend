@@ -84,8 +84,8 @@ const TournamentStanding = ({route}) => {
             
             const authToken = await AsyncStorage.getItem('AccessToken');
             const groupData = {
-                group_id: selectedGroup.id,
                 tournament_id: tournament.id,
+                group_id: selectedGroup.id,
                 team_id: id
             }
 
@@ -104,15 +104,15 @@ const TournamentStanding = ({route}) => {
   return (
     <ScrollView style={tailwind`mt-4`}>
         <View style={tailwind``}>
-            <Pressable onPress={() => {setIsCreateStandingVisible(true)}} style={tailwind`p-4 shadow-lg bg-red-200 w-full items-center justify-center`}>
+            <Pressable onPress={() => {setIsCreateStandingVisible(true)}} style={tailwind`p-2 shadow-lg bg-red-400 w-full items-center justify-center`}>
                 <Text style={tailwind`text-xl font-bold`}>Create Standing</Text>
             </Pressable>
         </View>
-        <View style={tailwind`p-4`}>
+        <View style={tailwind``}>
             {standings?.length > 0 ? (
                 standings.map((group, index) => (
-                    <View key={index} style={tailwind`mb-8`}>
-                        <Text style={tailwind`text-lg font-bold mb-2`}>{group.group_name}</Text>
+                    <View key={index} style={tailwind``}>
+                        <Text style={tailwind`text-lg font-bold mb-2 px-2`}>{group.group_name}</Text>
                         <PointTable standingsData={group.team_row} game={game} />
                     </View>
                 ))
@@ -131,8 +131,8 @@ const TournamentStanding = ({route}) => {
                 transparent={true}
             >
                 <Pressable 
-                onPress={() => setIsCreateStandingVisible(false)} 
-                style={tailwind`flex-1 justify-end bg-black/50 items-center`}
+                    onPress={() => setIsCreateStandingVisible(false)} 
+                    style={tailwind`flex-1 justify-end bg-black/50 items-center`}
                 >
                 <View style={tailwind`bg-white p-5 rounded-t-3xl w-full items-center`}>
                     <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Create Standing</Text>
@@ -205,7 +205,7 @@ const TournamentStanding = ({route}) => {
                                     </View>
                                 )}
                             />
-                            <Pressable onPress={() => handleGroupTeam()} style={tailwind`mt-4 p-4 bg-blue-500 rounded-lg`}>
+                            <Pressable onPress={() => handleTeamToGroup()} style={tailwind`mt-4 p-4 bg-blue-500 rounded-lg`}>
                                 <Text style={tailwind`text-white text-center`}>Submit Teams</Text>
                             </Pressable>
                         </View>
