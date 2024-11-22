@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Pressable, Platform,Dimensions, ScrollView, TextInput } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -8,16 +8,15 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+const trophyPath = require('../assets/trophy.png')
 
 const TournamentPage = ({ route }) => {
     const { tournament, currentRole } = route.params;
     const game = useSelector(state => state.sportReducers.game);
-    console.log("Game: ", game)
     const navigation = useNavigation();
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
     const checkSport = (game) => {
-        console.log("Line no 20: ", game)
         switch (game.name) {
             case "badminton":
                 return <TopTabBadminton />;
@@ -39,12 +38,12 @@ const TournamentPage = ({ route }) => {
         scrollY.value = e.contentOffset.y;
       })
     
-      const bgColor = 'blue'
+      const bgColor = 'white'
       const bgColor2 = 'white'
-      const offsetValue = 140;
+      const offsetValue = 100;
+      const headerInitialHeight = 100;
+      const headerNextHeight = 50;
       const animatedHeader = useAnimatedStyle(() => {
-        const headerInitialHeight = 50;
-        const headerNextHeight = 80;
         const height = interpolate(
           scrollY.value,
           [0, offsetValue],
@@ -65,25 +64,25 @@ const TournamentPage = ({ route }) => {
         const opacity = interpolate(
           scrollY.value,
           [0, 100, offsetValue],
-          [0, 0, 1],
+          [0, 1, 1],
           Extrapolation.CLAMP,
         )
         const translateX = interpolate(
           scrollY.value,
           [0, offsetValue],
-          [-28, 0],
+          [0,46],
           Extrapolation.CLAMP,
         )
         const translateY = interpolate(
           scrollY.value,
           [0, offsetValue],
-          [28, 0],
+          [0, 16],
           Extrapolation.CLAMP,
         )
         return { opacity, transform: [{ translateX }, { translateY }] }
       })
       const animImage = useAnimatedStyle(() => {
-        const yValue = 45;
+        const yValue = 75;
         const translateY = interpolate(
           scrollY.value,
           [0, offsetValue],
@@ -91,7 +90,7 @@ const TournamentPage = ({ route }) => {
           Extrapolation.CLAMP,
         )
     
-        const xValue = sWidth / 2 - (2 * 16) - 40;
+        const xValue = sWidth / 2 - (2 * 16) - 20;
         const translateX = interpolate(
           scrollY.value,
           [0, offsetValue],
@@ -112,35 +111,25 @@ const TournamentPage = ({ route }) => {
 
 
     return (
-        <View style={tailwind``}>
-            <Animated.View style={[tailwind`flex-row items-center`, animatedHeader]}>
-                <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
-                    <MaterialIcons name="arrow-back" size={22} color="black" />
-                </Pressable>
-                <Animated.View style={[tailwind`ml-2`, nameAnimatedStyles]}>
-                    <FontAwesome name="trophy" size={22} color="gold" />
-                </Animated.View>
-                <Animated.View style={[tailwind`ml-2`, nameAnimatedStyles]}>
-                    <Text style={[tailwind`text-xl font-bold text-red-300`]}>
-                        {tournament?.name}
-                    </Text>
-                </Animated.View>
+        <View style={tailwind`flex-1`}>
+            <Animated.View style={[tailwind`flex-row safe-center`, animatedHeader]}>
+              <Pressable onPress={() => navigation.goBack()} style={tailwind`p-1 pt-4`}>
+                  <MaterialIcons name="arrow-back" size={22} color="black" />
+              </Pressable>
+              <Animated.View style={[tailwind`items-center`, nameAnimatedStyles]}>
+                  <Text style={[tailwind`text-xl text-black`]}>{tournament?.name}</Text>
+              </Animated.View>
             </Animated.View>
+            <Animated.Image source={trophyPath} style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-10`, animImage]}/>
             <Animated.ScrollView
                 onScroll={handleScroll}
-                contentContainerStyle={{
-                    padding: 4,
-                    minHeight: 912,
-                }}
+                contentContainerStyle={{height:780}}
                 scrollEnabled={true}
             >
-                <View style={tailwind`flex-1`}>
+                <View style={tailwind`flex-1 bg-white`}>
                     <View style={tailwind`justify-center items-center p-10`}>
-                        <View style={tailwind`border rounded-full h-20 w-20 bg-red-400 items-center justify-center`}>
-                            <Text style={tailwind`text-2xl`}>{tournament?.displayText}</Text>
-                        </View>
                         <View style={tailwind`mt-2`}>
-                            <Text style={tailwind`text-xl`}>{tournament?.name}</Text>
+                            <Text style={tailwind`text-xl text-black`}>{tournament?.name}</Text>
                         </View>
                         <View style={tailwind`flex-row gap-2`}>
                             <Text style={tailwind`text-lg`}>Teams: {tournament?.teams_joined}</Text>
