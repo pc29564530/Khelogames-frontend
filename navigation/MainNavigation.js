@@ -86,16 +86,23 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="JoinCommunity" component={JoinCommunity}
                             options={() => ({
-                            headerShown: false,
-                            headerTitle: null,
-                            headerBackTitleVisible: false,
-                            headerLeft: false
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
                             })}
                         />
                         <Stack.Screen name="CreateThread" component={CreateThread} />
                         <Stack.Screen name="Shorts" component={Shorts} />
                         <Stack.Screen name="CreateCommunity" component={CreateCommunity}/>
-                        <Stack.Screen name="Profile" component={Profile}/>
+                        <Stack.Screen name="Profile" component={Profile}
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="EditProfile" component={EditProfile} />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
                         <Stack.Screen name="CommunityPage" component={CommunityPage} />
