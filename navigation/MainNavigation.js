@@ -112,7 +112,14 @@ export default function MainNavigation() {
                         <Stack.Screen name="MessagePage" component={MessagePage} />
                         <Stack.Screen name="Club" component={Club} />
                         <Stack.Screen name="CreateClub" component={CreateClub} />
-                        <Stack.Screen name="ClubPage" component={ClubPage} />
+                        <Stack.Screen name="ClubPage" component={ClubPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="Tournament" component={Tournament} />
                         <Stack.Screen name="TournamentPage" component={TournamentPage} 
                             options={() => ({

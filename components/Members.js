@@ -70,8 +70,9 @@ const Members = ({teamData}) => {
             const data = {
                 team_id:teamData.id,
                 player_id: selectedItem.id,
-                start_date: new Date()
+                join_date: new Date()
             }
+            console.log("Data: ", data)
             const authToken = await AsyncStorage.getItem('AcessToken');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addTeamsMemberFunc`,data, {
                 headers: {
