@@ -6,6 +6,7 @@ import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector } from 'react-redux';
 
 
@@ -72,7 +73,6 @@ const Members = ({teamData}) => {
                 player_id: selectedItem.id,
                 join_date: new Date()
             }
-            console.log("Data: ", data)
             const authToken = await AsyncStorage.getItem('AcessToken');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addTeamsMemberFunc`,data, {
                 headers: {
@@ -96,6 +96,25 @@ const Members = ({teamData}) => {
         }
     }
 
+    const handleRemovePlayer = async (item) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const data = {
+                team_id: teamData.id,
+                player_id: item.id,
+                leave_date: new Date()
+            }
+            const response = await axiosInstance.put(`${BASE_URL}/{game.name}/removePlayerFromTeam`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+        } catch (err) {
+            console.error("Unable to remove the player from team: ", err)
+        }
+    }
+
     return (
         <View style={tailwind`flex-1`}>
             <ScrollView 
@@ -108,33 +127,43 @@ const Members = ({teamData}) => {
                         <FontAwesome name="edit" size={22} color="black" />
                     </TouchableOpacity>
                 </View>
-                <View style={tailwind`w-full bg-white`}>
-                    {member?.map((item,index) => (
-                        <Pressable key={index} style={tailwind` shadow-md rounded-md w-full justify-center h-26 p-2`} onPress={() => handleProfile({itm: item})}>
-                                <View style={tailwind`flex-row items-center`}>
-                                    {item.media_url && item.media_url ?(
-                                        <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.media_url}}  />
-                                    ) : (
-                                        <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
-                                            <Text style={tailwind`text-red-500 text-6x3`}>
-                                                {item?.short_name[0]}
-                                            </Text>
-                                        </View>
-                                    )}
-                                    <View style={tailwind``}>
-                                        <View  style={tailwind`text-black p-1 mb-1`}>
-                                            <Text style={tailwind`text-black text-xl `}>{item?.player_name}</Text>
-                                        </View>
-                                        <View  style={tailwind`flex-row items-start justify-evenly`}>
-                                            <Text style={tailwind`text-black text-md `}>{item?.position}</Text>
-                                            <Text style={tailwind`text-black text-md`}>{item.country}</Text>
-                                        </View>
+                <View style={tailwind`w-full bg-white p-4`}>
+                    {member?.map((item, index) => (
+                        <Pressable
+                            key={index}
+                            style={tailwind`shadow-lg rounded-lg w-full bg-white p-2 flex-row items-center mb-1`}
+                            onPress={() => handleProfile({ itm: item })}
+                        >
+                            <View style={tailwind`flex-row items-center`}>
+                                {item.media_url ? (
+                                    <Image
+                                        style={tailwind`w-12 h-12 rounded-full bg-yellow-500`}
+                                        source={{ uri: item.media_url }}
+                                    />
+                                ) : (
+                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center`}>
+                                        <Text style={tailwind`text-red-500 text-2xl`}>
+                                            {item?.short_name[0]}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View style={tailwind`ml-4`}>
+                                    <Text style={tailwind`text-black text-lg font-semibold`}>{item?.player_name}</Text>
+                                    <View style={tailwind`flex-row items-center mt-1`}>
+                                        <Text style={tailwind`text-gray-600 text-sm mr-2`}>{item?.position}</Text>
+                                        <Text style={tailwind`text-gray-600 text-sm`}>{item.country}</Text>
                                     </View>
                                 </View>
-                                <View style={tailwind`border-b border-white mt-2`}></View>
+                            </View>
+                            <View style={tailwind`ml-auto`}>
+                                <Pressable style={tailwind`p-2`} onPress={() => handleRemovePlayer(item)}>
+                                    <AntDesign name="delete" size={24} color="red" />
+                                </Pressable>
+                            </View>
                         </Pressable>
                     ))}
                 </View>
+
                 {isSelectPlayerModal && (
                     <Modal
                         transparent={true}
