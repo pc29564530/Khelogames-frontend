@@ -8,6 +8,7 @@ import ClubFootballMatch from '../components/ClubFootballMatch';
 import ClubCricketMatch from '../components/ClubCricketMatch';
 import Stats from '../components/Stats';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';                                                                                      
+import TopTabTeamPage from '../navigation/TopTabTeamPage';
 
 
 const subCategorys = [ "Members", "Fixture", "Message", "Media"];
@@ -135,7 +136,6 @@ const ClubPage = ({route}) => {
                 onScroll={handleScroll}
                 contentContainerStyle={{height: 760}}
                 scrollEnabled={true}
-                nestedScrollEnabled={true}
             >
                 <View style={tailwind`bg-white items-center justify-center pt-16`}>
                     <View >
@@ -143,14 +143,9 @@ const ClubPage = ({route}) => {
                         <Text style={tailwind`text-xl text-black `}>{teamData.game}</Text>
                     </View>
                 </View>
-                <View style={tailwind`flex-row mt-1 items-start justify-evenly bg-white `}>
-                    {subCategorys.map((item, index) => (
-                        <TouchableOpacity key={index} style={[tailwind` rounded-md shadow-lg w-20 h-20 bg-white text-center items-center justify-center `, subCategory === item?tailwind`bg-green-200`:null]} onPress={() => handleSubCategory(item)}>
-                            <Text style={tailwind`text-black`}>{item}</Text>
-                        </TouchableOpacity>
-                    ))}
+                <View style={tailwind`flex-1`}>
+                    <TopTabTeamPage teamData={teamData} game={game}/>
                 </View>
-                <ScrollView>{rerenderSubCategory()}</ScrollView>
             </Animated.ScrollView>                   
         </View>
     );

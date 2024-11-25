@@ -17,7 +17,6 @@ const Members = ({teamData}) => {
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
     const game = useSelector((state) => state.sportReducers.game);
-    console.log("Game: ", game)
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -73,7 +72,6 @@ const Members = ({teamData}) => {
                 player_id: selectedItem.id,
                 start_date: new Date()
             }
-            console.log("Data:L ", data)
             const authToken = await AsyncStorage.getItem('AcessToken');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addTeamsMemberFunc`,data, {
                 headers: {
@@ -100,8 +98,8 @@ const Members = ({teamData}) => {
     return (
         <View style={tailwind`flex-1`}>
             <ScrollView 
-                contentContainerStyle={{height: 1020}}
-                nestedScrollEnabled={true}
+                contentContainerStyle={{flexGrow:1}}
+                nestedScrollEnabled
                 style={tailwind`flex-1 mt-1 bg-white`}>
                 <View style={tailwind`flex-row justify-between p-2`}>
                     <Text style={tailwind`text-xl`}>Player</Text>
