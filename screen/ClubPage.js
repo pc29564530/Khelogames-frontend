@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, ScrollView} from 'react-native';
+import {View, Text, Pressable, ScrollView, TouchableOpacity, Dimensions} from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import Members from '../components/Members';
 import ClubFootballMatch from '../components/ClubFootballMatch';
 import ClubCricketMatch from '../components/ClubCricketMatch';
 import Stats from '../components/Stats';
+import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';                                                                                      
 
 
-const subCategorys = [ "Members", "Fixture"];
+const subCategorys = [ "Members", "Fixture", "Message", "Media"];
 
 const sportPage = (teamData, game) => {
     switch (game) {
@@ -37,30 +39,119 @@ const ClubPage = ({route}) => {
                 return <Members teamData={teamData} />;
         }
     }
+
+    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
+
+    const scrollY = useSharedValue(0);
+
+    const handleScroll = useAnimatedScrollHandler((e) => {
+        scrollY.value = e.contentOffset.y;
+      })
+    
+      const bgColor = 'white'
+      const bgColor2 = 'white'
+      const headerInitialHeight = 100;
+      const headerNextHeight = 50;
+      const offsetValue = 100;
+      const animatedHeader = useAnimatedStyle(() => {
+        const height = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [headerInitialHeight, headerNextHeight],
+          Extrapolation.CLAMP,
+        )
+    
+        const backgroundColor = interpolateColor(
+          scrollY.value,
+          [0, offsetValue],
+          [bgColor, bgColor2]
+        )
+        return {
+          backgroundColor, height
+        }
+      })
+
+      const nameAnimatedStyles = useAnimatedStyle(() => {
+        const opacity = interpolate(
+          scrollY.value,
+          [0, 100, offsetValue],
+          [0, 1, 1],
+          Extrapolation.CLAMP,
+        )
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, 76],
+          Extrapolation.CLAMP,
+        )
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -10],
+          Extrapolation.CLAMP,
+        )
+        return { opacity, transform: [{ translateX }, { translateY }] }
+      })
+      const animImage = useAnimatedStyle(() => {
+        const yValue = 75;
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -yValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const xValue = sWidth / 2 - (2 * 16) - 20;
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -xValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const scale = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [1, 0.3],
+          Extrapolation.CLAMP,
+        )
+        return {
+          transform: [{ translateY }, { translateX }, { scale }]
+        }
+      });
+
     return (
-        <View style={tailwind`m-4`}>
-            <View style={tailwind`flex-row items-center justify-start gap-5`}>
-                <View style={tailwind`border rounded-md w-20 h-20 bg-orange-400 items-center justify-center`}>
-                    <Text style={tailwind`text-black text-5xl items-center justify-center`}>{teamData.short_name}</Text>
+        <View style={tailwind`flex-1`}>
+            <Animated.View style={[tailwind`safe-center shadow-lg`, animatedHeader]}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start justify-center top-4 px-2`}>
+                    <MaterialIcons name="arrow-back" size={22} color="black" />
+                </TouchableOpacity>
+                <Animated.View style={[tailwind`items-start justify-center `, nameAnimatedStyles]}>
+                    <Text style={tailwind`text-xl text-black`}>{teamData.name}</Text>
+                </Animated.View>
+            </Animated.View>
+            <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
+            <Animated.ScrollView 
+                onScroll={handleScroll}
+                contentContainerStyle={{height: 760}}
+                scrollEnabled={true}
+                nestedScrollEnabled={true}
+            >
+                <View style={tailwind`bg-white items-center justify-center pt-16`}>
+                    <View >
+                        <Text style={tailwind`text-2xl text-black `}>{teamData.name}</Text>
+                        <Text style={tailwind`text-xl text-black `}>{teamData.game}</Text>
+                    </View>
                 </View>
-                <View >
-                    <Text style={tailwind`text-2xl text-black `}>{teamData.name}</Text>
-                    <Text style={tailwind`text-xl text-black `}>{teamData.game}</Text>
+                <View style={tailwind`flex-row mt-1 items-start justify-evenly bg-white `}>
+                    {subCategorys.map((item, index) => (
+                        <TouchableOpacity key={index} style={[tailwind` rounded-md shadow-lg w-20 h-20 bg-white text-center items-center justify-center `, subCategory === item?tailwind`bg-green-200`:null]} onPress={() => handleSubCategory(item)}>
+                            <Text style={tailwind`text-black`}>{item}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
-            </View>
-            <View style={tailwind`flex-row  mt-2`}>
-                <Text style={tailwind`text-black text-lg`}>Follower: </Text>
-                <Text style={tailwind`text-black text-lg`} > | </Text>
-                <Text style={tailwind`text-black text-lg`} >Team Size: </Text>
-            </View>
-            <View style={tailwind`flex-row mt-2 `}>
-                {subCategorys.map((item, index) => (
-                    <Pressable key={index} style={[tailwind`border rounded-md bg-orange-200 p-1.5 mr-2`, subCategory === item?tailwind`bg-green-200`:null]} onPress={() => handleSubCategory(item)}>
-                        <Text style={tailwind`text-black`}>{item}</Text>
-                    </Pressable>
-                ))}
-            </View>
-            <View>{rerenderSubCategory()}</View>
+                <ScrollView>{rerenderSubCategory()}</ScrollView>
+            </Animated.ScrollView>                   
         </View>
     );
 }
