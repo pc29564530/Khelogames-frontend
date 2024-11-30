@@ -1,13 +1,10 @@
 import * as actionTypes from '../types/actionTypes';
 
-
-
 const initialState = {
         players: []
 }
 
 const  teamPlayerReducers = (state=initialState, action) => {
-
     switch (action.type) {
         case actionTypes.GET_TEAM_PLAYERS:
             return {

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {View, Text, Pressable, Image, Modal, ScrollView, TextInput, TouchableOpacity} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
@@ -7,7 +7,8 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useSelector } from 'react-redux';
+import { getTeamPlayers, setTeamPlayer } from '../redux/actions/actions';
+import { useSelector, useDispatch } from 'react-redux';
 
 
 const Members = ({teamData}) => {   
@@ -17,8 +18,10 @@ const Members = ({teamData}) => {
     const [playerProfile, setPlayerProfile] = useState([]);
     const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [filtered, setFiltered] = useState([]);
+    const dispatch = useDispatch();
     const game = useSelector((state) => state.sportReducers.game);
     const navigation = useNavigation();
+    const players = useSelector((state) => state.players.players);
 
     useEffect(() => {
         const fetchPlayerProfile = async () => {
@@ -53,7 +56,9 @@ const Members = ({teamData}) => {
                 const item = response.data || [];
                 if(!item || item === null ){
                     setMember([]);
+                    dispatch(getTeamPlayers([]))
                 } else {
+                    dispatch(getTeamPlayers(item))
                     setMember(item);
                 }
             } catch(err) {
@@ -66,7 +71,11 @@ const Members = ({teamData}) => {
         navigation.navigate('PlayerProfile', {profileData:itm} );
     }
 
-    const handleAddPlayer = async (selectedItem) => {
+    useEffect(() => {
+        console.log("Redux Players List:", players);
+    }, [players]);
+
+    const handleAddPlayer = useCallback (async (selectedItem) => {
         try {
             const data = {
                 team_id:teamData.id,
@@ -80,12 +89,16 @@ const Members = ({teamData}) => {
                     'Content-Type': 'application/json',
                 },
             })
-            setIsSelectPlayerModal(false)
+            const item = response.data;
+            if (item && item !== null ){
+                dispatch(setTeamPlayer(item))
+            }
+            setIsSelectPlayerModal(false);
         } catch (err) {
             console.error("unable to add the player data: ", err);
             setMember([]);
         }
-    }
+    }, [players, axiosInstance, dispatch])
 
     const handleSearchPlayer = (text) => {
         if (Array.isArray(playerProfile) ){
@@ -96,24 +109,30 @@ const Members = ({teamData}) => {
         }
     }
 
-    const handleRemovePlayer = async (item) => {
+    const handleRemovePlayer = useCallback ( async(item) => {
+        const playerID = item.id;
         try {
+            
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 team_id: teamData.id,
-                player_id: item.id,
+                player_id: playerID,
                 leave_date: new Date()
             }
-            const response = await axiosInstance.put(`${BASE_URL}/{game.name}/removePlayerFromTeam`, data, {
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/removePlayerFromTeam`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
-            })
+            });
+            const item = response.data;
+            const updatedPlayers = players.filter((player) => player.id !== item.player_id);
+            setMember(updatedPlayers);
+            dispatch(getTeamPlayers(updatedPlayers));
         } catch (err) {
             console.error("Unable to remove the player from team: ", err)
         }
-    }
+    }, [players, axiosInstance, teamData.id, dispatch, game.name]);
 
     return (
         <View style={tailwind`flex-1`}>
@@ -128,7 +147,7 @@ const Members = ({teamData}) => {
                     </TouchableOpacity>
                 </View>
                 <View style={tailwind`w-full bg-white p-4`}>
-                    {member?.map((item, index) => (
+                    {players?.map((item, index) => (
                         <Pressable
                             key={index}
                             style={tailwind`shadow-lg rounded-lg w-full bg-white p-2 flex-row items-center mb-1`}
@@ -143,7 +162,7 @@ const Members = ({teamData}) => {
                                 ) : (
                                     <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center`}>
                                         <Text style={tailwind`text-red-500 text-2xl`}>
-                                            {item?.short_name[0]}
+                                            {item?.short_name}
                                         </Text>
                                     </View>
                                 )}

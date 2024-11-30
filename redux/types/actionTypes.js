@@ -72,3 +72,8 @@ export const GET_MATCHES = 'GET_MATCHES';
 export const SET_GAME = 'SET_GAME';
 
 export const GET_MATCH = 'GET_MATCH';
+
+export const GET_TEAM_PLAYERS = 'GET_TEAM_PLAYERS';
+
+export const SET_TEAM_PLAYER = 'SET_TEAM_PLAYER';
+
