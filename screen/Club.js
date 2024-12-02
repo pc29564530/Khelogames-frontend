@@ -134,7 +134,7 @@ const Club = () => {
                                 {item.media_url ? (
                                     <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} />
                                 ) : (
-                                    <Text style={tailwind`text-black text-2xl py-4 font-bold text-center`}>{item.name.charAt(0).toUpperCase()}</Text>
+                                    <Text style={tailwind`text-black text-2xl py-4 font-bold text-center`}>{item?.name?.charAt(0).toUpperCase()}</Text>
                                 )}
                             </View>
                             <View style={tailwind`ml-4`}>
