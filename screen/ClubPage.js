@@ -41,6 +41,15 @@ const ClubPage = ({route}) => {
         }
     }
 
+    navigation.setOptions({
+        headerTitle: '',
+        headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+            </Pressable>
+        ),
+    });
+
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
     const scrollY = useSharedValue(0);
