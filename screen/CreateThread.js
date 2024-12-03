@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Pressable, ScrollView, Image} from 'react-native';
+import {View, Text, TextInput, Pressable, ScrollView, Image, Modal} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {launchImageLibrary} from 'react-native-image-picker';
 import { useSelector, useDispatch } from 'react-redux';
@@ -12,6 +12,8 @@ import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { addNewThreadServices } from '../services/threadsServices';
 import { SelectMedia } from '../services/SelectMedia';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/ApiConstants';
 
 function CreateThread() {
     const isFocused = useIsFocused();
@@ -24,6 +26,8 @@ function CreateThread() {
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [likeCount, setLikeCount] = useState(0);
+    const [communityList, setCommunityList] = useState([]);
+    const [isCommunityListModal, setIsCommunityListModal] = useState(false);
     const [communityType, setCommunityType] = useState(route.params?.communityType || 'Select Community')
     const threads = useSelector(state => state.threads.threads)
 
@@ -35,6 +39,38 @@ function CreateThread() {
           setLikeCount(0);
         } catch (err) {
           console.error("Error selecting media ", err);
+        }
+    }
+
+    const fetchCommunity = async () => {
+          try {
+              const authToken = await AsyncStorage.getItem('AccessToken');
+              const response = await axiosInstance.get(`${BASE_URL}/get_all_communities`, {
+                  headers: {
+                      'Authorization': `Bearer ${authToken}`,
+                      'Content-Type': 'application/json',
+                  },
+              })
+              const item = await response.data;
+
+              if(item === null) {
+                  setCommunityList([]);
+              } else {
+                  const communityWithDisplayText = item.map((item, index) => {
+                      let displayText = '';
+                      const words = item.communities_name.split(' ');
+                      displayText = words[0].charAt(0).toUpperCase();
+                      if(words.length>1){
+                          displayText += words[1].charAt(0).toUpperCase()
+                      }
+                      return {...item, displayText, displayText}
+                  })
+
+                  setCommunityList(communityWithDisplayText);
+              }
+
+        } catch(err) {
+              console.error('error unable to get community list', err)
         }
     }
 
@@ -51,7 +87,8 @@ function CreateThread() {
     }
 
     const handleSelectCommunity = () => {
-      navigation.navigate('CommunityList', communityType)
+      setIsCommunityListModal(true);
+      fetchCommunity()
     }
     
     useEffect(() => {
@@ -76,11 +113,8 @@ function CreateThread() {
 
     navigation.setOptions({
       headerTitle:'',
-      headerStyle:{
-        backgroundColor:'black'
-      },
-      headerStyle: tailwind`border-shadow bg-black`,
-      headerTintColor:'black',
+      headerStyle:tailwind`bg-red-400 shadow-lg`,
+      headerTintColor:'white',
       headerLeft: ()=> (
         <View style={tailwind`flex-row items-center gap-35 p-2`}>
             <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
@@ -100,23 +134,23 @@ function CreateThread() {
     })
 
     return (
-        <View style={tailwind`flex-1 p-4 bg-black`}>
+        <View style={tailwind`flex-1 p-4 bg-white`}>
             <View style={tailwind`mb-5`}>
               <TextInput
-                    style={tailwind` font-bold text-2xl h-24 text-white`}
+                    style={tailwind` font-bold text-2xl h-24 text-black-400`}
                     value={title} 
                     onChangeText={setTitle} 
                     placeholder="Write the title here..."
-                    placeholderTextColor="white"
+                    placeholderTextColor="black"
                 />
                 <ScrollView style={tailwind`h-100`}>
                   <TextInput
-                      style={tailwind` text-lg text-white`}
+                      style={tailwind` text-lg text-black-400`}
                       multiline 
                       value={content} 
                       onChangeText={setContent} 
                       placeholder="Write something here..."
-                      placeholderTextColor="white"
+                      placeholderTextColor="black"
                   />
                 </ScrollView>
             </View>
@@ -124,10 +158,37 @@ function CreateThread() {
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
             <View style={tailwind`flex-1 justify-end items-end p-4`}>
-              <Pressable style={tailwind`bg-gray-400 rounded-full p-2`} onPress={handleMediaSelection}>
+              <Pressable style={tailwind`bg-red-400 rounded-full p-2`} onPress={handleMediaSelection}>
                   <FontAwesome name="image" size={25} color="white" />
               </Pressable>
             </View>
+            {isCommunityListModal && (
+              <Modal
+                transparent={true}
+                animationType="slide"
+                visible={isCommunityListModal}
+                onRequestClose={() => setIsCommunityListModal(false)}
+              >
+                <Pressable onPress={() => setIsCommunityListModal(false)} style={tailwind`h-300 justify-end top-30 bg-red-400 bg-opacity-50 `}>
+                <ScrollView style={tailwind`bg-white rounded-md shadow-md pt-14`}>
+                  <Text style={tailwind`text-3xl text-gray-400`}>Select Community</Text>
+                  {communityList.map((item,index)=> (
+                      <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-white shadow-md mb-2 rounded-md p-2 gap-3 flex-row`}>
+                          <View style={tailwind`w-12 h-12 rounded-12 bg-red-400 items-center justify-center`}>
+                              <Text style={tailwind`text-white text-xl`}>
+                                  {item.displayText}
+                              </Text>
+                          </View>
+                          <View>
+                              <Text style={tailwind`text-black text-2xl`}>{item.communities_name}</Text>
+                              <Text style={tailwind`text-black`}>{item.description}</Text>
+                          </View>
+                      </Pressable>
+                  ))}
+                  </ScrollView>
+                </Pressable>
+              </Modal>
+            )}
         </View>
     );
 }

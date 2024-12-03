@@ -138,23 +138,35 @@ const Tournament = () => {
                 </View>
                 {/* Display Selected Filters */}
                 {(typeFilter !== "all" || statusFilter !== "all") && (
-                    <View style={tailwind`flex-row flex-wrap mt-2 justify-evenly items-start`}>
+                    <View style={tailwind`flex-row flex-wrap mt-2 px-2 justify-around items-start`}>
                         {typeFilter !== "all" && (
-                            <View style={tailwind`rounded-lg p-2 shadow-lg bg-white`}>
-                                <Text style={tailwind`text-lg mr-4`}>{typeFilter}</Text>
+                            <View style={tailwind`relative rounded-lg p-2 bg-white`}>
+                                <Text style={tailwind`text-lg`}>{typeFilter}</Text>
+                                <Pressable
+                                    onPress={() => setTypeFilter("all")} // Reset typeFilter on close
+                                    style={tailwind`absolute -top-2 -right-2 rounded-full p-1`}
+                                >
+                                    <FontAwesome name="close" size={16} style={tailwind`text-black-100`} />
+                                </Pressable>
                             </View>
                         )}
                         {statusFilter !== "all" && (
-                            <View style={tailwind`rounded-lg p-2 shadow-lg bg-white`}>
+                            <View style={tailwind`relative rounded-lg p-2 shadow-lg bg-white`}>
                                 <Text style={tailwind`text-lg`}>{statusFilter}</Text>
+                                <Pressable
+                                    onPress={() => setStatusFilter("all")} // Reset statusFilter on close
+                                    style={tailwind`absolute -top-2 -right-2 rounded-full p-1`}
+                                >
+                                    <FontAwesome name="close" size={16} style={tailwind`text-black-100`} />
+                                </Pressable>
                             </View>
                         )}
                     </View>
                 )}
                 {filterTournaments?.map((item, index) => (
-                    <View key={index} style={tailwind`mt-6`}>
+                    <View key={index} style={tailwind`mb-4 mt-2`}>
                         <Pressable
-                            style={tailwind` rounded-md w-full relative bg-white shadow-lg`}
+                            style={tailwind`rounded-md w-full bg-white shadow-lg justigy-center flex-row items-center`}
                             onPress={() => handleTournamentPage(item)}
                         >
                             <View style={tailwind`mt-auto p-2 flex-row gap-4`}>
@@ -165,14 +177,13 @@ const Tournament = () => {
                     </View>
                 ))}
             </ScrollView>
-            <View style={tailwind`absolute bottom-12 right-4`}>
+            <View style={tailwind`absolute bottom-16 right-6`}>
                 {/* {currentRole === 'admin' && ( */}
-                    <Pressable style={tailwind`p-2 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateTournament")}>
+                    <Pressable style={tailwind`p-4 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateTournament")}>
                         <MaterialIcons name="add" size={24} color="white" />
                     </Pressable>
                 {/* )} */}
             </View>
-            {/* Full-Screen Type Filter Modal */}
             <Modal
                 transparent={true}
                 animationType="slide"
@@ -180,47 +191,94 @@ const Tournament = () => {
                 onRequestClose={() => setTypeFilterModal(false)}
             >
                 <Pressable onPress={() => setTypeFilterModal(false)} style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-                    <View onPress={tailwind`bg-white rounded-lg p-6 w-2/4`}>
-                        <View style={tailwind`bg-white p-2`}>
-                            <Pressable onPress={() => {setTypeFilter("all"); setTypeFilterModal(false)}}>
-                                <Text style={tailwind`text-xl text-black`}>All</Text>
-                            </Pressable>
-                            <Pressable onPress={() => {setTypeFilter("international"); setTypeFilterModal(false)}}>
-                                <Text style={tailwind`text-xl text-black`}>International</Text>
-                            </Pressable>
-                            <Pressable onPress={() => {setTypeFilter("country"); setTypeFilterModal(false); setIsCountryPicker(true)}}>
-                                <Text style={tailwind`text-xl text-black`}>Country</Text>
-                            </Pressable>
-                            <Pressable onPress={() => {setTypeFilter("local"); setTypeFilterModal(false); setIsCountryPicker(true)}}>
-                                <Text style={tailwind`text-xl text-black`}>Local</Text>
-                            </Pressable>
-                        </View>
+                    <View style={tailwind`bg-white rounded-2xl p-6 w-3/4 shadow-lg`}>
+                        <Text style={tailwind`text-lg font-bold text-gray-800 mb-4 text-center`}>
+                            Select Categories
+                        </Text>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                            onPress={() => {
+                                setTypeFilter("all");
+                                setTypeFilterModal(false);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>All</Text>
+                        </Pressable>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                            onPress={() => {
+                                setTypeFilter("international");
+                                setTypeFilterModal(false);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>International</Text>
+                        </Pressable>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                            onPress={() => {
+                                setTypeFilter("country");
+                                setTypeFilterModal(false);
+                                setIsCountryPicker(true);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>Country</Text>
+                        </Pressable>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg`}
+                            onPress={() => {
+                                setTypeFilter("local");
+                                setTypeFilterModal(false);
+                                setIsCountryPicker(true);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>Local</Text>
+                        </Pressable>
                     </View>
                 </Pressable>
             </Modal>
+
             <Modal
                 transparent={true}
                 animationType="slide"
                 visible={statusFilterModal}
                 onRequestClose={() => setStatusFilterModal(false)}
             >
-                <Pressable onPress={() => {() => setStatusFilterModal(false)}} style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-                    <View onPress={tailwind`bg-white rounded-lg p-6 w-2/4`}>
-                        <View style={tailwind`bg-white p-2`}>
-                        <Text style={tailwind`text-xl text-center mb-4`}>Select Status</Text>
-                        <Pressable onPress={() => {setStatusFilter("all"); setStatusFilterModal(false)}}>
-                            <Text style={tailwind`text-xl text-black`}>All</Text>
+                <Pressable onPress={() => setStatusFilterModal(false)} style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                    <View style={tailwind`bg-white rounded-2xl p-6 w-3/4 shadow-lg`}>
+                        <Text style={tailwind`text-lg font-bold text-gray-800 mb-4 text-center`}>
+                            Select Status
+                        </Text>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                            onPress={() => {
+                                setStatusFilter("all");
+                                setStatusFilterModal(false);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>All</Text>
                         </Pressable>
-                        <Pressable onPress={() => {setStatusFilter("not_started"); setStatusFilterModal(false)}}>
-                            <Text style={tailwind`text-xl text-black`}>Upcoming</Text>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                            onPress={() => {
+                                setStatusFilter("not_started");
+                                setStatusFilterModal(false);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>Upcoming</Text>
                         </Pressable>
-                        <Pressable onPress={() => {setStatusFilter("live"); setStatusFilterModal(false)}}>
-                            <Text style={tailwind`text-xl text-black`}>Live</Text>
+                        <Pressable
+                            style={tailwind`p-4 bg-gray-100 rounded-lg`}
+                            onPress={() => {
+                                setStatusFilter("live");
+                                setStatusFilterModal(false);
+                            }}
+                        >
+                            <Text style={tailwind`text-lg text-gray-800`}>Live</Text>
                         </Pressable>
-                        </View>
                     </View>
                 </Pressable>
             </Modal>
+
             {isCountryPicker && (
                 <CountryPicker
                     withFilter
