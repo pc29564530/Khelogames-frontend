@@ -32,7 +32,7 @@ const ClubFootballMatch = ({teamData}) => {
     const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/Football/getMatchByTeamFunc`, {
+            const response = await axiosInstance.get(`${BASE_URL}/football/getMatchByTeamFunc`, {
                 params: {
                     id: teamData.id.toString()
                 },
@@ -77,16 +77,14 @@ const ClubFootballMatch = ({teamData}) => {
         tournamentsID.add(item.tournament.id);
     })
 
-    var tournamentItem;
-
     return (
-        <ScrollView style={tailwind`mt-4`}>
-            <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center inline inline-block w-35 gap-2`} onPress={() => handleDropDown()}>
-                <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
-                <AntDesign name="down"  size={10} color="black" />
-            </Pressable>
-            <ScrollView>
-            {matches?.length > 0 ? (
+        <View style={tailwind`flex-1`}>
+            <ScrollView style={tailwind``} contentContainerStyle={{flexGrow:1}}>
+                <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center inline inline-block w-35 gap-2`} onPress={() => handleDropDown()}>
+                    <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
+                    <AntDesign name="down"  size={10} color="black" />
+                </Pressable>
+                {matches?.length > 0 ? (
                     matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
                             <View>
@@ -134,7 +132,6 @@ const ClubFootballMatch = ({teamData}) => {
                 ) : (
                     <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
                 )}
-            </ScrollView>
                 {isDropDownVisible && (
                     <Modal
                         animationType="slide"
@@ -162,7 +159,8 @@ const ClubFootballMatch = ({teamData}) => {
                         </Pressable>
                     </Modal>
                 )}
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 }
 

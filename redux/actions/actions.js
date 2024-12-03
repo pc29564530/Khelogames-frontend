@@ -359,7 +359,6 @@ export const getTeams = (teams) => {
 }
 
 export const checkIsFollowing = (isFollowing) => {
-    console.log("isFollwoing: ", isFollowing)
     return {
         type: actionTypes.IS_FOLLOWING,
         payload: isFollowing
@@ -370,5 +369,19 @@ export const getMatch = (match) => {
     return {
         type: actionTypes.GET_MATCH,
         payload: match
+    }
+}
+
+export const getTeamPlayers = (player) => {
+    return {
+        type: actionTypes.GET_TEAM_PLAYERS,
+        payload: player
+    }
+}
+
+export const setTeamPlayer = (player) => {
+    return {
+        type: actionTypes.SET_TEAM_PLAYER,
+        payload: player
     }
 }

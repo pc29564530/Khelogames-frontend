@@ -74,6 +74,15 @@ const CreateTournament = () => {
         }
     };
 
+    navigation.setOptions({
+        headerTitle: '',
+        headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()}>
+                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+            </Pressable>
+        ),
+    });
+
     const modifyDateTime = (newDateTime) => {
         if (!newDateTime) {
             console.error('new date time is undefined');
@@ -98,7 +107,7 @@ const CreateTournament = () => {
 
             {/* Input Fields */}
             <TextInput
-                style={tailwind`border-b border-gray-300 text-lg py-2 mb-6`}
+                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
                 placeholder="Tournament Name"
                 placeholderTextColor="gray"
                 value={tournamentName}
@@ -108,7 +117,7 @@ const CreateTournament = () => {
             {/* Sport Selection */}
             <Pressable
                 onPress={() => setIsSportVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+                style={tailwind`flex-row justify-between items-center bg-white p-4 rounded-md border border-gray-300 shadow-md mb-4`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {sport || 'Select Sport'}
@@ -119,7 +128,7 @@ const CreateTournament = () => {
             {/* Country Selection */}
             <Pressable
                 onPress={() => setIsCountryPicker(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-4`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {country ? `Country: ${country}` : 'Select Country'}
@@ -130,7 +139,7 @@ const CreateTournament = () => {
             {/* Level Selection */}
             <Pressable
                 onPress={() => setIsLevelVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-4`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-4`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {category || 'Select Level'}
@@ -141,7 +150,7 @@ const CreateTournament = () => {
             {/* Date Picker */}
             <Pressable
                 onPress={() => setIsDurationVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 rounded-lg mb-6`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-6`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {startOn ? startOn: 'Select Start Date'}
@@ -151,10 +160,10 @@ const CreateTournament = () => {
 
             {/* Submit Button */}
             <Pressable
-                style={tailwind`bg-blue-600 py-3 rounded-lg items-center`}
+                style={tailwind`bg-blue-600 py-3 rounded-md bg-white items-center shadow-md border border-gray-300 `}
                 onPress={() => handleCreateTournament()}
             >
-                <Text style={tailwind`text-white text-lg font-semibold`}>
+                <Text style={tailwind`text-black-200 text-lg font-semibold`}>
                     Create Tournament
                 </Text>
             </Pressable>

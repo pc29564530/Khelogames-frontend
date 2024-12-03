@@ -86,16 +86,23 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="JoinCommunity" component={JoinCommunity}
                             options={() => ({
-                            headerShown: false,
-                            headerTitle: null,
-                            headerBackTitleVisible: false,
-                            headerLeft: false
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
                             })}
                         />
                         <Stack.Screen name="CreateThread" component={CreateThread} />
                         <Stack.Screen name="Shorts" component={Shorts} />
                         <Stack.Screen name="CreateCommunity" component={CreateCommunity}/>
-                        <Stack.Screen name="Profile" component={Profile}/>
+                        <Stack.Screen name="Profile" component={Profile}
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="EditProfile" component={EditProfile} />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
                         <Stack.Screen name="CommunityPage" component={CommunityPage} />
@@ -105,9 +112,23 @@ export default function MainNavigation() {
                         <Stack.Screen name="MessagePage" component={MessagePage} />
                         <Stack.Screen name="Club" component={Club} />
                         <Stack.Screen name="CreateClub" component={CreateClub} />
-                        <Stack.Screen name="ClubPage" component={ClubPage} />
+                        <Stack.Screen name="ClubPage" component={ClubPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="Tournament" component={Tournament} />
-                        <Stack.Screen name="TournamentPage" component={TournamentPage} />
+                        <Stack.Screen name="TournamentPage" component={TournamentPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />

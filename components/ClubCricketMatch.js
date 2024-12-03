@@ -30,7 +30,7 @@ const ClubCricketMatch = ({ teamData }) => {
     const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/Cricket/getMatchByTeamFunc`, {
+            const response = await axiosInstance.get(`${BASE_URL}/cricket/getMatchByTeamFunc`, {
                 params: {
                     id: teamData.id.toString()
                 },
@@ -76,12 +76,12 @@ const ClubCricketMatch = ({ teamData }) => {
     })
 
     return (
-        <ScrollView style={tailwind`mt-4`}>
-            <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center w-35 gap-2`} onPress={handleDropDown}>
-                <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
-                <AntDesign name="down" size={10} color="black" />
-            </Pressable>
-            <ScrollView>
+        <View style={tailwind`flex-1`}>
+            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled>
+                <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center w-35 gap-2`} onPress={handleDropDown}>
+                    <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
+                    <AntDesign name="down" size={10} color="black" />
+                </Pressable>
                 {matches.length > 0 && matches.map((item, index) => (
                     <Pressable key={index} style={tailwind`mb-4 p-1 bg-white rounded-lg shadow-md`} onPress={() => handleMatch(item)} >
                         <View style={tailwind`items-start justify-center ml-2`}>
@@ -156,7 +156,7 @@ const ClubCricketMatch = ({ teamData }) => {
                     </Pressable>
                 </Modal>
             )}
-        </ScrollView>
+        </View>
     );
 }
 

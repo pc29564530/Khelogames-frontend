@@ -1,7 +1,9 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, StatusBar, ScrollView, Alert} from 'react-native';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
+import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+//import Feather from 'react-native-vector-icons/Feather';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile, checkIsFollowing} from '../redux/actions/actions';
@@ -9,6 +11,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
+import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
@@ -19,11 +22,13 @@ function Profile({route}) {
     const [profileData, setProfileData] = useState([]);
     const following = useSelector((state) => state.user.following);
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
+    const [moreTabVisible, setMoreTabVisible] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const otherOwner  = route.params?.username;
+    console.log("Profile: ", profile.full_name)
 
     useFocusEffect(
       React.useCallback(() => {
@@ -258,18 +263,18 @@ const addPlayerProfile = () => {
   navigation.navigate("CreatePlayerProfile");
 }
 
-  navigation.setOptions({
-    headerTitle:'',
-    headerStyle:{
-      backgroundColor: 'black'
-    },
-    headerTintColor: 'white',
-    headerRight: ()=> (
-      <Pressable onPress={() => addPlayerProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 mr-4`}>
-        <Text style={tailwind`text-white`}>Create Player</Text>
-      </Pressable>
-    )
-  })
+  // navigation.setOptions({
+  //   headerTitle:'',
+  //   headerStyle:{
+  //     backgroundColor: 'black'
+  //   },
+  //   headerTintColor: 'white',
+  //   headerRight: ()=> (
+  //     <Pressable onPress={() => addPlayerProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 mr-4`}>
+  //       <Text style={tailwind`text-white`}>Create Player</Text>
+  //     </Pressable>
+  //   )
+  // })
 
   const isFollowingConditionCheck = () => {
   if(isFollowing.is_following) {
@@ -283,61 +288,169 @@ useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
 }, [isFollowing]);
 
-    return(
-      <ScrollView contentContainerStyle={{height:900}}>
-        <View style={tailwind`flex-1 p-4 bg-black`}>
-          <View style={tailwind`flex-row gap-8`}>
-            {profile && profile.avatar_url ? (
-                  <Image style={tailwind`w-20 h-20 mb-5 rounded-full bg-gray-500`} source={{uri: profile.avatar_url}} />
-              ) : (
-                <View style={tailwind`w-20 h-20 rounded-12 bg-white items-center justify-evenly`}>
-                  <Text style={tailwind`text-red-500 text-12x2`}>
-                    {displayText}
-                  </Text>
-                </View>
-            )}
-            <View >
-              <Text style={tailwind`text-3xl mb-1 mt-4 text-white`}>{profile.full_name}</Text>
-              <Text style={tailwind`text-xl mb-1 text-white`}>@{profile.owner}</Text>
-            </View>  
-          </View>
-            
-          <View style={tailwind`flex-row justify-between content-center pl-2 pt-5 text-black`}>
-              <Text style={tailwind`flex-row text-lg text-white `}>{followerCount}  Followers</Text>
-              <Text style={tailwind`flex-row text-lg text-white`}> | </Text>
-              <Text style={tailwind`flex-row text-lg text-white`}>{followingCount}  Following</Text>
-          </View>
-          <Text style={tailwind`text-xl mb-5 text-white`}>{profile.bio}</Text>
+    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
-          <View style={tailwind`flex-1`}>
-            {showEditProfileButton ? (
-            <>
-              <Pressable style={tailwind`items-center p-2 border rounded-md bg-red-500 `} onPress={() => handleEditProfile() }>
-                  <Text style={ tailwind`text-white text-xl font-bold`}>Edit Profile</Text>
-              </Pressable>
-              <View style={tailwind`flex-1`}>
-                <TopTabProfile profileData={profile}/>
-              </View>
-            </>
-            ) : (
-              <>
-              <View style={tailwind` p-2  flex-row gap-5`}>
-                <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={() => handleMessage()}>
-                  <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
-                </Pressable>
-                <TouchableOpacity style={tailwind`bg-gray-500 text-gray-500 py-3 px-3 rounded-md w-2/5 text-center items-center z-10`} onPress={() => handleFollowButton()}>
-                <Text style={ tailwind`text-white text-xl font-bold`}>{isFollowingConditionCheck()}</Text>
-                    
-                </TouchableOpacity>
-              </View>
-              <View style={tailwind`flex-1`}>
-                <TopTabProfile profileData={profile}/>
-              </View>
-              </>
+    const scrollY = useSharedValue(0);
+
+    const handleScroll = useAnimatedScrollHandler((e) => {
+        scrollY.value = e.contentOffset.y;
+      })
+    
+      const bgColor = 'white'
+      const bgColor2 = 'white'
+      const headerInitialHeight = 100;
+      const headerNextHeight = 50;
+      const offsetValue = 100;
+      const animatedHeader = useAnimatedStyle(() => {
+        const height = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [headerInitialHeight, headerNextHeight],
+          Extrapolation.CLAMP,
+        )
+    
+        const backgroundColor = interpolateColor(
+          scrollY.value,
+          [0, offsetValue],
+          [bgColor, bgColor2]
+        )
+        return {
+          backgroundColor, height
+        }
+      })
+
+      const nameAnimatedStyles = useAnimatedStyle(() => {
+        const opacity = interpolate(
+          scrollY.value,
+          [0, 100, offsetValue],
+          [0, 1, 1],
+          Extrapolation.CLAMP,
+        )
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, 76],
+          Extrapolation.CLAMP,
+        )
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -10],
+          Extrapolation.CLAMP,
+        )
+        return { opacity, transform: [{ translateX }, { translateY }] }
+      })
+      const animImage = useAnimatedStyle(() => {
+        const yValue = 75;
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -yValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const xValue = sWidth / 2 - (2 * 16) - 20;
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -xValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const scale = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [1, 0.3],
+          Extrapolation.CLAMP,
+        )
+        return {
+          transform: [{ translateY }, { translateX }, { scale }]
+        }
+      })
+
+    return(
+      <View style={tailwind`flex-1`}>
+            <Animated.View style={[tailwind`safe-center`, animatedHeader]}>
+              <TouchableOpacity onPress={() =>navigation.goBack()} style={tailwind`top-4 left-2 z-30`}>
+                  <MaterialIcons name="arrow-back" size={22} color="black" />
+              </TouchableOpacity>
+              <Animated.View style={[tailwind``, nameAnimatedStyles]}>
+                  <Text style={[tailwind`text-xl text-red`]}>{profile?.full_name}</Text>
+              </Animated.View>
+              <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind` items-end -top-8 right-2 z-20`}>
+                  <MaterialIcons name="more-vert" size={22} color="black" />
+              </TouchableOpacity>
+            </Animated.View>
+            <Animated.Image source={profile?.avatar_url || ''} style={[tailwind`w-32 h-32 rounded-full absolute z-20 self-center bg-red-200 top-10`, animImage]}/>
+            <Animated.ScrollView
+                onScroll={handleScroll}
+                contentContainerStyle={{height:880}}
+                scrollEnabled={true}
+            >
+                <View style={tailwind`flex-1 bg-white`}>
+                  <View style={tailwind`items-center`}>
+                    <View style={tailwind`mt-18`}>
+                      <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
+                      <Text style={tailwind`text-gray-500 text-base`}>@{profile.owner}</Text>
+                    </View>
+                  </View>
+                  <View style={tailwind`mt-2 items-center`}>
+                    <View style={tailwind`flex-row items-center mb-4`}>
+                      <Text style={tailwind`text-lg font-medium text-black`}>
+                        {followerCount} Followers
+                      </Text>
+                      <Text style={tailwind`text-lg mx-2 text-gray-400`}>|</Text>
+                      <Text style={tailwind`text-lg font-medium text-black`}>
+                        {followingCount} Following
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={tailwind` pl-2 pr-2`}>
+                      <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-full  text-center justify-center items-center z-10`} onPress={() => handleMessage()}>
+                        <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
+                      </Pressable>
+                  </View>
+                  <View style={tailwind`flex-1 mt-6 bg-gray-50 rounded-t-2xl shadow-lg`}>
+                    <TopTabProfile profileData={profile} />
+                  </View>
+                </View>
+            </Animated.ScrollView>
+            {moreTabVisible && (
+              <Modal
+                transparent
+                visible={moreTabVisible}
+                animationType="fade"
+                onRequestClose={() => setMoreTabVisible(false)}
+              >
+                <Pressable
+                  style={tailwind`flex-1 bg-black bg-opacity-30`}
+                  onPress={() => setMoreTabVisible(false)}
+                />
+                <View
+                  style={tailwind`absolute right-2 top-12 w-48 bg-white rounded-md shadow-lg p-4`}
+                >
+                  <TouchableOpacity
+                    style={tailwind`py-2 border-b border-gray-200`}
+                    onPress={() => {handleEditProfile()}}
+                  >
+                    <Text style={tailwind`text-black text-lg`}>Edit Profile</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={tailwind`py-2 border-b border-gray-200`}
+                    onPress={() => {}}
+                  >
+                    <Text style={tailwind`text-black text-lg`}>Follow</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={tailwind`py-2`}
+                    onPress={() => {}}
+                  >
+                    <Text style={tailwind`text-black text-lg`}>Share Profile..</Text>
+                  </TouchableOpacity>
+                </View>
+            </Modal>
             )}
-          </View>
         </View>
-  </ScrollView>
     );
 }
 

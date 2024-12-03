@@ -170,8 +170,8 @@ function ProfileMenu() {
   };
 
   return (
-    <View style={tailwind`flex-1 bg-gray-900 p-4`}>
-      <View style={tailwind`mb-5 items-center`}>
+    <View style={tailwind`flex-1`}>
+      <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
         {profileData.avatar_url ? (
           <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profileData.avatar_url }} />
         ) : (
@@ -180,19 +180,18 @@ function ProfileMenu() {
           </View>
         )}
         <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profileData.full_name}</Text>
-        <Text style={tailwind`text-xl text-gray-400`}>@{currentUser}</Text>
+        <Text style={tailwind`text-xl text-white`}>@{currentUser}</Text>
         <View style={tailwind`flex-row justify-center mt-5`}>
           <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
-          <Text style={tailwind`text-lg text-gray-500 mx-2`}>|</Text>
+          <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
           <Text style={tailwind`text-lg text-white`}>{followingCount} Following</Text>
         </View>
       </View>
-
       <ScrollView>
-        <View style={tailwind`mt-5`}>
+        <View style={tailwind`mt-5 p-4`}>
           <Pressable onPress={() => handleUser({username: profileData.owner, navigation})} style={tailwind`flex-row items-center py-2`}>
-            <FontAwesome name="user" size={24} color="white" />
-            <Text style={tailwind`text-2xl text-white pl-4`}>Profile</Text>
+            <FontAwesome name="user" size={24} color="#F87171" />
+            <Text style={tailwind`text-2xl text-black pl-4`}>Profile</Text>
           </Pressable>
 
           {/* {currentRole === 'admin' && ( */}
@@ -203,20 +202,20 @@ function ProfileMenu() {
           {/* )} */}
 
           <Pressable onPress={() => handleNavigation('Club')} style={tailwind`flex-row items-center py-2`}>
-            <AntDesign name="team" size={24} color="white" />
-            <Text style={tailwind`text-2xl text-white pl-4`}>Club/Team</Text>
+            <AntDesign name="team" size={24} color="#F87171" />
+            <Text style={tailwind`text-2xl text-black pl-4`}>Team</Text>
           </Pressable>
 
           <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-2`}>
-            <MaterialIcons name="connect-without-contact" size={25} color="white"/>
-            <Text style={tailwind`text-2xl text-white pl-4`}>Follow</Text>
+            <MaterialIcons name="connect-without-contact" size={25} color="#F87171"/>
+            <Text style={tailwind`text-2xl text-black pl-4`}>Follow</Text>
           </Pressable>
         </View>
 
-        <View style={tailwind`mt-5`}>
+        <View style={tailwind`mt-5 p-4`}>
           <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between`}>
-            <Text style={tailwind`text-2xl font-bold text-white`}>My Community</Text>
-            <FontAwesome name={showMyCommunity ? 'angle-up' : 'angle-down'} size={24} color="white" />
+            <Text style={tailwind`text-2xl font-bold text-black`}>My Community</Text>
+            <FontAwesome name={showMyCommunity ? 'angle-up' : 'angle-down'} size={24} color="#F87171" />
           </Pressable>
 
           {showMyCommunity && (
@@ -233,7 +232,7 @@ function ProfileMenu() {
 
         {showLogoutButton && (
           <View style={tailwind`mt-10 items-center`}>
-            <TouchableOpacity onPress={handleLogout} style={tailwind`bg-red-600 p-4 rounded-xl w-40 items-center`}>
+            <TouchableOpacity onPress={handleLogout} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
               <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
             </TouchableOpacity>
           </View>
