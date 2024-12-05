@@ -15,10 +15,11 @@ import useAxiosInterceptor from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import DateTimePicker from 'react-native-modern-datepicker';
 
+const matchTypes = ['Team', 'Individual', 'Double'];
+const Stages = ['Group', 'Knockout', 'League'];
+
 const CreateMatch = ({ route }) => {
     const {tournament, teams} = route.params;
-    console.log("Teams: ", teams)
-    console.log("Tournament: ", tournament)
     const [team1, setTeam1] = useState(null);
     const [team2, setTeam2] = useState(null);
     const [startTime, setStartTime] = useState(null);
@@ -66,7 +67,8 @@ const CreateMatch = ({ route }) => {
           end_timestamp: endTime?modifyDateTime(endTime):'',
           type: matchType,
           status_code: "not_started",
-          result: result
+          result: result,
+          stage: stage
         };
   
         console.log("Fixture: ", fixture)
@@ -77,27 +79,26 @@ const CreateMatch = ({ route }) => {
             'Content-Type': 'application/json',
           },
         });
+        console.log("Response; ", response.data)
       } catch (err) {
         console.error("Unable to set the fixture: ", err);
       }
     };
 
-  navigation.setOptions({
-    headerTitle: '',
-    headerLeft: () => (
-      <Pressable onPress={() => navigation.goBack()}>
-        <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-      </Pressable>
-    ),
-    headerRight: () => (
-        <View style={tailwind``}>
-            <Text style={tailwind`text-2xl font-bold text-gray-800`}>Create Match</Text>
+    navigation.setOptions({
+        headerTitle:'',
+      headerStyle:tailwind`bg-red-400 shadow-lg`,
+      headerTintColor:'white',
+      headerLeft: ()=> (
+        <View style={tailwind`flex-row items-center gap-30 p-2`}>
+            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+            
+            <View style={tailwind`items-center`}>
+                <Text style={tailwind`text-xl text-white`}>Create Match</Text>
+            </View>
         </View>
-    )
-  });
-
-  const matchTypes = ['Team', 'Individual', 'Double'];
-  const Stages = ['Group', 'Knockout', 'League'];
+      ),
+    })
 
   return (
     <SafeAreaView style={tailwind`flex-1 bg-gray-100`}>
@@ -117,13 +118,13 @@ const CreateMatch = ({ route }) => {
 
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalStartTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-              <Text style={tailwind`text-black text-lg text-center`}>Start Time</Text>
+              <Text style={tailwind`text-black text-lg text-center`}>{startTime?startTime:'Start Time'}</Text>
               <AntDesign name="calendar" size={24} color="black" />
             </Pressable>
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalEndTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-center text-lg`}>End Time</Text>
+                <Text style={tailwind`text-black text-center text-lg`}>{endTime?endTime:'End Time'}</Text>
                 <AntDesign name="calendar" size={24} color="black" />
             </Pressable>
         </View>
