@@ -11,7 +11,7 @@ import CountryPicker from 'react-native-country-picker-modal';
 import { useSelector, useDispatch } from 'react-redux';
 import { BASE_URL } from '../constants/ApiConstants';
 import { addTournament } from '../redux/actions/actions';
-
+const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
@@ -19,6 +19,9 @@ const CreateTournament = () => {
     const [startOn, setStartOn] = useState(null);
     const [country, setCountry] = useState('');
     const [category, setCategory] = useState('');
+    const [groupCount, setGroupCount] = useState(null);
+    const [maxTeamGroup, setMaxGroupTeam] = useState(null);
+    const [stage, setStage] = useState(null)
     const axiosInstance = useAxiosInterceptor();
 
     const [isSportVisible, setIsSportVisible] = useState(false);
@@ -39,11 +42,15 @@ const CreateTournament = () => {
                     country: category==='international'?'':country,
                     level: category,
                     start_timestamp: modifyDateTime(startOn),
-                    game_id: game.id
+                    game_id: game.id,
+                    group_count: parseInt(groupCount, 10),
+                    max_group_team: parseInt(maxTeamGroup, 10),
+                    stage: stage.toLowerCase()
                 }
+                console.log("Data: ", data)
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.post(`${BASE_URL}/createTournament`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournament`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -75,13 +82,19 @@ const CreateTournament = () => {
     };
 
     navigation.setOptions({
-        headerTitle: '',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-            </Pressable>
-        ),
-    });
+        headerTitle:'',
+      headerStyle:tailwind`bg-red-400 shadow-lg`,
+      headerTintColor:'white',
+      headerLeft: ()=> (
+        <View style={tailwind`flex-row items-center items-start justify-between gap-2 p-2`}>
+            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+            <FontAwesome name="trophy" size={24} color="gold" />
+            <View style={tailwind`items-center`}>
+                <Text style={tailwind`text-xl text-white`}>Create Tournament</Text>
+            </View>
+        </View>
+      ),
+    })
 
     const modifyDateTime = (newDateTime) => {
         if (!newDateTime) {
@@ -97,17 +110,9 @@ const CreateTournament = () => {
 
     return (
         <View style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
-            {/* Header */}
-            <View style={tailwind`items-center mb-6`}>
-                <FontAwesome name="trophy" size={60} color="gold" />
-                <Text style={tailwind`text-2xl font-bold text-gray-800 mt-2`}>
-                    Create Tournament
-                </Text>
-            </View>
-
             {/* Input Fields */}
             <TextInput
-                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
+                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-2`}
                 placeholder="Tournament Name"
                 placeholderTextColor="gray"
                 value={tournamentName}
@@ -115,7 +120,7 @@ const CreateTournament = () => {
             />
 
             {/* Sport Selection */}
-            <Pressable
+            {/* <Pressable
                 onPress={() => setIsSportVisible(true)}
                 style={tailwind`flex-row justify-between items-center bg-white p-4 rounded-md border border-gray-300 shadow-md mb-4`}
             >
@@ -123,12 +128,12 @@ const CreateTournament = () => {
                     {sport || 'Select Sport'}
                 </Text>
                 <AntDesign name="down" size={20} color="gray" />
-            </Pressable>
+            </Pressable> */}
 
             {/* Country Selection */}
             <Pressable
                 onPress={() => setIsCountryPicker(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-4`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {country ? `Country: ${country}` : 'Select Country'}
@@ -139,7 +144,7 @@ const CreateTournament = () => {
             {/* Level Selection */}
             <Pressable
                 onPress={() => setIsLevelVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-4`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {category || 'Select Level'}
@@ -150,13 +155,44 @@ const CreateTournament = () => {
             {/* Date Picker */}
             <Pressable
                 onPress={() => setIsDurationVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-6`}
+                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
             >
                 <Text style={tailwind`text-gray-600 text-lg`}>
                     {startOn ? startOn: 'Select Start Date'}
                 </Text>
                 <AntDesign name="calendar" size={20} color="gray" />
             </Pressable>
+
+            <View style={tailwind`mb-2`}>
+                <Text style={tailwind`text-lg text-gray-700 mb-2`}>Stage</Text>
+                <View style={tailwind`flex-row justify-between`}>
+                    {Stages.map((item, index) => (
+                    <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-md bg-white`, stage===item?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Text style={tailwind`text-black text-center`}>{item}</Text>
+                    </Pressable>
+                    ))}
+                </View>
+            </View>
+
+            {/* Select Group Count */}
+            <TextInput
+                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
+                placeholder="Group Count"
+                keyboardType='numeric'
+                placeholderTextColor="gray"
+                value={groupCount}
+                onChangeText={setGroupCount}
+            />
+
+            {/* Max Team Per Group */}
+            <TextInput
+                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
+                placeholder="Max Team Per Group"
+                keyboardType='numeric'
+                placeholderTextColor="gray"
+                value={maxTeamGroup}
+                onChangeText={setMaxGroupTeam}
+            />
 
             {/* Submit Button */}
             <Pressable

@@ -136,31 +136,44 @@ const TournamentStanding = ({route}) => {
                 >
                 <View style={tailwind`bg-white p-5 rounded-t-3xl w-full items-center`}>
                     <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Create Standing</Text>
-                    <View style={tailwind`flex-row w-full justify-around`}>
-                        <Pressable 
-                            onPress={() => setIsModalGroupVisible(true)} 
-                            style={tailwind`p-4 shadow-md bg-blue-500 rounded-lg w-32 items-center`}
-                        >
-                            <Text style={tailwind`text-lg font-bold text-white`}>Groups</Text>
-                        </Pressable>
-                        <Pressable 
-                            onPress={() => {
-                                if (selectedGroup) {
-                                    setIsModalTeamVisible(true);
-                                }
-                            }}
-                            style={[
-                                tailwind`p-4 shadow-md rounded-lg w-32 items-center`,
-                                selectedGroup ? tailwind`bg-green-500` : tailwind`bg-gray-300`
-                            ]}
-                            disabled={!selectedGroup}
+                    
+                    {tournament.stage === "group"?(
+                        <View style={tailwind`flex-row w-full justify-around`}>
+                            <Pressable 
+                                onPress={() => setIsModalGroupVisible(true)} 
+                                style={tailwind`p-4 shadow-md bg-blue-500 rounded-lg w-32 items-center`}
                             >
-                            <Text style={tailwind`text-lg font-bold text-white`}>Teams</Text>
-                        </Pressable>
-                    </View>
-                    <Pressable onPress={() => {handleCreateStanding()}}>
-                        <Text>Save</Text>
-                    </Pressable>
+                                <Text style={tailwind`text-lg font-bold text-white`}>Groups</Text>
+                            </Pressable>
+                            <Pressable 
+                                onPress={() => {
+                                    if (selectedGroup) {
+                                        setIsModalTeamVisible(true);
+                                    }
+                                }}
+                                style={[
+                                    tailwind`p-4 shadow-md rounded-lg w-32 items-center`,
+                                    selectedGroup ? tailwind`bg-green-500` : tailwind`bg-gray-300`
+                                ]}
+                                disabled={!selectedGroup}
+                                >
+                                <Text style={tailwind`text-lg font-bold text-white`}>Teams</Text>
+                            </Pressable>
+                        </View>
+                        ):(
+                            <View style={tailwind`flex-row w-full justify-around`}>
+                                <Pressable 
+                                    onPress={() => {
+                                        setIsModalTeamVisible(true);
+                                    }}
+                                    style={[
+                                        tailwind`p-4 shadow-md rounded-lg w-32 items-center bg-green-300`,
+                                    ]}
+                                    >
+                                    <Text style={tailwind`text-lg font-bold text-white`}>Teams</Text>
+                                </Pressable>
+                            </View>
+                        )}
                 </View>
                 </Pressable>
             </Modal>
