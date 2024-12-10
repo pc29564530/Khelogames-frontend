@@ -85,7 +85,7 @@ const TournamentStanding = ({route}) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const groupData = {
                 tournament_id: tournament.id,
-                group_id: selectedGroup.id,
+                group_id: selectedGroup !== null ? selectedGroup.id: null,
                 team_id: id
             }
 
@@ -101,6 +101,7 @@ const TournamentStanding = ({route}) => {
         }
     }
 
+
   return (
     <ScrollView style={tailwind`mt-4`}>
         <View style={tailwind``}>
@@ -112,7 +113,7 @@ const TournamentStanding = ({route}) => {
             {standings?.length > 0 ? (
                 standings.map((group, index) => (
                     <View key={index} style={tailwind``}>
-                        <Text style={tailwind`text-lg font-bold mb-2 px-2`}>{group.group_name}</Text>
+                        <Text style={tailwind`text-lg font-bold mb-2 px-2 text-black`}>{group.group_name}</Text>
                         <PointTable standingsData={group.team_row} game={game} />
                     </View>
                 ))
@@ -203,7 +204,7 @@ const TournamentStanding = ({route}) => {
                 <Modal animationType="slide" visible={isModalTeamVisible} transparent={true}>
                     <Pressable onPress={() => setIsModalTeamVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50 items-center`}>
                         <View style={tailwind`bg-white p-4 rounded-lg h-80 w-full`}>
-                            <Text style={tailwind`text-lg font-bold mb-2`}>Select Teams for {selectedGroup.name}</Text>
+                            {/* <Text style={tailwind`text-lg font-bold mb-2`}>Select Teams for {selectedGroup.name}</Text> */}
                             <FlatList
                                 data={teams}
                                 keyExtractor={(item) => item.id.toString()}

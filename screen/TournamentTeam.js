@@ -38,12 +38,13 @@ const TournamentTeam = ({ route }) => {
     const fetchTeamBySport = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
+            console.log("Sport Team: ", response.data)
             setTeamDisplay(response.data || []);
         } catch (err) {
             console.error("unable to fetch the team by game: ", err);
@@ -61,7 +62,7 @@ const TournamentTeam = ({ route }) => {
                 team_id: item
             };
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/${tournament.sports}/addTournamentTeam`, addTeam, {
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addTournamentTeam`, addTeam, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -87,6 +88,8 @@ const TournamentTeam = ({ route }) => {
     const handleTeamModal = () => {
         setIsModalVisible(true);
     };
+
+    console.log("Team Display: ", teamDisplay)
 
     return (
         <View style={tailwind` bg-gray-100 mb-4`}>
@@ -116,7 +119,7 @@ const TournamentTeam = ({ route }) => {
                         <View style={tailwind`bg-white rounded-t-lg p-4 max-h-3/4`}>
                             <Text style={tailwind`text-xl font-bold mb-4`}>Teams List</Text>
                             <ScrollView style={tailwind`max-h-3/4`}>
-                                {teamDisplay.map((item, index) => (
+                                {teamDisplay?.teams?.map((item, index) => (
                                     <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`py-2 border-b border-gray-200`}>
                                         <Text style={tailwind`text-lg text-gray-700`}>{item.name}</Text>
                                     </Pressable>
