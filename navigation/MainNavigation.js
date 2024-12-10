@@ -38,6 +38,7 @@ import EditMatchScore from '../screen/EditMatchScore';
 import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
+import CreateMatch from '../screen/CreateMatch';
 
 const Stack = createStackNavigator();
 
@@ -129,6 +130,7 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
+                        <Stack.Screen name="CreateMatch" component={CreateMatch} />
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />

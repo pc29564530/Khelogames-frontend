@@ -72,17 +72,6 @@ const Tournament = () => {
             fetchTournament();
         }
     }, [game, axiosInstance, dispatch]);
-        
-    
-    navigation.setOptions({
-            headerTitle: '',
-            headerStyle: tailwind`bg-white shadow-md`,
-            headerLeft: () => (
-                <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
-                    <AntDesign name="arrowleft" size={24} color="black" />
-                </Pressable>
-            )
-        });
 
     const handleSport = useCallback((item) => {
         setSelectedSport(item);

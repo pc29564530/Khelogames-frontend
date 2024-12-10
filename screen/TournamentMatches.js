@@ -48,7 +48,7 @@ const TournamentMatches = ({ route, navigation }) => {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} nestedScrollEnabled={true}>
                 <View style={tailwind`bg-white shadow-lg w-full py-4`}>
                     <Pressable
-                        onPress={() => setIsModalVisible(!isModalVisible)}
+                        onPress={() => navigation.navigate("CreateMatch", {tournament: tournament, teams: teams})}
                         style={tailwind` bg-red-400 p-2 items-center w-full`}
                     >
                         <Text style={tailwind`text-lg text-black mr-2`}>Create Match</Text>
