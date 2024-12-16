@@ -5,6 +5,7 @@ import tailwind from 'twrnc';
 
 
 const PointTable = ({ standingsData, game }) => {
+    console.log("Standing Data: ", standingsData)
     let tableHead;
     let formattedData = [];
     if (Array.isArray(standingsData) && standingsData.length > 0) {
@@ -12,12 +13,12 @@ const PointTable = ({ standingsData, game }) => {
         if (game.name === "football") {
             tableHead = ["Team", "M", "W", "L", "D", "G","GA", "GD", "Pts"];
             formattedData = standingsData.map(item => [
-                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.goal_for, item.goal_against, item.goal_difference, item.points
+                item?.teams?.name, item.matches, item.wins, item.loss, item.draw, item.goal_for, item.goal_against, item.goal_difference, item.points
             ]);
         } else if (game.name === "cricket") {
             tableHead = ["Team", "M", "W", "L", "D", "Pts"];
             formattedData = standingsData.map(item => [
-                item.teams.name, item.matches, item.wins, item.loss, item.draw, item.points
+                item?.teams?.name, item.matches, item.wins, item.loss, item.draw, item.points
             ]);
         }
     }
