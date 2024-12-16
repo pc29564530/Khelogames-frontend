@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCricketMatchScore } from '../redux/actions/actions';
-import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
+import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
@@ -45,61 +45,33 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         navigation.navigate("CricketMatchPage", {item: item, game: game.name})
     }
 
+    console.log("Matches: ", matches)
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
-                {matches?.length > 0 ? (
-                    matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleCricketMatchPage(item)}>
-                            <View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
-                                    <View style={tailwind`flex-row`}>
-                                        {/* //<Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.homeTeam.name}</Text>
-                                    </View>
-
-                                    {/* if one team above played and other inning will start letter on then update the  */}
-                                    {(item.status !== "not_started")  && (
-                                        <View style={tailwind`flex-row`}>
-                                            <Text>{item.homeScore?.runs}</Text>
-                                            <Text> - </Text>
-                                            <Text>{item.homeScore?.wickets}</Text>
+            {matches?.length > 0 ? (
+                    matches?.map((stage, index) => (
+                        <View key={index} style={tailwind`bg-white`}>
+                            {Object?.keys(stage.group_stage).length > 0 && 
+                                Object?.entries(stage.group_stage).map(([stageName, matchs]) => (
+                                    matchesData(matchs, stageName)
+                                ))
+                            }
+                            {Object?.keys(stage.knockout_stage).length > 0 &&
+                                Object?.entries(stage.knockout_stage).map(([stageName, matchs]) => (
+                                    matches.length > 0 && (
+                                        <View key={stageName}>
+                                            {matchs.length>0 && (
+                                                <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
+                                            )}
+                                            {matchs.map((item, ind) => (
+                                                matchesData(item, ind)
+                                            ))}
                                         </View>
-                                    )}
-                                </View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
-                                    <View style={tailwind`flex-row`}>
-                                        {/* <Image source={{ uri: item.home_team_name }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayTeam.name}</Text>
-                                    </View>
-                                    {item.status !== "not_started"  &&(
-                                        <View style={tailwind`flex-row`}>
-                                            <Text>{item.awayScore?.score}</Text>
-                                            <Text> - </Text>
-                                            <Text>{item.awayScore?.wickets}</Text>
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            <View style={tailwind`h-16 items-center justify-center w-0.2 bg-black`}></View>
-                            {item.status === "not_started" ? (
-                                <View>
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedDate(convertToISOString(item.start_time))}</Text>
-                                    </View>
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedTime(convertToISOString(item.start_time))}</Text>
-                                    </View>
-                                </View>
-                            ):(
-                                <View style={tailwind`justify-center items-start`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.status}</Text>
-                                </View>
-                            )}
-                            <Pressable onPress={() => handleUpdateStatus()}>
-                                <MaterialIcon name="update" size={24}/>
-                            </Pressable>
-                        </Pressable>
+                                    )
+                                ))
+                            }
+                        </View>
                     ))
                 ) : (
                     <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
@@ -107,6 +79,82 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             </View>
         </ScrollView>
     );
+}
+
+const matchesData = (item, ind) => {
+    const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const handleFootballMatchPage = (item) => {
+        dispatch(getMatch(item))
+        navigation.navigate("FootballMatchPage", {matchID: item.id});
+    }
+    return (
+        <Pressable key={ind} 
+            style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`} 
+            onPress={() => handleFootballMatchPage(item)}
+        >
+            <View style={tailwind`flex-row items-center justify-between `}>
+                <View style={tailwind`flex-row`}>
+                    <View style={tailwind``}>
+                        <Image 
+                            source={{ uri: item.awayTeam?.media_url }} 
+                            style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                        />
+                        <Image 
+                            source={{ uri: item.homeTeam?.media_url }} 
+                            style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                        />
+                    </View>
+                    <View style={tailwind``}>
+                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                            {item.homeTeam?.name}
+                        </Text>
+                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                            {item.awayTeam?.name}
+                        </Text>
+                    </View>
+                </View>
+                <View style={tailwind`items-center justify-center flex-row right-4`}>
+                    <View style={tailwind`mb-2 flex-row`}>
+                        
+                        {item.status !== "not_started" && (
+                            <View style={tailwind`flex-row`}>
+                                {item.homeScore && (
+                                    <View style={tailwind`flex-row`}>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.homeScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                            {item.homeScore.score}/{item.homeScore.wickets}
+                                        </Text>
+                                    </View>
+                                )}
+                                {item.awayScore && (
+                                    <View style={tailwind`flex-row`}>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.awayScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                            {item.awayScore.score}/{item.awayScore.wickets}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                        <View style={tailwind`w-0.4 h-10 bg-gray-200 left-2`}/>
+                        <View style={tailwind`mb-2 ml-4 items-center justify-evenly`}>
+                            <Text style={tailwind`text-md text-gray-800`}>
+                                {formatToDDMMYY(convertToISOString(item.startTimeStamp))}
+                            </Text>
+                            {item.status !== "not_started" ? (
+                                <Text style={tailwind`text-md text-gray-800`}>{item.status}</Text>
+                            ) : (
+                                <Text style={tailwind`text-md text-gray-800`}>
+                                    {formattedTime(convertToISOString(item.startTimeStamp))}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </View>
+        </Pressable>
+    )
 }
 
 export default TournamentCricketMatch;
