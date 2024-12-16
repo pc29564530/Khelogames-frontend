@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  Image
 } from 'react-native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -14,6 +15,9 @@ import { useNavigation } from '@react-navigation/native';
 import useAxiosInterceptor from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import DateTimePicker from 'react-native-modern-datepicker';
+const filePath = require('../assets/knockout.json')
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
@@ -29,12 +33,14 @@ const CreateMatch = ({ route }) => {
     const [isModalDateVisible, setIsModalDateVisible] = useState(false);
     const [isModalStartTimeVisible, setIsModalStartTimeVisible] = useState(false);
     const [isModalEndTimeVisible, setIsModalEndTimeVisible] = useState(false);
+    const [isModalKnockoutLevel, setIsModalKnockoutLevel] = useState(false);
     const [result, setResult] = useState(null);
     const [matchType, setMatchType] = useState('');
     const [stage, setStage] = useState('');
     const axiosInstance = useAxiosInterceptor();
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
+    const [knockoutLevel, setKnockoutLevel] = useState(null);
   
     const modifyDateTime = (newDateTime) => {
       if (!newDateTime) {
@@ -65,10 +71,11 @@ const CreateMatch = ({ route }) => {
           home_team_id: team2,
           start_timestamp: modifyDateTime(startTime),
           end_timestamp: endTime?modifyDateTime(endTime):'',
-          type: matchType,
+          type: matchType.toLowerCase(),
           status_code: "not_started",
           result: result,
-          stage: stage
+          stage: stage,
+          knockout_level_id:  knockoutLevel
         };
   
         console.log("Fixture: ", fixture)
@@ -79,7 +86,6 @@ const CreateMatch = ({ route }) => {
             'Content-Type': 'application/json',
           },
         });
-        console.log("Response; ", response.data)
       } catch (err) {
         console.error("Unable to set the fixture: ", err);
       }
@@ -98,6 +104,10 @@ const CreateMatch = ({ route }) => {
             </View>
         </View>
       ),
+    })
+
+    useEffect(() => {
+      console.log("stage: ", stage)
     })
 
   return (
@@ -152,11 +162,22 @@ const CreateMatch = ({ route }) => {
             ))}
           </View>
         </View>
-      </View>
-      <View  style={tailwind`mb-2 justify-between p-4`}>
-            <Pressable onPress={handleSetFixture} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-center`}>
+
+        {/* Stage is knockout select level */}
+        {stage === 'Knockout'  && (
+          <View style={tailwind`mb-2`}>
+              <Pressable onPress={() => setIsModalKnockoutLevel(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
+                  <Text style={tailwind`text-black text-center text-lg`}>{knockoutLevel?knockoutLevel:'Select Knockout Level'}</Text>
+                  <AntDesign name="down" size={24} color="black" />
+              </Pressable>
+          </View>
+        )}
+        <View  style={tailwind`mb-2`}>
+            <Pressable onPress={handleSetFixture} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-center items-center`}>
                 <Text style={tailwind`text-black text-center text-lg`}>Create Match</Text>
             </Pressable>
+        </View>
+
       </View>
 
       {isModalEndTimeVisible && (
@@ -216,6 +237,31 @@ const CreateMatch = ({ route }) => {
                     <View style={tailwind`py-1`}>
                         <Text style={tailwind`text-lg text-black`}>{item.name}</Text>
                     </View>
+                  </Pressable> 
+                ))}
+              </ScrollView>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
+      {isModalKnockoutLevel && (
+        <Modal
+          transparent={true}
+          animationType="slide"
+          visible={isModalKnockoutLevel}
+        >
+          <Pressable onPress={() => setIsModalKnockoutLevel(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+            <View style={tailwind`bg-white rounded-md p-4`}>
+              <ScrollView nestedScrollEnabled={true}>
+                <Text style={tailwind`text-2xl`}>Select Knockout Level</Text>
+                {filePath["knockout"].map((item, index) => (
+                  <Pressable key={index} onPress={() => {setKnockoutLevel(item.id); setIsModalKnockoutLevel(false)}} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
+                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
+                        <Text style={tailwind` text-black text-xl`}>{item.id}</Text>
+                      </View>
+                      <View style={tailwind`py-1`}>
+                          <Text style={tailwind`text-lg text-black`}>{item.round_name.toUpperCase()}</Text>
+                      </View>
                   </Pressable> 
                 ))}
               </ScrollView>

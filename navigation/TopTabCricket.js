@@ -11,11 +11,12 @@ function TopTabCricket({tournament, currentRole, game}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
-                screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black`,
-                    tabBarStyle:tailwind`bg-white`,
-                    headerShown:true
-                }}
+                    screenOptions={{
+                        tabBarLabelStyle:tailwind`text-black text-md w-18 `,
+                        tabBarStyle:tailwind`bg-white`,
+                        headerShown:true,
+                        tabBarScrollEnabled:false
+                    }}
             >   
                 <TopTab.Screen 
                     name="Info"
