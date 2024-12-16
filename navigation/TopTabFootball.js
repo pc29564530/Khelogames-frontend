@@ -13,15 +13,10 @@ function TopTabFootball({tournament, currentRole}) {
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black text-md `,
+                    tabBarLabelStyle:tailwind`text-black text-md w-18 `,
                     tabBarStyle:tailwind`bg-white`,
                     headerShown:true,
-                    tabBarScrollEnabled:true
-                }}
-                tabBarOptions={{
-                    tabStyle: { width: 150 },
-                    scrollEnabled: true,
-                    indicatorStyle: tailwind`bg-red-400`,
+                    tabBarScrollEnabled:false
                 }}
             > 
                 <TopTab.Screen 
