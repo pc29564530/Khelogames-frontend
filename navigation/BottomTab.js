@@ -10,6 +10,7 @@ import AddContent from '../components/AddContent';
 import tailwind from 'twrnc';
 import AddContentStack from './AddContentStack';
 import Tournament from '../screen/Tournament';
+import Matches from '../screen/Matches';
 
 const Tab = createBottomTabNavigator();
 
@@ -41,6 +42,8 @@ const BottomTab = () => {
          let Icon;
          if(route.name === "Home"){
            Icon=<FontAwesome name="home" size={25} color="white" />;
+         } else if(route.name === "Matches"){
+            Icon = <MaterialIcons name="schedule" size={25} color="white" />
          } else if(route.name === "Community"){
            Icon = <MaterialIcons name="forum" size={25} color="white"/>;
          } else if(route.name === "Add") {
@@ -53,6 +56,7 @@ const BottomTab = () => {
    })}
    >
      <Tab.Screen name="Home" component={Home} />
+     <Tab.Screen name="Matches" component={Matches} />
      <Tab.Screen name="Community" component={Community} />
      <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen
