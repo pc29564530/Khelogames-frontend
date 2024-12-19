@@ -12,26 +12,56 @@ import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
-import { getMatches } from '../redux/actions/actions';
+import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 
 const checkSport = (item, game) => {
-    if(game?.name==='football') {
-        <View>
-            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.homeScore?.score || '0'}</Text>
-            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.awayScore?.score || '0'}</Text>
-        </View>
-    } else if(game?.name==='cricket') {
-        <View>
-            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.homeScore?.score || '0'}</Text>
-            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.awayScore?.score || '0'}</Text>
-        </View>
+    if (game?.name === 'football') {
+        return (
+            <View style={tailwind`items-center`}>
+                <Text style={tailwind`ml-2 text-lg text-black`}>{item.homeScore?.score || '0'}</Text>
+                <Text style={tailwind`ml-2 text-lg text-black`}>{item.awayScore?.score || '0'}</Text>
+            </View>
+        );
+    } else if (game?.name === 'cricket') {
+        return (
+            <View style={tailwind` items-center`}>
+                <View style={tailwind`flex-row items-center`}>
+                    {item.homeScore !== null ? (
+                        <>
+                            <Text style={tailwind`text-black text-lg`}>({item.homeScore.overs})</Text>
+                            <Text style={tailwind`text-black text-lg`}>{item.homeScore.score}</Text>
+                            <Text style={tailwind`text-black text-lg`}>/</Text>
+                            <Text style={tailwind`text-black text-lg`}>{item.homeScore.wickets}</Text>
+                        </>
+                    ):(
+                        <>
+                            <Text style={tailwind`text-black text-lg`}>-</Text>
+                        </>
+                    )}
+                </View>
+                <View style={tailwind`flex-row items-center`}>
+                    {item.awayScore !== null ? (
+                        <>
+                            <Text style={tailwind`text-black text-lg`}>({item.awayScore.overs})</Text>
+                            <Text style={tailwind`text-black text-lg`}>{item.awayScore.score}</Text>
+                            <Text style={tailwind`text-black text-lg`}>/</Text>
+                            <Text style={tailwind`text-black text-lg`}>{item.awayScore.wickets}</Text>
+                        </>
+                    ): (
+                        <>
+                            <Text style={tailwind`text-black text-lg`}>-</Text>
+                        </>
+                    )}
+                </View>
+            </View>
+        );
     }
-}
+};
 
 const fomratDateToString = (date) => {
     const selectedDateString = date.toString();
     const selectDate = new Date(selectedDateString.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
-    return selectDate // Return ISO string instead of Date object
+    return selectDate;
 };
 
 const Matches = () => {
@@ -99,9 +129,22 @@ const Matches = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
     }
 
+    const handleTournamentPage = (item) => {
+        dispatch(getTournamentByIdAction(item));
+        navigation.navigate("TournamentPage" , {tournament: item, currentRole: ""})
+    }
+
+    const checkSportForMatchPage = (item, game) => {
+        if (game.name==='football'){
+            navigation.navigate("FootballMatchPage",{matchID: item.id} )
+        } else if(game.name === 'cricket') {
+            navigation.navigate("CricketMatchPage", {matchID: item.id})
+        }
+    }
+
     return (
         <View style={tailwind`flex-1 bg-white p-4`}>
-            <ScrollView nestedScrollEnabled={true}>
+            <ScrollView nestedScrollEnabled={true} vertical showsVerticalScrollIndicator={false}>
             <View style={tailwind`flex-row justify-between items-center mb-4`}>
                 <Pressable
                     style={tailwind`flex-row items-center`}
@@ -120,7 +163,7 @@ const Matches = () => {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 ref={scrollViewRef}
-                contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
+                contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}   
             >
                 {games && games?.map((item, index) => (
                     <Pressable key={index} style={[tailwind`border rounded-lg bg-blue-500 p-2 mr-2 ml-2`, selectedSport===item?tailwind`bg-orange-400`:tailwind`bg-orange-200`]} onPress={() => handleSport(item)}>
@@ -130,45 +173,51 @@ const Matches = () => {
             </ScrollView>
                 <View>
                     {matches?.map((item, index) => (
-                        <Pressable key={index} 
+                        <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
                         style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`}
                         >
-                        <View style={tailwind`flex-row items-center justify-between `}>
-                            <View style={tailwind`flex-row`}>
-                                <View style={tailwind``}>
-                                    <Image 
-                                        source={{ uri: item.awayTeam?.media_url }} 
-                                        style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                    />
-                                    <Image 
-                                        source={{ uri: item.homeTeam?.media_url }} 
-                                        style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                    />
-                                </View>
-                                <View style={tailwind``}>
-                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                        {item.homeTeam?.name}
-                                    </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                        {item.awayTeam?.name}
-                                    </Text>
+                            <View>
+                                <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
+                                    <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>
+                                    <AntDesign name="right" size={12} color="black" />
+                                </Pressable>
+                                <View style={tailwind`flex-row items-center justify-between `}>
+                                    <View style={tailwind`flex-row`}>
+                                        <View style={tailwind``}>
+                                            <Image 
+                                                source={{ uri: item.awayTeam?.media_url }} 
+                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                            />
+                                            <Image 
+                                                source={{ uri: item.homeTeam?.media_url }} 
+                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                            />
+                                        </View>
+                                        <View style={tailwind``}>
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                {item.homeTeam?.name}
+                                            </Text>
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                {item.awayTeam?.name}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View style={tailwind`items-center justify-center flex-row`}>
+                                        <View style={tailwind`mb-2 flex-row items-center gap-4`}>
+                                                {item.status_code !== "not_started" && checkSport(item, game)}
+                                                <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
+                                                <View style={tailwind`mb-2 right`}>
+                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
+                                                    {item.status !== "not_started" ? (
+                                                        <Text style={tailwind`ml-2 text-md text-gray-800`}>{item.status_code}</Text>
+                                                    ):(
+                                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
+                                                    )}
+                                                </View>
+                                        </View>
+                                    </View> 
                                 </View>
                             </View>
-                            <View style={tailwind`items-center justify-center flex-row`}>
-                                <View style={tailwind`mb-2 flex-row items-center gap-4`}>
-                                        {item.status !== "not_started" && checkSport(item, game)}
-                                        <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
-                                        <View style={tailwind`mb-2 right`}>
-                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
-                                            {item.status !== "not_started" ? (
-                                                <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.status_code}</Text>
-                                            ):(
-                                                <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
-                                            )}
-                                        </View>
-                                </View>
-                            </View> 
-                        </View>
                     </Pressable>
                     ))}
                 </View>
