@@ -63,15 +63,15 @@ const Matches = () => {
         fetchData();
     }, []);
 
-    
+    useEffect(() => {
+        const today = new Date();
+        setSelectedDate(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+    }, []);
 
     useEffect(() => {
         const fetchMatches = async () => {
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken");
-                const data = {
-                    start_timestamp: fomratDateToString(selectedDate).toString()
-                }
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllMatches`, {
                     params: {
                         start_timestamp: fomratDateToString(selectedDate)
@@ -87,7 +87,7 @@ const Matches = () => {
             }
         }
         fetchMatches();
-    }, [game, selectedDate, dispatch]);
+    }, [game, selectedDate, dispatch, axiosInstance]);
 
 
     const handleSport = useCallback((item) => {
@@ -98,25 +98,6 @@ const Matches = () => {
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
     }
-
-    // const fomratDateToString = (date) => {
-    //     const selectedDateString = date.toString();
-    //     const selectDate = new Date(selectedDateString.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
-    //     return selectDate // Return ISO string instead of Date object
-    // };
-
-    // const handleDateChange = (dateString) => {
-    //     console.log("Date string: ", dateString)
-    //     const date = new Date(dateString);
-    //     // console.log("New Date: ", date)
-    //     setSelectedDate(date);
-    // };
-
-    const handleSelectDate = (dateString) => {
-        const date = new Date(dateString)
-        setSelectedDate(date);
-    }
-
 
     return (
         <View style={tailwind`flex-1 bg-white p-4`}>
