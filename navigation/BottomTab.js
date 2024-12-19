@@ -3,7 +3,7 @@ import { Modal, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
 import AddContent from '../components/AddContent';
@@ -56,7 +56,17 @@ const BottomTab = () => {
    })}
    >
      <Tab.Screen name="Home" component={Home} />
-     <Tab.Screen name="Matches" component={Matches} />
+     <Tab.Screen name="Matches" component={Matches} 
+      listeners={() => ({
+        tabPress: (e) => {
+          e.preventDefault();
+          navigation.dispatch(CommonActions.reset({
+            index: 0,
+            routes: [{name: 'Matches'}]
+          }))
+        }
+      })}
+     />
      <Tab.Screen name="Community" component={Community} />
      <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen
