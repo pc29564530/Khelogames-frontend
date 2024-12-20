@@ -14,6 +14,8 @@ import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/Formatted
 import { convertToISOString } from '../utils/FormattedDateTime';
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 
+const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
+
 const checkSport = (item, game) => {
     if (game?.name === 'football') {
         return (
@@ -142,6 +144,11 @@ const Matches = () => {
         }
     }
 
+    const handleLiveMatches = () => {
+        const filterMatches = matches.filter((item) => liveStatus.includes(item.status_code));
+        dispatch(getMatches(filterMatches));
+    }
+
     return (
         <View style={tailwind`flex-1 bg-white p-4`}>
             <ScrollView nestedScrollEnabled={true} vertical showsVerticalScrollIndicator={false}>
@@ -155,7 +162,7 @@ const Matches = () => {
                         {formattedDate(fomratDateToString(selectedDate))}
                     </Text>
                 </Pressable>
-                <Pressable style={tailwind`bg-red-500 rounded-md shadow-md p-2`}>
+                <Pressable onPress={() => handleLiveMatches()} style={tailwind`bg-red-500 rounded-md shadow-md p-2`}>
                     <Text style={tailwind`text-white text-lg font-bold`}>Live</Text>
                 </Pressable>
             </View>
