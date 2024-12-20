@@ -3,13 +3,14 @@ import { Modal, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
 import AddContent from '../components/AddContent';
 import tailwind from 'twrnc';
 import AddContentStack from './AddContentStack';
 import Tournament from '../screen/Tournament';
+import Matches from '../screen/Matches';
 
 const Tab = createBottomTabNavigator();
 
@@ -41,6 +42,8 @@ const BottomTab = () => {
          let Icon;
          if(route.name === "Home"){
            Icon=<FontAwesome name="home" size={25} color="white" />;
+         } else if(route.name === "Matches"){
+            Icon = <MaterialIcons name="schedule" size={25} color="white" />
          } else if(route.name === "Community"){
            Icon = <MaterialIcons name="forum" size={25} color="white"/>;
          } else if(route.name === "Add") {
@@ -53,6 +56,17 @@ const BottomTab = () => {
    })}
    >
      <Tab.Screen name="Home" component={Home} />
+     <Tab.Screen name="Matches" component={Matches} 
+      listeners={() => ({
+        tabPress: (e) => {
+          e.preventDefault();
+          navigation.dispatch(CommonActions.reset({
+            index: 0,
+            routes: [{name: 'Matches'}]
+          }))
+        }
+      })}
+     />
      <Tab.Screen name="Community" component={Community} />
      <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen

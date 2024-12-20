@@ -27,3 +27,12 @@ export const convertToISOString = (item) => {
     const isoString = date.toISOString();
     return isoString;
 }
+
+export const formatToDDMMYY = (item) => {
+    const timestampStrDate = item;
+    const timestampDate = new Date(timestampStrDate);
+    const day = String(timestampDate.getDate()).padStart(2,'0');
+    const month = String(timestampDate.getMonth() + 1).padStart(2, '0');
+    const year = String(timestampDate.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`
+}
