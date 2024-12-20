@@ -37,19 +37,22 @@ const BottomTab = () => {
        headerLeft: null,
        headerBackTitleVisible: false,
        tabBarShowLabel: true,
-       tabBarStyle: tailwind`absolute bottom-0 w-full bg-black text-white p-1`,
-       tabBarIcon: () => {
+       tabBarActiveTintColor: 'black',
+       tabBarInactiveTintColor: 'gray',
+       tabBarStyle: tailwind`absolute bottom-0 w-full bg-white shadow-lg text-white p-1`,
+       tabBarIcon: ({focused, size, color}) => {
+        const activeStatus = focused ? 'black' : 'gray'
          let Icon;
          if(route.name === "Home"){
-           Icon=<FontAwesome name="home" size={25} color="white" />;
+           Icon=<FontAwesome name="home" size={25} color={activeStatus}/>;
          } else if(route.name === "Matches"){
-            Icon = <MaterialIcons name="schedule" size={25} color="white" />
+            Icon = <MaterialIcons name="schedule" size={25} color={activeStatus}/>
          } else if(route.name === "Community"){
-           Icon = <MaterialIcons name="forum" size={25} color="white"/>;
+           Icon = <MaterialIcons name="forum" size={25} color={activeStatus}/>
          } else if(route.name === "Add") {
-           Icon = <MaterialIcons name="add-box" size={25} color="white"/>;
+           Icon = <MaterialIcons name="add-box" size={25} color={activeStatus}/>;
          } else if(route.name === "Tournament") {
-           Icon = <FontAwesome name="trophy" size={25} color="white" />;
+           Icon = <FontAwesome name="trophy" size={25} color={activeStatus}/>;
          }
          return Icon;
        } 
