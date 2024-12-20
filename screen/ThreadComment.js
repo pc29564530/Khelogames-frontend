@@ -53,21 +53,19 @@ function ThreadComment ({route}) {
 
     navigation.setOptions({
         headerTitle: '',
-        headerStyle:{
-            backgroundColor:'black'
-        },
+        headerStyle:tailwind`bg-red-400`,
         headerTintColor:'white'
     });
     return (
-        <View style={tailwind`flex-1 bg-black`}>
-            <ScrollView  style={tailwind`bg-black mt-1`}>
+        <View style={tailwind`flex-1 bg-white`}>
+            <ScrollView  style={tailwind`bg-white`}>
                   <View  style={tailwind`p-2`}>
                       <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({username: item.username, navigation})}}>
                         {item.profile?.avatar_url ? (
-                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-white`} />
+                            <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-red-400`} />
                           ):(
-                            <View style={tailwind`w-15 h-15 rounded-12 bg-white items-center justify-center`}>
-                              <Text style={tailwind`text-red-500 text-6x3`}>
+                            <View style={tailwind`w-15 h-15 rounded-12 bg-red-400 items-center justify-center`}>
+                              <Text style={tailwind`text-white text-6x3`}>
                                {item.displayText}
                               </Text>
                             </View>
@@ -75,12 +73,12 @@ function ThreadComment ({route}) {
                         }
                         
                         <View style={tailwind`ml-3`}>
-                          <Text style={tailwind`font-bold text-white text-lg`}>{item.full_name}</Text>
-                          <Text style={tailwind`text-white`}>@{item.username}</Text>
+                          <Text style={tailwind`font-bold text-black text-lg`}>{item.full_name}</Text>
+                          <Text style={tailwind`text-black`}>@{item.username}</Text>
                         </View>
                       </Pressable>
                   </View>
-                  <Text style={tailwind`text-white pb-10 text-xl`}>{item.content}</Text>
+                  <Text style={tailwind`text-black pb-10 text-xl`}>{item.content}</Text>
                   {item.media_type === 'image' && (
                     <Image
                     style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1 `}
@@ -92,43 +90,46 @@ function ThreadComment ({route}) {
                       source={{uri:item.media_url}} controls={true} />
                   )}
                   <View style={tailwind`p-2`}>
-                    <Text style={tailwind`text-white`}>{likeCounts} Likes</Text>
+                    <Text style={tailwind`text-black`}>{likeCounts} Likes</Text>
                   </View>
-                  <View style={tailwind`border-b border-white mb-2`}></View>
-                  <View style={tailwind`flex-row justify-evenly gap-50 h-10`}>
-                  <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: itemId, dispatch, axiosInstance})}>
-                    <FontAwesome
-                      name="thumbs-o-up"
-                      color="white"
-                      size={20}
-                    />
-                    <Text style={tailwind`text-white`}>Like</Text>
-                  </Pressable>
+                  <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
+                  <View style={tailwind`flex-row justify-evenly gap-50 h-10 mb-2`}>
+                    <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: itemId, dispatch, axiosInstance})}>
+                      <FontAwesome
+                        name="thumbs-o-up"
+                        color="black"
+                        size={20}
+                      />
+                      <Text style={tailwind`text-black`}>Like</Text>
+                    </Pressable>
                     <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
                       <FontAwesome 
                         name="comment-o"
-                        color="white"
+                        color="black"
                         size={20}
                       />
-                      <Text style={tailwind`text-white `}>Comment</Text>
+                      <Text style={tailwind`text-black `}>Comment</Text>
                     </Pressable>
                   </View>
-                  <View style={tailwind`border-b border-white mt-2`}></View>
+                  <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
                   <View>
                     <Comment  thread = {item}/>
-                </View>
+                  </View>
             </ScrollView>
-            <KeyboardAvoidingView style={tailwind`flex-end p-2 bg-black justify-between flex-row`}>
+            <KeyboardAvoidingView style={tailwind`flex-end p-0.2 bg-white justify-between flex-row shadow-lg`}>
               <TextInput
                 ref={commentInputRef}
-                style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-white text-lg text-white`}
+                style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-gray-300 text-lg text-white`} // Updated border color
                 value={commentText}
                 onChangeText={(text) => dispatch(setCommentText(text))}
                 placeholder="Write a comment..."
-                placeholderTextColor="white"
+                placeholderTextColor="black"
               />
-              <Pressable style={tailwind`m-3 bg-gray-500 items-center w-20 rounded-xl justify-center`} onPress={() => handleReduxSubmit()}>
-                <Text style={tailwind`font-bold text-white text-lg`}>POST</Text>
+              <Pressable
+                style={tailwind`m-3 bg-white items-center w-20 rounded-xl justify-center shadow-lg`}
+                onPress={() => handleReduxSubmit()}
+              >
+                <Text style={tailwind`font-bold text-gray text-lg`}>POST</Text>
               </Pressable>
             </KeyboardAvoidingView>
         </View>
