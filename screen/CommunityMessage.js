@@ -182,15 +182,15 @@ function CommunityMessage ({route}) {
     navigation.setOptions({
         headerTitle:communityData.communities_name,
         headerStyle:{
-          backgroundColor: 'black'
+          backgroundColor: tailwind.color('bg-red-400')
         },
         headerTintColor: 'white'
     });
     
     return (
-    <View style={tailwind`flex-1 bg-black`}>
+    <View style={tailwind`flex-1 bg-white`}>
       <ScrollView 
-        style={tailwind`flex-3/5 bg-black-100 p-10`}
+        style={tailwind`flex-3/5 bg-white p-10`}
         contentContainerStyle={tailwind`gap-2`}
       >
         {receivedMessage.map((item, index) => (
@@ -232,27 +232,27 @@ function CommunityMessage ({route}) {
         ))}
       </ScrollView>
       {admin ? (
-            <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
-                <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
+            <View style={tailwind`flex-end flex-row items-center p-2 bg-white  justify-between shadow-lg`}>
+                <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="black"/>
                 <TextInput
-                    style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-white w-60`}
+                    style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}
                     multiline
                     value={content}
                     onChangeText={setContent}
                     placeholder="Enter message..."
-                    placeholderTextColor="white"
+                    placeholderTextColor="black"
                     onEndEditing={handleContent}
                 />
-                <FontAwesome onPress={handleUpload} name="camera" size={24} color="white" />
-                <Pressable onPress={handleMessageMedia} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
-                    <Text style={tailwind`text-white`}>Send</Text>
+                <FontAwesome onPress={handleUpload} name="camera" size={24} color="black" />
+                <Pressable onPress={handleMessageMedia} style={tailwind`bg-white rounded-lg p-2 shadow-lg `}>
+                    <Text style={tailwind`text-black`}>Send</Text>
                 </Pressable>
             </View>
-           ):(
-            <View style={tailwind`flex-end flex-row items-center p-2  border bg-black  justify-evenly`}>
-                    <Text style={tailwind`text-white items-center`}>Only community admin can sent message.</Text>
+            ):( 
+            <View style={tailwind`flex-end flex-row items-center p-2 bg-white  justify-evenly shadow-lg`}>
+                    <Text style={tailwind`text-black items-center`}>Only community admin can sent message.</Text>
             </View>
-           )}
+        )}
       {showEmojiSelect && (
         <EmojiSelector
         showSearchBar={false}

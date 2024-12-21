@@ -16,17 +16,18 @@ function CreateCommunityType () {
     navigation.setOptions({
         headerTitle: 'Community Type',
         headerStyle:{
-            backgroundColor:'black'
+            backgroundColor:tailwind.color('bg-red-400')
         },
         headerTintColor:'white'
     });
 
     return(
-      <View style={tailwind`flex-1 bg-black`}>
+      <View style={tailwind`flex-1 bg-white`}>
         <View style={tailwind`mt-4`}>
           {mainCommunities.map((item, index) => (
             <Pressable key={index} style={tailwind`py-2 px-4`} onPress={() => handleSelectCommunity(item)}>
-              <Text style={tailwind`text-white text-xl`}>{item}</Text>
+              <Text style={tailwind`text-black text-xl`}>{item}</Text>
+              <View style={tailwind`h-0.4 w-full bg-gray-200`}></View>
             </Pressable>
           ))}
         </View>
