@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, ScrollView} from 'react-native';
+import {View, Text, Pressable, ScrollView, Dimensions} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
 import { BASE_URL } from '../constants/ApiConstants';
 import {useSelector, useDispatch} from 'react-redux';
 import { getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
+import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function CommunityPage({route}) {
     const navigation = useNavigation();
@@ -17,6 +19,8 @@ function CommunityPage({route}) {
     const [memberCount, setMemeberCount] = useState(1);
     const axiosInstance = useAxiosInterceptor();
     const communityPageData = route.params?.item;
+
+    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
     useEffect(() => {
         fetchCommunityJoinedByUser();
@@ -80,29 +84,189 @@ function CommunityPage({route}) {
         }
     }
 
-    navigation.setOptions({
-        headerTitle: '',
-        headerStyle:{
-            backgroundColor:'black'
-        },
-        headerTintColor:'white'
+    // navigation.setOptions({
+    //     headerTitle: '',
+    //     headerStyle:{
+    //         backgroundColor:'black'
+    //     },
+    //     headerTintColor:'white'
+    // });
+
+    const scrollY = useSharedValue(0);
+
+    const handleScroll = useAnimatedScrollHandler((e) => {
+        scrollY.value = e.contentOffset.y;
+    });
+    
+    const bgColor = tailwind.color('bg-red-400')
+    const bgColor2 = tailwind.color('bg-red-400')
+    const offsetValue = 100;
+    const headerInitialHeight = 240;
+    const headerNextHeight =60;
+    const animatedHeader = useAnimatedStyle(() => {
+    const height = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        [headerInitialHeight, headerNextHeight],
+        Extrapolation.CLAMP,
+    )
+
+    const backgroundColor = interpolateColor(
+        scrollY.value,
+        [0, offsetValue],
+        [bgColor, bgColor2]
+    )
+
+    return {
+        backgroundColor, height
+    }
+    })
+
+    const textColor = useAnimatedStyle(() => {
+    const color = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        ['white', 'black']
+    )
+    return {color};
+    })
+
+    const iconColor = useAnimatedStyle(() => {
+    const color = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        ['white', 'black']
+    )
+    return {color};
+    })
+
+    const nameAnimatedStyles = useAnimatedStyle(() => {
+    const opacity = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        [1, 1, 1],
+        Extrapolation.CLAMP,
+    );
+    
+    // Set translateX to 0 to prevent horizontal movement
+    const xValue = sWidth / 2 - (2 * offsetValue) - 20;
+    const translateX = interpolate(
+      scrollY.value,
+      [0, offsetValue],
+      [0, xValue],
+      Extrapolation.CLAMP,
+    )
+    
+    // Animate translateY based on scrollY
+    const translateY = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        [50, -2],
+        Extrapolation.CLAMP,
+    );
+
+    const scale = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        [1, 0.7],
+        Extrapolation.CLAMP,
+    );
+    
+    return { opacity, transform: [{ translateX }, { translateY }, {scale}] };
     });
 
+    const animImage = useAnimatedStyle(() => {
+
+        const opacity = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [1, 1, 1],
+            Extrapolation.CLAMP,
+        );
+        
+        const xValue = sWidth / 2 - (2 * offsetValue) - 80;
+        const translateX = interpolate(
+        scrollY.value,
+        [0, offsetValue],
+        [0, xValue],
+        Extrapolation.CLAMP,
+        )
+        
+        // Animate translateY based on scrollY
+        const translateY = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [50, -6],
+            Extrapolation.CLAMP,
+        );
+
+        const scale = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [1, 0.6],
+            Extrapolation.CLAMP,
+        );
+        return {
+            transform: [{ translateY }, { translateX }, { scale }]
+        }
+    });
+
+    const buttonAnimatedStyles = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [1, 0, 0],
+            Extrapolation.CLAMP,
+        );
+
+        const height = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [headerInitialHeight, 0],
+            Extrapolation.CLAMP,
+        )
+        
+
+        const translateX = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [60, -10],
+            Extrapolation.CLAMP,
+        )
+    
+        const translateY = interpolate(
+            scrollY.value,
+            [0, offsetValue],
+            [0, -20],
+            Extrapolation.CLAMP,
+        );
+    
+        return {
+            opacity, height,
+            transform: [{ translateY }, { translateX }]
+        };
+    });
+
+
     return (
-        <ScrollView contentContainerStyle={{height:1070}}>
-            <View style={tailwind`bg-black flex-1 pl-2 pt-2`}>
-                <View style={tailwind`flex-row`}>
-                    <View style={tailwind`w-15 h-15 rounded bg-red-100 items-center justify-center`}>
-                        <Text style={tailwind`text-red-500 text-8x3`}>
-                            {communityPageData.displayText}
-                        </Text>
-                    </View>
-                    <View style={tailwind`ml-4`}>
-                        <Text style={tailwind`text-white font-bold text-2xl`}>{communityPageData.communities_name}</Text>
-                        {/* <Text style={tailwind`text-white text-`}>{communityPageData.description}</Text> */}
-                        <Text style={tailwind`text-white text-sm mt-1`}>Community - {memberCount} member</Text>
-                    </View>
-                    <Pressable
+        <View style={tailwind`flex-1`}>
+            <Animated.View style={[tailwind`flex-row items-start bg-red-400`, animatedHeader]}>
+                <Pressable onPress={() => navigation.goBack()} style={tailwind`justify-center pt-4 pl-2 pr-1`}>
+                    <MaterialIcons name="arrow-back" size={22} color="black" />
+                </Pressable>
+                <Animated.View style={[tailwind`flex-row items-center`, nameAnimatedStyles]}>
+                    <Animated.View style={[tailwind`h-16 w-16 rounded-md bg-yellow-500 items-center justify-center`]}>
+                        <Text style={tailwind`text-2xl text-black`}>{communityPageData.displayText}</Text>
+                    </Animated.View>
+                    <Animated.View style={[tailwind`ml-4`]}>
+                        <Text style={tailwind`text-2xl text-black`}>{communityPageData.communities_name}</Text>
+                    </Animated.View>
+                </Animated.View>
+                <Pressable style={tailwind``} onPress={() => handleAnnouncement(communityPageData)}>
+                    <AntDesign name="message1" size={20} color="black" style={tailwind`items-end left-30 top-4`} />
+                    {/* <Text style={tailwind`text-white text-2xl ml-2`}>Announcements</Text> */}
+                </Pressable>
+                {/* <Pressable
                         style={tailwind` w-1/5 h-9 rounded-md  ${
                             joinedCommunity?.some(c => c.community_name === communityPageData.communities_name)
                                 ? 'bg-gray-500'
@@ -113,17 +277,12 @@ function CommunityPage({route}) {
                         <Text style={tailwind`text-white pl-1.5`}>
                             {joinedCommunity?.some(c => c.community_name === communityPageData.communities_name) ? 'Joined' : 'Join'}
                         </Text>
-                    </Pressable>
-                </View>
-                <Pressable style={tailwind`h-20 items-start mt-8 ml-4 flex-row rounded h-12 w-full bg-gray-900 items-center`} onPress={() => handleAnnouncement(communityPageData)}>
-                    <AntDesign name="sound" size={20} color="white" style={tailwind` rounded bg-red-500 w-8 h-8 items-center p-1.6 ml-2`} />
-                    <Text style={tailwind`text-white text-2xl ml-2`}>Announcements</Text>
-                </Pressable>
-                <View style={tailwind`flex-1`}>
-                    <TopTabCommunityPage communityPageData={communityPageData}/>
-                </View>
-            </View>
-        </ScrollView>
+                    </Pressable> */}
+            </Animated.View>
+            <Animated.ScrollView onScroll={handleScroll} contentContainerStyle={{height: 670}}>
+                <TopTabCommunityPage communityPageData={communityPageData}/>
+            </Animated.ScrollView>
+        </View>
     )
 }
 
