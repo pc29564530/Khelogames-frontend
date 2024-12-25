@@ -75,7 +75,10 @@ const Club = () => {
     }, [axiosInstance, game]);
 
     navigation.setOptions({
-        headerTitle: 'Club',
+        headerTitle: 'Teams',
+        headerStyle: {
+            backgroundColor: tailwind.color('bg-red-400'),
+        },
         headerLeft: () => (
             <Pressable onPress={() => navigation.goBack()}>
                 <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
@@ -83,7 +86,7 @@ const Club = () => {
         ),
         headerRight: () => (
             <View>
-                <Pressable style={tailwind`relative p-2 bg-white items-center justify-center rounded-lg shadow-lg mr-4`} onPress={() => handleAddClub()}>
+                <Pressable style={tailwind`relative p-2 items-center justify-center mr-1`} onPress={() => handleAddClub()}>
                     <MaterialIcons name="add" size={24} color="black" />
                 </Pressable>
             </View>
@@ -109,7 +112,7 @@ const Club = () => {
 
     return (
         <View style={tailwind`flex-1 bg-gray-100`}>
-            <View style={tailwind`flex-row mt-5`}>
+            <View style={tailwind`flex-row shadow-lg bg-white p-2`}>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
