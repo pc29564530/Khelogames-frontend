@@ -148,7 +148,15 @@ export default function MainNavigation() {
                         <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage}/>
                         <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} />
-                        <Stack.Screen name="Follow" component={Follow} />
+                        <Stack.Screen name="Follow" component={Follow} 
+                            options={{
+                                headerShown: true,
+                                headerTitle: '',
+                                headerBackTitleVisible: false,
+                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
+                                headerTintColor: tailwind.color('bg-black'),
+                            }}
+                        />
                     </>
                 ):(
                     <>
