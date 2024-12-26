@@ -76,9 +76,9 @@ const FootballLineUp = ({ route }) => {
 
     const renderPlayers = (players) => {
         return (
-            <View style={tailwind`flex-1`}>
+            <View style={tailwind``}>
                 {players.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4 p-4 bg-white rounded-lg shadow-lg flex-row items-center`}>
+                    <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
                         <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
                         <View>
                             <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
@@ -94,16 +94,16 @@ const FootballLineUp = ({ route }) => {
     }
 
     return (
-        <ScrollView   nestedScrollEnabled={true} style={tailwind`flex-1 p-4`}>
-            <View style={tailwind`flex-row justify-evenly  items-center ml-2 mr-2 gap-2`}>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, homeModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`] } onPress={() => handleToggle('homeTeam')}> 
+        <ScrollView   nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
+            <View style={tailwind`flex-row justify-evenly  items-center gap-2 mb-2`}>
+                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, homeModalVisible?tailwind`bg-red-400`:tailwind`bg-white`] } onPress={() => handleToggle('homeTeam')}> 
                     <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, awayModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`]} onPress={() => handleToggle('awayTeam')}>
+                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, awayModalVisible?tailwind`bg-red-400`:tailwind`bg-white`]} onPress={() => handleToggle('awayTeam')}>
                     <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.awayTeam.name}</Text>
                 </Pressable>
             </View>
-            <View style={tailwind`flex-row justify-between items-start`}>
+            <View style={tailwind``}>
                 {homeModalVisible && (
                     <View>
                         {renderPlayers(homePlayer)}
