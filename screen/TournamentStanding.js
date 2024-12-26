@@ -103,7 +103,7 @@ const TournamentStanding = ({route}) => {
 
 
   return (
-    <ScrollView style={tailwind`mt-4`}>
+    <ScrollView style={tailwind`mt-4`}  nestedScrollEnabled={true}>
         <View style={tailwind``}>
             <Pressable onPress={() => {setIsCreateStandingVisible(true)}} style={tailwind`p-2 shadow-lg bg-red-400 w-full items-center justify-center`}>
                 <Text style={tailwind`text-xl font-bold`}>Create Standing</Text>

@@ -94,7 +94,7 @@ const FootballLineUp = ({ route }) => {
     }
 
     return (
-        <ScrollView style={tailwind`flex-1 p-4`}>
+        <ScrollView   nestedScrollEnabled={true} style={tailwind`flex-1 p-4`}>
             <View style={tailwind`flex-row justify-evenly  items-center ml-2 mr-2 gap-2`}>
                 <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, homeModalVisible?tailwind`bg-blue-200`:tailwind`bg-red-400`] } onPress={() => handleToggle('homeTeam')}> 
                     <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.homeTeam.name}</Text>
