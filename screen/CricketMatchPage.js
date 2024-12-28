@@ -15,8 +15,8 @@ import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const matchID = route.params.matchID;                                                                         
-    const match = useSelector((state) => state.matches.match);
+    const match = route.params.item;                                                                         
+    //const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
@@ -64,11 +64,11 @@ const CricketMatchPage = ({ route }) => {
         scrollY.value = e.contentOffset.y;
     })
 
-    const bgColor = 'white'
+      const bgColor = 'white'
       const bgColor2 = tailwind.color('bg-red-400')
-      const offsetValue = 100;
       const headerInitialHeight = 100;
       const headerNextHeight = 60;
+      const offsetValue = headerInitialHeight-headerNextHeight;
       const animatedHeader = useAnimatedStyle(() => {
         const height = interpolate(
           scrollY.value,
@@ -146,24 +146,24 @@ const CricketMatchPage = ({ route }) => {
                     </Pressable>
                 </View>
                 <Animated.View style={[tailwind`items-center`, animatedStatus]}>
-                    <Text style={tailwind`text-black text-xl font-semibold`}>{match.status.charAt(0).toUpperCase()+match.status.slice(1)}</Text>
+                    <Text style={tailwind`text-black text-xl font-semibold`}>{match.status?.charAt(0)?.toUpperCase()+match?.status?.slice(1)}</Text>
                 </Animated.View>
                 <Animated.View style={[tailwind`items-center flex-row justify-evenly px-2 py-2`, animatedMatchDetails]}>
                     <View style={tailwind`items-center`}>
-                        {match.homeTeam.media_url?(
+                        {match?.homeTeam?.media_url?(
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-black text-md`}>{match.homeTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-black text-md`}>{match?.homeTeam?.name?.charAt(0)?.toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-black`}>{match.homeTeam.name}</Text>
+                            <Text  style={tailwind`text-black`}>{match.homeTeam?.name}</Text>
                         </View>
                     </View>
-                    <View style={tailwind`flex-row gap-2 justify-evenly items-center `}>
+                    <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
                         <View style={tailwind``}>
-                            {match.homeScore ? (
+                            {match?.homeScore ? (
                                 <> 
                                     <Text style={tailwind`ml-2 text-lg text-gray-800`}>
                                         {match?.homeScore?.score}/{match?.homeScore?.wickets}
@@ -186,11 +186,11 @@ const CricketMatchPage = ({ route }) => {
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-black text-md`}>{match.awayTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-black text-md`}>{match?.awayTeam?.name?.charAt(0)?.toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-black`}>{match.awayTeam.name}</Text>
+                            <Text  style={tailwind`text-black`}>{match?.awayTeam?.name}</Text>
                         </View>
                     </View>
                 </Animated.View>
@@ -198,8 +198,7 @@ const CricketMatchPage = ({ route }) => {
             <Animated.ScrollView
                 contentContainerStyle={{ paddingBottom: headerNextHeight, paddingTop: headerInitialHeight, minHeight: sHeight}}
                 onScroll={handleScroll}
-                scrollEnabled={true}
-                
+                scrollEnabled={true}    
             >
                 <CricketMatchPageContent matchData={match} />
             </Animated.ScrollView>
@@ -221,7 +220,7 @@ const CricketMatchPage = ({ route }) => {
                             {filteredStatusCodes.map((item, index) => (
                                 <Pressable key={index} onPress={() => { setStatusCode(item.type); handleUpdateResult(item.type); }} style={tailwind`p-4 border-b border-gray-200 flex-row items-center gap-3`}>
                                     <Text style={tailwind`text-lg text-black`}>{index + 1}.</Text>
-                                    <Text style={tailwind`text-lg text-gray-800`}>{item.description}</Text>
+                                    <Text style={tailwind`text-lg text-gray-800`}>{item?.description}</Text>
                                 </Pressable>
                             ))}
                         </ScrollView>
