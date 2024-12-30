@@ -11,8 +11,8 @@ const TopTabTeamPage = ({teamData, game}) => {
     return (
         <TopTab.Navigator 
             screenOptions={{
-                tabBarLabelStyle:tailwind`text-white`,
-                tabBarStyle:tailwind`bg-black`,
+                tabBarLabelStyle:tailwind`text-black`,
+                tabBarStyle:tailwind`bg-red-400`,
                 headerShown:true
             }}
         >

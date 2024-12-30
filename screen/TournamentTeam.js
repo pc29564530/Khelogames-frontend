@@ -44,7 +44,6 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("Sport Team: ", response.data)
             setTeamDisplay(response.data || []);
         } catch (err) {
             console.error("unable to fetch the team by game: ", err);
@@ -52,7 +51,7 @@ const TournamentTeam = ({ route }) => {
     };
 
     const handleTeam = (item) => {
-        navigation.navigate('ClubPage', { clubData: item, sport: game });
+        navigation.navigate('ClubPage', { teamData: item, game: game });
     };
 
     const handleAddTeam = async (item) => {
@@ -88,8 +87,6 @@ const TournamentTeam = ({ route }) => {
     const handleTeamModal = () => {
         setIsModalVisible(true);
     };
-
-    console.log("Team Display: ", teamDisplay)
 
     return (
         <View style={tailwind` bg-gray-100 mb-4`}>

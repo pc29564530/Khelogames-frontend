@@ -187,7 +187,7 @@ const CreateClub = ({ route }) => {
                 onPress={handleSubmit}
                 style={tailwind`bg-white py-4 rounded-lg shadow-lg`}
             >
-                <Text style={tailwind`text-lg font-bold text-gray-600 text-center`}>Create Team</Text>
+                <Text style={tailwind`text-lg font-bold text-gray-400 text-center`}>Create Team</Text>
             </Pressable>
 
             {isCountryPicker && (

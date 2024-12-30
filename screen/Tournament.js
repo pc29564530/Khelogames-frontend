@@ -96,7 +96,7 @@ const Tournament = () => {
 
     return (
         <View style={tailwind`flex-1 mt-1 mb-2`}>
-            <ScrollView nestedScrollEnabled={true}>
+            <ScrollView nestedScrollEnabled={true} contentContainerStyle={{paddingBottom:20}}>
                 <View style={tailwind`flex-row mt-5`}>
                     <ScrollView
                         horizontal
@@ -114,7 +114,7 @@ const Tournament = () => {
                         <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                     </Pressable>
                 </View>
-                <View style={tailwind`flex-row mt-5 gap-2`}>
+                <View style={tailwind`flex-row mt-5 gap-2 mb-2`}>
                     <View>
                         <Text style={tailwind`text-xl`}>Filter by:</Text>
                     </View>
@@ -127,7 +127,7 @@ const Tournament = () => {
                 </View>
                 {/* Display Selected Filters */}
                 {(typeFilter !== "all" || statusFilter !== "all") && (
-                    <View style={tailwind`flex-row flex-wrap mt-2 px-2 justify-around items-start`}>
+                    <View style={tailwind`flex-row flex-wrap mt-2 px-2 justify-around items-start mb-2`}>
                         {typeFilter !== "all" && (
                             <View style={tailwind`relative rounded-lg p-2 bg-white`}>
                                 <Text style={tailwind`text-lg`}>{typeFilter}</Text>
@@ -153,7 +153,7 @@ const Tournament = () => {
                     </View>
                 )}
                 {filterTournaments?.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4 mt-2`}>
+                    <View key={index} style={tailwind`mb-2`}>
                         <Pressable
                             style={tailwind`rounded-md w-full bg-white shadow-lg justigy-center flex-row items-center`}
                             onPress={() => handleTournamentPage(item)}

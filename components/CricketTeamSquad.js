@@ -98,7 +98,7 @@ const CricketTeamSquad = ({route}) => {
     }
 
     return (
-        <ScrollView style={tailwind`flex-1 p-2 bg-white`}>
+        <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
             <View style={tailwind`flex-row justify-evenly items-center mb-6 gap-2 `}>
                 <Pressable 
                     style={[
