@@ -50,6 +50,15 @@ const FootballMatchPage = ({ route }) => {
         }
     };
 
+    const fetchPenalty = async () => {
+        try{
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.get(`${BASE_URL}/`)
+        } catch (err) {
+            console.error("Unable to fetch penalty of match: ", err);
+        }
+    }
+
     const toggleMenu = () => setMenuVisible(!menuVisible);
 
 
@@ -59,136 +68,57 @@ const FootballMatchPage = ({ route }) => {
         item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const scrollY = useSharedValue(0);
-
-    const handleScroll = useAnimatedScrollHandler((e) => {
-        scrollY.value = e.contentOffset.y;
-    })
-
-    const bgColor = 'white'
-      const bgColor2 = tailwind.color('bg-red-400')
-      const offsetValue = 100;
-      const headerInitialHeight = 100;
-      const headerNextHeight = 60;
-      const animatedHeader = useAnimatedStyle(() => {
-        const height = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [headerInitialHeight, headerNextHeight],
-          Extrapolation.CLAMP,
-        )
-    
-        const backgroundColor = interpolateColor(
-          scrollY.value,
-          [0, offsetValue],
-          [bgColor, bgColor2]
-        )
-        return {
-          backgroundColor, height
-        }
-      })
-
-      const animatedMatchDetails = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            scrollY.value,
-            [0, 100, offsetValue],
-            [1, 1, 1],
-            Extrapolation.CLAMP,
-          )
-        const xValue = 0;
-        const translateX = interpolate(
-            scrollY.value,
-            [0, offsetValue],
-            [0, -xValue],
-            Extrapolation.CLAMP,
-        )
-          const translateY = interpolate(
-            scrollY.value,
-            [0, offsetValue],
-            [0, -90],
-            Extrapolation.CLAMP,
-          )
-          const scale = interpolate(
-            scrollY.value,
-            [0, offsetValue],
-            [1, 0.7],
-            Extrapolation.CLAMP,
-          )
-          return { opacity, transform: [{ translateX }, { translateY }, {scale}] }
-      })
-
-      const animatedStatus = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            scrollY.value,
-            [0, 100, offsetValue],
-            [1,0,0],
-            Extrapolation.CLAMP,
-        )
-        const translateY = 0
-
-          const scale = interpolate(
-            scrollY.value,
-            [0, offsetValue],
-            [1, 0.6],
-            Extrapolation.CLAMP,
-          )
-        return {opacity, transform:[{translateY}, {scale}]}
-      })
-
     return (
         <View style={tailwind`flex-1 bg-white`}>
-            <Animated.View style={[tailwind`safe-center top-0 right-0 left-0 bg-white`, animatedHeader]}>
+            <View style={[tailwind`safe-center top-0 right-0 left-0 bg-red-400`]}>
                 <View style={tailwind`flex-row justify-between fixed p-2 pt-4`}>
                     <Pressable onPress={() => navigation.goBack()}>
-                        <AntDesign name="arrowleft" size={26} color="black" />
+                        <AntDesign name="arrowleft" size={26} color="white" />
                     </Pressable>
                     <Pressable style={tailwind``} onPress={toggleMenu}>
-                        <MaterialIcon name="more-vert" size={24} color="black" />
+                        <MaterialIcon name="more-vert" size={24} color="white" />
                     </Pressable>
                 </View>
-                <Animated.View style={[tailwind`items-center`, animatedStatus]}>
-                    <Text style={tailwind`text-black text-xl font-semibold`}>{match.status.charAt(0).toUpperCase()+match.status.slice(1)}</Text>
-                </Animated.View>
-                <Animated.View style={[tailwind`items-center flex-row justify-evenly px-2 py-2`, animatedMatchDetails]}>
+                <View style={[tailwind`items-center`]}>
+                    <Text style={tailwind`text-white text-xl font-semibold`}>{match.status.charAt(0).toUpperCase()+match.status.slice(1)}</Text>
+                </View>
+                <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2`]}>
                     <View style={tailwind`items-center`}>
                         {match.homeTeam.media_url?(
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-black text-md`}>{match.homeTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-white text-md`}>{match.homeTeam.name.charAt(0).toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-black`}>{match.homeTeam.name}</Text>
+                            <Text  style={tailwind`text-white`}>{match.homeTeam.name}</Text>
                         </View>
                     </View>
                     <View style={tailwind`flex-row gap-2 justify-center items-center`}>
-                        <Text style={tailwind`text-black text-lg`}>{match.homeScore.homeScore.score}</Text>
-                        <Text style={tailwind`text-black text-lg`}>-</Text>
-                        <Text style={tailwind`text-black text-lg`}>{match.awayScore.awayScore.score}</Text>
+                        <Text style={tailwind`text-white text-lg`}>{match?.homeScore?.homeScore?.score}</Text>
+                        <Text style={tailwind`text-white text-lg`}>-</Text>
+                        <Text style={tailwind`text-white text-lg`}>{match?.awayScore?.awayScore?.score}</Text>
                     </View>
                     <View style={tailwind`items-center`}>
                         {match.awayTeam?.media_url ? (
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-black text-md`}>{match.awayTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-white text-md`}>{match.awayTeam.name.charAt(0).toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-black`}>{match.awayTeam.name}</Text>
+                            <Text  style={tailwind`text-white`}>{match.awayTeam.name}</Text>
                         </View>
                     </View>
-                </Animated.View>
-            </Animated.View>
-            <Animated.ScrollView
-                contentContainerStyle={{ paddingBottom: headerNextHeight, paddingTop: headerInitialHeight, minHeight: sHeight}}
-                onScroll={handleScroll}
-                scrollEnabled={true}
-                
+                </View>
+            </View>
+            <View
+                style={tailwind`flex-1`}
             >
                 <FootballMatchPageContent matchData={match} />
-            </Animated.ScrollView>
+            </View>
             {statusVisible && (
                 <Modal
                     transparent={true}
@@ -212,6 +142,30 @@ const FootballMatchPage = ({ route }) => {
                             ))}
                         </ScrollView>
                     </Pressable>
+                </Modal>
+            )}
+            {menuVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={menuVisible}
+                    onRequestClose={toggleMenu}
+                >
+                    <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1`}>
+                        <View style={tailwind`flex-row justify-end`}>
+                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`}>
+                                <TouchableOpacity onPress={() => setStatusVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Edit Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Delete Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Share</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
                 </Modal>
             )}
         </View>
