@@ -78,7 +78,7 @@ const CreateClub = ({ route }) => {
             <View style={tailwind`items-center mb-4`}>
                 <Pressable
                     onPress={handleMediaSelection}
-                    style={tailwind`w-24 h-24 rounded-full bg-gray-200 items-center justify-center shadow-lg`}
+                    style={tailwind`w-24 h-24 rounded-full bg-white items-center justify-center shadow-lg`}
                 >
                     {mediaUrl ? (
                         <Image source={{ uri: mediaUrl }} style={tailwind`w-32 h-32 rounded-full`} />
@@ -106,10 +106,10 @@ const CreateClub = ({ route }) => {
                     <Pressable
                         onPress={() => setGender('M')}
                         style={[
-                            tailwind`flex-1 items-center py-3 rounded-lg mx-1`,
+                            tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg`,
                             gender === 'M'
-                                ? tailwind`bg-blue-500 text-white`
-                                : tailwind`bg-gray-200`,
+                                ? tailwind`bg-red-400 text-white`
+                                : tailwind`bg-white`,
                         ]}
                     >
                         <Text
@@ -124,10 +124,10 @@ const CreateClub = ({ route }) => {
                     <Pressable
                         onPress={() => setGender('F')}
                         style={[
-                            tailwind`flex-1 items-center py-3 rounded-lg mx-1`,
+                            tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg`,
                             gender === 'F'
-                                ? tailwind`bg-pink-500 text-white`
-                                : tailwind`bg-gray-200`,
+                                ? tailwind`bg-red-400 text-white`
+                                : tailwind`bg-white`,
                         ]}
                     >
                         <Text
@@ -150,10 +150,10 @@ const CreateClub = ({ route }) => {
                             key={item}
                             onPress={() => setCategory(item)}
                             style={[
-                                tailwind`flex-1 items-center py-3 rounded-lg mx-1`,
+                                tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg rounded-lg`,
                                 category === item
-                                    ? tailwind`bg-green-500 text-white`
-                                    : tailwind`bg-gray-200`,
+                                    ? tailwind`bg-red-400 text-white`
+                                    : tailwind`bg-white`,
                             ]}
                         >
                             <Text
@@ -185,9 +185,9 @@ const CreateClub = ({ route }) => {
 
             <Pressable
                 onPress={handleSubmit}
-                style={tailwind`bg-blue-600 py-4 rounded-lg shadow-lg`}
+                style={tailwind`bg-white py-4 rounded-lg shadow-lg`}
             >
-                <Text style={tailwind`text-lg font-bold text-white text-center`}>Create Team</Text>
+                <Text style={tailwind`text-lg font-bold text-gray-400 text-center`}>Create Team</Text>
             </Pressable>
 
             {isCountryPicker && (

@@ -119,7 +119,7 @@ const FootballIncidents = ({route}) => {
     const extraTime = incidents.filter(item => (item.incident_type === "period" && item.periods === "extra_time") );
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-white`}>
+        <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 bg-white`}>
             <View style={tailwind`p-4`}>
                 <View style={tailwind`items-end mb-6`}>
                     <Pressable 

@@ -106,7 +106,14 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="EditProfile" component={EditProfile} />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
-                        <Stack.Screen name="CommunityPage" component={CommunityPage} />
+                        <Stack.Screen name="CommunityPage" component={CommunityPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="CommunityList" component={CommunityList} />
                         <Stack.Screen name="CommunityType" component={CommunityType} />
                         <Stack.Screen name="Message" component={Message} />
@@ -141,7 +148,15 @@ export default function MainNavigation() {
                         <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage}/>
                         <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} />
-                        <Stack.Screen name="Follow" component={Follow} />
+                        <Stack.Screen name="Follow" component={Follow} 
+                            options={{
+                                headerShown: true,
+                                headerTitle: '',
+                                headerBackTitleVisible: false,
+                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
+                                headerTintColor: tailwind.color('bg-black'),
+                            }}
+                        />
                     </>
                 ):(
                     <>

@@ -5,17 +5,23 @@ import FootballDetails from '../screen/FootballDetails';
 import FootballLineUp from '../screen/FootballLineUp';
 import FootballIncidents from '../screen/FootballIncidents';
 
+function capitalizeFirstLetter(label) {
+    return label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+}
+
 function FootballMatchPageContent({matchData}) {
     const TopTab = createMaterialTopTabNavigator();
     
     return (
         <TopTab.Navigator
-                screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black text-md `,
-                    tabBarStyle:tailwind`bg-white`,
-                    headerShown:true,
-                    tabBarScrollEnabled:true
-                }}
+                screenOptions={({ route }) => ({
+                    tabBarLabel: capitalizeFirstLetter(route.name),
+                    tabBarLabelStyle: tailwind`text-black text-md font-semibold`,
+                    tabBarStyle: tailwind`bg-gray-100`,
+                    tabBarIndicatorStyle: tailwind`bg-red-400 h-1`,
+                    tabBarScrollEnabled: true,
+                    headerShown: false,
+                    })}
                 tabBarOptions={{
                     tabStyle: { width: 130},
                     scrollEnabled: true,

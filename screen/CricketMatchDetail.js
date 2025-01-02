@@ -80,15 +80,15 @@ const CricketMatchDetail = ({route}) => {
     }
     
     return (
-        <View style={tailwind`flex-1 mt-2 p-4`}>
+        <View style={tailwind`flex-1 p-4 bg-white`}>
             <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-2xl font-bold text-blue-900`}>Update Match Details</Text>
-                <Pressable onPress={handleModalVisible} style={tailwind`bg-blue-600 rounded-full p-3 mt-4`}>
-                    <Text style={tailwind`text-white text-center text-lg`}>Update Toss</Text>
+                <Text style={tailwind`text-2xl font-bold text-gray-600`}>Update Match Details</Text>
+                <Pressable onPress={handleModalVisible} style={tailwind`bg-white shadow-lg rounded-full p-3 mt-4`}>
+                    <Text style={tailwind`text-gray text-center text-lg`}>Update Toss</Text>
                 </Pressable>
             </View>
             <View style={tailwind`bg-white rounded-lg p-4 mb-4 shadow-lg`}>
-                <Text style={tailwind`text-lg font-bold text-blue-900`}>Match Information</Text>
+                <Text style={tailwind`text-lg font-bold text-gray-600`}>Match Information</Text>
                 <View style={tailwind`mt-2`}>
                     <Text style={tailwind`text-gray-700`}>Venue: </Text>
                 </View>
@@ -102,8 +102,8 @@ const CricketMatchDetail = ({route}) => {
                 </View>
                 {isTossed && (
                     <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData.tossWonTeam.ID === matchData.awayTeam.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
-                        <Text style={tailwind`text-gray-700`}>Decision: {tossData.tossDecision}</Text>
+                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.ID === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
+                        <Text style={tailwind`text-gray-700`}>Decision: {tossData?.tossDecision}</Text>
                     </View>
                 )}
             </View>
@@ -116,32 +116,32 @@ const CricketMatchDetail = ({route}) => {
                 >
                     <Pressable onPress={() => setIsTossedModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>
-                            <Text style={tailwind`text-xl font-bold text-blue-900 mb-4`}>Select Team for Toss</Text>
-                            <View style={tailwind`flex-row justify-between mb-4`}>
-                                <Pressable onPress={() => handleTeam(matchData.homeTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.homeTeam.id && tailwind`bg-blue-200`]}>
+                            <Text style={tailwind`text-xl font-bold text-gray-600 mb-4`}>Select Team for Toss</Text>
+                            <View style={tailwind`flex-row justify-evenly mb-4`}>
+                                <Pressable onPress={() => handleTeam(matchData.homeTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === matchData.homeTeam.id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.homeTeam.name}</Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(matchData.awayTeam.id)} style={[tailwind`p-4 rounded-full bg-gray-200`, teamID === matchData.awayTeam.id && tailwind`bg-blue-200`]}>
+                                <Pressable onPress={() => handleTeam(matchData.awayTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === matchData.awayTeam.id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.awayTeam.name}</Text>
                                 </Pressable>
                             </View>
-                            <Text style={tailwind`text-lg font-bold text-blue-900 mb-2`}>Choose Decision</Text>
+                            <Text style={tailwind`text-lg font-bold text-gray-600 mb-2`}>Choose Decision</Text>
                             <View style={tailwind`flex-row items-center mb-2`}>
                                 <CheckBox
                                     value={tossOption === 'Batting'}
                                     onValueChange={() => updateTossOption("Batting")}
                                 />
-                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Bat</Text>
+                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Batting</Text>
                             </View>
                             <View style={tailwind`flex-row items-center mb-4`}>
                                 <CheckBox
                                     value={tossOption === 'Bowling'}
                                     onValueChange={() => updateTossOption("Bowling")}
                                 />
-                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Bowl</Text>
+                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Bowling</Text>
                             </View>
-                            <Pressable onPress={() => addToss()} style={tailwind`bg-blue-600 rounded-full p-3`}>
-                                <Text style={tailwind`text-white text-center text-lg`}>Submit</Text>
+                            <Pressable onPress={() => addToss()} style={tailwind`bg-white p-2 shadow-lg rounded-lg`}>
+                                <Text style={tailwind`text-gray-600 text-center text-lg`}>Submit</Text>
                             </Pressable>
                         </View>
                     </Pressable>

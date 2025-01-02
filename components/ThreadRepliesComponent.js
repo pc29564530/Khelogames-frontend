@@ -77,9 +77,9 @@ const ThreadRepliesComponent = ({ owner }) => {
     }, [owner]);
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-black`} nestedScrollEnabled={true}>
+        <ScrollView style={tailwind`flex-1 bg-white`} nestedScrollEnabled={true}>
             {!hasReplies ? (
-                <View style={tailwind`flex-1 mt-2 shadow-lg bg-white h-40 w-full ml-6 mr-6 items-center justify-center`}>
+                <View style={tailwind`flex-1 m-2 shadow-lg bg-white h-60 items-center justify-center`}>
                     <Text style={tailwind`text-black text-xl`}>Not replied yet</Text>
                 </View>
             ) : (

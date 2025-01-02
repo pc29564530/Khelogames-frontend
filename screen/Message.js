@@ -38,7 +38,7 @@ function Message({ route }) {
     const setupWebSocket = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        wsRef.current = new WebSocket('ws://192.168.1.4:8080/api/ws', '', {
+        wsRef.current = new WebSocket('ws://192.168.1.3:8080/api/ws', '', {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -156,29 +156,29 @@ function Message({ route }) {
     setShowEmojiSelect(!showEmojiSelect);
   };
   
-  useLayoutEffect(() => {
-    navigation.setOptions({
-        headerTitle: "",
-        headerStyle: tailwind`bg-black`,
-        headerLeft: ()=> (
-            <View style={tailwind`flex-row items-center gap-4 p-6`}>
-                <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
-                <View style={tailwind`flex-row gap-4`}>
-                    <Image source={{uri: profileData.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
-                    <View>
-                        <Text style={tailwind`text-white`}>{profileData.full_name}</Text>
-                        <Text style={tailwind`text-white`}>@{profileData.owner}</Text>
-                    </View> 
-                </View>
-            </View>
-        )
-    })
-  },[navigation,profileData])
+    useLayoutEffect(() => {
+      navigation.setOptions({
+          headerTitle: "",
+          headerStyle: tailwind`bg-red-400`,
+          headerLeft: ()=> (
+              <View style={tailwind`flex-row items-center gap-4 p-6`}>
+                  <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+                  <View style={tailwind`flex-row gap-4`}>
+                      <Image source={{uri: profileData.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
+                      <View>
+                          <Text style={tailwind`text-white`}>{profileData.full_name}</Text>
+                          <Text style={tailwind`text-white`}>@{profileData.owner}</Text>
+                      </View> 
+                  </View>
+              </View>
+          )
+      })
+    },[navigation,profileData]);
 
   return (
-    <View style={tailwind`flex-1 bg-black`}>
+    <View style={tailwind`flex-1 bg-white`}>
       <ScrollView 
-        style={tailwind`flex-3/5 bg-black-100 p-10`}
+        style={tailwind`flex-3/5 bg-white p-10`}
         contentContainerStyle={tailwind`gap-2`}
       >
         {receivedMessage.map((item, index) => (
@@ -219,14 +219,14 @@ function Message({ route }) {
         <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
             <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
             <TextInput
-                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-white w-60`}
+                style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}
                 multiline
                 value={newMessageContent}
                 onChangeText={(text) => setNewMessageContent(text)}
                 placeholder="Enter message..."
-                placeholderTextColor="white"
+                placeholderTextColor="black"
             />
-            <FontAwesome onPress={handleMediaSelection} name="camera" size={24} color="white" />
+            <FontAwesome onPress={handleMediaSelection} name="camera" size={24} color="black" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
                 <Text style={tailwind`text-white`}>Send</Text>
             </Pressable>

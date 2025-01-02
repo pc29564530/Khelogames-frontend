@@ -81,44 +81,44 @@ function Community() {
     };
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-black`}>
+        <ScrollView style={tailwind`flex-1 bg-white`}>
             {createCommunityScreen ? (
                 <CreateCommunity />
             ) : (
                 <>
-                    <View style={tailwind`mt-1 mb-5 bg-gray-800 rounded-md h-70`}>
+                    <View style={tailwind`mt-1 mb-5 bg-white rounded-md h-70 shadow-lg `}>
                         <View style={tailwind`m-5`}>
-                            <Text style={tailwind`text-xl text-white`}>Create a New Community</Text>
-                            <Text style={tailwind`mb-5 text-white`}>This is place where people with similar field area connect with each other.</Text>
+                            <Text style={tailwind`text-xl text-black`}>Create a New Community</Text>
+                            <Text style={tailwind`mb-5 text-black`}>This is place where people with similar field area connect with each other.</Text>
                         </View>
-                        <Pressable onPress={() => navigation.navigate('CreateCommunity')} style={tailwind`bg-blue-500 h-10 items-center ml-10 mr-10 rounded-md pt-2`}>
-                            <Text style={tailwind`font-bold text-white`}>Getting Start</Text>
+                        <Pressable onPress={() => navigation.navigate('CreateCommunity')} style={tailwind`bg-white h-10 items-center ml-10 mr-10 rounded-md shadow-lg pt-2`}>
+                            <Text style={tailwind`font-bold text-black`}>Getting Start</Text>
                         </Pressable>
                     </View>
                     <View>
-                        <Text style={tailwind`text-white font-bold p-2`}>Communities For You</Text>
+                        <Text style={tailwind`text-black font-bold p-2`}>Communities For You</Text>
                     </View>
                     <View style={tailwind`w-full rounded-md pb-12 pl-2 pr-2`}>
                         {community?.map((item, i) => (
-                            <View style={tailwind`flex-row bg-gray-800 mb-1 p-3 rounded-md h-20`} key={i}>
-                                <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
-                                    <Text style={tailwind`text-red-500 text-6x3`}>{item.displayText}</Text>
-                                </View>
-                                <View style={tailwind`w-3/5 pl-3`}>
-                                    <Pressable onPress={() => handleCommunityPage(item, item.id)}>
-                                        <Text style={tailwind`font-bold text-base text-white`}>{item.communities_name}</Text>
-                                        <Text style={tailwind`text-white`}>{item.description}</Text>
-                                        <Text style={tailwind`text-base text-gray-400`}>{item.community_type}</Text>
+                            <View style={tailwind`flex-row bg-white mb-1 p-3 rounded-lg h-20 shadow-lg `} key={i}>
+                                    <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
+                                        <Text style={tailwind`text-red-500 text-6x3`}>{item.displayText}</Text>
+                                    </View>
+                                    <View style={tailwind`w-3/5 pl-3`}>
+                                        <Pressable onPress={() => handleCommunityPage(item, item.id)}>
+                                            <Text style={tailwind`font-bold text-base text-black`}>{item.communities_name}</Text>
+                                            <Text style={tailwind`text-black`}>{item.description}</Text>
+                                            <Text style={tailwind`text-base text-gray-400`}>{item.community_type !== 'Community Type' ? item.community_type: ''}</Text>
+                                        </Pressable>
+                                    </View>
+                                    <Pressable
+                                        style={tailwind`w-1/5 h-9 rounded-md shadow-lg ${joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'bg-red-400' : 'bg-white'} p-2 m-3 justify-center`}
+                                        onPress={() => handleJoinCommunity(item.communities_name)}
+                                    >
+                                        <Text style={tailwind`text-black pl-2`}>
+                                            {joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
+                                        </Text>
                                     </Pressable>
-                                </View>
-                                <Pressable
-                                    style={tailwind`w-1/5 h-9 rounded-md ${joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'bg-gray-500' : 'bg-blue-500'} p-2 m-3 justify-center`}
-                                    onPress={() => handleJoinCommunity(item.communities_name)}
-                                >
-                                    <Text style={tailwind`text-white pl-2`}>
-                                        {joinedCommunity?.some(c => c.community_name === item.communities_name) ? 'Joined' : 'Join'}
-                                    </Text>
-                                </Pressable>
                             </View>
                         ))}
                     </View>

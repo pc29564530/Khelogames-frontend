@@ -297,7 +297,7 @@ useEffect(() => {
       })
     
       const bgColor = 'white'
-      const bgColor2 = 'white'
+      const bgColor2 =  'rgb(248, 113, 113)'
       const headerInitialHeight = 100;
       const headerNextHeight = 50;
       const offsetValue = 100;
@@ -375,7 +375,7 @@ useEffect(() => {
                   <MaterialIcons name="arrow-back" size={22} color="black" />
               </TouchableOpacity>
               <Animated.View style={[tailwind``, nameAnimatedStyles]}>
-                  <Text style={[tailwind`text-xl text-red`]}>{profile?.full_name}</Text>
+                  <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
               </Animated.View>
               <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind` items-end -top-8 right-2 z-20`}>
                   <MaterialIcons name="more-vert" size={22} color="black" />
@@ -391,7 +391,7 @@ useEffect(() => {
                   <View style={tailwind`items-center`}>
                     <View style={tailwind`mt-18`}>
                       <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
-                      <Text style={tailwind`text-gray-500 text-base`}>@{profile.owner}</Text>
+                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.owner}</Text>
                     </View>
                   </View>
                   <View style={tailwind`mt-2 items-center`}>
@@ -406,11 +406,11 @@ useEffect(() => {
                     </View>
                   </View>
                   <View style={tailwind` pl-2 pr-2`}>
-                      <Pressable style={tailwind`bg-gray-500 text-gray-500 py-2 px-3 rounded-md w-full  text-center justify-center items-center z-10`} onPress={() => handleMessage()}>
-                        <Text style={tailwind`text-white text-xl font-bold`}>Message</Text>
+                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => handleMessage()}>
+                        <Text style={tailwind`text-black text-xl font-bold`}>Message</Text>
                       </Pressable>
                   </View>
-                  <View style={tailwind`flex-1 mt-6 bg-gray-50 rounded-t-2xl shadow-lg`}>
+                  <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
                     <TopTabProfile profileData={profile} />
                   </View>
                 </View>

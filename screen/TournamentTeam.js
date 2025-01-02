@@ -44,7 +44,6 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("Sport Team: ", response.data)
             setTeamDisplay(response.data || []);
         } catch (err) {
             console.error("unable to fetch the team by game: ", err);
@@ -52,7 +51,7 @@ const TournamentTeam = ({ route }) => {
     };
 
     const handleTeam = (item) => {
-        navigation.navigate('ClubPage', { clubData: item, sport: game });
+        navigation.navigate('ClubPage', { teamData: item, game: game });
     };
 
     const handleAddTeam = async (item) => {
@@ -89,15 +88,13 @@ const TournamentTeam = ({ route }) => {
         setIsModalVisible(true);
     };
 
-    console.log("Team Display: ", teamDisplay)
-
     return (
-        <View style={tailwind` bg-gray-100 mb-4`}>
+        <View style={tailwind` bg-white mb-4`}>
             {/* {currentRole === "admin" && ( */}
-                <View style={tailwind`bg-white shadow-lg w-full py-4`}>
+                <View style={tailwind`bg-white py-4 p-4`}>
                     <Pressable
                         onPress={() => setIsModalVisible(!isModalVisible)}
-                        style={tailwind` bg-red-400 p-2 items-center w-full b`}
+                        style={tailwind` bg-white p-2 shadow-lg rounded-lg items-center b`}
                     >
                         <Text style={tailwind`text-lg text-black mr-2`}>Add Team</Text>
                     </Pressable>

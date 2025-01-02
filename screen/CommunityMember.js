@@ -53,9 +53,9 @@ function  CommunityMember({route}) {
     }, []);
 
     return (
-        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }} style={tailwind`bg-black`}>
+        <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }} style={tailwind`bg-white`}>
             <View style={tailwind`h-12`}>
-                <Text style={tailwind`text-2xl p-2 text-white`}>Active Member</Text>
+                <Text style={tailwind`text-2xl p-2 text-black`}>Active Member</Text>
             </View>
             <View style={tailwind` p-3`}>
                 {communityWithProfile?.map((item, index) => (
@@ -71,8 +71,8 @@ function  CommunityMember({route}) {
                                 </View>
                             )}
                             <View style={tailwind`ml-3`}>
-                                <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
-                                <Text style={tailwind`text-white`}>@{item.profile.owner}</Text>
+                                <Text style={tailwind`font-bold text-black`}>{item.profile && item.profile.full_name ? item.profile.full_name : ''}</Text>
+                                <Text style={tailwind`text-black`}>@{item.profile.owner}</Text>
                             </View>
                         </Pressable>
                     </View>

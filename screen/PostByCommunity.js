@@ -106,13 +106,13 @@ const PostByCommunity = ({route}) => {
     return (
         <ScrollView nestedScrollEnabled={true} contentContainerStyle={{ height: 1070 }}>
             {threads.map((item,i) => (
-                <View key={i} style={tailwind`bg-black mt-0.5 `}>
+                <View key={i} style={tailwind`bg-white mb-2 `}>
                     <View >
                         <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
                           {item.profile && item.profile.avatar_url ? (
-                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-white`} />
+                              <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red`} />
                             ):(
-                              <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
+                              <View style={tailwind`w-12 h-12 rounded-12 bg-black items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
                                   {displayText}
                                 </Text>
@@ -121,12 +121,12 @@ const PostByCommunity = ({route}) => {
                           }
                           
                           <View style={tailwind`ml-3`}>
-                            <Text style={tailwind`font-bold text-white`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
-                            <Text style={tailwind`text-white`}>@{item.username}</Text>
+                            <Text style={tailwind`font-bold text-black`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
+                            <Text style={tailwind`text-black`}>@{item.username}</Text>
                           </View>
                         </Pressable>
                     </View>
-                    <Text style={tailwind`text-white p-3 pl-2`}>{item.content}</Text>
+                    <Text style={tailwind`text-black p-3 pl-2`}>{item.content}</Text>
                     {item.media_type === 'image' && (
                       <Image
                       style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
@@ -138,25 +138,25 @@ const PostByCommunity = ({route}) => {
                       source={{uri:item.media_url}} controls={true} />
                     )}
                     <View style={tailwind`p-2`}>
-                      <Text style={tailwind`text-white`}>{item.like_count} Likes</Text>
+                      <Text style={tailwind`text-black`}>{item.like_count} Likes</Text>
                     </View>
-                    <View style={tailwind`border-b border-white mb-2`}></View>
+                    <View style={tailwind`w-full h-0.4 bg-gray-400 mb-2`}></View>
                     <View style={tailwind`flex-row justify-evenly gap-50`}>
                       <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
                         <FontAwesome 
                             name="thumbs-o-up"
-                            color="white"
+                            color="black"
                             size={20}
                         />
-                        <Text style={tailwind`text-white`}>Like</Text> 
+                        <Text style={tailwind`text-black`}>Like</Text> 
                       </Pressable>
                       <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment(item, item.id)}>
                         <FontAwesome 
                            name="comment-o"
-                           color="white"
+                           color="black"
                            size={20}
                         />
-                        <Text style={tailwind`text-white`}>Comment</Text> 
+                        <Text style={tailwind`text-black`}>Comment</Text> 
                       </Pressable>
                     </View>
                     <View style={tailwind`border-b border-white mt-2`}></View>

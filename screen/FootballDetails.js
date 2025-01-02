@@ -9,9 +9,11 @@ import useAxiosInterceptor from './axios_config';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
+import { useSelector } from 'react-redux';
 
 const FootballDetails = ({route}) => {
     const matchData = route.params.matchData;
+    const tournament = useSelector((state) => state.tournamentsReducers.tournament)
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const handleTournamentPage = async (tournamentID) => {
@@ -31,6 +33,7 @@ const FootballDetails = ({route}) => {
         
     }
 
+    console.log("tournament: ", tournament)
 
     useEffect(() => {
 
@@ -50,9 +53,9 @@ const FootballDetails = ({route}) => {
     }, []);
 
     return (
-        <View style={tailwind`flex-1`}>
-            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(matchData.tournament.id)}>
-                <Text style={tailwind` text-2xl`}>{matchData.tournament.name}</Text>
+        <View style={tailwind`flex-1 bg-white`}>
+            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(tournament.id)}>
+                <Text style={tailwind` text-2xl`}>{tournament.name}</Text>
                 <MaterialCommunityIcons name="greater-than" size={24} color="black" />
             </Pressable>
            <View style={tailwind`mt-2`}>

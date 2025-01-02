@@ -5,7 +5,6 @@ import tailwind from 'twrnc';
 
 
 const PointTable = ({ standingsData, game }) => {
-    console.log("Standing Data: ", standingsData)
     let tableHead;
     let formattedData = [];
     if (Array.isArray(standingsData) && standingsData.length > 0) {
@@ -27,11 +26,11 @@ const PointTable = ({ standingsData, game }) => {
     return (
         <>
             {standingData?.length>0 && (
-                <View style={tailwind`p-4 bg-white rounded-md shadow-md justify-center`}>
+                <View style={tailwind`p-4 bg-white justify-center`}>
                     <View style={tailwind`flex-row justify-between items-center py-2 border-gray-300 `}>
                         {standingData?.map((colData, colIndex) => (
                             <View style={tailwind``}>
-                                <Text style={tailwind`text-black font-semibodl`}>{tableHead[colIndex]}</Text>
+                                <Text style={tailwind`text-black font-semibold text-center`}>{tableHead[colIndex]}</Text>
                                 {colData.map((rowData, rowIndex) => (
                                     <Text style={tailwind`items-center justify-center mt-2`} key={rowIndex}>{rowData}</Text>
                                 ))}

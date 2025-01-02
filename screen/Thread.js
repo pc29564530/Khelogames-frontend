@@ -23,7 +23,7 @@ const Thread = () => {
 
   
     return (
-        <View style={tailwind`flex-1 bg-black`} vertical={true}>
+        <View style={tailwind`flex-1 bg-white`} vertical={true}>
             {threads.map((item,i) => (
               <ThreadItem
                 key={i}

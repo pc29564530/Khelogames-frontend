@@ -149,6 +149,7 @@ export const fetchAllGroups = async ({axiosInstance, dispatch: dispatch}) => {
 export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
+        console.log("Game: ", game)
         if (game.name === "football") {
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding`, {
                 params: {
@@ -193,3 +194,20 @@ export const getTeamsByTournamentID  = async ({tournamentID, game,  AsyncStorage
         console.log("unable to fetch the team by tournament id: %v", err);
     }
 }
+
+
+export const getTeamsBySports = async ({game,  AsyncStorage, axiosInstance}) => {
+    try {
+        const authToken = await AsyncStorage.getItem('AccessToken')
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`, {
+            headers: {
+                'Authorization': `bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data || [];
+    } catch (err) {
+        console.log("unable to fetch the team by tournament id: %v", err);
+    }
+}
+

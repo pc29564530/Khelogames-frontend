@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
@@ -8,13 +8,15 @@ import { useNavigation } from '@react-navigation/native';
 import FootballMatchPageContent from '../navigation/FootballMatchPageContent';
 import { formattedTime, formattedDate, convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
 import { getMatch } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
+import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 const FootballMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const matchID = route.params.matchID;
+    const matchID = route.params.matchID;                                                                         
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
@@ -24,6 +26,8 @@ const FootballMatchPage = ({ route }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const game = useSelector((state) => state.sportReducers.game);
+
+    const {height:sHeight, width: sWidth} = Dimensions.get('screen')
 
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
@@ -46,44 +50,17 @@ const FootballMatchPage = ({ route }) => {
         }
     };
 
+    const fetchPenalty = async () => {
+        try{
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.get(`${BASE_URL}/`)
+        } catch (err) {
+            console.error("Unable to fetch penalty of match: ", err);
+        }
+    }
+
     const toggleMenu = () => setMenuVisible(!menuVisible);
 
-    useEffect(() => {
-        navigation.setOptions({
-            headerTitle: '',
-            headerRight: () => (
-                <View style={tailwind`flex-row items-center`}>
-                    <Pressable style={tailwind`mr-2`} onPress={toggleMenu}>
-                        <MaterialIcon name="more-vert" size={24} color="black" />
-                    </Pressable>
-                    {menuVisible && (
-                        <Modal
-                            transparent={true}
-                            animationType="fade"
-                            visible={menuVisible}
-                            onRequestClose={toggleMenu}
-                        >
-                            <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1`}>
-                                <View style={tailwind`flex-row justify-end`}>
-                                    <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`}>
-                                        <TouchableOpacity onPress={() => setStatusVisible(true)}>
-                                            <Text style={tailwind`text-xl`}>Edit Match</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => {}}>
-                                            <Text style={tailwind`text-xl`}>Delete Match</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => {}}>
-                                            <Text style={tailwind`text-xl`}>Share</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        </Modal>
-                    )}
-                </View>
-            ),
-        });
-    }, [menuVisible, navigation]);
 
     const handleSearch = (text) => setSearchQuery(text);
 
@@ -92,48 +69,56 @@ const FootballMatchPage = ({ route }) => {
     );
 
     return (
-        <View style={tailwind`flex-1`}>
-            <View style={tailwind`p-4 bg-black items-center `}>
-                <Text style={tailwind`text-white text-xl font-semibold`}>{match.status.toUpperCase()}</Text>
-            </View>
-            <View style={tailwind`h-45 bg-black flex-row items-center justify-center gap-2 p-2`}>
-                <View style={tailwind`flex-row gap-2 justify-between`}>
-                    <Text style={tailwind`text-white text-3xl font-bold`}>{match.homeTeam.name}</Text>
-                    {(match.status !== "not_started") && (
-                        <View style={tailwind` gap-2 items-center`}>
-                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.homeScore.homeScore.score}</Text>
-                            {/* {match.status === "finished" && match.result === match.homeTeam.id && (
-                                <Text style={tailwind`text-white text-lg`}>won</Text>
-                            )} */}
-                        </View>
-                    )}
+        <View style={tailwind`flex-1 bg-white`}>
+            <View style={[tailwind`safe-center top-0 right-0 left-0 bg-red-400`]}>
+                <View style={tailwind`flex-row justify-between fixed p-2 pt-4`}>
+                    <Pressable onPress={() => navigation.goBack()}>
+                        <AntDesign name="arrowleft" size={26} color="white" />
+                    </Pressable>
+                    <Pressable style={tailwind``} onPress={toggleMenu}>
+                        <MaterialIcon name="more-vert" size={24} color="white" />
+                    </Pressable>
                 </View>
-                <View style={tailwind`h-1 w-5 border-t-2 border-white px-2 py-0.5`} />
-                <View style={tailwind`flex-row justify-between gap-2`}>
-                    {(match.status !== "not_started") && (
-                        <View style={tailwind`flex-row gap-2 items-center`}>
-                            <Text style={tailwind`text-white text-3xl font-medium`}>{match?.awayScore.awayScore.score}</Text>
-                            {/* {match.status === "finished" && match.result === match.awayTeam.id && (
-                                <Text style={tailwind`text-white text-lg`}>won</Text>
-                            )} */}
-                        </View>
-                    )}
-                    <Text style={tailwind`text-white text-3xl font-bold`}>{match.awayTeam.name}</Text>
+                <View style={[tailwind`items-center`]}>
+                    <Text style={tailwind`text-white text-xl font-semibold`}>{match.status.charAt(0).toUpperCase()+match.status.slice(1)}</Text>
                 </View>
-                <View>
-                    {match.status === "not_started" && (
+                <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2`]}>
+                    <View style={tailwind`items-center`}>
+                        {match.homeTeam.media_url?(
+                            <Image/>
+                        ):(
+                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                                <Text style={tailwind`text-white text-md`}>{match.homeTeam.name.charAt(0).toUpperCase()}</Text>
+                            </View>
+                        )}
                         <View>
-                            <Text style={tailwind`text-white`}>{formattedDate(convertToISOString(match.startTimeStamp))}</Text>
-                            <Text style={tailwind`text-white`}>{formattedTime(convertToISOString(match.startTimeStamp))}</Text>
+                            <Text  style={tailwind`text-white`}>{match.homeTeam.name}</Text>
                         </View>
-                    )}
+                    </View>
+                    <View style={tailwind`flex-row gap-2 justify-center items-center`}>
+                        <Text style={tailwind`text-white text-lg`}>{match?.homeScore?.homeScore?.score}</Text>
+                        <Text style={tailwind`text-white text-lg`}>-</Text>
+                        <Text style={tailwind`text-white text-lg`}>{match?.awayScore?.awayScore?.score}</Text>
+                    </View>
+                    <View style={tailwind`items-center`}>
+                        {match.awayTeam?.media_url ? (
+                            <Image/>
+                        ):(
+                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                                <Text style={tailwind`text-white text-md`}>{match.awayTeam.name.charAt(0).toUpperCase()}</Text>
+                            </View>
+                        )}
+                        <View>
+                            <Text  style={tailwind`text-white`}>{match.awayTeam.name}</Text>
+                        </View>
+                    </View>
                 </View>
             </View>
-            {loading && (
-                <View style={tailwind`absolute inset-0 flex justify-center items-center bg-black bg-opacity-50`}>
-                    <ActivityIndicator size="large" color="#FFF" />
-                </View>
-            )}
+            <View
+                style={tailwind`flex-1`}
+            >
+                <FootballMatchPageContent matchData={match} />
+            </View>
             {statusVisible && (
                 <Modal
                     transparent={true}
@@ -159,7 +144,30 @@ const FootballMatchPage = ({ route }) => {
                     </Pressable>
                 </Modal>
             )}
-            <FootballMatchPageContent matchData={match} />
+            {menuVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={menuVisible}
+                    onRequestClose={toggleMenu}
+                >
+                    <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1`}>
+                        <View style={tailwind`flex-row justify-end`}>
+                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`}>
+                                <TouchableOpacity onPress={() => setStatusVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Edit Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Delete Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Share</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+            )}
         </View>
     );
 };

@@ -23,6 +23,10 @@ function CreateCommunity () {
 
     const handleCreateCommunity = async () => {
         try {
+            if(!communityName.trim()){
+                alert('Please fill fields before creating the community.');
+                return;
+            }
             const community = {communityName, description, communityType};
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response  = await axiosInstance.post(`${BASE_URL}/communities`, community, {
@@ -54,9 +58,9 @@ function CreateCommunity () {
     navigation.setOptions({
         headerTitle: '',
         headerStyle:{
-            backgroundColor:'black'
+            backgroundColor:tailwind.color('bg-red-400')
         },
-        headerTintColor:'white',
+        headerTintColor: tailwind.color('bg-white'),
         headerLeft: ()=> (
             <View style={tailwind`flex-row items-center gap-35 p-2`}>
                 <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
@@ -77,15 +81,15 @@ function CreateCommunity () {
 
     
     return (
-        <View style={tailwind`flex-1 bg-black`}>
+        <View style={tailwind`flex-1 bg-white`}>
             <View>
                 <View style={tailwind`m-5 p-6`}>
-                    <Text style={tailwind`text-xl text-white`} >Create a New Community</Text>
-                    <Text style={tailwind`mb-5 text-white`}>This is place where a people with similar field area connect with each other.</Text>
+                    <Text style={tailwind`text-xl text-black`} >Create a New Community</Text>
+                    <Text style={tailwind`mb-5 text-black`}>This is place where a people with similar field area connect with each other.</Text>
                 </View>
                 <View style={tailwind`m-1 `}>
-                    <TextInput  style={tailwind`p-2 m-3 bg-gray-300 w-full border-gray-500 font-bold text-xl text-white bg-black`} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Give the name to community" placeholderTextColor="white" />
-                    <TextInput style={tailwind`p-2 m-3 bg-gray-300 w-full text-white text-lg bg-black`} type="input" value={description} onChangeText={setDescription} placeholder="Write something about the community" placeholderTextColor="white" />
+                    <TextInput  style={tailwind`p-2 m-3 w-full font-bold text-xl text-black bg-white`} type="input" value={communityName} onChangeText={setCommunityName} placeholder="Give the name to community" placeholderTextColor="black" />
+                    <TextInput style={tailwind`p-2 m-3 bg-gray-300 w-full text-black text-lg bg-white`} type="input" value={description} onChangeText={setDescription} placeholder="Write something about the community" placeholderTextColor="black" />
                 </View>
             </View>
         </View>

@@ -9,6 +9,7 @@ import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/Formatted
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
+import { getMatch } from '../redux/actions/actions';
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
@@ -41,11 +42,8 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         }
     };
 
-    const handleCricketMatchPage = (item) => {
-        navigation.navigate("CricketMatchPage", {item: item, game: game.name})
-    }
+    
 
-    console.log("Matches: ", matches)
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
@@ -84,14 +82,13 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 const matchesData = (item, ind) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const handleFootballMatchPage = (item) => {
-        dispatch(getMatch(item))
-        navigation.navigate("FootballMatchPage", {matchID: item.id});
+    const handleCricketMatchPage = (item) => {
+        navigation.navigate("CricketMatchPage", {item: item})
     }
     return (
         <Pressable key={ind} 
             style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`} 
-            onPress={() => handleFootballMatchPage(item)}
+            onPress={() => handleCricketMatchPage(item)}
         >
             <View style={tailwind`flex-row items-center justify-between `}>
                 <View style={tailwind`flex-row`}>

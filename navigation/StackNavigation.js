@@ -20,7 +20,7 @@ const StackNavigation = () => {
       screenOptions={{
         header: ({ navigation }) => {
           return (
-            <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-black`}>
+            <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-red-400`}>
               <Image source={""} style={tailwind`h-16 w-16`} />
               <View style={tailwind`flex-row items-center gap-3`}>
                 <FontAwesome

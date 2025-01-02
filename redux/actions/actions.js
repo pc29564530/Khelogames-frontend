@@ -372,6 +372,13 @@ export const getMatch = (match) => {
     }
 }
 
+export const getMatches = (matches) => {
+    return {
+        type: actionTypes.GET_MATCHES,
+        payload: matches
+    }
+}
+
 export const getTeamPlayers = (player) => {
     return {
         type: actionTypes.GET_TEAM_PLAYERS,

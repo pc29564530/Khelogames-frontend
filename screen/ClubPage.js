@@ -41,14 +41,6 @@ const ClubPage = ({route}) => {
         }
     }
 
-    navigation.setOptions({
-        headerTitle: '',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-            </Pressable>
-        ),
-    });
 
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
@@ -58,8 +50,8 @@ const ClubPage = ({route}) => {
         scrollY.value = e.contentOffset.y;
       })
     
-      const bgColor = 'white'
-      const bgColor2 = 'white'
+      const bgColor = tailwind.color('bg-red-400')
+      const bgColor2 = tailwind.color('bg-red-400')
       const headerInitialHeight = 100;
       const headerNextHeight = 50;
       const offsetValue = 100;
@@ -132,12 +124,12 @@ const ClubPage = ({route}) => {
 
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`safe-center shadow-lg`, animatedHeader]}>
+            <Animated.View style={[tailwind`safe-center shadow-lg bg-red-400`, animatedHeader]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start justify-center top-4 px-2`}>
-                    <MaterialIcons name="arrow-back" size={22} color="black" />
+                    <MaterialIcons name="arrow-back" size={22} color="white" />
                 </TouchableOpacity>
-                <Animated.View style={[tailwind`items-start justify-center `, nameAnimatedStyles]}>
-                    <Text style={tailwind`text-xl text-black`}>{teamData.name}</Text>
+                <Animated.View style={[tailwind`items-start justify-center bg-red-400`, nameAnimatedStyles]}>
+                    <Text style={tailwind`text-xl text-white`}>{teamData.name}</Text>
                 </Animated.View>
             </Animated.View>
             <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
@@ -145,11 +137,12 @@ const ClubPage = ({route}) => {
                 onScroll={handleScroll}
                 contentContainerStyle={{height: 760}}
                 scrollEnabled={true}
+                style={tailwind`bg-red-400`}
             >
-                <View style={tailwind`bg-white items-center justify-center pt-16`}>
+                <View style={tailwind`bg-white items-center justify-center pt-16 bg-red-400`}>
                     <View >
-                        <Text style={tailwind`text-2xl text-black `}>{teamData.name}</Text>
-                        <Text style={tailwind`text-xl text-black `}>{teamData.game}</Text>
+                        <Text style={tailwind`text-2xl text-white `}>{teamData.name}</Text>
+                        <Text style={tailwind`text-xl text-white `}>{teamData.game}</Text>
                     </View>
                 </View>
                 <View style={tailwind`flex-1`}>

@@ -61,13 +61,13 @@ function Follower() {
     }
 
     return (
-        <ScrollView style={tailwind`bg-black`}>
-            <View style={tailwind`flex-1 bg-black pl-5`}>
+        <ScrollView style={tailwind`bg-white`}>
+            <View style={tailwind`flex-1 bg-white pl-5`}>
                 {follower?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-black flex-row items-center p-1 h-15`} onPress={() => handleProfile({username: item.profile?.owner})}>
+                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile({username: item.profile?.owner})}>
                         {!item.profile && !item.profile.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
-                                <Text style={tailwind`text-red-500 text-6x3`}>
+                                <Text style={tailwind`text-black text-6x3`}>
                                     {displayText}
                                 </Text>
                             </View>
@@ -75,8 +75,8 @@ function Follower() {
                             <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
                         )}
                         <View  style={tailwind`text-white p-2 mb-1`}>
-                            <Text style={tailwind`text-white font-bold text-xl `}>{item.profile.full_name}</Text>
-                            <Text style={tailwind`text-white`}>@{item.profile.owner}</Text>
+                            <Text style={tailwind`text-black font-bold text-xl `}>{item.profile.full_name}</Text>
+                            <Text style={tailwind`text-black`}>@{item.profile.owner}</Text>
                         </View>
                     </Pressable>
                 ))}

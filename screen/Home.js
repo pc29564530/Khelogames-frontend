@@ -35,12 +35,11 @@ function Home() {
     return (
     <>
       <ScrollView style={tailwind`flex-1`}>
-        {/* <View style={tailwind`bg-gray-900 p-4`}> */}
-          <View style={tailwind`flex-row justify-evenly items-center bg-black `}>
-            <Pressable style={tailwind`p-2 border border-white rounded-md bg-white-800`}>
+          <View style={tailwind`flex-row justify-evenly items-center bg-white `}>
+            <Pressable style={tailwind`p-2 border border-white rounded-md bg-orange-200`}>
               <Text style={tailwind`text-white text-lg font-semibold`}>Explore</Text>
             </Pressable>
-            <Pressable style={tailwind`p-2 border border-white rounded-md bg-gray-800`}>
+            <Pressable style={tailwind`p-2 border border-white rounded-md bg-orange-200`}>
               <Text style={tailwind`text-white text-lg font-semibold`}>Live</Text>
             </Pressable>
           </View>
@@ -48,11 +47,9 @@ function Home() {
         {/* </View> */}
       </ScrollView>
       <View style={tailwind`absolute bottom-14 right-4`}>
-          {/* {currentRole === 'admin' && ( */}
-          <Pressable style={tailwind`p-4 bg-blue-500 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateThread")}>
+          <Pressable style={tailwind`p-4 bg-red-400 rounded-full shadow-lg`} onPress={() => navigation.navigate("CreateThread")}>
               <MaterialIcons name="add" size={26} color="white" />
           </Pressable>
-          {/* )} */}
       </View>
     </>
     );  
