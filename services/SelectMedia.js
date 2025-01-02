@@ -48,7 +48,6 @@ export const SelectMedia =  async () => {
                 
                 if(type === 'image' || type === 'video') {
                   const base64File = await fileToBase64(res.assets[0].uri);
-                    console.log("Line no 53: ", type)
                     resolve({mediaURL: base64File, mediaType: type});
                 } else {
                   console.log('unsupported media type:', type);

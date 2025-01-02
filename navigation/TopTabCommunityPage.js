@@ -8,8 +8,8 @@ function TopTabCommunityPage({communityPageData}) {
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-white`,
-                    tabBarStyle:tailwind`bg-black`,
+                    tabBarLabelStyle:tailwind`text-black`,
+                    tabBarStyle:tailwind`bg-white`,
                     headerShown:true
                 }}
             >   

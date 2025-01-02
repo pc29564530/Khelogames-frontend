@@ -31,8 +31,6 @@ const TournamentStanding = ({route}) => {
     
     const [isModalCreateStandingVisible, setIsCreateStandingVisible] = useState(false);
     const dispatch = useDispatch();
-
-
     
     useFocusEffect(
         React.useCallback(() => {
@@ -101,15 +99,14 @@ const TournamentStanding = ({route}) => {
         }
     }
 
-
   return (
-    <ScrollView style={tailwind`mt-4`}  nestedScrollEnabled={true}>
-        <View style={tailwind``}>
-            <Pressable onPress={() => {setIsCreateStandingVisible(true)}} style={tailwind`p-2 shadow-lg bg-red-400 w-full items-center justify-center`}>
-                <Text style={tailwind`text-xl font-bold`}>Create Standing</Text>
+    <ScrollView style={tailwind`mt-2 bg-white`}  nestedScrollEnabled={true}>
+        <View style={tailwind` bg-white mt-2 p-4`}>
+            <Pressable onPress={() => {setIsCreateStandingVisible(true)}} style={tailwind`p-2 bg-white items-center shadow-md rounded-lg justify-center`}>
+                <Text style={tailwind`text-xl`}>Create Standing</Text>
             </Pressable>
         </View>
-        <View style={tailwind``}>
+        <View style={tailwind`p-2`}>
             {standings?.length > 0 ? (
                 standings.map((group, index) => (
                     <View key={index} style={tailwind``}>
@@ -137,8 +134,7 @@ const TournamentStanding = ({route}) => {
                 >
                 <View style={tailwind`bg-white p-5 rounded-t-3xl w-full items-center`}>
                     <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Create Standing</Text>
-                    
-                    {tournament.stage === "group"?(
+                    {tournament?.stage === "group"?(
                         <View style={tailwind`flex-row w-full justify-around`}>
                             <Pressable 
                                 onPress={() => setIsModalGroupVisible(true)} 

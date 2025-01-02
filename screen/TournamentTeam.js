@@ -89,12 +89,12 @@ const TournamentTeam = ({ route }) => {
     };
 
     return (
-        <View style={tailwind` bg-gray-100 mb-4`}>
+        <View style={tailwind` bg-white mb-4`}>
             {/* {currentRole === "admin" && ( */}
-                <View style={tailwind`bg-white shadow-lg w-full py-4`}>
+                <View style={tailwind`bg-white py-4 p-4`}>
                     <Pressable
                         onPress={() => setIsModalVisible(!isModalVisible)}
-                        style={tailwind` bg-red-400 p-2 items-center w-full b`}
+                        style={tailwind` bg-white p-2 shadow-lg rounded-lg items-center b`}
                     >
                         <Text style={tailwind`text-lg text-black mr-2`}>Add Team</Text>
                     </Pressable>
