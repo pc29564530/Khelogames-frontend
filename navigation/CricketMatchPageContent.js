@@ -10,10 +10,13 @@ function CricketMatchPageContent({matchData}) {
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-black text-md `,
-                    tabBarStyle:tailwind`bg-white`,
+                    tabBarLabelStyle:tailwind`text-gray-200 text-md w-18 `,
+                    tabBarStyle:tailwind`bg-red-400`,
                     headerShown:true,
-                    tabBarScrollEnabled:true
+                    tabBarScrollEnabled:false,
+                    tabBarIndicatorStyle: tailwind`bg-white`,
+                    tabBarActiveTintColor: 'white',
+                    tabBarInactiveTintColor:'gray'
                 }}
                 tabBarOptions={{
                     tabStyle: { width: 130},

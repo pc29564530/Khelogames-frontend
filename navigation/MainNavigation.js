@@ -143,10 +143,26 @@ export default function MainNavigation() {
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
                         <Stack.Screen name="CreatePlayerProfile" component={CreatePlayerProfile} />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} />
-                        <Stack.Screen name="CricketMatchPage" component={CricketMatchPage} />
+                        <Stack.Screen name="CricketMatchPage" component={CricketMatchPage} 
+                            options={{
+                                headerShown: false,
+                                headerTitle: '',
+                                headerBackTitleVisible: false,
+                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
+                                headerTintColor: tailwind.color('bg-black'),
+                            }}
+                        />
                         <Stack.Screen name="AddCricketMatchPlayer" component={AddCricketMatchPlayer} />
                         <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
-                        <Stack.Screen name="FootballMatchPage" component={FootballMatchPage}/>
+                        <Stack.Screen name="FootballMatchPage" component={FootballMatchPage} 
+                            options={{
+                                headerShown: false,
+                                headerTitle: '',
+                                headerBackTitleVisible: false,
+                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
+                                headerTintColor: tailwind.color('bg-black'),
+                            }}
+                        />
                         <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} />
                         <Stack.Screen name="Follow" component={Follow} 
                             options={{

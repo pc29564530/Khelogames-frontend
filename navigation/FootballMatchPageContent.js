@@ -15,12 +15,13 @@ function FootballMatchPageContent({matchData}) {
     return (
         <TopTab.Navigator
                 screenOptions={({ route }) => ({
-                    tabBarLabel: capitalizeFirstLetter(route.name),
-                    tabBarLabelStyle: tailwind`text-black text-md font-semibold`,
-                    tabBarStyle: tailwind`bg-gray-100`,
-                    tabBarIndicatorStyle: tailwind`bg-red-400 h-1`,
-                    tabBarScrollEnabled: true,
-                    headerShown: false,
+                    tabBarLabelStyle:tailwind`text-gray-200 text-md w-18 `,
+                    tabBarStyle:tailwind`bg-red-400`,
+                    headerShown:true,
+                    tabBarScrollEnabled:false,
+                    tabBarIndicatorStyle: tailwind`bg-white`,
+                    tabBarActiveTintColor: 'white',
+                    tabBarInactiveTintColor:'gray'
                     })}
                 tabBarOptions={{
                     tabStyle: { width: 130},
