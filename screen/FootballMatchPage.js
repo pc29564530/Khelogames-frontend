@@ -79,10 +79,10 @@ const FootballMatchPage = ({ route }) => {
                         <MaterialIcon name="more-vert" size={24} color="white" />
                     </Pressable>
                 </View>
-                <View style={[tailwind`items-center`]}>
+                <View style={[tailwind`items-center -top-4`]}>
                     <Text style={tailwind`text-white text-xl font-semibold`}>{match.status.charAt(0).toUpperCase()+match.status.slice(1)}</Text>
                 </View>
-                <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2`]}>
+                <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2 -top-4`]}>
                     <View style={tailwind`items-center`}>
                         {match.homeTeam.media_url?(
                             <Image/>
@@ -115,7 +115,7 @@ const FootballMatchPage = ({ route }) => {
                 </View>
             </View>
             <View
-                style={tailwind`flex-1`}
+                style={tailwind`flex-1 -top-4`}
             >
                 <FootballMatchPageContent matchData={match} />
             </View>

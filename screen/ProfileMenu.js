@@ -223,7 +223,7 @@ function ProfileMenu() {
               {myCommunityData.map((item, index) => (
                 <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2`}>
                   <Image source="" style={tailwind`h-12 w-12 bg-red-500 rounded-md mr-4`} />
-                  <Text style={tailwind`text-2xl text-white`}>{item.community_name}</Text>
+                  <Text style={tailwind`text-2xl text-black`}>{item.community_name}</Text>
                 </Pressable>
               ))}
             </ScrollView>

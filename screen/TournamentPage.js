@@ -112,36 +112,18 @@ const TournamentPage = ({ route }) => {
 
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`flex-row safe-center`, animatedHeader]}>
+            <View style={tailwind`bg-red-400`}>
               <Pressable onPress={() => navigation.goBack()} style={tailwind`p-1 pt-4`}>
-                  <MaterialIcons name="arrow-back" size={22} color="black" />
-              </Pressable>
-              <Animated.View style={[tailwind`items-center`, nameAnimatedStyles]}>
-                  <Text style={[tailwind`text-xl text-black`]}>{tournament?.name}</Text>
-              </Animated.View>
-            </Animated.View>
-            <Animated.Image source={trophyPath} style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-10`, animImage]}/>
-            <Animated.ScrollView
-                onScroll={handleScroll}
-                contentContainerStyle={{height:780}}
-                scrollEnabled={true}
-            >
-                <View style={tailwind`flex-1 bg-white`}>
-                    <View style={tailwind`justify-center items-center p-10`}>
-                        <View style={tailwind`mt-2`}>
-                            <Text style={tailwind`text-xl text-black`}>{tournament?.name}</Text>
-                        </View>
-                        <View style={tailwind`flex-row gap-2`}>
-                            <Text style={tailwind`text-lg`}>Teams: {tournament?.teams_joined}</Text>
-                            <Text style={tailwind`text-lg`}>|</Text>
-                            <Text style={tailwind`text-lg`}>{game.name}</Text>
-                        </View>
-                    </View>
-                    <View style={tailwind`flex-1`}>
-                        {checkSport(game)}
-                    </View>
+                    <MaterialIcons name="arrow-back" size={22} color="white" />
+                </Pressable>
+                <View style={tailwind`items-center -top-6`}>
+                  <FontAwesome name="trophy" size={52} color="gold"/>
+                    <Text style={tailwind`text-xl text-white`}>{tournament.name}</Text>
                 </View>
-            </Animated.ScrollView>
+            </View>
+            <View style={tailwind`flex-1`}>
+                {checkSport(game)}
+            </View>
         </View>
     );
 }
