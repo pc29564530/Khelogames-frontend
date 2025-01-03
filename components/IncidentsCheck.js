@@ -37,36 +37,36 @@ const IncidentCheck = ({ incident, matchData }) => {
               {item.incident_type === 'substitutions' ? (
                 <View style={tailwind`flex-row items-center`}>
                   <View style={tailwind`items-center p-2`}>
-                    <Text style={tailwind`text-xl`}>{incidentEmojis[item.incident_type]}</Text>
+                    <Text style={tailwind`text-md`}>{incidentEmojis[item.incident_type]}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   <View style={tailwind``}>
                     <View style={tailwind`flex-row`}>
                       <Text>In: </Text>
-                      <Text style={tailwind`text-xl`}>{item.player_in.name}</Text>
+                      <Text style={tailwind`text-lg`}>{item.player_in.name}</Text>
                     </View>
                     <View style={tailwind`flex-row`}>
                       <Text>Out: </Text>
-                      <Text style={tailwind`text-xl`}>{item.player_out.name}</Text>
+                      <Text style={tailwind`text-md`}>{item.player_out.name}</Text>
                     </View>
                   </View>
                   <View style={tailwind`items-center p-2`}>
-                    <Text style={tailwind`text-xl`}>{incidentEmojis[item.incident_type]}</Text>
+                    <Text style={tailwind`text-md`}>{incidentEmojis[item.incident_type]}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{ item.incident_time}'</Text>
                   </View>
                 </View>
               ) : (
                 <View style={tailwind`flex-row items-center`}>
                   <View style={tailwind`items-center`}>
-                    <Text style={tailwind`text-xl`}>{incidentEmojis[item.incident_type]}</Text>
+                    <Text style={tailwind`text-md`}>{incidentEmojis[item.incident_type]}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   {/* Handle Other Incident Types */}
                   <View style={tailwind`mx-4`}>
-                    <Text style={tailwind`text-xl`}>{item.player.name}</Text>
-                    <Text style={tailwind`text-lg`}>{item.incident_type}</Text>
+                    <Text style={tailwind`text-lg`}>{item.player.name}</Text>
+                    <Text style={tailwind`text-md`}>{item.incident_type}</Text>
                   </View>
                   {item.home_score && item.away_score && (
                     <View style={tailwind`flex-row`}>
@@ -87,16 +87,16 @@ const IncidentCheck = ({ incident, matchData }) => {
                   <View style={tailwind``}>
                     <View style={tailwind`flex-row`}>
                       <Text>In: </Text>
-                      <Text style={tailwind`text-xl`}>{item.player_in.name}</Text>
+                      <Text style={tailwind`text-lg`}>{item.player_in.name}</Text>
                     </View>
                     <View style={tailwind`flex-row`}>
                       <Text>Out: </Text>
-                      <Text style={tailwind`text-xl`}>{item.player_out.name}</Text>
+                      <Text style={tailwind`text-md`}>{item.player_out.name}</Text>
                     </View>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   <View style={tailwind`items-center p-2`}>
-                    <Text style={tailwind`text-xl`}>{incidentEmojis[item.incident_type]}</Text>
+                    <Text style={tailwind`text-lg`}>{incidentEmojis[item.incident_type]}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                 </View>
@@ -111,12 +111,12 @@ const IncidentCheck = ({ incident, matchData }) => {
                     </View>
                   )}
                   <View style={tailwind`mx-4`}>
-                    <Text style={tailwind`text-xl`}>{item.player.name}</Text>
-                    <Text style={tailwind`text-lg`}>{item.description}</Text>
+                    <Text style={tailwind`text-lg`}>{item.player.name}</Text>
+                    <Text style={tailwind`text-md`}>{item.description}</Text>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   <View style={tailwind`items-center`}>
-                    <Text style={tailwind`text-xl`}>{incidentEmojis[item.incident_type]}</Text>
+                    <Text style={tailwind`text-md`}>{incidentEmojis[item.incident_type]}</Text>
                     <Text style={tailwind`font-bold text-lg`}>{item.incident_time}'</Text>
                   </View>
                 </View>
