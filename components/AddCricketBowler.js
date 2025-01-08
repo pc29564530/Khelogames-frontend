@@ -14,7 +14,7 @@ export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, ga
                 bowler_id: item.id,
                 match_id: matchData.matchId,
                 team_id: batTeam !== matchData.awayTeam.id ? matchData.awayTeam.id : matchData.homeTeam.id,
-                ball: 0``,
+                ball: 0,
                 runs: 0,
                 wickets: 0,
                 wide: 0,
