@@ -192,6 +192,17 @@ const CricketScoreCard = ({ route }) => {
             console.error("Failed to update Batting")
         }
     }
+
+    useEffect(() => {
+        const handleYetToBat = () => {
+            let notBatted = [];
+            if (batTeam === homeTeamID){
+                notBatted = homePlayer.filter((item) => !battingData?.innings?.some((batter) => item.id !== batter.id) )
+            }
+            setYetToBat(notBatted);
+        }
+        handleYetToBat();
+    }, []);
     
 
     return (
@@ -212,16 +223,20 @@ const CricketScoreCard = ({ route }) => {
                 <View style={tailwind`bg-white rounded-lg shadow-md p-2 mb-4`}>
                     <CricketBowlingScorecard bowlingData={bowlingData} setIsModalBowlingVisible={setIsModalBowlingVisible} handleUpdatePlayerBowling={handleUpdatePlayerBowling} convertBallToOvers={convertBallToOvers} />
                 </View>
-                <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
-                    <Text style={tailwind`text-black`}>Yet to bat:</Text>
-                    <SafeAreaView>
-                            {yetToBat.map((item, index) => (
-                               <View key={index}>
-                                    <Text>{item.name}</Text>
-                               </View>
-                            ))}
-                    </SafeAreaView>
-                </View>
+                {yetToBat.length > 0 && (
+                    <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
+                        <Text style={tailwind`text-black`}>Yet to bat:</Text>
+                        <View>
+                                {yetToBat.map((item, index) => (
+                                <View key={index} style={tailwind`bg-red flex-1`}>
+                                    {console.log("Item: ", item)}
+                                        <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                                </View>
+                                ))}
+                        </View>
+                    </View>
+                )}
+                
                 <View>
                     {/*  add the fall of wickets*/}
                 </View>
