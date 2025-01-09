@@ -55,7 +55,7 @@ const CricketMatchDetail = ({route}) => {
                         'Content-Type': 'application/json',
                     }
                 });
-                
+                console.log("Toss Data: ", response.data)
                 setTossData(response.data || {});
                 if (response.data !== null ){
                     setIsTossed(true)
@@ -100,9 +100,9 @@ const CricketMatchDetail = ({route}) => {
                     <Text>Time: </Text>
                     <Text>{formattedTime(convertToISOString(matchData?.startTimeStamp))}</Text>
                 </View>
-                {isTossed && (
+                {isTossed &&  (
                     <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.ID === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
+                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.id === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
                         <Text style={tailwind`text-gray-700`}>Decision: {tossData?.tossDecision}</Text>
                     </View>
                 )}
