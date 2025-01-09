@@ -43,10 +43,6 @@ const CricketMatchDetail = ({route}) => {
     useEffect(() => {
         const fetchTossData = async () => {
             try {
-                const data = {
-                    
-                }
-                console.log("Entering a Toss Data")
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketToss`, {
                     params:{match_id: matchData.matchId},
@@ -55,10 +51,8 @@ const CricketMatchDetail = ({route}) => {
                         'Content-Type': 'application/json',
                     }
                 });
-                console.log("Toss Data: ", response.data)
-                setTossData(response.data || {});
-                if (response.data !== null ){
-                    setIsTossed(true)
+                if (response.data && response.data.tossWonTeam) {
+                    setIsTossed(true);
                 }
             } catch (err) {
                 console.error("Unable to get the toss data: ", err);
