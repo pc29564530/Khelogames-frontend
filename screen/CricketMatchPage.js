@@ -27,14 +27,13 @@ const CricketMatchPage = ({ route }) => {
     const game = useSelector((state) => state.sportReducers.game);
 
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
-
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
         setMenuVisible(false);
         setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const data = { id: matchID, status_code: itm };
+            const data = { id: match.matchId, status_code: itm };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -87,7 +86,7 @@ const CricketMatchPage = ({ route }) => {
                     </View>
                     <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
                         <View style={tailwind``}>
-                            {match?.homeScore ? (
+                            {match.status !== "not_started" && match?.homeScore ? (
                                 <> 
                                     <Text style={tailwind`ml-2 text-lg text-white`}>
                                         {match?.homeScore?.score}/{match?.homeScore?.wickets}
@@ -99,14 +98,20 @@ const CricketMatchPage = ({ route }) => {
                         </View>
                         <View style={tailwind`h-10 w-0.4 bg-white`} />
                         <View style={tailwind``}>
-                            <Text style={tailwind`ml-2 text-lg text-white`}>
-                                {match?.awayScore?.score}/{match?.awayScore?.wickets}
-                            </Text>
-                            <Text style={tailwind`ml-2 text-lg text-white`}>({match?.awayScore?.overs})</Text>
+                            {match.status !== "not_started" && match?.awayScore ? (
+                                <>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>
+                                        {match?.awayScore?.score}/{match?.awayScore?.wickets}
+                                    </Text>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>({match?.awayScore?.overs})</Text>
+                                </>
+                            ):(
+                                <Text style={tailwind`text-lg text-white`}>-</Text> 
+                            )}
                         </View>
                     </View>
                     <View style={tailwind`items-center`}>
-                        {match.awayTeam?.media_url ? (
+                        { match.awayTeam?.media_url ? (
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
