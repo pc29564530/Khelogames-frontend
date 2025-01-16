@@ -19,7 +19,8 @@ export const AddCricketBatsman = ({matchData, batTeam, homePlayer, awayPlayer, g
                 balls_faced: 0,
                 fours: 0,
                 sixes: 0,
-                batting_status: false,
+                batting_status: true,
+                is_striker:false
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBatScore`, data, {
