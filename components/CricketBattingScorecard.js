@@ -18,9 +18,18 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible, handle
             {/* Batting Data */}
             {battingData?.innings?.map((item, index) => (
                 <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-2 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
-                    <View style={tailwind`flex-row`}>
-                        <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
-                        {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
+                    <View style={tailwind``}>
+                        <View style={tailwind`flex-row`}>
+                            <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
+                            {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
+                        </View>
+                        {item.batting_status && !item.is_currently_batting &&  (
+                            <View>
+                                <Text style={tailwind`text-sm`}>b {item.bowler_name}</Text>
+                                <Text style={tailwind`text-sm`} >{item.wicket_type}</Text>
+                            </View>
+                        )}
+                        
                     </View>
                     
                     <View style={tailwind`flex-row justify-between gap-4`}>
