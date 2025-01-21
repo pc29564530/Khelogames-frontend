@@ -29,7 +29,6 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible, handle
                                 <Text style={tailwind`text-sm`} >{item.wicket_type}</Text>
                             </View>
                         )}
-                        
                     </View>
                     
                     <View style={tailwind`flex-row justify-between gap-4`}>
@@ -43,8 +42,8 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible, handle
 
             {/* Add Next Batsman Button */}
             <View style={tailwind`p-4`}>
-                <Pressable onPress={() => { setIsModalBattingVisible(true) }} style={tailwind`mt-4 p-3 bg-red-500 rounded-lg shadow-md`}>
-                    <Text style={tailwind`text-white text-center font-semibold`}>Add Next Batsman</Text>
+                <Pressable onPress={() => { setIsModalBattingVisible(true) }} style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}>
+                    <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Batsman</Text>
                 </Pressable>
             </View>
         </View>
