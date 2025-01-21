@@ -24,7 +24,7 @@ const CricketScoreCard = ({ route }) => {
     const axiosInstance = useAxiosInterceptor();
     const { matchData } = route.params;
     const game = useSelector(state => state.sportReducers.game);
-   const [battingData, setBattingData] = useState([])
+   const [battingData, setBattingData] = useState(null)
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [bowlingData, setBowlingData] = useState([]);
@@ -376,35 +376,49 @@ const CricketScoreCard = ({ route }) => {
                         <Text style={tailwind`text-lg font-bold`}>{matchData.awayTeam.name}</Text>
                     </Pressable>
                 </View>
-                <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
-                    <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
-                        <Text style={tailwind`text-xl`}>Update Score</Text>
-                    </Pressable>
-                </View>
-                <View style={tailwind`bg-white mb-2 p-1`}>
-                    <CricketBattingScorecard battingData={battingData} setIsModalBattingVisible={setIsModalBattingVisible} handleUpdatePlayerBatting={handleUpdatePlayerBatting}/>
-                </View>
+                {console.log("Batting Dat: ", battingData)}
+                {battingData?.innings?.length > 0 ? (
+                    <View style={tailwind``}>
+                        {console.log("Line no 381")}
+                            <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
+                                <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
+                                    <Text style={tailwind`text-xl`}>Update Score</Text>
+                                </Pressable>
+                            </View>
+                            <View style={tailwind`bg-white mb-2 p-1`}>
+                                <CricketBattingScorecard battingData={battingData} setIsModalBattingVisible={setIsModalBattingVisible} handleUpdatePlayerBatting={handleUpdatePlayerBatting}/>
+                            </View>
 
-                <View style={tailwind`bg-white mb-2 p-1`}>
-                    <CricketBowlingScorecard bowlingData={bowlingData} setIsModalBowlingVisible={setIsModalBowlingVisible} handleUpdatePlayerBowling={handleUpdatePlayerBowling} convertBallToOvers={convertBallToOvers} />
-                </View>
-                {yetToBat.length > 0 && (
-                    <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
-                        <Text style={tailwind`text-black`}>Yet to bat:</Text>
-                        <View>
-                                {yetToBat.map((item, index) => (
-                                <View key={index} style={tailwind`bg-red flex-1`}>
-                                        <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                            <View style={tailwind`bg-white mb-2 p-1`}>
+                                <CricketBowlingScorecard bowlingData={bowlingData} setIsModalBowlingVisible={setIsModalBowlingVisible} handleUpdatePlayerBowling={handleUpdatePlayerBowling} convertBallToOvers={convertBallToOvers} />
+                            </View>
+                            {yetToBat.length > 0 && (
+                                <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
+                                    <Text style={tailwind`text-black`}>Yet to bat:</Text>
+                                    <View>
+                                            {yetToBat.map((item, index) => (
+                                            <View key={index} style={tailwind`bg-red flex-1`}>
+                                                    <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                                            </View>
+                                            ))}
+                                    </View>
                                 </View>
-                                ))}
+                            )}
+                            {wicketsData.length > 0 && (
+                                <View style={tailwind`bg-white mb-2 p-1`}>
+                                    <CricketWicketCard wicketsData={wicketsData} convertBallToOvers={convertBallToOvers}/>
+                                </View>
+                            )}
+                    </View>
+                ):(
+                    <View style={tailwind`flex-1 p-4`}>
+                        <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
+                            <MaterialIcon name="info-outline" size={40} color="gray" />
+                            <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
                         </View>
                     </View>
                 )}
-                {wicketsData.length > 0 && (
-                    <View style={tailwind`bg-white mb-2 p-1`}>
-                        <CricketWicketCard wicketsData={wicketsData} convertBallToOvers={convertBallToOvers}/>
-                    </View>
-                )}
+                
             </ScrollView>
                 {isYetToBatModalVisible && (
                        <Modal
@@ -420,7 +434,6 @@ const CricketScoreCard = ({ route }) => {
                                     <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
                                 </Pressable>
                             ))}
-                               {/* <AddCricketBatsman matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game}/> */}
                            </View>
                        </Pressable>
                    </Modal> 
