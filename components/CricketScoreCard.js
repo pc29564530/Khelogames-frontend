@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { fetchTeamPlayers } from "../services/teamServices";
 import CricketBattingScorecard from "./CricketBattingScorecard";
 import CricketBowlingScorecard from "./CricketBowlingScorecard";
+import CricketWicketCard from "./CricketWicketCard";
 
 
 const convertBallToOvers = (item) => {
@@ -23,7 +24,7 @@ const CricketScoreCard = ({ route }) => {
     const axiosInstance = useAxiosInterceptor();
     const { matchData } = route.params;
     const game = useSelector(state => state.sportReducers.game);
-    const [battingData, setBattingData] = useState([]);
+   const [battingData, setBattingData] = useState([])
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [bowlingData, setBowlingData] = useState([]);
@@ -41,10 +42,19 @@ const CricketScoreCard = ({ route }) => {
     const [isWicketModalVisible,setIsWicketModalVisible] = useState(false);
     const [isUpdateBattingVisible, setIsUpdateBattingVisible] = useState(false);
     const [isUpdateBowlingVisible, setIsUpdateBowlingVisible] = useState(false);
+    const [isUpdateScoreCardModal, setIsUpdateScoreCardModal] = useState(false);
+    const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
+    const [isWicketTypeVisibleModal, setIsWicketTypeVisibleModal] = useState(false);
+    const [wicketsData, setWicketsData] = useState([]);
+    const [isStriker, setIsStriker] = useState(null);
     const [updateBatting, setUpdateBatting] = useState();
     const [updateBowling, setUpdateBowling] = useState();
+    const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState(null);
+    const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
+    const wicketTypes = ["Run Out", "Stump", "Catch", "Hit Wicket", "Bowled Out", "LBW"];
     const homeTeamID = matchData.homeTeam.id;
     const awayTeamID = matchData.awayTeam.id;
+    const runsCount = [0, 1, 2, 3, 4, 5, 6, 7];
     
     const [yetToBat, setYetToBat] = useState([]);
 
@@ -59,7 +69,9 @@ const CricketScoreCard = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                setBattingData(battingScore.data || []);
+                 
+                setBattingData(battingScore.data || [])
+                // (battingScore?.data || {});
             } catch (err) {
                 console.error("Unable to fetch batting score: ", err);
             }
@@ -203,12 +215,160 @@ const CricketScoreCard = ({ route }) => {
         }
         handleYetToBat();
     }, []);
-    
+
+    const handleScorecard = async (temp) => {
+        const currentBowler = bowlingData?.innings.find((item) => item.is_current_bowler === true );
+        const currentBatsman = battingData?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
+        if(addCurrentScoreEvent===null){
+            try {
+                
+                const data = {
+                    batsman_id: currentBatsman.player.id,
+                    bowler_id: currentBowler.player.id,
+                    match_id: matchData.matchId,
+                    runs_scored: temp,
+                    bowler_balls: currentBowler.ball,
+                }
+
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.error("Failed to add the runs and balls: ", err)
+            }
+        } else if(addCurrentScoreEvent === "no_ball"){
+            try {
+                const data = {
+                    runs_scored: temp,
+                    match_id: matchData.matchId,
+                    bowler_id: currentBowler.player.id,
+                    batting_team_id: batTeam
+                }
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketNoBall`, data, {
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.error("Failed to add the runs and balls: ", err)
+            }
+        } else if(addCurrentScoreEvent === "wide") {
+            try {
+                const data = {
+                    match_id: matchData.matchId,
+                    bowler_id: currentBowler.player.id,
+                    batting_team_id: batTeam
+                }
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketWide`, data, {
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.error("Failed to add the runs and balls: ", err)
+            }
+        } else if(addCurrentScoreEvent === "wicket") {
+            try {
+                const data = {
+                    match_id: matchData.matchId,
+                    batting_team_id: batTeam,
+                    bowling_team_id: matchData.homeTeamID === batTeam?matchData.awayTeamID: matchData.homeTeamID,
+                    Batsman_id: currentBatsman.player.id,
+                    bowler_id: currentBowler.player.id,
+                    wicket_type: wicketType,
+                    fielder_id: null
+                }
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.post(`${BASE_URL}/${game.name}/wickets`, data, {
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+            } catch (err) {
+                console.error("Failed to add the runs and balls: ", err)
+            }
+        }
+    }
+
+    const handleAddNextBatsman = async () => {
+        try{
+
+            const data = {
+                batsman_id: item.id,
+                match_id: matchData.matchId,
+                team_id: batTeam,
+                position: item.position,
+                runs_scored: 0,
+                balls_faced: 0,
+                fours: 0,
+                sixes: 0,
+                batting_status: true,
+                is_striker: false,
+                is_currently_batting: true,
+            }
+
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBatScore`, data, {
+                headers: {
+                    'Authorization': `bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+
+        } catch (err) {
+            console.error("Failed to add the striker : ", err)
+        }
+        
+    }
+
+    const handleCurrentScoreEvent = (item) => {
+        const itemType = item.toLowerCase().replace(/\s+/g, '_');
+        setAddCurrentScoreEvent(itemType)
+
+        if (itemType === "wicket" ){
+            setIsWicketModalVisible(true);
+        }
+    } 
+
+    useEffect(() => {
+        const fetchTeamWickets = async () => {
+            try {
+                const data = {
+                    match_id: matchData.matchId,
+                    team_id: batTeam,
+                }
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
+                    params: {
+                        "match_id": matchData.matchId.toString(),
+                        "team_id": batTeam.toString()
+                    },
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                setWicketsData(response.data || []);
+            } catch (err) {
+                console.error("failed to get the wickets: ", err)
+            }
+        }
+        fetchTeamWickets()
+    }, [batTeam]);
 
     return (
-        <View style={tailwind`flex-1 bg-gray-100`}>
-            <ScrollView>
-                <View style={tailwind`flex-row mb-4 p-2 items-center justify-between gap-2`}>
+        <View style={tailwind`flex-1 bg-white`}>
+            <ScrollView style={tailwind`bg-white`}>
+                <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
                     <Pressable onPress={() => setBatTeam(homeTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                         <Text style={tailwind`text-lg font-bold`}>{matchData.homeTeam.name}</Text>
                     </Pressable>
@@ -216,11 +376,16 @@ const CricketScoreCard = ({ route }) => {
                         <Text style={tailwind`text-lg font-bold`}>{matchData.awayTeam.name}</Text>
                     </Pressable>
                 </View>
-                <View style={tailwind`bg-white rounded-lg shadow-md mb-4`}>
+                <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
+                    <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
+                        <Text style={tailwind`text-xl`}>Update Score</Text>
+                    </Pressable>
+                </View>
+                <View style={tailwind`bg-white mb-2 p-1`}>
                     <CricketBattingScorecard battingData={battingData} setIsModalBattingVisible={setIsModalBattingVisible} handleUpdatePlayerBatting={handleUpdatePlayerBatting}/>
                 </View>
 
-                <View style={tailwind`bg-white rounded-lg shadow-md p-2 mb-4`}>
+                <View style={tailwind`bg-white mb-2 p-1`}>
                     <CricketBowlingScorecard bowlingData={bowlingData} setIsModalBowlingVisible={setIsModalBowlingVisible} handleUpdatePlayerBowling={handleUpdatePlayerBowling} convertBallToOvers={convertBallToOvers} />
                 </View>
                 {yetToBat.length > 0 && (
@@ -229,25 +394,44 @@ const CricketScoreCard = ({ route }) => {
                         <View>
                                 {yetToBat.map((item, index) => (
                                 <View key={index} style={tailwind`bg-red flex-1`}>
-                                    {console.log("Item: ", item)}
                                         <Text style={tailwind`text-black`}>{item.player_name}</Text>
                                 </View>
                                 ))}
                         </View>
                     </View>
                 )}
-                
-                <View>
-                    {/*  add the fall of wickets*/}
-                </View>
+                {wicketsData.length > 0 && (
+                    <View style={tailwind`bg-white mb-2 p-1`}>
+                        <CricketWicketCard wicketsData={wicketsData} convertBallToOvers={convertBallToOvers}/>
+                    </View>
+                )}
             </ScrollView>
+                {isYetToBatModalVisible && (
+                       <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isYetToBatModalVisible}
+                        onRequestClose={() => setIsYetToBatModalVisible(false)}
+                        >  
+                       <Pressable onPress={() => setIsYetToBatModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                           <View style={tailwind`bg-white rounded-md p-4`}>
+                           {yetToBat.map((item, index) => (
+                                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
+                                    <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
+                                </Pressable>
+                            ))}
+                               {/* <AddCricketBatsman matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game}/> */}
+                           </View>
+                       </Pressable>
+                   </Modal> 
+                )}
                 {isModalBattingVisible && (
                     <Modal
                     transparent={true}
                     animationType="slide"
                     visible={isModalBattingVisible}
                     onRequestClose={() => setIsModalBattingVisible(false)}
-                >
+                >  
                     <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
                             <AddCricketBatsman matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game}/>
@@ -388,6 +572,53 @@ const CricketScoreCard = ({ route }) => {
                             <Pressable onPress={() => handleUpdateBowling()} style={tailwind`border rounded-md p-3 items-center`}>
                                 <Text style={tailwind`text-lg font-bold`}>Update Bowling</Text>
                             </Pressable>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
+
+            {isUpdateScoreCardModal && (
+                <Modal
+                transparent={true}
+                animationType="slide"
+                visible={isUpdateScoreCardModal}
+                onRequestClose={() => setIsUpdateScoreCardModal(false)}
+                >
+                    <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateScoreCardModal(false)}>
+                        <View style={tailwind`p-10 bg-white rounded-xl`}>
+                            <Text style={tailwind`text-lg font-bold`}>Event</Text>
+                            <View style={tailwind`flex-row justify-between py-2`}>
+                                {currentScoreEvent.map((item, index) => (
+                                    <Pressable key={index} onPress={() => { handleCurrentScoreEvent(item)}} style={tailwind`flex-row rounded-lg shadow-md bg-white p-2`}>
+                                        <Text>{item}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                            {isWicketModalVisible && (
+                                <View style={tailwind`mt-4`}>
+                                    <Text style={tailwind`text-base font-semibold text-gray-700 mb-2`}>Wicket Types</Text>
+                                    <View style={tailwind`flex-row flex-wrap`}>
+                                        {wicketTypes.map((item, index) => (
+                                            <Pressable 
+                                                key={index} 
+                                                onPress={() => {setWicketType(item)}}
+                                                style={tailwind`rounded-lg shadow-md bg-gray-100 px-4 py-2 mr-2 mb-2`}
+                                            >
+                                                <Text style={tailwind`text-gray-800`}>{item}</Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                </View>
+                            )}
+                            <View style={tailwind`flex-row justify-between py-2`}>
+                                <Text style={tailwind`text-lg font-bold`}>Runs/Ball</Text>
+                                {runsCount.map((item, index) => (
+                                    <Pressable onPress={() => {handleScorecard(item)}}style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
+                                        <Text>{item}</Text>
+                                    </Pressable>
+                                ))}
+                                
+                            </View>
                         </View>
                     </Pressable>
                 </Modal>
