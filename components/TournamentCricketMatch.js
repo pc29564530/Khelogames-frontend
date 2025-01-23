@@ -10,6 +10,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { getMatch } from '../redux/actions/actions';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
@@ -118,7 +119,7 @@ const MatchesData = (item, ind) => {
                             <View style={tailwind`flex-row`}>
                                 {item.homeScore  && item.homeScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.homeScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.homeScore.overs)})</Text>
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
                                             {item.homeScore.score}/{item.homeScore.wickets}
                                         </Text>
@@ -126,7 +127,7 @@ const MatchesData = (item, ind) => {
                                 )}
                                 {item.awayScore && item.awayScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.awayScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.awayScore.overs)})</Text>
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
                                             {item.awayScore.score}/{item.awayScore.wickets}
                                         </Text>

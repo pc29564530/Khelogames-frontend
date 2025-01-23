@@ -13,6 +13,7 @@ const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import axios from 'axios';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 
 const CricketMatchPage = ({ route }) => {
@@ -81,9 +82,6 @@ const CricketMatchPage = ({ route }) => {
         }
     }
 
-    console.log("Inning: ", inningVisible)
-    console.log("Line no 84")
-
     return (
         <View style={tailwind`flex-1 bg-white`}>
             <View style={[tailwind`safe-center top-0 right-0 left-0 bg-red-400`]}>
@@ -113,24 +111,24 @@ const CricketMatchPage = ({ route }) => {
                     </View>
                     <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
                         <View style={tailwind``}>
-                            {match.status !== "not_started" && match.homeScore.inning === "inning1" &&  match?.homeScore ? (
+                            {match.status !== "not_started" && match.homeScore?.inning === "inning1" &&  match?.homeScore ? (
                                 <> 
                                     <Text style={tailwind`ml-2 text-lg text-white`}>
                                         {match?.homeScore?.score}/{match?.homeScore?.wickets}
                                     </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>({match?.homeScore?.overs})</Text>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.homeScore?.overs)})</Text>
                                 </>
                             ):(<Text style={tailwind`text-lg text-white`}>-</Text>)}
                             
                         </View>
                         <View style={tailwind`h-10 w-0.4 bg-white`} />
                         <View style={tailwind``}>
-                            {match.status !== "not_started" && match.awayScore.inning === "inning1" &&  match?.awayScore ? (
+                            {match.status !== "not_started" && match.awayScore?.inning === "inning1" &&  match?.awayScore ? (
                                 <>
                                     <Text style={tailwind`ml-2 text-lg text-white`}>
                                         {match?.awayScore?.score}/{match?.awayScore?.wickets}
                                     </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>({match?.awayScore?.overs})</Text>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.awayScore?.overs)})</Text>
                                 </>
                             ):(
                                 <Text style={tailwind`text-lg text-white`}>-</Text> 

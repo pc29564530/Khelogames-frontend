@@ -47,7 +47,7 @@ const CreateClub = ({ route }) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
 
             const response = await axiosInstance.post(
-                `${BASE_URL}/${sports}/newTeams`,
+                `${BASE_URL}/${game.name}/newTeams`,
                 newTeam,
                 {
                     headers: {
@@ -74,8 +74,8 @@ const CreateClub = ({ route }) => {
     });
 
     return (
-        <View style={tailwind`flex-1 p-2 bg-white`}>
-            <View style={tailwind`items-center mb-4`}>
+        <View style={tailwind`flex-1 bg-white`}>
+            <View style={tailwind`items-center mb-2`}>
                 <Pressable
                     onPress={handleMediaSelection}
                     style={tailwind`w-24 h-24 rounded-full bg-white items-center justify-center shadow-lg`}
@@ -89,7 +89,7 @@ const CreateClub = ({ route }) => {
                 <Text style={tailwind`text-sm text-gray-500 mt-2`}>Upload a team logo</Text>
             </View>
 
-            <View style={tailwind`mb-4`}>
+            <View style={tailwind`mb-2`}>
                 <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Team Name</Text>
                 <TextInput
                     style={tailwind`border p-4 text-lg rounded-md bg-white shadow-sm`}
@@ -182,13 +182,14 @@ const CreateClub = ({ route }) => {
                     <FontAwesome name="chevron-down" size={18} color="gray" />
                 </Pressable>
             </View>
-
-            <Pressable
-                onPress={handleSubmit}
-                style={tailwind`bg-white py-4 rounded-lg shadow-lg`}
-            >
-                <Text style={tailwind`text-lg font-bold text-gray-400 text-center`}>Create Team</Text>
-            </Pressable>
+            <View style={tailwind`mb-4 p-1`}>
+                <Pressable
+                    onPress={handleSubmit}
+                    style={tailwind`bg-white py-2 pl-2 pr-2 rounded-lg shadow-lg`}
+                >
+                    <Text style={tailwind`text-lg font-bold text-gray-600 text-center`}>Create Team</Text>
+                </Pressable>
+            </View>
 
             {isCountryPicker && (
                 <CountryPicker

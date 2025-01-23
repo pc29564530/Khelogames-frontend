@@ -3,14 +3,15 @@ import tailwind from 'twrnc';
 import TournamentStanding from '../screen/TournamentStanding';
 import CricketTeamSquad from '../components/CricketTeamSquad';
 import CricketMatchDetails from '../screen/CricketMatchDetail';
+import CricketScoreCard from '../components/CricketScoreCard';
 
 function CricketMatchPageContent({matchData}) {
     const TopTab = createMaterialTopTabNavigator();
-    
+    console.log("match data: ", matchData)
     return (
         <TopTab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle:tailwind`text-gray-200 text-md w-18 `,
+                    tabBarLabelStyle:tailwind`text-gray-200 text-sm w-20 `,
                     tabBarStyle:tailwind`bg-red-400`,
                     headerShown:true,
                     tabBarScrollEnabled:false,
@@ -29,6 +30,14 @@ function CricketMatchPageContent({matchData}) {
                     component={CricketMatchDetails}
                     initialParams={{matchData:matchData}}
                 />
+                {matchData.status !== "not_started" && (
+                    <TopTab.Screen 
+                        name="Scorecard"
+                        component={CricketScoreCard}
+                        initialParams={{matchData:matchData}}
+                    />
+                )}
+                
                 <TopTab.Screen 
                     name="Squad"
                     component={CricketTeamSquad}

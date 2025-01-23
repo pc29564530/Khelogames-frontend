@@ -17,7 +17,8 @@ const CricketMatchDetail = ({route}) => {
     const [tossData, setTossData] = useState({});
     const [teamID, setTeamId] = useState('');
     const matchData = route.params.matchData;
-    const sport = useSelector((state) => state.sportReducers.sport);
+    const [matchFormat, setMatchFormat] = useState();
+    const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
 
     const addToss = async () => {
@@ -44,13 +45,14 @@ const CricketMatchDetail = ({route}) => {
         const fetchTossData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketToss`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss`, {
                     params:{match_id: matchData.matchId},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     }
                 });
+                setTossData(response.data || {})
                 if (response.data && response.data.tossWonTeam) {
                     setIsTossed(true);
                 }
