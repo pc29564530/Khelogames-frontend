@@ -10,6 +10,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { getMatch } from '../redux/actions/actions';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
@@ -52,7 +53,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                         <View key={index} style={tailwind`bg-white`}>
                             {Object?.keys(stage.group_stage).length > 0 && 
                                 Object?.entries(stage.group_stage).map(([stageName, matchs]) => (
-                                    matchesData(matchs, stageName)
+                                    MatchesData(matchs, stageName)
                                 ))
                             }
                             {Object?.keys(stage.knockout_stage).length > 0 &&
@@ -63,7 +64,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                                                 <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
                                             )}
                                             {matchs.map((item, ind) => (
-                                                matchesData(item, ind)
+                                                MatchesData(item, ind, navigation)
                                             ))}
                                         </View>
                                     )
@@ -79,10 +80,10 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     );
 }
 
-const matchesData = (item, ind) => {
-    const navigation = useNavigation();
-    const dispatch = useDispatch();
+const MatchesData = (item, ind) => {
+    const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
+        console.log("Navigation: ", navigation)
         navigation.navigate("CricketMatchPage", {item: item})
     }
     return (
@@ -116,17 +117,17 @@ const matchesData = (item, ind) => {
                         
                         {item.status !== "not_started" && (
                             <View style={tailwind`flex-row`}>
-                                {item.homeScore && (
+                                {item.homeScore  && item.homeScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.homeScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.homeScore.overs)})</Text>
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
                                             {item.homeScore.score}/{item.homeScore.wickets}
                                         </Text>
                                     </View>
                                 )}
-                                {item.awayScore && (
+                                {item.awayScore && item.awayScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({item.awayScore.overs})</Text>
+                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.awayScore.overs)})</Text>
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
                                             {item.awayScore.score}/{item.awayScore.wickets}
                                         </Text>

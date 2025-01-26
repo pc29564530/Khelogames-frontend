@@ -17,7 +17,8 @@ const CricketMatchDetail = ({route}) => {
     const [tossData, setTossData] = useState({});
     const [teamID, setTeamId] = useState('');
     const matchData = route.params.matchData;
-    const sport = useSelector((state) => state.sportReducers.sport);
+    const [matchFormat, setMatchFormat] = useState();
+    const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
 
     const addToss = async () => {
@@ -43,22 +44,17 @@ const CricketMatchDetail = ({route}) => {
     useEffect(() => {
         const fetchTossData = async () => {
             try {
-                const data = {
-                    
-                }
-                console.log("Entering a Toss Data")
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/Cricket/getCricketToss`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss`, {
                     params:{match_id: matchData.matchId},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     }
                 });
-                
-                setTossData(response.data || {});
-                if (response.data !== null ){
-                    setIsTossed(true)
+                setTossData(response.data || {})
+                if (response.data && response.data.tossWonTeam) {
+                    setIsTossed(true);
                 }
             } catch (err) {
                 console.error("Unable to get the toss data: ", err);
@@ -100,9 +96,9 @@ const CricketMatchDetail = ({route}) => {
                     <Text>Time: </Text>
                     <Text>{formattedTime(convertToISOString(matchData?.startTimeStamp))}</Text>
                 </View>
-                {isTossed && (
+                {isTossed &&  (
                     <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.ID === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
+                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.id === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
                         <Text style={tailwind`text-gray-700`}>Decision: {tossData?.tossDecision}</Text>
                     </View>
                 )}

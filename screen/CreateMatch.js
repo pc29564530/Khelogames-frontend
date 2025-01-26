@@ -18,6 +18,8 @@ import DateTimePicker from 'react-native-modern-datepicker';
 const filePath = require('../assets/knockout.json')
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
+const matchFormatPath = require('../assets/match_format.json');
+import { Alert } from 'react-native';
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
@@ -41,6 +43,8 @@ const CreateMatch = ({ route }) => {
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
+    const [isModalMatchFormat, setIsModalMatchFormat] = useState(false);
+    const [matchFormat, setMatchFormat] = useState();
   
     const modifyDateTime = (newDateTime) => {
       if (!newDateTime) {
@@ -75,7 +79,8 @@ const CreateMatch = ({ route }) => {
           status_code: "not_started",
           result: result,
           stage: stage,
-          knockout_level_id:  knockoutLevel
+          knockout_level_id:  knockoutLevel,
+          match_format: matchFormat
         };
   
         console.log("Fixture: ", fixture)
@@ -86,9 +91,15 @@ const CreateMatch = ({ route }) => {
             'Content-Type': 'application/json',
           },
         });
-      } catch (err) {
-        console.error("Unable to set the fixture: ", err);
-      }
+        } catch (error) {
+          if (error.response) {
+            Alert.alert('Error', error.response.data.error);
+          } else if (error.request) {
+            Alert.alert('Error', 'No response from the server. Please try again.');
+          } else {
+            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+          }
+        };
     };
 
     navigation.setOptions({
@@ -112,7 +123,7 @@ const CreateMatch = ({ route }) => {
 
   return (
     <SafeAreaView style={tailwind`flex-1 bg-gray-100`}>
-      <View style={tailwind`mt-4 p-4`}>
+      <ScrollView style={tailwind` p-4`}>
         <View style={tailwind`mb-2`}>
           <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
             <Text style={tailwind`text-black text-lg`}>{team1 ? teams.find((item) => item.id === team1).name : "Select Team 1"}</Text>
@@ -151,6 +162,15 @@ const CreateMatch = ({ route }) => {
           </View>
         </View>
 
+        {matchType === 'Team' && game.name === "cricket" && (
+          <View style={tailwind`mb-2`}>
+            <Pressable onPress={() => setIsModalMatchFormat(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
+              <Text style={tailwind`text-black text-center text-lg`}>{matchFormat?matchFormat:'Select Match Format'}</Text>
+              <AntDesign name="down" size={24} color="black" />
+            </Pressable>
+          </View>
+        )}
+
         {/* Stage Selection */}
         <View style={tailwind`mb-2`}>
           <Text style={tailwind`text-lg text-gray-700 mb-2`}>Stage</Text>
@@ -178,7 +198,35 @@ const CreateMatch = ({ route }) => {
             </Pressable>
         </View>
 
-      </View>
+      </ScrollView>
+
+      {isModalMatchFormat && (
+        <Modal
+          transparent={true}
+          animationType="slide"
+          visible={isModalMatchFormat}
+          onRequestClose={() => setIsModalMatchFormat(false)}
+        >
+          <Pressable onPress={() => setIsModalMatchFormat(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+            <View style={tailwind`bg-white rounded-md p-4`}>
+              <ScrollView nestedScrollEnabled={true}>
+                <Text style={tailwind`text-2xl`}>Select Format</Text>
+                {matchFormatPath["match_format"].map((item, index) => (
+                  <Pressable key={index} onPress={() => { setMatchFormat(item.format_type); setIsModalMatchFormat(false)}} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
+                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
+                        <Text style={tailwind` text-black text-xl`}>{item.id}</Text>
+                      </View>
+                      <View style={tailwind`py-1`}>                                                  
+                          <Text style={tailwind`text-lg text-black`}>{item.format_type.toUpperCase()}</Text>
+                      </View>
+                  </Pressable> 
+                ))}
+              </ScrollView>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
+
 
       {isModalEndTimeVisible && (
         <Modal

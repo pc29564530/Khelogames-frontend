@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -12,6 +12,9 @@ import { getMatch } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
+import axios from 'axios';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
+import CheckBox from '@react-native-community/checkbox';
 
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
@@ -25,16 +28,17 @@ const CricketMatchPage = ({ route }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const game = useSelector((state) => state.sportReducers.game);
+    const [inningVisible, setInningVisible] = useState(false);
+    const [teamInning, setTeamInning] = useState();
 
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
-
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
         setMenuVisible(false);
         setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const data = { id: matchID, status_code: itm };
+            const data = { id: match.matchId, status_code: itm };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -57,6 +61,26 @@ const CricketMatchPage = ({ route }) => {
     const filteredStatusCodes = filePath["status_codes"].filter((item) => 
         item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const updateInning = async (teamID) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const data = {
+                inning: "inning1",
+                match_id:match.matchId,
+                team_id:teamID.id
+            }
+            console.log("Data: ", data)
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketInning`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+        } catch (err) {
+            console.log("failed to update inning: ", err)
+        }
+    }
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
@@ -87,26 +111,32 @@ const CricketMatchPage = ({ route }) => {
                     </View>
                     <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
                         <View style={tailwind``}>
-                            {match?.homeScore ? (
+                            {match.status !== "not_started" && match.homeScore?.inning === "inning1" &&  match?.homeScore ? (
                                 <> 
                                     <Text style={tailwind`ml-2 text-lg text-white`}>
                                         {match?.homeScore?.score}/{match?.homeScore?.wickets}
                                     </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>({match?.homeScore?.overs})</Text>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.homeScore?.overs)})</Text>
                                 </>
                             ):(<Text style={tailwind`text-lg text-white`}>-</Text>)}
                             
                         </View>
                         <View style={tailwind`h-10 w-0.4 bg-white`} />
                         <View style={tailwind``}>
-                            <Text style={tailwind`ml-2 text-lg text-white`}>
-                                {match?.awayScore?.score}/{match?.awayScore?.wickets}
-                            </Text>
-                            <Text style={tailwind`ml-2 text-lg text-white`}>({match?.awayScore?.overs})</Text>
+                            {match.status !== "not_started" && match.awayScore?.inning === "inning1" &&  match?.awayScore ? (
+                                <>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>
+                                        {match?.awayScore?.score}/{match?.awayScore?.wickets}
+                                    </Text>
+                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.awayScore?.overs)})</Text>
+                                </>
+                            ):(
+                                <Text style={tailwind`text-lg text-white`}>-</Text> 
+                            )}
                         </View>
                     </View>
                     <View style={tailwind`items-center`}>
-                        {match.awayTeam?.media_url ? (
+                        { match.awayTeam?.media_url ? (
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
@@ -162,6 +192,9 @@ const CricketMatchPage = ({ route }) => {
                                 <TouchableOpacity onPress={() => setStatusVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Edit Match</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setInningVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Set Inning</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Delete Match</Text>
                                 </TouchableOpacity>
@@ -172,6 +205,37 @@ const CricketMatchPage = ({ route }) => {
                         </View>
                     </TouchableOpacity>
                 </Modal>
+            )}
+            {inningVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={inningVisible}
+                    onRequestClose={() => setInningVisible(false)}
+                >
+                <TouchableOpacity onPress={() => setInningVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                    <View style={tailwind`bg-white rounded-t-lg p-6`}>
+                        <View style={tailwind`bg-white p-4 w-full gap-4`}>
+                        <Text style={tailwind`text-lg font-bold text-gray-600 mb-2`}>Set Team Inning</Text>
+                        <View style={tailwind``}/>
+                            <View style={tailwind`flex-row items-center mb-2`}>
+                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>{match.homeTeam.name}</Text>
+                                <CheckBox
+                                    value={teamInning === "inning1"}
+                                    onValueChange={() => {setTeamInning("inning1"); updateInning(match.homeTeam)}}
+                                />
+                            </View>
+                            <View style={tailwind`flex-row items-center mb-4`}>
+                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>{match.awayTeam.name}</Text>
+                                <CheckBox
+                                    value={teamInning === "inning2"}
+                                    onValueChange={() => {setTeamInning("inning2"); updateInning(match.awayTeam)}}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
             )}
         </View>
     );

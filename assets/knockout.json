@@ -1,0 +1,39 @@
+{
+    "knockout": [
+        {
+            "id": 1,
+            "round_name": "final",
+            "round_number": 2
+        },
+        {
+            "id": 2,
+            "round_name": "semifinal",
+            "round_number": 4
+        },
+        {
+            "id": 3,
+            "round_name": "quaterfinal",
+            "round_number": 8
+        },
+        {
+            "id": 4,
+            "round_name": "round 16",
+            "round_number": 16
+        },
+        {
+            "id": 5,
+            "round_name": "round 32",
+            "round_number": 32
+        },
+        {
+            "id": 6,
+            "round_name": "round 64",
+            "round_number": 64
+        },
+        {
+            "id": 7,
+            "round_name": "round 128",
+            "round_number": 128
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "match_format": [
+        {
+            "id": 1,
+            "format_type": "T20"
+        },
+        {
+            "id": 2,
+            "format_type": "ODI"
+        },
+        {
+            "id": 3,
+            "format_type": "Test"
+        }
+    ]
+}
