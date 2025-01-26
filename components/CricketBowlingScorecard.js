@@ -5,7 +5,6 @@ import tailwind from 'twrnc';
 const CricketBowlingScorecard = ({
   bowlingData,
   setIsModalBowlingVisible,
-  handleUpdatePlayerBowling,
   convertBallToOvers,
 }) => {
   return (
