@@ -13,7 +13,7 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible }) => {
                     <Text style={tailwind`text-md text-gray-700`}>B</Text>
                     <Text style={tailwind`text-md text-gray-700`}>4s</Text>
                     <Text style={tailwind`text-md text-gray-700`}>6s</Text>
-                    <Text style={tailwind`text-md text-gray-700`}>Sr</Text>
+                    <Text style={tailwind`text-md text-gray-700`}>S/R</Text>
                 </View>
             </View>
             {/* Batting Data */}
@@ -25,9 +25,18 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible }) => {
                             {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
                         </View>
                         {item.batting_status && !item.is_currently_batting &&  (
-                            <View>
-                                <Text style={tailwind`text-sm`}>b {item.bowler_name}</Text>
-                                <Text style={tailwind`text-sm`} >{item.wicket_type}</Text>
+                            <View style={tailwind`flex-row space-between`}>
+                                {item.wicket_type==="Run Out" ? (
+                                    <>
+                                       <Text style={tailwind`text-sm`}>Run Out</Text>
+                                    </>
+                                ): (
+                                    <>
+                                        <Text style={tailwind`text-sm`}>b {item.bowler_name}</Text>
+                                        <Text style={tailwind`text-sm`} >{item.wicket_type}</Text>
+                                    </>
+                                ) }
+                                
                             </View>
                         )}
                     </View>
