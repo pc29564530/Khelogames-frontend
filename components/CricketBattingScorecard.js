@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
-const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible }) => {
+const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
     return (
         <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
             <View style={tailwind`flex-row justify-between px-6 py-2`}>
@@ -17,7 +17,7 @@ const CricketBattingScorecard = ({ battingData, setIsModalBattingVisible }) => {
                 </View>
             </View>
             {/* Batting Data */}
-            {battingData?.innings?.map((item, index) => (
+            {batting?.innings?.map((item, index) => (
                 <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-2 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
                     <View style={tailwind``}>
                         <View style={tailwind`flex-row`}>

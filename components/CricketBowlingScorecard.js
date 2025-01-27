@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import tailwind from 'twrnc';
 
 const CricketBowlingScorecard = ({
-  bowlingData,
+  bowling,
   setIsModalBowlingVisible,
   convertBallToOvers,
 }) => {
@@ -22,7 +22,7 @@ const CricketBowlingScorecard = ({
       </View>
 
       {/* Bowling Data */}
-      {bowlingData?.innings?.map((item, index) => (
+      {bowling?.innings?.map((item, index) => (
         <View
           key={index}
           style={tailwind`flex-row justify-between px-4 py-2  ${item.is_current_bowler ? 'bg-red-100' : 'bg-white'}`}

@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import tailwind from 'twrnc';
 
 const CricketWicketCard = ({
-  wicketsData,
+  wickets,
   convertBallToOvers,
 }) => {
   return (
@@ -14,7 +14,7 @@ const CricketWicketCard = ({
         <Text style={tailwind`text-sm  text-gray-700`}>Score</Text>
         <Text style={tailwind`text-sm  text-gray-700`}>Over</Text>
       </View>
-      {wicketsData?.map((item, index) => (
+      {wickets?.map((item, index) => (
         <View
           key={index}
           style={tailwind`flex-row justify-between p-3 ${

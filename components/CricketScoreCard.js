@@ -7,12 +7,13 @@ import { BASE_URL } from "../constants/ApiConstants";
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { AddCricketBatsman } from "./AddCricketBatsman";
 import { AddCricketBowler } from "./AddCricketBowler";
-import { useSelector } from "react-redux";
 import { fetchTeamPlayers } from "../services/teamServices";
 import CricketBattingScorecard from "./CricketBattingScorecard";
 import CricketBowlingScorecard from "./CricketBowlingScorecard";
 import CricketWicketCard from "./CricketWicketCard";
 import { UpdateCricketScoreCard } from "./UpdateCricketScoreCard";
+import { useDispatch, useSelector } from "react-redux";
+import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen } from "../redux/actions/actions";
 
 
 const convertBallToOvers = (item) => {
@@ -23,6 +24,7 @@ const convertBallToOvers = (item) => {
 
 const CricketScoreCard = ({ route }) => {
     const axiosInstance = useAxiosInterceptor();
+    const dispatch = useDispatch();
     const { matchData } = route.params;
     const game = useSelector(state => state.sportReducers.game);
     const [wicketType, setWicketType] = useState("");
@@ -46,6 +48,9 @@ const CricketScoreCard = ({ route }) => {
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
     const homeTeamID = matchData.homeTeam.id;
     const awayTeamID = matchData.awayTeam.id;
+    const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
+    const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
+    const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const runsCount = [0, 1, 2, 3, 4, 5, 6, 7];
     
     const [yetToBat, setYetToBat] = useState([]);
@@ -62,8 +67,7 @@ const CricketScoreCard = ({ route }) => {
                     },
                 });
                  
-                setBattingData(battingScore.data || [])
-                // (battingScore?.data || {});
+                dispatch(getCricketBattingScore(battingScore?.data || []));
             } catch (err) {
                 console.error("Unable to fetch batting score: ", err);
             }
@@ -83,6 +87,7 @@ const CricketScoreCard = ({ route }) => {
                     },
                 });
                 setBowlingData(bowlingScore.data || []);
+                dispatch(getCricketBowlingScore(bowlingScore?.data || []))
             } catch (err) {
                 console.error("Unable to fetch bowling score: ", err);
             }
@@ -161,6 +166,7 @@ const CricketScoreCard = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 })
+                dispatch(getCricketWicketFallen(response?.data || []))
                 setWicketsData(response.data || []);
             } catch (err) {
                 console.error("failed to get the wickets: ", err)
@@ -194,7 +200,7 @@ const CricketScoreCard = ({ route }) => {
                         <Text style={tailwind`text-lg font-bold`}>{matchData.awayTeam.name}</Text>
                     </Pressable>
                 </View>
-                {battingData?.innings?.length > 0 ? (
+                {batting?.innings?.length > 0 ? (
                     <View style={tailwind``}>
                             <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
                                 <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
@@ -202,11 +208,11 @@ const CricketScoreCard = ({ route }) => {
                                 </Pressable>
                             </View>
                             <View style={tailwind`bg-white mb-2 p-1`}>
-                                <CricketBattingScorecard battingData={battingData} setIsModalBattingVisible={setIsModalBattingVisible}/>
+                                <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
                             </View>
 
                             <View style={tailwind`bg-white mb-2 p-1`}>
-                                <CricketBowlingScorecard bowlingData={bowlingData} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
+                                <CricketBowlingScorecard bowling={bowling} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
                             </View>
                             {yetToBat.length > 0 && (
                                 <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
@@ -220,9 +226,9 @@ const CricketScoreCard = ({ route }) => {
                                     </View>
                                 </View>
                             )}
-                            {wicketsData.length > 0 && (
+                            {wickets.length > 0 && (
                                 <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketWicketCard wicketsData={wicketsData} convertBallToOvers={convertBallToOvers}/>
+                                    <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
                                 </View>
                             )}
                     </View>
@@ -263,7 +269,7 @@ const CricketScoreCard = ({ route }) => {
                 >  
                     <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBatsman matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game}/>
+                            <AddCricketBatsman matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
                         </View>
                     </Pressable>
                 </Modal>
