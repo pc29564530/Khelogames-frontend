@@ -283,7 +283,7 @@ const CricketScoreCard = ({ route }) => {
                 >
                     <Pressable onPress={() => {setIsModalBowlingVisible(false)}} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBowler matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game}/>
+                            <AddCricketBowler matchData={matchData} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
                         </View>
                     </Pressable>
                 </Modal>

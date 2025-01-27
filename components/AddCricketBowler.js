@@ -5,7 +5,7 @@ import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 
 
-export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, game}) => {
+export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
     const axiosInstance = useAxiosInterceptor();
     const teamPlayer = batTeam !== matchData.awayTeam.id ? awayPlayer : homePlayer;
     const handleAddNextBowler = async (item) => {
@@ -29,6 +29,7 @@ export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, ga
                     'Content-Type': 'application/json',
                 },
             })
+            dispatch(addBowler(response.data | {}))
         } catch (err) {
             console.log("Failed to add the bowler: ", err);
         }
