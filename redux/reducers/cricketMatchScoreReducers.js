@@ -1,7 +1,8 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialstate = {
-    cricketMatchScore: []
+    cricketMatchScore: [],
+    cricketInningScore: []
 }
 
 const cricketMatchScoreReducers = (state=initialstate, action) => {
@@ -15,6 +16,11 @@ const cricketMatchScoreReducers = (state=initialstate, action) => {
             return {
                 ...state,
                 cricketMatchScore: [...state.cricketMatchScore, action.payload]
+            }
+        case actionTypes.GET_CRICKET_INNING_SCORE:
+            return {
+                ...state,
+                cricketInningScore: action.payload
             }
         default:
             return state

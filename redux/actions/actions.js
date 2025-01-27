@@ -392,3 +392,46 @@ export const setTeamPlayer = (player) => {
         payload: player
     }
 }
+
+export const getCricketBattingScore = (batting) => {
+    return {
+        type: actionTypes.GET_CRICKET_BATTING_SCORE,
+        payload: batting
+    }
+}
+
+export const getCricketBowlingScore = (bowling) => {
+    return {
+        type: actionTypes.GET_CRICKET_BOWLING_SCORE,
+        payload: bowling
+    }
+}
+
+export const getCricketWicketFallen = (wicket) => {
+    return {
+        type: actionTypes.GET_CRICKET_WICKET_FALLEN,
+        payload: wicket
+    }
+}
+
+
+export const getCricketMatchInningScore = (score) => {
+    return {
+        type: actionTypes.GET_CRICKET_INNING_SCORE,
+        payload: score
+    }
+}
+
+export const addBatsman = (batsman) => {
+    return {
+        type: actionTypes.ADD_BATSMAN,
+        payload: batsman
+    }
+}
+
+export const addBowler = (bowler) => {
+    return {
+        type: actionTypes.ADD_BOWLER,
+        payload: batsman
+    }
+}
