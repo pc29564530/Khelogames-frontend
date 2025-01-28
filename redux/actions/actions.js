@@ -432,6 +432,27 @@ export const addBatsman = (batsman) => {
 export const addBowler = (bowler) => {
     return {
         type: actionTypes.ADD_BOWLER,
+        payload: bowler
+    }
+}
+
+export const setBatsmanScore = (batsman) => {
+    return {
+        type: actionTypes.UPDATE_BATSMAN_SCORE,
         payload: batsman
+    }
+}
+
+export const setBowlerScore = (bowler) => {
+    return {
+        type: actionTypes.UPDATE_BOWLER_SCORE,
+        payload: bowler
+    }
+}
+
+export const setInningScore = (inningScore) => {
+    return {
+        type: actionTypes.UPDATE_INNING_SCORE,
+        payload: inningScore
     }
 }
