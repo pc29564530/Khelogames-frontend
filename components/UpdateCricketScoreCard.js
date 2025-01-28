@@ -5,9 +5,9 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import useAxiosInterceptor from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
+import { setInningScore, setBatsmanScore, setBowlerScore } from '../redux/actions/actions';
 
-export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder }) => {
-    
+export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
     const axiosInstance = useAxiosInterceptor();
     const handleCurrentScoreEvent = (item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
@@ -25,19 +25,18 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
     }
 
     const handleScorecard = async (temp) => {
-        const currentBowler = bowlingData?.innings.find((item) => item.is_current_bowler === true );
-        const currentBatsman = battingData?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
+        const currentBowler = bowling?.innings.find((item) => item.is_current_bowler === true );
+        const currentBatsman = batting?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
         if(addCurrentScoreEvent.length === 0){
             try {
                 
                 const data = {
+                    match_id: matchData.matchId,
+                    batsman_team_id: batTeam,
                     batsman_id: currentBatsman.player.id,
                     bowler_id: currentBowler.player.id,
-                    match_id: matchData.matchId,
                     runs_scored: temp,
-                    bowler_balls: currentBowler.ball,
                 }
-
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
                     headers: {
@@ -45,6 +44,10 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                         'Content-Type': 'application/json',
                     },
                 })
+
+                dispatch(setInningScore(response.data.innings || {}));
+                dispatch(setBatsmanScore(response.data.batsman || {}));
+                dispatch(setBowlerScore(response.data.bowler || {}));
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }

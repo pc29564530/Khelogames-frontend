@@ -3,6 +3,7 @@ import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
+import { addBowler } from "../redux/actions/actions";
 
 
 export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
@@ -29,7 +30,8 @@ export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, ga
                     'Content-Type': 'application/json',
                 },
             })
-            dispatch(addBowler(response.data | {}))
+            console.log("Bowler Response: ", response.data)
+            dispatch(addBowler(response.data || {}))
         } catch (err) {
             console.log("Failed to add the bowler: ", err);
         }
