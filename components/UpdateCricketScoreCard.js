@@ -5,10 +5,13 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import useAxiosInterceptor from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setInningScore, setBatsmanScore, setBowlerScore } from '../redux/actions/actions';
+import { setInningScore, setBatsmanScore, setBowlerScore, getMatch } from '../redux/actions/actions';
+import { shallowEqual, useSelector, dispatch } from 'react-redux';
+
 
 export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
     const axiosInstance = useAxiosInterceptor();
+    const match = useSelector(state => state.matches.match);
     const handleCurrentScoreEvent = (item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
         setAddCurrentScoreEvent((prevEvent) => {
@@ -31,7 +34,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
             try {
                 
                 const data = {
-                    match_id: matchData.matchId,
+                    match_id: match.id,
                     batsman_team_id: batTeam,
                     batsman_id: currentBatsman.player.id,
                     bowler_id: currentBowler.player.id,
@@ -44,8 +47,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
                         'Content-Type': 'application/json',
                     },
                 })
-
-                dispatch(setInningScore(response.data.innings || {}));
+                dispatch(setInningScore(response.data.inning_score || {}));
                 dispatch(setBatsmanScore(response.data.batsman || {}));
                 dispatch(setBowlerScore(response.data.bowler || {}));
             } catch (err) {
@@ -55,7 +57,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
             try {
                 const data = {
                     runs_scored: temp,
-                    match_id: matchData.matchId,
+                    match_id: match.id,
                     bowler_id: currentBowler.player.id,
                     batting_team_id: batTeam
                 }
@@ -72,7 +74,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
         } else if(addCurrentScoreEvent[0] === "wide") {
             try {
                 const data = {
-                    match_id: matchData.matchId,
+                    match_id: match.id,
                     bowler_id: currentBowler.player.id,
                     batting_team_id: batTeam
                 }
@@ -89,9 +91,9 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
         } else if(addCurrentScoreEvent[0] === "wicket") {
             try {
                 const data = {
-                    match_id: matchData.matchId,
+                    match_id: match.id,
                     batting_team_id: batTeam,
-                    bowling_team_id: matchData.homeTeamID === batTeam?matchData.awayTeamID: matchData.homeTeamID,
+                    bowling_team_id: match.homeTeamID === batTeam?match.awayTeamID: match.homeTeamID,
                     Batsman_id: currentBatsman.player.id,
                     bowler_id: currentBowler.player.id,
                     wicket_type: wicketType,
@@ -112,6 +114,26 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
             }
         }
     }
+
+    useEffect(() => {
+        const fetchMatch = async () => {
+            try {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
+                    params: {
+                        match_id: matchData.id.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                dispatch(getMatch(response.data || null));
+            } catch(err) {
+                console.error()
+            }
+        }
+        fetchMatch();
+    },[])
 
     const handleWicketType = (item) => {
         if(item === "Run Out"){

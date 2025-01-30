@@ -1,37 +1,71 @@
+import { useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useSelector, useDispatch } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { getMatch } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
-import axios from 'axios';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 
+
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const match = route.params.item;                                                                         
-    //const match = useSelector((state) => state.matches.match);
+    const matchId = route.params.item;    
+    const match = useSelector((state) => {
+        return state.matches.match;
+    }, shallowEqual);                                                   
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const game = useSelector((state) => state.sportReducers.game);
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
-
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
+
+    useEffect(() => {
+        if(match) {
+            setLoading(false);
+        }
+    }, [match]);
+
+
+    useEffect( () => {
+        const fetchMatch = async () => {
+            const authToken = await AsyncStorage.getItem('AccessToken')
+            try {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
+                    params: {
+                        match_id: matchId.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                dispatch(getMatch(response.data || null));
+            } catch (err) {
+                console.error("Failed to fetch match data: ", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        fetchMatch();
+    }, [matchId, game.name, dispatch]);
+
+
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
         setMenuVisible(false);
@@ -45,7 +79,7 @@ const CricketMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            dispatch(getMatch(response.data || []));
+            dispatch(getMatch(response.data || null));
         } catch (err) {
             console.error("Unable to update the match: ", err);
         } finally {
@@ -70,7 +104,6 @@ const CricketMatchPage = ({ route }) => {
                 match_id:match.matchId,
                 team_id:teamID.id
             }
-            console.log("Data: ", data)
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketInning`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -82,73 +115,81 @@ const CricketMatchPage = ({ route }) => {
         }
     }
 
-    return (
-        <View style={tailwind`flex-1 bg-white`}>
-            <View style={[tailwind`safe-center top-0 right-0 left-0 bg-red-400`]}>
-                <View style={tailwind`flex-row justify-between fixed p-2 pt-4`}>
-                    <Pressable onPress={() => navigation.goBack()}>
-                        <AntDesign name="arrowleft" size={26} color="white" />
-                    </Pressable>
-                    <Pressable style={tailwind``} onPress={toggleMenu}>
-                        <MaterialIcon name="more-vert" size={24} color="white" />
-                    </Pressable>
-                </View>
-                <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-xl font-semibold`}>{match.status?.charAt(0)?.toUpperCase()+match?.status?.slice(1)}</Text>
-                </View>
-                <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2  bg-red-400 -top-4`]}>
-                    <View style={tailwind`items-center`}>
-                        {match?.homeTeam?.media_url?(
-                            <Image/>
-                        ):(
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-md`}>{match?.homeTeam?.name?.charAt(0)?.toUpperCase()}</Text>
-                            </View>
-                        )}
-                        <View>
-                            <Text  style={tailwind`text-white`}>{match.homeTeam?.name}</Text>
-                        </View>
-                    </View>
-                    <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
-                        <View style={tailwind``}>
-                            {match.status !== "not_started" && match.homeScore?.inning === "inning1" &&  match?.homeScore ? (
-                                <> 
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>
-                                        {match?.homeScore?.score}/{match?.homeScore?.wickets}
-                                    </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.homeScore?.overs)})</Text>
-                                </>
-                            ):(<Text style={tailwind`text-lg text-white`}>-</Text>)}
-                            
-                        </View>
-                        <View style={tailwind`h-10 w-0.4 bg-white`} />
-                        <View style={tailwind``}>
-                            {match.status !== "not_started" && match.awayScore?.inning === "inning1" &&  match?.awayScore ? (
-                                <>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>
-                                        {match?.awayScore?.score}/{match?.awayScore?.wickets}
-                                    </Text>
-                                    <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.awayScore?.overs)})</Text>
-                                </>
-                            ):(
-                                <Text style={tailwind`text-lg text-white`}>-</Text> 
-                            )}
-                        </View>
-                    </View>
-                    <View style={tailwind`items-center`}>
-                        { match.awayTeam?.media_url ? (
-                            <Image/>
-                        ):(
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-md`}>{match?.awayTeam?.name?.charAt(0)?.toUpperCase()}</Text>
-                            </View>
-                        )}
-                        <View>
-                            <Text  style={tailwind`text-white`}>{match?.awayTeam?.name}</Text>
-                        </View>
-                    </View>
-                </View>
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text>Loading...</Text>
             </View>
+        );
+    } else {
+        return (
+            <View style={tailwind`flex-1 bg-white`}>
+                <View style={[tailwind`safe-center top-0 right-0 left-0 bg-red-400`]}>
+                    <View style={tailwind`flex-row justify-between fixed p-2 pt-4`}>
+                        <Pressable onPress={() => navigation.goBack()}>
+                            <AntDesign name="arrowleft" size={26} color="white" />
+                        </Pressable>
+                        <Pressable style={tailwind``} onPress={toggleMenu}>
+                            <MaterialIcon name="more-vert" size={24} color="white" />
+                        </Pressable>
+                    </View>
+                    <View style={[tailwind`items-center -top-4`]}>
+                        <Text style={tailwind`text-white text-xl font-semibold`}>{match.status_code?.charAt(0)?.toUpperCase()+match?.status_code?.slice(1)}</Text>
+                    </View>
+                    <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2  bg-red-400 -top-4`]}>
+                        <View style={tailwind`items-center`}>
+                            {match?.homeTeam?.media_url?(
+                                <Image/>
+                            ):(
+                                <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                                    <Text style={tailwind`text-white text-md`}>{match?.homeTeam?.name?.charAt(0)?.toUpperCase()}</Text>
+                                </View>
+                            )}
+                            <View>
+                                <Text  style={tailwind`text-white`}>{match.homeTeam?.name}</Text>
+                            </View>
+                        </View>
+                        <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
+                            <View style={tailwind``}>
+                                {match.status_code !== "not_started" && match.homeScore?.inning === "inning1" &&  match?.homeScore ? (
+                                    <> 
+                                        <Text style={tailwind`ml-2 text-lg text-white`}>
+                                            {match?.homeScore?.score}/{match?.homeScore?.wickets}
+                                        </Text>
+                                        <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.homeScore?.overs)})</Text>
+                                    </>
+                                ):(<Text style={tailwind`text-lg text-white`}>-</Text>)}
+                                
+                            </View>
+                            <View style={tailwind`h-10 w-0.4 bg-white`} />
+                            <View style={tailwind``}>
+                                {match.status_code !== "not_started" && match.awayScore?.inning === "inning1" &&  match?.awayScore ? (
+                                    <>
+                                        <Text style={tailwind`ml-2 text-lg text-white`}>
+                                            {match?.awayScore?.score}/{match?.awayScore?.wickets}
+                                        </Text>
+                                        <Text style={tailwind`ml-2 text-lg text-white`}>({convertBallToOvers(match?.awayScore?.overs)})</Text>
+                                    </>
+                                ):(
+                                    <Text style={tailwind`text-lg text-white`}>-</Text> 
+                                )}
+                            </View>
+                        </View>
+                        <View style={tailwind`items-center`}>
+                            { match.awayTeam?.media_url ? (
+                                <Image/>
+                            ):(
+                                <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                                    <Text style={tailwind`text-white text-md`}>{match?.awayTeam?.name?.charAt(0)?.toUpperCase()}</Text>
+                                </View>
+                            )}
+                            <View>
+                                <Text  style={tailwind`text-white`}>{match?.awayTeam?.name}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
             <View
                 style={tailwind`flex-1`}   
             >
@@ -239,6 +280,7 @@ const CricketMatchPage = ({ route }) => {
             )}
         </View>
     );
+    }
 };
 
 export default CricketMatchPage;
