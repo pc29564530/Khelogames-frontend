@@ -2,7 +2,7 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
         matches: [],
-        match: []
+        match: null
 }
 
 const  matchesReducers = (state=initialState, action) => {
@@ -21,7 +21,7 @@ const  matchesReducers = (state=initialState, action) => {
         case actionTypes.GET_MATCH:
             return {
                 ...state,
-                match: action.payload
+                match: action.payload || null,
             };
         default:
             return state;

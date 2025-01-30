@@ -22,6 +22,13 @@ const cricketMatchScoreReducers = (state=initialstate, action) => {
                 ...state,
                 cricketInningScore: action.payload
             }
+        case actionTypes.UPDATE_INNING_SCORE:
+            return {
+                ...state,
+                cricketInningScore: {
+                    
+                }
+            }
         default:
             return state
     }
