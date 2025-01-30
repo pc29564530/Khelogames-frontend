@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { useSelector } from 'react-redux';
 
 const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
     return (
@@ -41,11 +42,11 @@ const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
                         )}
                     </View>
                     <View style={tailwind`flex-row justify-between gap-4`}>
-                        <Text style={tailwind`text-md text-gray-800`}>{item.runsScored}</Text>
-                        <Text style={tailwind`text-md text-gray-800`}>{item.ballFaced}</Text>
+                        <Text style={tailwind`text-md text-gray-800`}>{item.runs_scored}</Text>
+                        <Text style={tailwind`text-md text-gray-800`}>{item.balls_faced}</Text>
                         <Text style={tailwind`text-md text-gray-800`}>{item.fours}</Text>
                         <Text style={tailwind`text-md text-gray-800`}>{item.sixes}</Text>
-                        <Text style={tailwind`text-md text-gray-800`}>{((item.runsScored/item.ballFaced)*100.0).toFixed(1)}</Text>
+                        <Text style={tailwind`text-md text-gray-800`}>{((item.runs_scored/item.balls_faced)*100.0).toFixed(1)}</Text>
                     </View>
                 </View>
             ))}

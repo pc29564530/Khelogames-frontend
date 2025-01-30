@@ -90,11 +90,11 @@ const CricketMatchDetail = ({route}) => {
                 </View>
                 <View style={tailwind`flex-row`}>
                     <Text>Date: </Text>
-                    <Text>{formattedDate(convertToISOString(matchData?.startTimeStamp))}</Text>
-                </View>
+                    <Text>{formattedDate(convertToISOString(matchData?.start_timestamp))}</Text>
+                </View> 
                 <View style={tailwind`flex-row`}>
                     <Text>Time: </Text>
-                    <Text>{formattedTime(convertToISOString(matchData?.startTimeStamp))}</Text>
+                    <Text>{formattedTime(convertToISOString(matchData?.start_timestamp))}</Text>
                 </View>
                 {isTossed &&  (
                     <View style={tailwind`mt-4`}>

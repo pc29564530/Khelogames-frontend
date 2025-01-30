@@ -4,12 +4,11 @@ import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCricketMatchScore } from '../redux/actions/actions';
+import { getCricketMatchScore, getMatch } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
-import { getMatch } from '../redux/actions/actions';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
@@ -37,7 +36,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             });
 
             const item = response.data;
-            dispatch(getCricketMatchScore(item))
+            dispatch(getCricketMatchScore(item || {}))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }
@@ -53,18 +52,27 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                         <View key={index} style={tailwind`bg-white`}>
                             {Object?.keys(stage.group_stage).length > 0 && 
                                 Object?.entries(stage.group_stage).map(([stageName, matchs]) => (
-                                    MatchesData(matchs, stageName)
+                                    matchs.length > 0 && (
+                                        <View key={stageName}>
+                                            {matchs.length>0 && (
+                                                <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
+                                            )}
+                                            {matchs?.map((item, ind) => (
+                                                MatchesData(item, ind, dispatch )
+                                            ))}
+                                        </View>
+                                    )
                                 ))
                             }
                             {Object?.keys(stage.knockout_stage).length > 0 &&
                                 Object?.entries(stage.knockout_stage).map(([stageName, matchs]) => (
-                                    matches.length > 0 && (
+                                    matchs.length > 0 && (
                                         <View key={stageName}>
                                             {matchs.length>0 && (
                                                 <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
                                             )}
                                             {matchs.map((item, ind) => (
-                                                MatchesData(item, ind, navigation)
+                                                MatchesData(item, ind, dispatch)
                                             ))}
                                         </View>
                                     )
@@ -80,11 +88,10 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     );
 }
 
-const MatchesData = (item, ind) => {
+const MatchesData = (item, ind, dispatch) => {
     const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
-        console.log("Navigation: ", navigation)
-        navigation.navigate("CricketMatchPage", {item: item})
+        navigation.navigate("CricketMatchPage", {item: item.matchId, dispatch})
     }
     return (
         <Pressable key={ind} 

@@ -40,7 +40,7 @@ const CricketBowlingScorecard = ({
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.runs}</Text>
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wickets}</Text>
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wide}</Text>
-            <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.noBall}</Text>
+            <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.no_ball}</Text>
           </View>
         </View>
       ))}
