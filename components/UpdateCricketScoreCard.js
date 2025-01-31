@@ -47,8 +47,8 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                         'Content-Type': 'application/json',
                     },
                 })
-                const stage = match.stage === "Knockout" ? "knockout_stage" : "group_stage";
-                dispatch(setInningScore(response.data.inning_score, stage ));
+                
+                dispatch(setInningScore(response.data.inning_score ));
                 dispatch(setBatsmanScore(response.data.batsman || {}));
                 dispatch(setBowlerScore(response.data.bowler || {}));
             } catch (err) {
