@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useRef} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator} from 'react-native';
 import tailwind from 'twrnc';
@@ -18,10 +18,8 @@ import CheckBox from '@react-native-community/checkbox';
 
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const matchId = route.params.item;    
-    const match = useSelector((state) => {
-        return state.matches.match;
-    }, shallowEqual);                                                   
+    const matchId = route.params.item;
+    const match = useSelector((state) => state.cricketMatchScore.match );                                                   
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
@@ -32,6 +30,7 @@ const CricketMatchPage = ({ route }) => {
     const game = useSelector((state) => state.sportReducers.game);
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
+    const prevMatchRef = useRef(null)
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
 
     useEffect(() => {
@@ -39,7 +38,6 @@ const CricketMatchPage = ({ route }) => {
             setLoading(false);
         }
     }, [match]);
-
 
     useEffect( () => {
         const fetchMatch = async () => {
@@ -193,7 +191,7 @@ const CricketMatchPage = ({ route }) => {
             <View
                 style={tailwind`flex-1`}   
             >
-                <CricketMatchPageContent matchData={match} />
+                <CricketMatchPageContent/>
             </View>
             {statusVisible && (
                 <Modal

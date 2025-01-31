@@ -6,7 +6,6 @@ import useAxiosInterceptor from "../screen/axios_config";
 import { addBatsman } from "../redux/actions/actions";
 
 
-
 export const AddCricketBatsman = ({matchData, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
     const axiosInstance = useAxiosInterceptor();
     const teamPlayer = batTeam === matchData.awayTeam.id ? awayPlayer : homePlayer;
@@ -32,9 +31,7 @@ export const AddCricketBatsman = ({matchData, batTeam, homePlayer, awayPlayer, g
                     'Content-Type': 'application/json',
                 },
             })
-
             dispatch(addBatsman(response.data || {}));
-
         } catch (err) {
             console.log("Failed to add the batsman: ", err);
         }

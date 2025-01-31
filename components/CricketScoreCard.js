@@ -1,5 +1,5 @@
 import { useDebugValue, useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, SafeAreaView, FlatList } from 'react-native';
+import { View, Text, Pressable, Modal, TouchableOpacity, ScrollView, SafeAreaView, FlatList, ActivityIndicator } from 'react-native';
 import tailwind from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useAxiosInterceptor from "../screen/axios_config";
@@ -22,18 +22,20 @@ const convertBallToOvers = (item) => {
     return `${overs}.${remainingBall}`;
 };
 
-const CricketScoreCard = ({ route }) => {
+const CricketScoreCard = () => {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
-    const { matchData } = route.params;
     const game = useSelector(state => state.sportReducers.game);
-    const match = useSelector((state) => state.matches.match) 
+    const match = useSelector((state) => state.cricketMatchScore.match);
+    const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
+    const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
+    const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const [wicketType, setWicketType] = useState("");
     const [battingData, setBattingData] = useState(null)
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [bowlingData, setBowlingData] = useState([]);
-    const [batTeam, setBatTeam] = useState(match.homeTeam.id);
+    const [batTeam, setBatTeam] = useState(match?.homeTeam?.id);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
     const [isWicketModalVisible,setIsWicketModalVisible] = useState(false);
@@ -42,23 +44,27 @@ const CricketScoreCard = ({ route }) => {
     const [isFielder, setIsFielder] = useState(false);
     const [selectedFielder, setSelectedFielder] = useState();
     const [wicketsData, setWicketsData] = useState([]);
-    const [updateBatting, setUpdateBatting] = useState();
-    const [updateBowling, setUpdateBowling] = useState();
+    const [isLoading, setIsLoading] = useState(true);
     const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState([]);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
-    const homeTeamID = match.homeTeam.id;
-    const awayTeamID = match.awayTeam.id;
-    const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
-    const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
-    const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
+    const homeTeamID = match?.homeTeam?.id;
+    const awayTeamID = match?.awayTeam?.id;
     const runsCount = [0, 1, 2, 3, 4, 5, 6, 7];
+
+
+    useEffect(() => {
+        if(match) {
+            setIsLoading(false);
+        }
+    }, [match]);
     
     const [yetToBat, setYetToBat] = useState([]);
 
     useEffect(() => {
         const fetchBatting = async () => {
             try {
+                setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
                     params: { match_id: match.id.toString(), team_id: homeTeamID===batTeam?homeTeamID.toString(): awayTeamID.toString() },
@@ -71,6 +77,8 @@ const CricketScoreCard = ({ route }) => {
                 dispatch(getCricketBattingScore(battingScore?.data || []));
             } catch (err) {
                 console.error("Unable to fetch batting score: ", err);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchBatting();
@@ -190,138 +198,147 @@ const CricketScoreCard = ({ route }) => {
             )
       ) || [];
 
-    return (
-        <View style={tailwind`flex-1 bg-white`}>
-            <ScrollView style={tailwind`bg-white`}>
-                <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                    <Pressable onPress={() => setBatTeam(homeTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
-                        <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
-                    </Pressable>
-                    <Pressable onPress={() => setBatTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===batTeam?tailwind`bg-red-400`:tailwind`bg-white`]}>
-                        <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
-                    </Pressable>
-                </View>
-                {batting?.innings?.length > 0 ? (
-                    <View style={tailwind``}>
-                            <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
-                                <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
-                                    <Text style={tailwind`text-xl`}>Update Score</Text>
-                                </Pressable>
-                            </View>
-                            <View style={tailwind`bg-white mb-2 p-1`}>
-                                <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
-                            </View>
-
-                            <View style={tailwind`bg-white mb-2 p-1`}>
-                                <CricketBowlingScorecard bowling={bowling} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
-                            </View>
-                            {yetToBat.length > 0 && (
-                                <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
-                                    <Text style={tailwind`text-black`}>Yet to bat:</Text>
-                                    <View>
-                                            {yetToBat.map((item, index) => (
-                                            <View key={index} style={tailwind`bg-red flex-1`}>
-                                                    <Text style={tailwind`text-black`}>{item.player_name}</Text>
-                                            </View>
-                                            ))}
-                                    </View>
+      if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text>Loading...</Text>
+            </View>
+        );
+    } else {
+        return (
+            <View style={tailwind`flex-1 bg-white`}>
+                <ScrollView style={tailwind`bg-white`}>
+                    <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
+                        <Pressable onPress={() => setBatTeam(homeTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                            <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => setBatTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===batTeam?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                            <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
+                        </Pressable>
+                    </View>
+                    {batting?.innings?.length > 0 ? (
+                        <View style={tailwind``}>
+                                <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
+                                    <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
+                                        <Text style={tailwind`text-xl`}>Update Score</Text>
+                                    </Pressable>
                                 </View>
-                            )}
-                            {wickets.length > 0 && (
                                 <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
+                                    <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
                                 </View>
-                            )}
-                    </View>
-                ):(
-                    <View style={tailwind`flex-1 p-4`}>
-                        <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
-                            <MaterialIcon name="info-outline" size={40} color="gray" />
-                            <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
-                        </View>
-                    </View>
-                )}
-                
-            </ScrollView>
-            {isYetToBatModalVisible && (
-                    <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isYetToBatModalVisible}
-                    onRequestClose={() => setIsYetToBatModalVisible(false)}
-                    >  
-                    <Pressable onPress={() => setIsYetToBatModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                        {yetToBat.map((item, index) => (
-                            <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
-                                <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
-                            </Pressable>
-                        ))}
-                        </View>
-                    </Pressable>
-                </Modal> 
-            )}
-            {isModalBattingVisible && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isModalBattingVisible}
-                    onRequestClose={() => setIsModalBattingVisible(false)}
-                >  
-                    <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
-            {isModalBowlingVisible && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isModalBowlingVisible}
-                    onRequestClose={() => setIsModalBowlingVisible(false)}
-                >
-                    <Pressable onPress={() => {setIsModalBowlingVisible(false)}} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
 
-            {isUpdateScoreCardModal && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={isUpdateScoreCardModal}
-                    onRequestClose={() => setIsUpdateScoreCardModal(false)}
-                >
-                    <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateScoreCardModal(false)}>
-                        <UpdateCricketScoreCard  match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} />
-                    </Pressable>
-                </Modal>
-            )}
-            {isFielder && (
-                <Modal
-                    transparent={true}
-                    visible={isFielder}
-                    animationType="slide"
-                    onRequestClose={() => setIsFielder(false)}
-                >
-                    <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsFielder(false)}>
-                        <View style={tailwind`p-10 bg-white rounded-xl`}>
-                            {currentFielder.map((item,index) => (
-                                <Pressable key={index} onPress={() => {setSelectedFielder(item); setIsFielder(false)}}>
-                                    <Text>{item.player_name}</Text>
+                                <View style={tailwind`bg-white mb-2 p-1`}>
+                                    <CricketBowlingScorecard bowling={bowling} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
+                                </View>
+                                {yetToBat.length > 0 && (
+                                    <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
+                                        <Text style={tailwind`text-black`}>Yet to bat:</Text>
+                                        <View>
+                                                {yetToBat.map((item, index) => (
+                                                <View key={index} style={tailwind`bg-red flex-1`}>
+                                                        <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                                                </View>
+                                                ))}
+                                        </View>
+                                    </View>
+                                )}
+                                {wickets.length > 0 && (
+                                    <View style={tailwind`bg-white mb-2 p-1`}>
+                                        <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
+                                    </View>
+                                )}
+                        </View>
+                    ):(
+                        <View style={tailwind`flex-1 p-4`}>
+                            <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
+                                <MaterialIcon name="info-outline" size={40} color="gray" />
+                                <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
+                            </View>
+                        </View>
+                    )}
+                    
+                </ScrollView>
+                {isYetToBatModalVisible && (
+                        <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isYetToBatModalVisible}
+                        onRequestClose={() => setIsYetToBatModalVisible(false)}
+                        >  
+                        <Pressable onPress={() => setIsYetToBatModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                            <View style={tailwind`bg-white rounded-md p-4`}>
+                            {yetToBat.map((item, index) => (
+                                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
+                                    <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
                                 </Pressable>
                             ))}
-                        </View>
-                    </Pressable>
-                </Modal>
-            )}
-        </View>
-    );
+                            </View>
+                        </Pressable>
+                    </Modal> 
+                )}
+                {isModalBattingVisible && (
+                    <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isModalBattingVisible}
+                        onRequestClose={() => setIsModalBattingVisible(false)}
+                    >  
+                        <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                            <View style={tailwind`bg-white rounded-md p-4`}>
+                                <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
+                {isModalBowlingVisible && (
+                    <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isModalBowlingVisible}
+                        onRequestClose={() => setIsModalBowlingVisible(false)}
+                    >
+                        <Pressable onPress={() => {setIsModalBowlingVisible(false)}} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                            <View style={tailwind`bg-white rounded-md p-4`}>
+                                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
+
+                {isUpdateScoreCardModal && (
+                    <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isUpdateScoreCardModal}
+                        onRequestClose={() => setIsUpdateScoreCardModal(false)}
+                    >
+                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateScoreCardModal(false)}>
+                            <UpdateCricketScoreCard currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} />
+                        </Pressable>
+                    </Modal>
+                )}
+                {isFielder && (
+                    <Modal
+                        transparent={true}
+                        visible={isFielder}
+                        animationType="slide"
+                        onRequestClose={() => setIsFielder(false)}
+                    >
+                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsFielder(false)}>
+                            <View style={tailwind`p-10 bg-white rounded-xl`}>
+                                {currentFielder.map((item,index) => (
+                                    <Pressable key={index} onPress={() => {setSelectedFielder(item); setIsFielder(false)}}>
+                                        <Text>{item.player_name}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
+            </View>
+        );
+    }
 };
 
 export default CricketScoreCard;

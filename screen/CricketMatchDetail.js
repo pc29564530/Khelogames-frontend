@@ -16,7 +16,7 @@ const CricketMatchDetail = ({route}) => {
     const [tossOption, setTossOption] = useState('');
     const [tossData, setTossData] = useState({});
     const [teamID, setTeamId] = useState('');
-    const matchData = route.params.matchData;
+    const match = route.params.match;
     const [matchFormat, setMatchFormat] = useState();
     const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
@@ -24,7 +24,7 @@ const CricketMatchDetail = ({route}) => {
     const addToss = async () => {
         try {
             const data = {
-                match_id: matchData.matchId,
+                match_id: match.id,
                 toss_decision: tossOption,
                 toss_win: teamID
             }
@@ -46,7 +46,7 @@ const CricketMatchDetail = ({route}) => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss`, {
-                    params:{match_id: matchData.matchId},
+                    params:{match_id: match.id},
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -90,15 +90,15 @@ const CricketMatchDetail = ({route}) => {
                 </View>
                 <View style={tailwind`flex-row`}>
                     <Text>Date: </Text>
-                    <Text>{formattedDate(convertToISOString(matchData?.start_timestamp))}</Text>
-                </View> 
+                    <Text>{formattedDate(convertToISOString(match?.start_timestamp))}</Text>
+                </View>
                 <View style={tailwind`flex-row`}>
                     <Text>Time: </Text>
-                    <Text>{formattedTime(convertToISOString(matchData?.start_timestamp))}</Text>
+                    <Text>{formattedTime(convertToISOString(match?.start_timestamp))}</Text>
                 </View>
                 {isTossed &&  (
                     <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.id === matchData?.awayTeam?.id ? matchData.awayTeam.name : matchData.homeTeam.name}</Text>
+                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}</Text>
                         <Text style={tailwind`text-gray-700`}>Decision: {tossData?.tossDecision}</Text>
                     </View>
                 )}
@@ -114,11 +114,11 @@ const CricketMatchDetail = ({route}) => {
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>
                             <Text style={tailwind`text-xl font-bold text-gray-600 mb-4`}>Select Team for Toss</Text>
                             <View style={tailwind`flex-row justify-evenly mb-4`}>
-                                <Pressable onPress={() => handleTeam(matchData.homeTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === matchData.homeTeam.id && tailwind`bg-red-400`]}>
-                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.homeTeam.name}</Text>
+                                <Pressable onPress={() => handleTeam(match.homeTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.id && tailwind`bg-red-400`]}>
+                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{match.homeTeam.name}</Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(matchData.awayTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === matchData.awayTeam.id && tailwind`bg-red-400`]}>
-                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{matchData.awayTeam.name}</Text>
+                                <Pressable onPress={() => handleTeam(match.awayTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.id && tailwind`bg-red-400`]}>
+                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{match.awayTeam.name}</Text>
                                 </Pressable>
                             </View>
                             <Text style={tailwind`text-lg font-bold text-gray-600 mb-2`}>Choose Decision</Text>

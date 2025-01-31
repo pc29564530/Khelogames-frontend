@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCricketMatchScore, getMatch } from '../redux/actions/actions';
+import { getCricketMatchScore } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -42,7 +42,8 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         }
     };
 
-    
+    console.log("Lien 45 matchers: ", matches)
+    console.log("Lien no 46: matches: ", matches[0]?.group_stage)
 
     return (
         <ScrollView>
@@ -50,8 +51,8 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             {matches?.length > 0 ? (
                     matches?.map((stage, index) => (
                         <View key={index} style={tailwind`bg-white`}>
-                            {Object?.keys(stage.group_stage).length > 0 && 
-                                Object?.entries(stage.group_stage).map(([stageName, matchs]) => (
+                            {Object?.keys(stage?.group_stage).length > 0 && 
+                                Object?.entries(stage?.group_stage).map(([stageName, matchs]) => (
                                     matchs.length > 0 && (
                                         <View key={stageName}>
                                             {matchs.length>0 && (

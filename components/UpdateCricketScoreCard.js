@@ -9,9 +9,9 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch } from '../re
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
+export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
     const axiosInstance = useAxiosInterceptor();
-    const match = useSelector(state => state.matches.match);
+    const match = useSelector(state => state.cricketMatchScore.match);
     const handleCurrentScoreEvent = (item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
         setAddCurrentScoreEvent((prevEvent) => {
@@ -47,7 +47,8 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
                         'Content-Type': 'application/json',
                     },
                 })
-                dispatch(setInningScore(response.data.inning_score || {}));
+                const stage = match.stage === "Knockout" ? "knockout_stage" : "group_stage";
+                dispatch(setInningScore(response.data.inning_score, stage ));
                 dispatch(setBatsmanScore(response.data.batsman || {}));
                 dispatch(setBowlerScore(response.data.bowler || {}));
             } catch (err) {
@@ -120,7 +121,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
             try {
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
                     params: {
-                        match_id: matchData.id.toString()
+                        match_id: match.id.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -140,7 +141,7 @@ export const UpdateCricketScoreCard  = ({matchData, currentScoreEvent, isWicketM
             setWicketType(item);
             setIsFielder(true);
         } else {
-            setWicketType(item)
+            setWicketType(item);
         }
     }
 
