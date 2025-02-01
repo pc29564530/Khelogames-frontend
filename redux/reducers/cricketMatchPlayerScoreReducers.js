@@ -6,10 +6,16 @@ const initialstate = {
     battingScore: [],
     bowlingScore: [],
     wicketFallen: [],
+    isCurrentBowler: null,
 }
 
 const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
     switch (action.type) {
+        case actionTypes.SET_CURRENT_BOWLER:
+            return {
+                ...state,
+                isCurrentBowler: action.paylaod
+            }
         case actionTypes.UPDATE_BATSMAN_SCORE:
             return {
                 ...state,

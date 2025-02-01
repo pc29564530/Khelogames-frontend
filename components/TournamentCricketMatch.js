@@ -42,9 +42,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         }
     };
 
-    console.log("Lien 45 matchers: ", matches)
-    console.log("Lien no 46: matches: ", matches[0]?.group_stage)
-
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
