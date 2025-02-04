@@ -7,7 +7,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker } from '../redux/actions/actions';
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
-import { current } from '@reduxjs/toolkit';
 
 
 export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
@@ -61,8 +60,10 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                     runs_scored: temp,
                     match_id: match.id,
                     bowler_id: currentBowler.player.id,
-                    batting_team_id: batTeam
+                    batting_team_id: batTeam,
+                    batsman_id: currentBatsman.player.id
                 }
+                console.log("Line no 66 Data: ", data)
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketNoBall`, data, {
                     headers: {
@@ -70,6 +71,10 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                         'Content-Type': 'application/json',
                     },
                 })
+                dispatch(setInningScore(response.data.inning_score ));
+                dispatch(setBatsmanScore(response.data.striker_batsman || {}));
+                dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
+                dispatch(setBowlerScore(response.data.bowler || {}));
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }
@@ -82,7 +87,7 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                     match_id: match.id,
                     runs_scored: temp
                 }
-                console.log("Data: ", data);
+
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketWide`, data, {
                     headers: {
