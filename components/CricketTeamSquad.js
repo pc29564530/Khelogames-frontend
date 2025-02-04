@@ -13,11 +13,11 @@ const CricketTeamSquad = ({route}) => {
     const [team1ModalVisible, setTeam1ModalVisible] = useState(true);
     const [team2ModalVisible, setTeam2ModalVisible] = useState(false);
     const axiosInstance = useAxiosInterceptor();    
-    const matchData = route.params.matchData;
+    const match = route.params.match;
     const game = useSelector((state) => state.sportReducers.game);
 
     const handleToggle = (teamId) => {
-        if (matchData.homeTeam.id === teamId) {
+        if (match.homeTeam.id === teamId) {
             setTeam1ModalVisible(true);
             setTeam2ModalVisible(false);
         } else {
@@ -32,7 +32,7 @@ const CricketTeamSquad = ({route}) => {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const homeResponse = await axiosInstance.get(`${BASE_URL}/Cricket/getTeamsMemberFunc`, {
                     params:{
-                        team_id: matchData.homeTeam.id.toString()
+                        team_id: match.homeTeam.id.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -49,7 +49,7 @@ const CricketTeamSquad = ({route}) => {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const awayResponse = await axiosInstance.get(`${BASE_URL}/Cricket/getTeamsMemberFunc`, {
                     params:{
-                        team_id: matchData.awayTeam.id.toString()
+                        team_id: match.awayTeam.id.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -105,18 +105,18 @@ const CricketTeamSquad = ({route}) => {
                         tailwind`flex-1 p-2 rounded-lg items-center rounded-lg shadow-lg`,
                         team1ModalVisible ? tailwind`bg-red-400` : tailwind`bg-white`
                     ]}
-                    onPress={() => handleToggle(matchData.homeTeam.id)}
+                    onPress={() => handleToggle(match.homeTeam.id)}
                 > 
-                    <Text style={tailwind`text-xl font-bold text-gray`}>{matchData?.homeTeam?.name}</Text>
+                    <Text style={tailwind`text-xl font-bold text-gray`}>{match?.homeTeam?.name}</Text>
                 </Pressable>
                 <Pressable 
                     style={[
                         tailwind`flex-1 p-2 rounded-lg items-center rounded-lg shadow-lg`,
                         team2ModalVisible ? tailwind`bg-red-400` : tailwind`bg-white`
                     ]}
-                    onPress={() => handleToggle(matchData.awayTeam.id)}
+                    onPress={() => handleToggle(match.awayTeam.id)}
                 >
-                    <Text style={tailwind`text-xl font-bold text-gray`}>{matchData?.awayTeam?.name}</Text>
+                    <Text style={tailwind`text-xl font-bold text-gray`}>{match?.awayTeam?.name}</Text>
                 </Pressable>
             </View>
             <View style={tailwind`flex-row justify-center items-start`}>

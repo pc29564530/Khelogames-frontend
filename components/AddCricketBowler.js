@@ -30,7 +30,6 @@ export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, ga
                     'Content-Type': 'application/json',
                 },
             })
-            console.log("Bowler Response: ", response.data)
             dispatch(addBowler(response.data || {}))
         } catch (err) {
             console.log("Failed to add the bowler: ", err);
