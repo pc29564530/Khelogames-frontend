@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker } from '../redux/actions/actions';
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
+import { current } from '@reduxjs/toolkit';
 
 
 export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
@@ -75,17 +76,26 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
         } else if(addCurrentScoreEvent[0] === "wide") {
             try {
                 const data = {
-                    match_id: match.id,
+                    batsman_id: currentBatsman.player.id,
+                    batting_team_id: batTeam,
                     bowler_id: currentBowler.player.id,
-                    batting_team_id: batTeam
+                    match_id: match.id,
+                    runs_scored: temp
                 }
+                console.log("Data: ", data);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketWide`, data, {
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
-                })
+                });
+
+                dispatch(setInningScore(response.data.inning_score ));
+                dispatch(setBatsmanScore(response.data.striker_batsman || {}));
+                dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
+                dispatch(setBowlerScore(response.data.bowler || {}));
+
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }
