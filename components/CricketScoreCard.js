@@ -13,6 +13,7 @@ import CricketBowlingScorecard from "./CricketBowlingScorecard";
 import CricketWicketCard from "./CricketWicketCard";
 import { UpdateCricketScoreCard } from "./UpdateCricketScoreCard";
 import { useDispatch, useSelector } from "react-redux";
+import SetCurrentBowler from "./SetCurrentBowler";
 import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen } from "../redux/actions/actions";
 
 
@@ -31,6 +32,7 @@ const CricketScoreCard = () => {
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const [wicketType, setWicketType] = useState("");
+    const [selectedBowlerType, setSelectedBowlerType] = useState("");
     const [battingData, setBattingData] = useState(null)
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
@@ -48,6 +50,7 @@ const CricketScoreCard = () => {
     const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState([]);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
+    const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings);   
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
     const runsCount = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -198,6 +201,38 @@ const CricketScoreCard = () => {
             )
       ) || [];
 
+      const bowlerToBeBowled = batTeam.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings.some(
+        (bowler) => bowler.bowling_status && bowler.player.id === player.id
+      )) : homePlayer?.filter((player) => !bowling?.innings.some(
+        (bowler) => bowler.bowling_status && bowler.player.id === player.id
+      ));
+
+    const existingBowler = (batTeam.id !== homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
+        bowling?.innings.some((bowler) => bowler.is_current_bowler && bowler.player.id === player.id)
+      );
+      
+
+
+      const handleToggle = (item) => {
+        if(item==="newBowler") {
+           setSelectNextBowler(bowlerToBeBowled);
+        } else {
+           setSelectNextBowler(existingBowler);
+        }
+      }
+
+      const handleSelectBowler = () => {
+        if (selectedBowlerType === "existingBowler"){
+            return (
+                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowling={bowling}/>
+            )
+        } else {
+            return (
+                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowler={bowlerToBeBowled}/>
+            )
+        }
+      }
+
       if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -227,7 +262,6 @@ const CricketScoreCard = () => {
                                 <View style={tailwind`bg-white mb-2 p-1`}>
                                     <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
                                 </View>
-
                                 <View style={tailwind`bg-white mb-2 p-1`}>
                                     <CricketBowlingScorecard bowling={bowling} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
                                 </View>
@@ -298,9 +332,51 @@ const CricketScoreCard = () => {
                         visible={isModalBowlingVisible}
                         onRequestClose={() => setIsModalBowlingVisible(false)}
                     >
-                        <Pressable onPress={() => {setIsModalBowlingVisible(false)}} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                            <View style={tailwind`bg-white rounded-md p-4`}>
-                                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                        <Pressable 
+                            onPress={() => setIsModalBowlingVisible(false)} 
+                            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        >
+                            <View style={tailwind`bg-white rounded-t-3xl p-6 pb-10 shadow-lg`}>
+                                <Text style={tailwind`text-lg font-semibold text-center mb-4 text-gray-800`}>
+                                    Select Next Bowler
+                                </Text>
+                                <View style={tailwind`flex-row justify-around mb-6`}>
+                                    <Pressable 
+                                        onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}} 
+                                        style={[tailwind`px-4 py-2 bg-blue-500 rounded-full shadow-md`, selectedBowlerType === "newBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    >
+                                        <Text style={tailwind`${selectedBowlerType === "newBowler" ? "text-white" : "text-gray-800"} font-semibold`}>New Bowler</Text>
+                                    </Pressable>
+                                    <Pressable 
+                                        onPress={() => {setSelectedBowlerType("existingBowler"), handleToggle("existingBowler")}} 
+                                        style={[tailwind`px-4 py-2 bg-gray-300 rounded-full shadow-md`, selectedBowlerType === "existingBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    >
+                                        <Text style={tailwind`${selectedBowlerType === "existingBowler" ? "text-white" : "text-gray-800"} font-semibold`}>Existing Bowler</Text>
+                                    </Pressable>
+                                </View>
+                                <View style={tailwind`max-h-60`}>
+                                    <ScrollView style={tailwind`border border-gray-300 rounded-lg p-2`}>
+                                        {selectNextBowler.map((item, index) => (
+                                            <Pressable 
+                                                key={index} 
+                                                onPress={() => handleSelectBowler(item)}
+                                                style={tailwind`p-3 mb-2 bg-gray-100 rounded-lg border border-gray-200`}
+                                            >
+                                                <Text style={tailwind`text-gray-900 font-medium text-center`}>
+                                                    {item.player_name}
+                                                </Text>
+                                            </Pressable>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+
+                                {/* Close Button */}
+                                <Pressable 
+                                    onPress={() => setIsModalBowlingVisible(false)}
+                                    style={tailwind`mt-6 p-3 bg-red-500 rounded-full`}
+                                >
+                                    <Text style={tailwind`text-white text-center font-semibold`}>Close</Text>
+                                </Pressable>
                             </View>
                         </Pressable>
                     </Modal>
