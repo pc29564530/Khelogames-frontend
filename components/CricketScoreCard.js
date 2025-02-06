@@ -33,10 +33,8 @@ const CricketScoreCard = () => {
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const [wicketType, setWicketType] = useState("");
     const [selectedBowlerType, setSelectedBowlerType] = useState("");
-    const [battingData, setBattingData] = useState(null)
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
-    const [bowlingData, setBowlingData] = useState([]);
     const [batTeam, setBatTeam] = useState(match?.homeTeam?.id);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
@@ -76,7 +74,6 @@ const CricketScoreCard = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-                 
                 dispatch(getCricketBattingScore(battingScore?.data || []));
             } catch (err) {
                 console.error("Unable to fetch batting score: ", err);
@@ -98,7 +95,6 @@ const CricketScoreCard = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-                setBowlingData(bowlingScore.data || []);
                 dispatch(getCricketBowlingScore(bowlingScore?.data || []))
             } catch (err) {
                 console.error("Unable to fetch bowling score: ", err);
@@ -122,7 +118,7 @@ const CricketScoreCard = () => {
         const handleYetToBat = () => {
             let notBatted = [];
             if (batTeam === homeTeamID){
-                notBatted = homePlayer.filter((item) => !battingData?.innings?.some((batter) => item.id !== batter.id) )
+                notBatted = homePlayer.filter((item) => !batting?.innings?.some((batter) => item.id !== batter.id) )
             }
             setYetToBat(notBatted);
         }
@@ -190,25 +186,25 @@ const CricketScoreCard = () => {
     const currentFielder = homeTeamID !== batTeam
     ? homePlayer?.filter(
         (player) => 
-            !bowlingData?.innings?.some(
+            !bowling?.innings?.some(
                 (bowler) => bowler.is_current_bowler && bowler.player.id === player.id
             )
       ) || []
     : awayPlayer?.filter(
         (player) => 
-            !bowlingData?.innings?.some(
+            !bowling?.innings?.some(
                 (bowler) => bowler.is_current_bowler && bowler.player.id === player.id
             )
       ) || [];
 
-      const bowlerToBeBowled = batTeam.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings.some(
+      const bowlerToBeBowled = batTeam.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
       )) : homePlayer?.filter((player) => !bowling?.innings.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
       ));
 
     const existingBowler = (batTeam.id !== homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
-        bowling?.innings.some((bowler) => bowler.is_current_bowler && bowler.player.id === player.id)
+        bowling?.innings?.some((bowler) => bowler.player.id === player.id)
       );
       
 
@@ -221,14 +217,16 @@ const CricketScoreCard = () => {
         }
       }
 
+      const currentBowler = bowling?.innings?.find((item) => item.is_current_bowler === true );
+
       const handleSelectBowler = () => {
         if (selectedBowlerType === "existingBowler"){
             return (
-                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowling={bowling}/>
+                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowler}/>
             )
         } else {
             return (
-                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowler={bowlerToBeBowled}/>
+                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowler}/>
             )
         }
       }
@@ -356,17 +354,7 @@ const CricketScoreCard = () => {
                                 </View>
                                 <View style={tailwind`max-h-60`}>
                                     <ScrollView style={tailwind`border border-gray-300 rounded-lg p-2`}>
-                                        {selectNextBowler.map((item, index) => (
-                                            <Pressable 
-                                                key={index} 
-                                                onPress={() => handleSelectBowler(item)}
-                                                style={tailwind`p-3 mb-2 bg-gray-100 rounded-lg border border-gray-200`}
-                                            >
-                                                <Text style={tailwind`text-gray-900 font-medium text-center`}>
-                                                    {item.player_name}
-                                                </Text>
-                                            </Pressable>
-                                        ))}
+                                        {handleSelectBowler()}
                                     </ScrollView>
                                 </View>
 

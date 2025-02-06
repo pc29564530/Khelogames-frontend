@@ -30,6 +30,7 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
     const handleScorecard = async (temp) => {
         const currentBowler = bowling?.innings.find((item) => item.is_current_bowler === true );
         const currentBatsman = batting?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
+        console.log("Current Bwoler ", currentBowler)
         if(addCurrentScoreEvent.length === 0){
             try {
                 
@@ -47,10 +48,11 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                         'Content-Type': 'application/json',
                     },
                 })
+                dispatch(setBowlerScore(response.data.bowler || {}));
                 dispatch(setInningScore(response.data.inning_score ));
                 dispatch(setBatsmanScore(response.data.striker_batsman || {}));
                 dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
-                dispatch(setBowlerScore(response.data.bowler || {}));
+                
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }
@@ -63,7 +65,7 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                     batting_team_id: batTeam,
                     batsman_id: currentBatsman.player.id
                 }
-                console.log("Line no 66 Data: ", data)
+                
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketNoBall`, data, {
                     headers: {
@@ -75,6 +77,7 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                 dispatch(setBatsmanScore(response.data.striker_batsman || {}));
                 dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
                 dispatch(setBowlerScore(response.data.bowler || {}));
+
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }

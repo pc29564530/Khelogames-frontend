@@ -6,15 +6,14 @@ import useAxiosInterceptor from "../screen/axios_config";
 import { addBowler } from "../redux/actions/actions";
 
 
-export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
+export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowlerToBeBowled}) => {
     const axiosInstance = useAxiosInterceptor();
-    const teamPlayer = batTeam !== matchData.awayTeam.id ? awayPlayer : homePlayer;
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
+                match_id: match.id,
+                team_id: batTeam !== match.awayTeam.id ? match.awayTeam.id : match.homeTeam.id,
                 bowler_id: item.id,
-                match_id: matchData.matchId,
-                team_id: batTeam !== matchData.awayTeam.id ? matchData.awayTeam.id : matchData.homeTeam.id,
                 ball: 0,
                 runs: 0,
                 wickets: 0,
@@ -38,7 +37,7 @@ export const AddCricketBowler = ({matchData, batTeam, homePlayer, awayPlayer, ga
 
     return (
         <View>
-            {teamPlayer.map((item, index) => (
+            {bowlerToBeBowled.map((item, index) => (
                 <Pressable key={index} onPress={() => {handleAddNextBowler(item)}} style={tailwind``}>
                     <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
                 </Pressable>
