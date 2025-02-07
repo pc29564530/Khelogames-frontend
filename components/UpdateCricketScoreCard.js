@@ -9,7 +9,7 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
+export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
     const handleCurrentScoreEvent = (item) => {
@@ -36,10 +36,11 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                 const data = {
                     match_id: match.id,
                     batsman_team_id: batTeam,
-                    batsman_id: currentBatsman.player.id,
-                    bowler_id: currentBowler.player.id,
+                    batsman_id: currentBatsman?.player?.id,
+                    bowler_id: currentBowler?.player?.id,
                     runs_scored: temp,
                 }
+
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
                     headers: {
@@ -194,7 +195,7 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
                 <View style={tailwind`flex-row justify-between py-2`}>
                     <Text style={tailwind`text-lg font-bold`}>Runs/Ball</Text>
                     {runsCount.map((item, index) => (
-                        <Pressable onPress={() => {handleScorecard(item)}} style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
+                        <Pressable onPress={() => {handleScorecard(item); setIsUpdateScoreCardModal(false)}} style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
                             <Text>{item}</Text>
                         </Pressable>
                     ))}
