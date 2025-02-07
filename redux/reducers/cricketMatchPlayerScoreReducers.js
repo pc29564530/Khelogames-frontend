@@ -30,7 +30,7 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                                 sixes: action.payload.sixes,
                                 batting_status: action.payload.batting_status,
                                 is_striker: action.payload.is_striker,
-                                is_current_batting: action.payload.is_current_batting
+                                is_currently_batting: action.payload.is_currently_batting
                             }
                         }
                         return batter;
