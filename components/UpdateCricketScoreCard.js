@@ -30,7 +30,6 @@ export const UpdateCricketScoreCard  = ({currentScoreEvent, isWicketModalVisible
     const handleScorecard = async (temp) => {
         const currentBowler = bowling?.innings.find((item) => item.is_current_bowler === true );
         const currentBatsman = batting?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
-        console.log("Current Bwoler ", currentBowler)
         if(addCurrentScoreEvent.length === 0){
             try {
                 

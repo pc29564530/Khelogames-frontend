@@ -43,17 +43,18 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 bowlingScore:{
                     ...state.bowlingScore,
                     innings: state.bowlingScore.innings.map(bowler => {
-                        if(bowler.player.id === action.payload.bowler_id){
-                            return {
+                        if(bowler.player.id === action.payload.player.id){
+                            const updateBowler = {
                                 ...bowler,
                                 ball: action.payload.ball,
                                 runs: action.payload.runs,
                                 wickets: action.payload.wickets,
                                 wide: action.payload.wide,
                                 no_ball: action.payload.no_ball,
-                                batting_status: action.payload.batting_status,
+                                bowling_status: action.payload.bowling_status,
                                 is_current_bowler: action.payload.is_current_bowler
                             }
+                            return updateBowler
                         }
                         return bowler
                     }),
@@ -68,12 +69,13 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 }
             }
         case actionTypes.ADD_BOWLER:
+            const bowlerScore = {
+                ...state.bowlingScore,
+                innings: [...state.bowlingScore.innings, action.payload],
+            }
             return {
                 ...state,
-                bowlingScore: {
-                    ...state.bowlingScore,
-                    innings: [...state.bowlingScore.innings, action.payload],
-                }
+                bowlingScore: bowlerScore
             }
         case actionTypes.GET_CRICKET_PLAYER_SCORE:
             return {

@@ -15,7 +15,6 @@ const SetCurrentBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatc
                 current_bowler_id: currentBowler.player.id,
                 next_bowler_id: item.id
             }
-            console.log("Data: line no 18: ", data)
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateBowlingBowlerStatus`, data, {
                 headers: {
