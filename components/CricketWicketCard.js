@@ -21,13 +21,13 @@ const CricketWicketCard = ({
             index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
           }`}
         >
-          <Text style={tailwind`text-sm text-gray-800 `}>{item.wicketNumber}</Text>
-          <Text style={tailwind`text-sm text-gray-800 `}>{item.batsman.name}</Text>
+          <Text style={tailwind`text-sm text-gray-800 `}>{item.wicket_number}</Text>
+          <Text style={tailwind`text-sm text-gray-800 `}>{item?.batsman_player?.name}</Text>
           <Text style={tailwind`text-sm text-gray-800 `}>
-            {item.score}-{item.wicketNumber}
+            {item.score}-{item.wicket_number}
           </Text>
           <Text style={tailwind`text-sm text-gray-800 `}>
-            {convertBallToOvers(item.Overs)}
+            {convertBallToOvers(item.ball_number)}
           </Text>
         </View>
       ))}

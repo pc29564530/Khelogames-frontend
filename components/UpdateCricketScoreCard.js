@@ -5,7 +5,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import useAxiosInterceptor from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker } from '../redux/actions/actions';
+import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen } from '../redux/actions/actions';
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
 
 
@@ -128,6 +128,10 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                         'Content-Type': 'application/json',
                     },
                 })
+                dispatch(setBatsmanScore(response?.data?.batsman))
+                dispatch(setBowlerScore(response?.data?.bowler))
+                dispatch(setInningScore(response?.data?.inning_score))
+                dispatch(addCricketWicketFallen(response?.data?.wickets))
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }

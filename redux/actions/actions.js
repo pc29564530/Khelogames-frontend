@@ -456,3 +456,10 @@ export const setInningScore = (inningScore) => {
         payload: inningScore
     }
 }
+
+export const addCricketWicketFallen = (wicket) => {
+    return {
+        type: actionTypes.ADD_CRICKET_WICKET_FALLEN,
+        payload: wicket
+    }
+}

@@ -102,6 +102,11 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 ...state,
                 wicketFallen: action.payload
             }
+        case actionTypes.ADD_CRICKET_WICKET_FALLEN:
+            return {
+                ...state,
+                wicketFallen: [...state.wicketFallen, action.payload]
+            }
         default:
             return state
     }
