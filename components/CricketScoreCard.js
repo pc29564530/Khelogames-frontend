@@ -233,11 +233,6 @@ const CricketScoreCard = () => {
         }
       }
 
-      const handleSelectedFielder = () => {
-        setIsFielder(false);
-        setIsBatsmanStrikeChange(true);
-      }
-
       if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -422,10 +417,10 @@ const CricketScoreCard = () => {
                                     <Text>Is Strike Change</Text>
                                 </View>
                                 <View style={tailwind`flex-row justify-between`}>
-                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4`} onPress={() => setIsBatsmanStrikeChange(true)}>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4`} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
                                         <Text style={tailwind`text-lg`}>true</Text>
                                     </Pressable>
-                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4 `}  onPress={() => setIsBatsmanStrikeChange(false)}>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4 `}  onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
                                         <Text style={tailwind`text-lg`}>false</Text>
                                     </Pressable>
                                 </View>
