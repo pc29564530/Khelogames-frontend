@@ -35,6 +35,8 @@ const CricketScoreCard = () => {
     const [selectedBowlerType, setSelectedBowlerType] = useState("");
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
+    const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
+    const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const [batTeam, setBatTeam] = useState(match?.homeTeam?.id);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
@@ -231,6 +233,11 @@ const CricketScoreCard = () => {
         }
       }
 
+      const handleSelectedFielder = () => {
+        setIsFielder(false);
+        setIsBatsmanStrikeChange(true);
+      }
+
       if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -378,7 +385,7 @@ const CricketScoreCard = () => {
                         onRequestClose={() => setIsUpdateScoreCardModal(false)}
                     >
                         <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateScoreCardModal(false)}>
-                            <UpdateCricketScoreCard setIsUpdateScoreCardModal={setIsUpdateScoreCardModal} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} />
+                            <UpdateCricketScoreCard setIsUpdateScoreCardModal={setIsUpdateScoreCardModal} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} />
                         </Pressable>
                     </Modal>
                 )}
@@ -391,11 +398,37 @@ const CricketScoreCard = () => {
                     >
                         <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsFielder(false)}>
                             <View style={tailwind`p-10 bg-white rounded-xl`}>
+                                <Text>Select Fielder</Text>
                                 {currentFielder.map((item,index) => (
-                                    <Pressable key={index} onPress={() => {setSelectedFielder(item); setIsFielder(false)}}>
+                                    <Pressable key={index} onPress={() => {setSelectedFielder(item); setIsFielder(false); setIsModalBatsmanStrikeChange(true)}}>
                                         <Text>{item.player_name}</Text>
                                     </Pressable>
                                 ))}
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
+
+                {isModalBatsmanStrikerChange && (
+                    <Modal
+                        transparent={true}
+                        visible={isModalBatsmanStrikerChange}
+                        animationType="slide"
+                        onRequestClose={() => setIsModalBatsmanStrikeChange(false)}
+                    >
+                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsModalBatsmanStrikeChange(false)}>
+                            <View style={tailwind`p-10 bg-white rounded-xl`}>
+                                <View>
+                                    <Text>Is Strike Change</Text>
+                                </View>
+                                <View style={tailwind`flex-row justify-between`}>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4`} onPress={() => setIsBatsmanStrikeChange(true)}>
+                                        <Text style={tailwind`text-lg`}>true</Text>
+                                    </Pressable>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4 `}  onPress={() => setIsBatsmanStrikeChange(false)}>
+                                        <Text style={tailwind`text-lg`}>false</Text>
+                                    </Pressable>
+                                </View>
                             </View>
                         </Pressable>
                     </Modal>

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useState, useEffect} from 'react'
 import {View, Text, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -9,7 +9,7 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam }) => {
+export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
     const handleCurrentScoreEvent = (item) => {
@@ -32,7 +32,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
         const currentBatsman = batting?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
         if(addCurrentScoreEvent.length === 0){
             try {
-                
+            
                 const data = {
                     match_id: match.id,
                     batsman_team_id: batTeam,
@@ -116,7 +116,9 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                     Batsman_id: currentBatsman.player.id,
                     bowler_id: currentBowler.player.id,
                     wicket_type: wicketType,
-                    fielder_id: null
+                    fielder_id: null,
+                    runs_scored: temp,
+                    toggle_striker: isBatsmanStrikeChange
                 }
                 if (wicketType === "Run Out" || wicketType === "Caught") {
                     data.fielder_id = selectedFielder.id
@@ -128,7 +130,8 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                         'Content-Type': 'application/json',
                     },
                 })
-                dispatch(setBatsmanScore(response?.data?.batsman))
+                dispatch(setBatsmanScore(response?.data?.out_batsman))
+                dispatch(setBatsmanScore(response?.data?.not_out_batsman))
                 dispatch(setBowlerScore(response?.data?.bowler))
                 dispatch(setInningScore(response?.data?.inning_score))
                 dispatch(addCricketWicketFallen(response?.data?.wickets))
@@ -160,6 +163,9 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
 
     const handleWicketType = (item) => {
         if(item === "Run Out"){
+            setWicketType(item);
+            setIsFielder(true);
+        } else if(item === "Catch"){
             setWicketType(item);
             setIsFielder(true);
         } else {
