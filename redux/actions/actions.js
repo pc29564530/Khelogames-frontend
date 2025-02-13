@@ -463,3 +463,10 @@ export const addCricketWicketFallen = (wicket) => {
         payload: wicket
     }
 }
+
+export const setCricketMatchToss = (toss) => {
+    return {
+        type: actionTypes.SET_CRICKET_TOSS,
+        payload: toss
+    }
+}
