@@ -5,19 +5,22 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import CheckBox from '@react-native-community/checkbox';
-import {useSelector } from 'react-redux';
+import {useSelector, useDispatch } from 'react-redux';
 import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
+import { setCricketMatchToss } from '../redux/actions/actions';
 
 const CricketMatchDetail = ({route}) => {
     const [isTossed, setIsTossed] = useState(false);
+    const dispatch = useDispatch();
     const axiosInstance = useAxiosInterceptor();
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
-    const [tossData, setTossData] = useState({});
+    // const [tossData, setTossData] = useState({});
     const [teamID, setTeamId] = useState('');
     const match = route.params.match;
     const [matchFormat, setMatchFormat] = useState();
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
 
@@ -35,6 +38,7 @@ const CricketMatchDetail = ({route}) => {
                     'Content-Type': 'application/json',
                 }
             });
+            dispatch(setCricketMatchToss(response.data))
             setIsTossedModalVisible(false);
         } catch (err) {
             console.error("unable to add the toss: ", err);
@@ -52,10 +56,11 @@ const CricketMatchDetail = ({route}) => {
                         'Content-Type': 'application/json',
                     }
                 });
-                setTossData(response.data || {})
+               
                 if (response.data && response.data.tossWonTeam) {
                     setIsTossed(true);
                 }
+                dispatch(setCricketMatchToss(response.data))
             } catch (err) {
                 console.error("Unable to get the toss data: ", err);
             }
@@ -98,8 +103,8 @@ const CricketMatchDetail = ({route}) => {
                 </View>
                 {isTossed &&  (
                     <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-gray-700`}>Toss Won By: {tossData?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}</Text>
-                        <Text style={tailwind`text-gray-700`}>Decision: {tossData?.tossDecision}</Text>
+                        <Text style={tailwind`text-gray-700`}>Toss Won By: {cricketToss?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}</Text>
+                        <Text style={tailwind`text-gray-700`}>Decision: {cricketToss?.tossDecision}</Text>
                     </View>
                 )}
             </View>

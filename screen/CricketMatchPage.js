@@ -31,6 +31,7 @@ const CricketMatchPage = ({ route }) => {
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
     const prevMatchRef = useRef(null)
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
 
     useEffect(() => {
@@ -113,6 +114,22 @@ const CricketMatchPage = ({ route }) => {
         }
     }
 
+    const getInningDescription = () => {
+        if(match.awayTeam.id === cricketToss?.tossWonTeam?.id && cricketToss?.tossDecision === "Batting" && match.awayScore.is_inning_completed===true){
+            return (
+                <View style={[tailwind`items-center -top-4`]}>
+                    <Text style={tailwind`text-white text-sm`}>`{match.awayTeam.name} require {match.awayScore.runs+1} runs in {convertBallToOvers(50.0 - match.homeScore.overs)}`</Text>
+                </View>
+            )
+        } else {
+            return (
+                <View style={[tailwind`items-center -top-4`]}>
+                    <Text style={tailwind`text-white text-sm`}>{match.homeTeam.name} require {match.homeScore.score+1} runs in {convertBallToOvers(50.0 - match.awayScore.overs)}</Text>
+                </View>
+            )
+        }
+    }
+
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -187,6 +204,7 @@ const CricketMatchPage = ({ route }) => {
                             </View>
                         </View>
                     </View>
+                    {match.status !== "not_started" && match.status !== "finished" && getInningDescription()}
                 </View>
             <View
                 style={tailwind`flex-1`}   

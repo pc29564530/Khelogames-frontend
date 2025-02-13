@@ -16,6 +16,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     const dispatch = useDispatch();
     const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
     const game = useSelector(state => state.sportReducers.game);
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -36,7 +37,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             });
 
             const item = response.data;
-            dispatch(getCricketMatchScore(item || {}))
+            dispatch(getCricketMatchScore(item || []))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }
@@ -121,6 +122,7 @@ const MatchesData = (item, ind, dispatch) => {
                     <View style={tailwind`mb-2 flex-row`}>
                         
                         {item.status !== "not_started" && (
+                            <View>
                             <View style={tailwind`flex-row`}>
                                 {item.homeScore  && item.homeScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
@@ -138,6 +140,7 @@ const MatchesData = (item, ind, dispatch) => {
                                         </Text>
                                     </View>
                                 )}
+                            </View>
                             </View>
                         )}
                         <View style={tailwind`w-0.4 h-10 bg-gray-200 left-2`}/>
