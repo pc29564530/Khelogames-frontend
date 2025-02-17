@@ -100,7 +100,7 @@ const CricketMatchPage = ({ route }) => {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 inning: "inning1",
-                match_id:match.matchId,
+                match_id:match.id,
                 team_id:teamID.id
             }
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketInning`, data, {
