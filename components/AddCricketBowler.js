@@ -4,9 +4,10 @@ import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
+import { useSelector } from "react-redux";
 
 
-export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowlerToBeBowled, currentBowler, bowling}) => {
+export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled}) => {
     const axiosInstance = useAxiosInterceptor();
     const handleAddNextBowler = async (item) => {
         try {
@@ -31,7 +32,6 @@ export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, 
                 },
             })
             if(response?.data?.current_bowler){
-                console.log("not able to endter: ", response.data.current_bowler)
                 dispatch(setBowlerScore(response.data.current_bowler));
             }
             dispatch(addBowler(response.data.next_bowler || {}));
@@ -45,7 +45,7 @@ export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, 
         <View>
             {bowlerToBeBowled.map((item, index) => (
                 <Pressable key={index} onPress={() => {handleAddNextBowler(item)}} style={tailwind``}>
-                    <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
+                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player_name}</Text>
                 </Pressable>
             ))}
         </View>

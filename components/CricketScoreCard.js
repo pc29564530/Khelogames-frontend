@@ -14,7 +14,7 @@ import CricketWicketCard from "./CricketWicketCard";
 import { UpdateCricketScoreCard } from "./UpdateCricketScoreCard";
 import { useDispatch, useSelector } from "react-redux";
 import SetCurrentBowler from "./SetCurrentBowler";
-import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen } from "../redux/actions/actions";
+import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen, setBatTeam, getAwayPlayer, getHomePlayer } from "../redux/actions/actions";
 
 
 const convertBallToOvers = (item) => {
@@ -31,15 +31,15 @@ const CricketScoreCard = () => {
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
+    const homePlayer = useSelector((state) => state.teams.homePlayer);
+    const awayPlayer = useSelector((state) => state.teams.awayPlayer);
     const [wicketType, setWicketType] = useState("");
     const [selectedBowlerType, setSelectedBowlerType] = useState("");
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
-    const [batTeam, setBatTeam] = useState(match?.homeTeam?.id);
-    const [homePlayer, setHomePlayer] = useState([]);
-    const [awayPlayer, setAwayPlayer] = useState([]);
+    const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isWicketModalVisible,setIsWicketModalVisible] = useState(false);
     const [isUpdateScoreCardModal, setIsUpdateScoreCardModal] = useState(false);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
@@ -107,10 +107,10 @@ const CricketScoreCard = () => {
 
     useEffect(() => {
         const loadPlayers = async () => {
-            const homePlayers = await fetchTeamPlayers(BASE_URL, homeTeamID, game, axiosInstance);
-            const awayPlayers = await fetchTeamPlayers(BASE_URL, awayTeamID, game, axiosInstance);
-            setHomePlayer(homePlayers);
-            setAwayPlayer(awayPlayers);
+            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamID, game, axiosInstance);
+            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamID, game, axiosInstance);
+            dispatch(getHomePlayer(homePlayersResponse));
+            dispatch(getAwayPlayer(awayPlayersResponse));
         };
 
         loadPlayers();
@@ -199,13 +199,13 @@ const CricketScoreCard = () => {
             )
       ) || [];
 
-      const bowlerToBeBowled = batTeam.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
+      const bowlerToBeBowled = batTeam?.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
       )) : homePlayer?.filter((player) => !bowling?.innings.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
       ));
 
-    const existingBowler = (batTeam.id !== homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
+    const existingBowler = (batTeam?.id !== homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings?.some((bowler) => bowler.player.id === player.id)
       );
       
@@ -245,10 +245,10 @@ const CricketScoreCard = () => {
             <View style={tailwind`flex-1 bg-white`}>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => setBatTeam(homeTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                        <Pressable onPress={() => dispatch(setBatTeam(homeTeamID))} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                         </Pressable>
-                        <Pressable onPress={() => setBatTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===batTeam?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Pressable onPress={() => dispatch(setBatTeam(awayTeamID))} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===batTeam?tailwind`bg-red-400`:tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>
