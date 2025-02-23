@@ -123,7 +123,7 @@ const MatchesData = (item, ind, dispatch) => {
                         
                         {item.status !== "not_started" && (
                             <View>
-                            <View style={tailwind`flex-row`}>
+                            <View style={tailwind``}>
                                 {item.homeScore  && item.homeScore.inning === "inning1" && (
                                     <View style={tailwind`flex-row`}>
                                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.homeScore.overs)})</Text>
