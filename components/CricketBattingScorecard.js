@@ -46,7 +46,7 @@ const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
                         <Text style={tailwind`text-md text-gray-800`}>{item.balls_faced}</Text>
                         <Text style={tailwind`text-md text-gray-800`}>{item.fours}</Text>
                         <Text style={tailwind`text-md text-gray-800`}>{item.sixes}</Text>
-                        <Text style={tailwind`text-md text-gray-800`}>{((item.runs_scored/item.balls_faced)*100.0).toFixed(1)}</Text>
+                        <Text style={tailwind`text-md text-gray-800`}>{ item.balls_faced > 0 ? ((item.runs_scored/item.balls_faced)*100.0).toFixed(1) : (0).toFixed(1)}</Text>
                     </View>
                 </View>
             ))}
