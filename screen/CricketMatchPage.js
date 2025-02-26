@@ -8,18 +8,22 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getMatch } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
+import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
+import { fetchTeamPlayers } from '../services/teamServices';
 
 
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const matchId = route.params.item;
-    const match = useSelector((state) => state.cricketMatchScore.match );                                                   
+    const match = useSelector((state) => state.cricketMatchScore.match );  
+    const homePlayer = useSelector(state => state.teams.homePlayer);
+    const awayPlayer = useSelector(state => state.teams.awayPlayer);                                                 
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
@@ -27,12 +31,14 @@ const CricketMatchPage = ({ route }) => {
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const batTeam = useSelector(state => state.cricketMatchScore.batTeam)
+    const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
     const game = useSelector((state) => state.sportReducers.game);
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
-    const prevMatchRef = useRef(null)
-    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
-    const {height:sHeight, width: sWidth} = Dimensions.get('screen')
+    const prevMatchRef = useRef(null);
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss);
+    const {height:sHeight, width: sWidth} = Dimensions.get('screen');
 
     useEffect(() => {
         if(match) {
@@ -63,6 +69,16 @@ const CricketMatchPage = ({ route }) => {
     
         fetchMatch();
     }, [matchId, game.name, dispatch]);
+
+    useEffect(() => {
+        const fetchPlayer = async () => {
+            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamID, game, axiosInstance);
+            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamID, game, axiosInstance);
+            dispatch(getHomePlayer(homePlayersResponse))
+            dispatch(getAwayPlayer(awayPlayersResponse))
+        }
+        fetchPlayer() 
+    }, []);
 
 
     const handleUpdateResult = async (itm) => {
@@ -109,6 +125,10 @@ const CricketMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             })
+            if(response.data) {
+                setAddBatsmanAndBowlerModalVisible(true);
+            }
+            
         } catch (err) {
             console.log("failed to update inning: ", err)
         }
@@ -118,13 +138,13 @@ const CricketMatchPage = ({ route }) => {
         if(match.awayTeam.id === cricketToss?.tossWonTeam?.id && cricketToss?.tossDecision === "Batting" && match.awayScore.is_inning_completed===true){
             return (
                 <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-sm`}>`{match.awayTeam.name} require {match.awayScore.runs+1} runs in {convertBallToOvers(50.0 - match.homeScore.overs)}`</Text>
+                    <Text style={tailwind`text-white text-sm`}>`{match.awayTeam.name} require {match.awayScore.score+1-match.homeScore.score} runs in {convertBallToOvers(50.0 - match.homeScore.overs)}`</Text>
                 </View>
             )
         } else {
             return (
                 <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-sm`}>{match.homeTeam.name} require {match.homeScore.score+1} runs in {convertBallToOvers(50.0 - match.awayScore.overs)}</Text>
+                    <Text style={tailwind`text-white text-sm`}>{match.homeTeam.name} require {match.homeScore.score+1-match.awayScore.score} runs in {convertBallToOvers(50.0 - match.awayScore.overs)}</Text>
                 </View>
             )
         }
@@ -279,19 +299,33 @@ const CricketMatchPage = ({ route }) => {
                                 <Text style={tailwind`ml-2 text-lg text-blue-900`}>{match.homeTeam.name}</Text>
                                 <CheckBox
                                     value={teamInning === "inning1"}
-                                    onValueChange={() => {setTeamInning("inning1"); updateInning(match.homeTeam)}}
+                                    onValueChange={() => {setTeamInning("inning1"); updateInning(match.homeTeam); dispatch(setBatTeam(match.homeTeam.id))}}
                                 />
                             </View>
                             <View style={tailwind`flex-row items-center mb-4`}>
                                 <Text style={tailwind`ml-2 text-lg text-blue-900`}>{match.awayTeam.name}</Text>
                                 <CheckBox
-                                    value={teamInning === "inning2"}
-                                    onValueChange={() => {setTeamInning("inning2"); updateInning(match.awayTeam)}}
+                                    value={teamInning === "inning1"}
+                                    onValueChange={() => {setTeamInning("inning1"); updateInning(match.awayTeam); dispatch(setBatTeam(match.awayTeam.id))}}
                                 />
                             </View>
                         </View>
                     </View>
                 </TouchableOpacity>
+            </Modal>
+            )}
+            {addBatsmanAndBowlerModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={addBatsmanAndBowlerModalVisible}
+                    onRequestClose={() => setAddBatsmanAndBowlerModalVisible(false)}
+                >
+                <Pressable onPress={() => setAddBatsmanAndBowlerModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                    <View style={tailwind`bg-white rounded-t-lg p-6`}>
+                        <AddBatsmanAndBowler match={match} setAddBatsmanAndBowlerModalVisible={setAddBatsmanAndBowlerModalVisible}/>
+                    </View>
+                </Pressable>
             </Modal>
             )}
         </View>

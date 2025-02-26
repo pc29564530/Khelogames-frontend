@@ -470,3 +470,24 @@ export const setCricketMatchToss = (toss) => {
         payload: toss
     }
 }
+
+export const setBatTeam = (batTeam) => {
+    return {
+        type: actionTypes.SET_BAT_TEAM,
+        payload: batTeam
+    }
+}
+
+export const getHomePlayer = (player) => {
+    return {
+        type: actionTypes.GET_HOME_PLAYER,
+        payload: player
+    }
+}
+
+export const getAwayPlayer = (player) => {
+    return {
+        type: actionTypes.GET_AWAY_PLAYER,
+        payload: player
+    }
+}

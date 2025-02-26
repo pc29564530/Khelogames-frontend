@@ -3,11 +3,17 @@ import * as actionTypes from '../types/actionTypes';
 const initialstate = {
     cricketMatchScore: [],
     cricketInningScore: [],
+    batTeam: null,
     match:null
 };
 
 const cricketMatchScoreReducers = (state = initialstate, action) => {
     switch (action.type) {
+        case actionTypes.SET_BAT_TEAM:
+            return {
+                ...state,
+                batTeam: action.payload
+            }
         case actionTypes.GET_CRICKET_MATCHES:
             return {
                 ...state,
