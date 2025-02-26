@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClub, setGames, setGame } from '../redux/actions/actions';
+import {setGames, setGame, getTeams } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 
 const Club = () => {
@@ -20,7 +20,7 @@ const Club = () => {
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
-    const clubs = useSelector((state) => state.clubReducers.clubs);
+    const teams = useSelector((state) => state.teams.teams);
 
     useEffect(() => {
         const defaultSport = { id: 1, name: 'football', min_players: 11 };
@@ -60,9 +60,9 @@ const Club = () => {
 
                 const item = response.data;
                 if (!item || item === null) {
-                    dispatch(getClub([]));
+                    dispatch(getTeams([]));
                 } else {
-                    dispatch(getClub(item.teams));
+                    dispatch(getTeams(item.teams));
                 }
             } catch (err) {
                 console.error("Unable to fetch all team or club: ", err);
@@ -72,7 +72,7 @@ const Club = () => {
         if (game?.name) {
             getClubData();
         }
-    }, [axiosInstance, game]);
+    }, [axiosInstance, game, teams]);
 
     navigation.setOptions({
         headerTitle: 'Teams',
@@ -94,7 +94,7 @@ const Club = () => {
     });
 
     const handleAddClub = () => {
-        navigation.navigate('CreateClub', { games: games });
+        navigation.navigate('CreateClub');
     }
 
     const scrollRight = () => {
@@ -130,7 +130,7 @@ const Club = () => {
                 </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }}>
-                {clubs.map((item, index) => (
+                {teams.map((item, index) => (
                     <View key={index} style={tailwind`mb-4`}>
                         <Pressable onPress={() => handleClub(item)} style={tailwind`rounded-md w-full h-20 bg-white shadow-lg p-4 flex-row items-center`}>
                             <View style={tailwind`rounded-full h-16 w-16 bg-gray-200 overflow-hidden`}>

@@ -9,11 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { SelectMedia } from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
-import { createClub } from '../redux/actions/actions';
+import { setTeams } from '../redux/actions/actions';
 import CountryPicker from 'react-native-country-picker-modal';
 
-const CreateClub = ({ route }) => {
-    const sports = route.params.sports;
+const CreateClub = () => {
     const navigation = useNavigation();
     const [isCountryPicker, setIsCountryPicker] = useState(false);
     const [teamName, setTeamName] = useState('');
@@ -57,7 +56,8 @@ const CreateClub = ({ route }) => {
                 }
             );
             const item = response.data || [];
-            dispatch(createClub(item));
+            console.log("Team Line no 60: ", item)
+            dispatch(setTeams(item));
             navigation.navigate('Club');
         } catch (err) {
             console.error('Unable to create the club ', err);
