@@ -27,7 +27,10 @@ const Members = ({teamData}) => {
         const fetchPlayerProfile = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getAllPlayers`, {
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayersBySport`, {
+                    params: {
+                        'game_id': game.id.toString()
+                    },
                     headers:{
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type':'application/json',
@@ -35,6 +38,7 @@ const Members = ({teamData}) => {
                 })
                 const item = response.data || [];
                 setPlayerProfile(item)
+                setFiltered(item);
             } catch (err) {
                 console.error("unable to get the player profile: ", err);
             }
@@ -105,7 +109,8 @@ const Members = ({teamData}) => {
             const filterData = playerProfile.filter((item) => 
                 item.player_name.toLowerCase().includes(text.toLowerCase())
             )
-            setFiltered(filterData);
+            const filterBySport = filterData.filter((item) => item.game_id === game.id ? item : [])
+            setFiltered(filterBySport);
         }
     }
 
@@ -197,11 +202,17 @@ const Members = ({teamData}) => {
                                     handleSearchPlayer(text)
                                 }} placeholder='Search player' style={tailwind`border border-gray-300 rounded-lg px-4 py-2 mb-4`}/>
                                 <ScrollView style={tailwind`bg-white rounded-md p-4`}>
-                                    {filtered.map((item, index) => (
-                                        <Pressable key={index} onPress={() =>  handleAddPlayer(item)}>
-                                            <Text style={tailwind`text-xl py-2`}>{item.player_name}</Text>
-                                        </Pressable>
-                                    ))}
+                                    {filtered.length > 0 ? filtered.map((item, index) => (
+                                        <View>
+                                            <Pressable key={index} onPress={() =>  handleAddPlayer(item)}>
+                                                <Text style={tailwind`text-xl py-2`}>{item.player_name}</Text>
+                                            </Pressable>
+                                        </View>
+                                    )) : (
+                                        <View style={tailwind`items-center`}>
+                                            <Text style={tailwind`text-lg font-bold`}>Search Not Found</Text>
+                                        </View>
+                                    )}
                                 </ScrollView>
                             </View>
                         </Pressable>
