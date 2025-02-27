@@ -25,6 +25,7 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
   const [result, setResult] = useState(null);
   const [matchType, setMatchType] = useState('');
   const axiosInstance = useAxiosInterceptor();
+  const [errorMessage, setErrorMessage] = useState("");
   const game = useSelector(state => state.sportReducers.game);
 
   const modifyDateTime = (newDateTime) => {
@@ -49,31 +50,37 @@ const CreateFixture = ({ tournament, teams, organizerID, handleCloseFixtureModal
   };
 
   const handleSetFixture = async () => {
-    try {
-      const fixture = {
-        tournament_id: tournament.id,
-        away_team_id: team1,
-        home_team_id: team2,
-        start_timestamp: modifyDateTime(startTime),
-        end_timestamp: endTime?modifyDateTime(endTime):'',
-        type: matchType,
-        status_code: "not_started",
-        result: result
-      };
+      try {
+        const fixture = {
+            tournament_id: tournament.id,
+            away_team_id: team1,
+            home_team_id: team2,
+            start_timestamp: modifyDateTime(startTime),
+            end_timestamp: endTime ? modifyDateTime(endTime) : '',
+            type: matchType,
+            status_code: "not_started",
+            result: result
+        };
 
-      console.log("Fixture: ", fixture)
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture,{
-        headers: {
-          'Authorization': `bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (err) {
-      console.error("Unable to set the fixture: ", err);
-    } finally {
-      handleCloseFixtureModal();
-    }
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture, {
+            headers: {
+                'Authorization': `bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        setErrorMessage('');
+      } catch (err) {
+          console.error("Unable to set the fixture: ", err);
+          if (err.response && err.response.data && err.response.data.error) {
+              setErrorMessage(err.response.data.error);
+          } else {
+              setErrorMessage("An unexpected error occurred.");
+          }
+      } finally {
+          handleCloseFixtureModal();
+      }
+
   };
   return (
     <View style={tailwind`justify-center items-center bg-gray-100`}>
