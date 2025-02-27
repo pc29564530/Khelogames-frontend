@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, TextInput, Modal} from 'react-native';
+import { View, Text, Pressable, TextInput, Modal, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -10,6 +10,7 @@ import DateTimePicker from 'react-native-modern-datepicker';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useSelector, useDispatch } from 'react-redux';
 import { BASE_URL } from '../constants/ApiConstants';
+import CheckBox from '@react-native-community/checkbox';
 import { addTournament } from '../redux/actions/actions';
 const Stages = ['Group', 'Knockout', 'League'];
 
@@ -30,6 +31,7 @@ const CreateTournament = () => {
     const [isDurationVisible, setIsDurationVisible] = useState(false);
     const games = useSelector(state => state.sportReducers.games);
     const dispatch = useDispatch();
+    const [isKnockout, setIsKnockout] = useState(false);
     const levels = ['International', 'Country', 'Local'];
     const navigation = useNavigation();
     const game = useSelector((state) => state.sportReducers.game);
@@ -45,9 +47,9 @@ const CreateTournament = () => {
                     game_id: game.id,
                     group_count: parseInt(groupCount, 10),
                     max_group_team: parseInt(maxTeamGroup, 10),
-                    stage: stage.toLowerCase()
+                    stage: stage.toLowerCase(),
+                    has_knockout: isKnockout
                 }
-                console.log("Data: ", data)
             const authToken = await AsyncStorage.getItem('AccessToken');
             const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournament`, data, {
@@ -109,7 +111,7 @@ const CreateTournament = () => {
       };
 
     return (
-        <View style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
+        <ScrollView style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
             {/* Input Fields */}
             <TextInput
                 style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-2`}
@@ -118,17 +120,6 @@ const CreateTournament = () => {
                 value={tournamentName}
                 onChangeText={setTournamentName}
             />
-
-            {/* Sport Selection */}
-            {/* <Pressable
-                onPress={() => setIsSportVisible(true)}
-                style={tailwind`flex-row justify-between items-center bg-white p-4 rounded-md border border-gray-300 shadow-md mb-4`}
-            >
-                <Text style={tailwind`text-gray-600 text-lg`}>
-                    {sport || 'Select Sport'}
-                </Text>
-                <AntDesign name="down" size={20} color="gray" />
-            </Pressable> */}
 
             {/* Country Selection */}
             <Pressable
@@ -173,27 +164,38 @@ const CreateTournament = () => {
                     ))}
                 </View>
             </View>
-
             {/* Select Group Count */}
-            <TextInput
-                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
-                placeholder="Group Count"
-                keyboardType='numeric'
-                placeholderTextColor="gray"
-                value={groupCount}
-                onChangeText={setGroupCount}
-            />
+            {(stage === "Group" || stage === "League") && (
+                <TextInput
+                    style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
+                    placeholder="Group Count"
+                    keyboardType='numeric'
+                    placeholderTextColor="gray"
+                    value={groupCount}
+                    onChangeText={setGroupCount}
+                />
+            ) }
 
             {/* Max Team Per Group */}
-            <TextInput
-                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
-                placeholder="Max Team Per Group"
-                keyboardType='numeric'
-                placeholderTextColor="gray"
-                value={maxTeamGroup}
-                onChangeText={setMaxGroupTeam}
-            />
-
+            {(stage === "Group" || stage === "League") && (
+                <TextInput
+                    style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
+                    placeholder="Max Team Per Group"
+                    keyboardType='numeric'
+                    placeholderTextColor="gray"
+                    value={maxTeamGroup}
+                    onChangeText={setMaxGroupTeam}
+                />
+            )}
+            <View style={tailwind`border flex-row rounded-md bg-white border-gray-300 shadow-md mb-4 p-2`}>
+                <Text style={tailwind`ml-2 text-lg text-black-200 text-lg`}>Has Knockout Stage: </Text>
+                <View style={tailwind`flex-row items-center mb-2`}>
+                    <CheckBox
+                        value={isKnockout === true}
+                        onValueChange={() => {setIsKnockout(true)}}
+                    />
+                </View>
+            </View>
             {/* Submit Button */}
             <Pressable
                 style={tailwind`bg-blue-600 py-3 rounded-md bg-white items-center shadow-md border border-gray-300 `}
@@ -295,7 +297,7 @@ const CreateTournament = () => {
                 </Pressable>
               </Modal>
             )}
-        </View>
+        </ScrollView>
     );
 };
 
