@@ -358,6 +358,13 @@ export const getTeams = (teams) => {
     }
 }
 
+export const getTeamsBySport = (teams) => {
+    return {
+        type: actionTypes.GET_TEAMS_BY_SPORT,
+        payload: teams
+    }
+}
+
 export const checkIsFollowing = (isFollowing) => {
     return {
         type: actionTypes.IS_FOLLOWING,

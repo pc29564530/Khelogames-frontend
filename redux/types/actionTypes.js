@@ -67,6 +67,7 @@ export const GET_TEAMS = 'GET_TEAMS';
 //set matches of sport
 export const SET_MATCHES = 'SET_MATCHES';
 export const GET_MATCHES = 'GET_MATCHES';
+export const GET_TEAMS_BY_SPORT = 'GET_TEAMS_BY_SPORT';
 
 //set the current game of tournament or match or team
 export const SET_GAME = 'SET_GAME';

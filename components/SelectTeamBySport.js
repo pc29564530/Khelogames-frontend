@@ -5,7 +5,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeamToGroup, getTeams } from '../redux/actions/actions';
+import { addTeamToGroup, getTeams, getTeamsBySport } from '../redux/actions/actions';
 
 const SelectTeamBySport = ({tournament, groups }) => {
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false)
@@ -20,7 +20,7 @@ const SelectTeamBySport = ({tournament, groups }) => {
         const fetchTeams = async () => {
             try {
                 const tournamentTeams = await getTeamsByTournamentID({tournamentID: tournament.id, sports: tournament.id, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
-                dispatch(getTeams(tournamentTeams))
+                dispatch(getTeamsBySport(tournamentTeams))
             } catch (err) {
                 console.log("unable to fetch the teams from tournament id: ", err)
             }

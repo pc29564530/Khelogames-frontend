@@ -2,6 +2,7 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
     teams: [],
+    teamsBySports: [],
     homePlayer: [],
     awayPlayer: []
 }
@@ -17,6 +18,11 @@ const teamsReducers = (state=initialState, action) => {
             return {
                 ...state,
                 teams: action.payload
+            }
+        case actionTypes.GET_TEAMS_BY_SPORT:
+            return {
+                ...state,
+                teamsBySports: action.payload
             }
         case actionTypes.GET_HOME_PLAYER:
             return {
