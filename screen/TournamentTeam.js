@@ -6,7 +6,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTeams, getTeams } from '../redux/actions/actions';
+import { setTeams, getTeams, getTeamsBySport } from '../redux/actions/actions';
 import { getTeamsByTournamentID } from '../services/tournamentServices';
 
 const TournamentTeam = ({ route }) => {
@@ -17,19 +17,8 @@ const TournamentTeam = ({ route }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
     const teams = useSelector((state) => state.teams.teams);
+    const teamsBySport = useSelector((state) => state.teams.teamsBySports);
     const game = useSelector(state => state.sportReducers.game);
-
-    useEffect(() => {
-        const fetchTeams = async () => {
-            try {
-                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
-                dispatch(getTeams(tournamentTeams));
-            } catch (err) {
-                console.error("unable to fetch the tournament teams: ", err);
-            }
-        };
-        fetchTeams();
-    }, []);
 
     useEffect(() => {
         fetchTeamBySport();
@@ -44,11 +33,25 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            setTeamDisplay(response.data || []);
+            console.log("Team By Sport: ", response.data)
+            dispatch(getTeamsBySport(response.data || []));
         } catch (err) {
             console.error("unable to fetch the team by game: ", err);
         }
     };
+
+    useEffect(() => {
+        const fetchTeams = async () => {
+            try {
+                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
+                dispatch(getTeams(tournamentTeams));
+            } catch (err) {
+                console.error("unable to fetch the tournament teams: ", err);
+            }
+        };
+        fetchTeams();
+    }, []);
+
 
     const handleTeam = (item) => {
         navigation.navigate('ClubPage', { teamData: item, game: game });
@@ -68,12 +71,8 @@ const TournamentTeam = ({ route }) => {
                 }
             });
             const respItem = response.data || [];
-            const teamWithData = {
-                id: respItem.team_id,
-                team_name: teamDisplay.find((team) => team.id === respItem.team_id).name,
-                media_url: teamDisplay.find((team) => team.id === respItem.team_id).media_url,
-            }
-            dispatch(setTeams(teamWithData));
+            console.log("Add Team: ", respItem)
+            dispatch(setTeams(respItem))
             setIsModalVisible(false);
         } catch (err) {
             console.error("unable to add the tournament teams: ", err);
@@ -116,7 +115,7 @@ const TournamentTeam = ({ route }) => {
                         <View style={tailwind`bg-white rounded-t-lg p-4 max-h-3/4`}>
                             <Text style={tailwind`text-xl font-bold mb-4`}>Teams List</Text>
                             <ScrollView style={tailwind`max-h-3/4`}>
-                                {teamDisplay?.teams?.map((item, index) => (
+                                {teamsBySport?.teams?.map((item, index) => (
                                     <Pressable key={index} onPress={() => handleAddTeam(item.id)} style={tailwind`py-2 border-b border-gray-200`}>
                                         <Text style={tailwind`text-lg text-gray-700`}>{item.name}</Text>
                                     </Pressable>
