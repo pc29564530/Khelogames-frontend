@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAxiosInterceptor from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
-import {setGames, setGame, getTeams } from '../redux/actions/actions';
+import {setGames, setGame, getTeams, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 
 const Club = () => {
@@ -60,9 +60,9 @@ const Club = () => {
 
                 const item = response.data;
                 if (!item || item === null) {
-                    dispatch(getTeams([]));
+                    dispatch(getTeamsBySport([]));
                 } else {
-                    dispatch(getTeams(item.teams));
+                    dispatch(getTeamsBySport(item.teams));
                 }
             } catch (err) {
                 console.error("Unable to fetch all team or club: ", err);
