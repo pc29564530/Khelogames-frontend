@@ -4,7 +4,6 @@ import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
-import CreateFixtue from '../components/CreateFixture';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
 import { useSelector } from 'react-redux';
