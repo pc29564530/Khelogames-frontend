@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTeams, getTeams, getTeamsBySport } from '../redux/actions/actions';
 import { getTeamsByTournamentID } from '../services/tournamentServices';
+import { Alert } from 'react-native';
 
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
@@ -33,7 +34,6 @@ const TournamentTeam = ({ route }) => {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("Team By Sport: ", response.data)
             dispatch(getTeamsBySport(response.data || []));
         } catch (err) {
             console.error("unable to fetch the team by game: ", err);
@@ -71,11 +71,16 @@ const TournamentTeam = ({ route }) => {
                 }
             });
             const respItem = response.data || [];
-            console.log("Add Team: ", respItem)
             dispatch(setTeams(respItem))
             setIsModalVisible(false);
-        } catch (err) {
-            console.error("unable to add the tournament teams: ", err);
+        } catch (error) {
+            if (error.response) {
+                Alert.alert('Error', error.response.data.error);
+              } else if (error.request) {
+                Alert.alert('Error', 'No response from the server. Please try again.');
+              } else {
+                Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+              }
         }
     };
 

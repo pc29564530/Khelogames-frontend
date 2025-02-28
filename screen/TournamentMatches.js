@@ -54,19 +54,6 @@ const TournamentMatches = ({ route, navigation }) => {
                         <Text style={tailwind`text-lg text-black mr-2`}>Create Match</Text>
                     </Pressable>
                 </View>
-                {isModalVisible && (
-                    <Modal transparent={true} animationType='slide' visible={isModalVisible} onRequestClose={handleCloseFixtureModal}>
-                        <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                            <View style={tailwind`bg-white rounded-t-lg p-6 max-h-3/4`}>
-                                <CreateFixtue
-                                    tournament={tournament}
-                                    teams={teams}
-                                    handleCloseFixtureModal={handleCloseFixtureModal}
-                                />
-                            </View>
-                        </View>
-                    </Modal>
-                )}
                 {tournamentMatchBySport()}
             </ScrollView>
         </View>

@@ -19,13 +19,13 @@ const filePath = require('../assets/knockout.json')
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 const matchFormatPath = require('../assets/match_format.json');
-import { Alert } from 'react-native';
+
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateMatch = ({ route }) => {
-    const {tournament, teams} = route.params;
+    const {tournament, teams, handleCloseFixtureModal} = route.params;
     const [team1, setTeam1] = useState(null);
     const [team2, setTeam2] = useState(null);
     const [startTime, setStartTime] = useState(null);
@@ -82,8 +82,6 @@ const CreateMatch = ({ route }) => {
           knockout_level_id:  knockoutLevel,
           match_format: matchFormat
         };
-  
-        console.log("Fixture: ", fixture)
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture,{
           headers: {
@@ -92,14 +90,8 @@ const CreateMatch = ({ route }) => {
           },
         });
         } catch (error) {
-          if (error.response) {
-            Alert.alert('Error', error.response.data.error);
-          } else if (error.request) {
-            Alert.alert('Error', 'No response from the server. Please try again.');
-          } else {
-            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-          }
-        };
+          console.error("Failed to create match: ", err);
+        }
     };
 
     navigation.setOptions({
