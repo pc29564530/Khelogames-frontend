@@ -57,25 +57,6 @@ const TournamentStanding = ({route}) => {
         }
     };
 
-    const handleCreateStanding = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const groupData = {
-                group: selectedGroup.id,
-                tournament_id: tournament.tournament_id,
-                team_id: teamID
-            }
-            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentStanding`,groupData, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            } )
-            const item = response.data || [];
-        } catch (err) {
-            console.error("unable to add the group: ", err)
-        }
-    }
 
     const handleTeamToGroup = async (id) => {
         try {
@@ -134,7 +115,7 @@ const TournamentStanding = ({route}) => {
                 >
                 <View style={tailwind`bg-white p-5 rounded-t-3xl w-full items-center`}>
                     <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Create Standing</Text>
-                    {tournament?.stage === "group"?(
+                    {(tournament?.stage === "group" || tournament?.stage === "league") && (
                         <View style={tailwind`flex-row w-full justify-around`}>
                             <Pressable 
                                 onPress={() => setIsModalGroupVisible(true)} 
@@ -157,20 +138,8 @@ const TournamentStanding = ({route}) => {
                                 <Text style={tailwind`text-lg font-bold text-white`}>Teams</Text>
                             </Pressable>
                         </View>
-                        ):(
-                            <View style={tailwind`flex-row w-full justify-around`}>
-                                <Pressable 
-                                    onPress={() => {
-                                        setIsModalTeamVisible(true);
-                                    }}
-                                    style={[
-                                        tailwind`p-4 shadow-md rounded-lg w-32 items-center bg-green-300`,
-                                    ]}
-                                    >
-                                    <Text style={tailwind`text-lg font-bold text-white`}>Teams</Text>
-                                </Pressable>
-                            </View>
-                        )}
+                        )
+                        }
                 </View>
                 </Pressable>
             </Modal>

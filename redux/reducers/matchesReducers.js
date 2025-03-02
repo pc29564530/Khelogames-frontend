@@ -1,7 +1,8 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
-        matches: []
+        matches: [],
+        match: []
 }
 
 const  matchesReducers = (state=initialState, action) => {
@@ -17,6 +18,11 @@ const  matchesReducers = (state=initialState, action) => {
                 ...state,
                 matches: [...state.matches, action.payload],
             };
+        case actionTypes.GET_MATCH:
+            return {
+                ...state,
+                match: action.payload
+            }
         default:
             return state;
     }
