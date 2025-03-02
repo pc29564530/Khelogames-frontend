@@ -10,7 +10,7 @@ import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
 import { ScrollView } from 'react-native-gesture-handler';
 import {findTournamentByID} from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournamentBySportAction, getTournamentByIdAction } from '../redux/actions/actions';
+import { getTournamentBySportAction, getTournamentByIdAction, getMatch } from '../redux/actions/actions';
 import { getTournamentBySport } from '../services/tournamentServices';
 import { convertToISOString } from '../utils/FormattedDateTime';
 
@@ -53,6 +53,7 @@ const ClubFootballMatch = ({teamData}) => {
     };
 
     const handleMatchPage = (item) => {
+        dispatch(getMatch(item))
         navigation.navigate("FootballMatchPage", { item });
     };
 
