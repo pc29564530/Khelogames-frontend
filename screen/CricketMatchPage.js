@@ -135,18 +135,34 @@ const CricketMatchPage = ({ route }) => {
     }
 
     const getInningDescription = () => {
-        if(match.awayTeam.id === cricketToss?.tossWonTeam?.id && cricketToss?.tossDecision === "Batting" && match.awayScore.is_inning_completed===true){
-            return (
-                <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-sm`}>`{match.awayTeam.name} require {match.awayScore.score+1-match.homeScore.score} runs in {convertBallToOvers(50.0 - match.homeScore.overs)}`</Text>
-                </View>
-            )
-        } else {
-            return (
-                <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-sm`}>{match.homeTeam.name} require {match.homeScore.score+1-match.awayScore.score} runs in {convertBallToOvers(50.0 - match.awayScore.overs)}</Text>
-                </View>
-            )
+        if ((match?.status_code === "in_progress" || match?.status_code === "break") && (match?.homeScore !== null && match?.awayScore != null)) {
+            if(match.awayTeam.id === cricketToss?.tossWonTeam?.id && cricketToss?.tossDecision === "Batting" && match.awayScore?.is_inning_completed===true){
+                return (
+                    <View style={[tailwind`items-center -top-4`]}>
+                        <Text style={tailwind`text-white text-sm`}>`{match.homeTeam.name} require {match.awayScore.score+1-match.homeScore.score} runs in {convertBallToOvers(50.0 - match?.homeScore?.overs)}`</Text>
+                    </View>
+                )
+            } else {
+                return (
+                    <View style={[tailwind`items-center -top-4`]}>
+                        <Text style={tailwind`text-white text-sm`}>{match.awayTeam.name} require {match?.homeScore?.score+1-match?.awayScore?.score} runs in {convertBallToOvers(50.0 - match?.awayScore?.overs)}</Text>
+                    </View>
+                )
+            }
+        } else if (match?.status_code === "finished"){
+            if(match.awayTeam.id === cricketToss?.tossWonTeam?.id && cricketToss?.tossDecision === "Batting" && match.awayScore?.is_inning_completed===true){
+                return (
+                    <View style={[tailwind`items-center -top-4`]}>
+                        <Text style={tailwind`text-white text-sm`}>`{match.awayTeam.name} beat {match.homeTeam.name} by {match.awayScore.score+1-match.homeScore.score} runs`</Text>
+                    </View>
+                )
+            } else {
+                return (
+                    <View style={[tailwind`items-center -top-4`]}>
+                        <Text style={tailwind`text-white text-sm`}>{match.homeTeam.name} beat {match.awayTeam.name} by {10-match?.homeScore?.wickets} wickets</Text>
+                    </View>
+                )
+            }
         }
     }
 

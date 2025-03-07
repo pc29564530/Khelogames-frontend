@@ -9,7 +9,7 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange }) => {
+export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
     const handleCurrentScoreEvent = (item) => {
@@ -112,17 +112,20 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                 const data = {
                     match_id: match.id,
                     batting_team_id: batTeam,
-                    bowling_team_id: match.homeTeamID === batTeam?match.awayTeamID: match.homeTeamID,
-                    Batsman_id: currentBatsman.player.id,
-                    bowler_id: currentBowler.player.id,
+                    bowling_team_id: match.home_team_id === batTeam?match.away_team_id: match.home_team_id,
+                    Batsman_id: currentBatsman?.player.id,
+                    bowler_id: currentBowler?.player.id,
                     wicket_type: wicketType,
-                    fielder_id: null,
+                    fielder_id: wicketType === "Stamp" ? currentWicketKeeper?.id : null,
                     runs_scored: temp,
+                    bowl_type: addCurrentScoreEvent.length == 2 ? addCurrentScoreEvent[1] : null,
                     toggle_striker: isBatsmanStrikeChange
                 }
-                if (wicketType === "Run Out" || wicketType === "Caught") {
+
+                if (wicketType === 'Run Out' || wicketType === "Catch") {
                     data.fielder_id = selectedFielder.id
                 }
+
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.post(`${BASE_URL}/${game.name}/wickets`, data, {
                     headers: {
@@ -130,6 +133,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                         'Content-Type': 'application/json',
                     },
                 })
+                
                 dispatch(setBatsmanScore(response?.data?.out_batsman))
                 dispatch(setBatsmanScore(response?.data?.not_out_batsman))
                 dispatch(setBowlerScore(response?.data?.bowler))
@@ -195,7 +199,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                                     onPress={() => {handleWicketType(item)}}
                                     style={tailwind`rounded-lg shadow-md bg-gray-100 px-4 py-2 mr-2 mb-2`}
                                 >
-                                    <Text style={tailwind`text-gray-800`}>{item}</Text>
+                                    <Text style={tailwind`text-gray-800 text-lg`}>{item}</Text>
                                 </Pressable>
                             ))}
                         </View>

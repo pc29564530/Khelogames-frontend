@@ -14,7 +14,8 @@
       { "code": "RW", "name": "Right Winger" },
       { "code": "CM", "name": "Central Midfielder" },
       { "code": "DM", "name": "Defensive Midfielder" },
-      { "code": "AM", "name": "Attacking Midfielder" }
+      { "code": "AM", "name": "Attacking Midfielder" },
+      {"code": "Coach", "name": "Coach"}
     ]
   }
   
