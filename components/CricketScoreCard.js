@@ -186,18 +186,24 @@ const CricketScoreCard = () => {
     }, [batTeam]);
 
     const currentFielder = homeTeamID !== batTeam
-    ? homePlayer?.filter(
-        (player) => 
-            !bowling?.innings?.some(
-                (bowler) => bowler.is_current_bowler && bowler.player.id === player.id
-            )
+    ? homePlayer?.filter((player) => {
+        const currentField = !bowling?.innings?.some(
+            (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
+        )
+        return currentField;
+    }
+            
       ) || []
-    : awayPlayer?.filter(
-        (player) => 
-            !bowling?.innings?.some(
-                (bowler) => bowler.is_current_bowler && bowler.player.id === player.id
+    : awayPlayer?.filter((player) => 
+        {
+            const currentField = !bowling?.innings?.filter(
+                (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
             )
-      ) || [];
+            return currentField; 
+        } 
+     ) || [];
+
+      console.log("Fielder L ", currentFielder)
 
       const bowlerToBeBowled = batTeam?.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
@@ -397,9 +403,8 @@ const CricketScoreCard = () => {
                     >
                         <View style={tailwind`bg-white rounded-t-2xl p-5 h-[100%]`}>
                             <Text style={tailwind`text-lg font-semibold mb-3 text-center`}>Select Fielder</Text>
-                            
-                            <ScrollView style={tailwind`max-h-44`} showsVerticalScrollIndicator={false}>
-                                {currentFielder.map((item, index) => (
+                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
+                                {currentFielder?.map((item, index) => (
                                     <Pressable 
                                         key={index} 
                                         style={tailwind`p-3 border-b border-gray-200`}
@@ -408,7 +413,7 @@ const CricketScoreCard = () => {
                                             setIsFielder(false);
                                             setIsModalBatsmanStrikeChange(true);
                                         }}
-                                    >
+                                    >   
                                         <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.player_name}</Text>
                                     </Pressable>
                                 ))}

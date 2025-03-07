@@ -133,7 +133,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                         'Content-Type': 'application/json',
                     },
                 })
-                
+
                 dispatch(setBatsmanScore(response?.data?.out_batsman))
                 dispatch(setBatsmanScore(response?.data?.not_out_batsman))
                 dispatch(setBowlerScore(response?.data?.bowler))
@@ -197,7 +197,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                                 <Pressable 
                                     key={index} 
                                     onPress={() => {handleWicketType(item)}}
-                                    style={tailwind`rounded-lg shadow-md bg-gray-100 px-4 py-2 mr-2 mb-2`}
+                                    style={[tailwind`rounded-lg shadow-md px-4 py-2 mr-2 mb-2`, wicketType === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`]}
                                 >
                                     <Text style={tailwind`text-gray-800 text-lg`}>{item}</Text>
                                 </Pressable>
