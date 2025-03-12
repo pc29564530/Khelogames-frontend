@@ -138,9 +138,9 @@ const Matches = () => {
 
     const checkSportForMatchPage = (item, game) => {
         if (game.name==='football'){
-            navigation.navigate("FootballMatchPage",{matchID: item.id} )
+            navigation.navigate("FootballMatchPage",{item: item.id} )
         } else if(game.name === 'cricket') {
-            navigation.navigate("CricketMatchPage", {matchID: item.id})
+            navigation.navigate("CricketMatchPage", {item: item.id})
         }
     }
 
