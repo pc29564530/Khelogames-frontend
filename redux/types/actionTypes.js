@@ -95,3 +95,5 @@ export const SET_BAT_TEAM = 'SET_BAT_TEAM';
 
 export const GET_HOME_PLAYER = 'GET_HOME_PLAYER';
 export const GET_AWAY_PLAYER = 'GET_AWAY_PLAYER';
+
+export const SET_END_INNING = 'SET_END_INNING';

@@ -464,6 +464,13 @@ export const setInningScore = (inningScore) => {
     }
 }
 
+export const setEndInning = (inning) => {
+    return {
+        type: actionTypes.UPDATE_END_INNING,
+        payload: inning
+    }
+}
+
 export const addCricketWicketFallen = (wicket) => {
     return {
         type: actionTypes.ADD_CRICKET_WICKET_FALLEN,
