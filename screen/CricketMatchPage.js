@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
@@ -16,6 +16,7 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
+import { current } from '@reduxjs/toolkit';
 
 
 const CricketMatchPage = ({ route }) => {
@@ -39,6 +40,8 @@ const CricketMatchPage = ({ route }) => {
     const prevMatchRef = useRef(null);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss);
     const {height:sHeight, width: sWidth} = Dimensions.get('screen');
+    const [currentInning, setCurrentInning] = useState("inning1")
+    const [endInningVisible, setEndInningVisible] = useState(false);
 
     useEffect(() => {
         if(match) {
@@ -48,8 +51,9 @@ const CricketMatchPage = ({ route }) => {
 
     useEffect( () => {
         const fetchMatch = async () => {
-            const authToken = await AsyncStorage.getItem('AccessToken')
+            
             try {
+                const authToken = await AsyncStorage.getItem('AccessToken')
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
                     params: {
                         match_id: matchId.toString()
@@ -69,6 +73,8 @@ const CricketMatchPage = ({ route }) => {
     
         fetchMatch();
     }, [matchId, game.name, dispatch]);
+
+    // console.log("")
 
     useEffect(() => {
         const fetchPlayer = async () => {
@@ -115,7 +121,7 @@ const CricketMatchPage = ({ route }) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                inning: "inning1",
+                inning: currentInning,
                 match_id:match.id,
                 team_id:teamID.id
             }
@@ -163,6 +169,36 @@ const CricketMatchPage = ({ route }) => {
                     </View>
                 )
             }
+        }
+    }
+
+    const handleEndInning = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            console.log("Match Id: ", match.id)
+            console.log("team_id ", batTeam)
+            const data = {
+                match_id: match.id,
+                team_id: batTeam,
+                inning: currentInning
+            }
+
+            console.log("Data : ", data)
+
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
+                // params: {
+                //     "match_id": match.id,
+                //     "team_id": batTeam,
+                //     "inning": currentInning
+                // },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'applicaiton/json'
+                }
+            })
+            dispatch(setEndInning(response?.data))
+        } catch (err) {
+            console.error("Failed to end inning: ", err);
         }
     }
 
@@ -288,6 +324,9 @@ const CricketMatchPage = ({ route }) => {
                                 <TouchableOpacity onPress={() => setInningVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Set Inning</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                    <Text style={tailwind`text-xl`}>End Inning</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Delete Match</Text>
                                 </TouchableOpacity>
@@ -321,8 +360,8 @@ const CricketMatchPage = ({ route }) => {
                             <View style={tailwind`flex-row items-center mb-4`}>
                                 <Text style={tailwind`ml-2 text-lg text-blue-900`}>{match.awayTeam.name}</Text>
                                 <CheckBox
-                                    value={teamInning === "inning1"}
-                                    onValueChange={() => {setTeamInning("inning1"); updateInning(match.awayTeam); dispatch(setBatTeam(match.awayTeam.id))}}
+                                    value={teamInning === "inning2"}
+                                    onValueChange={() => {setTeamInning("inning2"); updateInning(match.awayTeam); dispatch(setBatTeam(match.awayTeam.id))}}
                                 />
                             </View>
                         </View>

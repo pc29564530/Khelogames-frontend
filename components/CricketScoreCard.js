@@ -203,8 +203,6 @@ const CricketScoreCard = () => {
         } 
      ) || [];
 
-      console.log("Fielder L ", currentFielder)
-
       const bowlerToBeBowled = batTeam?.id !== homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
       )) : homePlayer?.filter((player) => !bowling?.innings.some(
