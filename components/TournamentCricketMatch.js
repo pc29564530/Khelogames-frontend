@@ -90,7 +90,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 const MatchesData = (item, ind, dispatch) => {
     const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
-        navigation.navigate("CricketMatchPage", {item: item.matchId, dispatch})
+        navigation.navigate("CricketMatchPage", {item: item.matchId})
     }
     return (
         <Pressable key={ind} 

@@ -466,7 +466,7 @@ export const setInningScore = (inningScore) => {
 
 export const setEndInning = (inning) => {
     return {
-        type: actionTypes.UPDATE_END_INNING,
+        type: actionTypes.SET_END_INNING,
         payload: inning
     }
 }
@@ -503,13 +503,5 @@ export const getAwayPlayer = (player) => {
     return {
         type: actionTypes.GET_AWAY_PLAYER,
         payload: player
-    }
-}
-
-
-export const setUpdateEndInning = (inning) => {
-    return {
-        type: actionTypes.SET_END_INNING,
-        payload: inning
     }
 }

@@ -258,11 +258,6 @@ const CricketScoreCard = () => {
                     </View>
                     {batting?.innings?.length > 0 ? (
                         <View style={tailwind``}>
-                                {/* <View style={tailwind`bg-white mb-2 p-2 justify-between`}>
-                                    <Pressable style={tailwind`p-2 bg-white rounded-lg shadow-lg items-center`} onPress={() => setIsUpdateScoreCardModal(true)}>
-                                        <Text style={tailwind`text-xl`}>Update Score</Text>
-                                    </Pressable>
-                                </View> */}
                                 <View style={tailwind`bg-white mb-2 p-1`}>
                                     <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
                                 </View>
@@ -375,19 +370,6 @@ const CricketScoreCard = () => {
                         </Pressable>
                     </Modal>
                 )}
-
-                {/* {isUpdateScoreCardModal && (
-                    <Modal
-                        transparent={true}
-                        animationType="slide"
-                        visible={isUpdateScoreCardModal}
-                        onRequestClose={() => setIsUpdateScoreCardModal(false)}
-                    >
-                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsUpdateScoreCardModal(false)}>
-                            <UpdateCricketScoreCard setIsUpdateScoreCardModal={setIsUpdateScoreCardModal} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper}/>
-                        </Pressable>
-                    </Modal>
-                )} */}
                 {isFielder && (
                     <Modal
                     transparent

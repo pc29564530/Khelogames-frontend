@@ -45,7 +45,7 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                     awayScore: action.payload.team_id === state.match.awayTeam.id ? action.payload : state.match.awayScore
                 }
             };
-        case actionTypes.UPDATE_END_INNING:
+        case actionTypes.SET_END_INNING:
             return {
                 ...state,
                 match: {
