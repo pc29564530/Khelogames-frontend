@@ -505,3 +505,11 @@ export const getAwayPlayer = (player) => {
         payload: player
     }
 }
+
+
+export const setUpdateEndInning = (inning) => {
+    return {
+        type: actionTypes.SET_END_INNING,
+        payload: inning
+    }
+}

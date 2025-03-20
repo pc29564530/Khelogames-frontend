@@ -39,6 +39,7 @@ import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
+import CricketLiveScore from  '../screen/CricketLiveScore';
 
 const Stack = createStackNavigator();
 
@@ -173,6 +174,7 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
+                        <Stack.Screen name="Live Match" component={CricketLiveScore} />
                     </>
                 ):(
                     <>
