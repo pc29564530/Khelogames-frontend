@@ -16,7 +16,6 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
-import { current } from '@reduxjs/toolkit';
 
 
 const CricketMatchPage = ({ route }) => {
@@ -51,7 +50,6 @@ const CricketMatchPage = ({ route }) => {
 
     useEffect( () => {
         const fetchMatch = async () => {
-            
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken')
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
@@ -74,12 +72,10 @@ const CricketMatchPage = ({ route }) => {
         fetchMatch();
     }, [matchId, game.name, dispatch]);
 
-    // console.log("")
-
     useEffect(() => {
         const fetchPlayer = async () => {
-            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamID, game, axiosInstance);
-            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamID, game, axiosInstance);
+            const homePlayersResponse = await fetchTeamPlayers(BASE_URL,match.homeTeam.id, game, axiosInstance);
+            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL,match.awayTeam.id, game, axiosInstance);
             dispatch(getHomePlayer(homePlayersResponse))
             dispatch(getAwayPlayer(awayPlayersResponse))
         }
@@ -172,36 +168,6 @@ const CricketMatchPage = ({ route }) => {
         }
     }
 
-    const handleEndInning = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem("AccessToken")
-            console.log("Match Id: ", match.id)
-            console.log("team_id ", batTeam)
-            const data = {
-                match_id: match.id,
-                team_id: batTeam,
-                inning: currentInning
-            }
-
-            console.log("Data : ", data)
-
-            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
-                // params: {
-                //     "match_id": match.id,
-                //     "team_id": batTeam,
-                //     "inning": currentInning
-                // },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'applicaiton/json'
-                }
-            })
-            dispatch(setEndInning(response?.data))
-        } catch (err) {
-            console.error("Failed to end inning: ", err);
-        }
-    }
-
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -222,7 +188,7 @@ const CricketMatchPage = ({ route }) => {
                         </Pressable>
                     </View>
                     <View style={[tailwind`items-center -top-4`]}>
-                        <Text style={tailwind`text-white text-xl font-semibold`}>{match.status_code?.charAt(0)?.toUpperCase()+match?.status_code?.slice(1)}</Text>
+                        <Text style={tailwind`text-white text-xl font-semibold`}>{match?.status_code?.charAt(0)?.toUpperCase()+match?.status_code?.slice(1)}</Text>
                     </View>
                     <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2  bg-red-400 -top-4`]}>
                         <View style={tailwind`items-center`}>
@@ -321,17 +287,20 @@ const CricketMatchPage = ({ route }) => {
                                 <TouchableOpacity onPress={() => setStatusVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Edit Match</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setInningVisible(true)}>
+                                {/* <TouchableOpacity onPress={() => setInningVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Set Inning</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => handleEndInning()}>
                                     <Text style={tailwind`text-xl`}>End Inning</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Delete Match</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Share</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {match.status_code !== "finished" && navigation.navigate('Live Match')}}>
+                                    <Text style={tailwind`text-xl`}>Edit Score</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
