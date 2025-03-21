@@ -56,7 +56,6 @@ const CreateClub = () => {
                 }
             );
             const item = response.data || [];
-            console.log("Team Line no 60: ", item)
             dispatch(setTeams(item));
             navigation.navigate('Club');
         } catch (err) {

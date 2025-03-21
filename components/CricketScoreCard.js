@@ -50,11 +50,22 @@ const CricketScoreCard = () => {
     const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState([]);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
-    const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings);   
+    const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings); 
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
+    const [currentScoreCard, setCurrentScoreCard] = useState() 
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
     const runsCount = [0, 1, 2, 3, 4, 5, 6, 7];
 
+    useEffect(() => {
+        if (cricketToss) {
+            if (cricketToss.tossDecision === "Batting") {
+                setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
+            } else {
+                setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? awayTeamID : homeTeamID);
+            }
+        }
+    }, [cricketToss, homeTeamID, awayTeamID]);
 
     useEffect(() => {
         if(match) {
@@ -70,7 +81,7 @@ const CricketScoreCard = () => {
                 setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
-                    params: { match_id: match.id.toString(), team_id: homeTeamID===batTeam?homeTeamID.toString(): awayTeamID.toString() },
+                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -84,14 +95,14 @@ const CricketScoreCard = () => {
             }
         };
         fetchBatting();
-    }, [batTeam]);
+    }, [currentScoreCard]);
 
     useEffect(() => {
         const fetchBowling = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_id: match.id, team_id: awayTeamID!==batTeam?awayTeamID: homeTeamID },
+                    params: { match_id: match.id, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -103,7 +114,7 @@ const CricketScoreCard = () => {
             }
         };
         fetchBowling();
-    }, [batTeam]);
+    }, [currentScoreCard]);
 
     useEffect(() => {
         const loadPlayers = async () => {
@@ -119,13 +130,13 @@ const CricketScoreCard = () => {
     useEffect(() => {
         const handleYetToBat = () => {
             let notBatted = [];
-            if (batTeam === homeTeamID){
+            if (currentScoreCard === homeTeamID){
                 notBatted = homePlayer.filter((item) => !batting?.innings?.some((batter) => item.id !== batter.id) )
             }
             setYetToBat(notBatted);
         }
         handleYetToBat();
-    }, []);
+    }, [currentScoreCard]);
 
     const handleAddNextBatsman = async () => {
         try{
@@ -163,13 +174,13 @@ const CricketScoreCard = () => {
             try {
                 const data = {
                     match_id: match.matchId,
-                    team_id: batTeam,
+                    team_id: currentScoreCard,
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
                     params: {
                         "match_id": match.id.toString(),
-                        "team_id": batTeam.toString()
+                        "team_id": currentScoreCard.toString()
                     },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
@@ -183,7 +194,7 @@ const CricketScoreCard = () => {
             }
         }
         fetchTeamWickets()
-    }, [batTeam]);
+    }, [currentScoreCard]);
 
     const currentFielder = homeTeamID !== batTeam
     ? homePlayer?.filter((player) => {
@@ -237,6 +248,10 @@ const CricketScoreCard = () => {
         }
       }
 
+      const toggleScoreCard = (teamID) => {
+        setCurrentScoreCard(teamID)
+      }
+
       if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -249,10 +264,10 @@ const CricketScoreCard = () => {
             <View style={tailwind`flex-1 bg-white`}>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => dispatch(setBatTeam(homeTeamID))} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === batTeam ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                        <Pressable onPress={() => {toggleScoreCard(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                         </Pressable>
-                        <Pressable onPress={() => dispatch(setBatTeam(awayTeamID))} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===batTeam?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Pressable onPress={() => toggleScoreCard(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>
