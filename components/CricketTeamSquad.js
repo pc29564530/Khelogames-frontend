@@ -4,67 +4,58 @@ import {Text, View, ScrollView, Pressable, Image} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { getTeamPlayers } from '../redux/actions/actions';
+import { current } from '@reduxjs/toolkit';
 const positions = require('../assets/position.json');
 
 const CricketTeamSquad = ({route}) => {
-    const [homePlayer, setHomePlayer] = useState([]);
-    const [awayPlayer, setAwayPlayer] = useState([]);
-    const [team1ModalVisible, setTeam1ModalVisible] = useState(true);
-    const [team2ModalVisible, setTeam2ModalVisible] = useState(false);
-    const axiosInstance = useAxiosInterceptor();    
+    const dispatch = useDispatch();
+    const axiosInstance = useAxiosInterceptor(); 
+    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
+    const players = useSelector(state => state.players.players)
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const match = route.params.match;
     const game = useSelector((state) => state.sportReducers.game);
 
-    const handleToggle = (teamId) => {
-        if (match.homeTeam.id === teamId) {
-            setTeam1ModalVisible(true);
-            setTeam2ModalVisible(false);
-        } else {
-            setTeam1ModalVisible(false);
-            setTeam2ModalVisible(true);
-        }
-    };
+    const homeTeamID = match?.homeTeam?.id;
+    const awayTeamID = match?.awayTeam?.id;
 
     useEffect(() => {
-        const fetchHomePlayer = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const homeResponse = await axiosInstance.get(`${BASE_URL}/Cricket/getTeamsMemberFunc`, {
-                    params:{
-                        team_id: match.homeTeam.id.toString()
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setHomePlayer(homeResponse.data || []);
-            } catch (err) {
-                console.error("unable to fetch the team player: ", err);
+        if (cricketToss) {
+            if (cricketToss.tossDecision === "Batting") {
+                setCurrentTeamPlayer(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
+            } else {
+                setCurrentTeamPlayer(cricketToss.tossWonTeam.id === awayTeamID ? homeTeamID : awayTeamID);
             }
         }
-        const fetchAwayPlayer = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const awayResponse = await axiosInstance.get(`${BASE_URL}/Cricket/getTeamsMemberFunc`, {
-                    params:{
-                        team_id: match.awayTeam.id.toString()
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setAwayPlayer(awayResponse.data || []);
-            } catch (err) {
-                console.error("unable to fetch the team player: ", err);
-            }
-        }
-        fetchHomePlayer();
-        fetchAwayPlayer();
-    }, []);
+    }, [cricketToss, homeTeamID, awayTeamID]);
 
+    const toggleTeam = (teamID) => {
+        setCurrentTeamPlayer(teamID)
+    }
+
+    useEffect(() => {
+        const fetchPlayers = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
+                    params:{
+                        team_id: currentTeamPlayer.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                dispatch(getTeamPlayers(response.data || []));
+            } catch (err) {
+                console.error("unable to fetch the team player: ", err);
+            }
+        }
+        fetchPlayers();
+    }, [currentTeamPlayer]);
 
     const selectPosition = (item) => {
         var pos;
@@ -77,7 +68,7 @@ const CricketTeamSquad = ({route}) => {
         return pos;
     }
 
-    const renderPlayers = (players) => {
+    const renderPlayers = () => {
         return (
             <View style={tailwind`flex-1`}>
                 {players.map((item, index) => (
@@ -99,37 +90,16 @@ const CricketTeamSquad = ({route}) => {
 
     return (
         <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
-            <View style={tailwind`flex-row justify-evenly items-center mb-6 gap-2 `}>
-                <Pressable 
-                    style={[
-                        tailwind`flex-1 p-2 rounded-lg items-center rounded-lg shadow-lg`,
-                        team1ModalVisible ? tailwind`bg-red-400` : tailwind`bg-white`
-                    ]}
-                    onPress={() => handleToggle(match.homeTeam.id)}
-                > 
-                    <Text style={tailwind`text-xl font-bold text-gray`}>{match?.homeTeam?.name}</Text>
+            <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
+                <Pressable onPress={() => {toggleTeam(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                    <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable 
-                    style={[
-                        tailwind`flex-1 p-2 rounded-lg items-center rounded-lg shadow-lg`,
-                        team2ModalVisible ? tailwind`bg-red-400` : tailwind`bg-white`
-                    ]}
-                    onPress={() => handleToggle(match.awayTeam.id)}
-                >
-                    <Text style={tailwind`text-xl font-bold text-gray`}>{match?.awayTeam?.name}</Text>
+                <Pressable onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                    <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                 </Pressable>
             </View>
             <View style={tailwind`flex-row justify-center items-start`}>
-                {team1ModalVisible && (
-                    <View style={tailwind`flex-1`}>
-                        {renderPlayers(homePlayer)}
-                    </View>
-                )}
-                {team2ModalVisible && (
-                    <View style={tailwind`flex-1`}>
-                        {renderPlayers(awayPlayer)}
-                    </View>
-                )}
+                    {renderPlayers()}
             </View>
         </ScrollView>
     )
