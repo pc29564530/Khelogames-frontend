@@ -11,7 +11,6 @@ import { fetchTeamPlayers } from "../services/teamServices";
 import CricketBattingScorecard from "./CricketBattingScorecard";
 import CricketBowlingScorecard from "./CricketBowlingScorecard";
 import CricketWicketCard from "./CricketWicketCard";
-import { UpdateCricketScoreCard } from "./UpdateCricketScoreCard";
 import { useDispatch, useSelector } from "react-redux";
 import SetCurrentBowler from "./SetCurrentBowler";
 import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen, setBatTeam, getAwayPlayer, getHomePlayer } from "../redux/actions/actions";
@@ -41,7 +40,6 @@ const CricketScoreCard = () => {
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isWicketModalVisible,setIsWicketModalVisible] = useState(false);
-    const [isUpdateScoreCardModal, setIsUpdateScoreCardModal] = useState(false);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
     const [isFielder, setIsFielder] = useState(false);
     const [selectedFielder, setSelectedFielder] = useState();
@@ -95,7 +93,7 @@ const CricketScoreCard = () => {
             }
         };
         fetchBatting();
-    }, [currentScoreCard]);
+    }, [currentScoreCard, match.id]);
 
     useEffect(() => {
         const fetchBowling = async () => {
@@ -114,7 +112,7 @@ const CricketScoreCard = () => {
             }
         };
         fetchBowling();
-    }, [currentScoreCard]);
+    }, [currentScoreCard, match.id]);
 
     useEffect(() => {
         const loadPlayers = async () => {
@@ -136,7 +134,7 @@ const CricketScoreCard = () => {
             setYetToBat(notBatted);
         }
         handleYetToBat();
-    }, [currentScoreCard]);
+    }, [currentScoreCard, match.id]);
 
     const handleAddNextBatsman = async () => {
         try{
@@ -194,7 +192,7 @@ const CricketScoreCard = () => {
             }
         }
         fetchTeamWickets()
-    }, [currentScoreCard]);
+    }, [currentScoreCard, match.id]);
 
     const currentFielder = homeTeamID !== batTeam
     ? homePlayer?.filter((player) => {
@@ -222,7 +220,7 @@ const CricketScoreCard = () => {
 
     const existingBowler = (batTeam?.id !== homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings?.some((bowler) => bowler.player.id === player.id)
-      );
+    );
       
 
 

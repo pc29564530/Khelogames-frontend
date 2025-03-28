@@ -7,9 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen } from '../redux/actions/actions';
 import { shallowEqual, useSelector, dispatch } from 'react-redux';
+import { Update } from '@mui/icons-material';
 
 
-export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
+export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
     const handleCurrentScoreEvent = (item) => {
@@ -179,8 +180,8 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
 
     return (
         <View>
-            <View style={tailwind`p-10 bg-white rounded-xl`}>
-                <Text style={tailwind`text-lg font-bold`}>Event</Text>
+            <View style={tailwind`p-4 bg-white rounded-xl`}>
+                <Text style={tailwind`text-lg font-bold`}>Update Score</Text>
                 <View style={tailwind`flex-row justify-between py-2`}>
                     {currentScoreEvent.map((item, index) => (
                         <Pressable key={index} onPress={() => { handleCurrentScoreEvent(item)}} style={tailwind`flex-row rounded-lg shadow-md bg-white p-2`}>
@@ -209,7 +210,7 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
                 <View style={tailwind`flex-row justify-between py-2`}>
                     <Text style={tailwind`text-lg font-bold`}>Runs/Ball</Text>
                     {runsCount.map((item, index) => (
-                        <Pressable onPress={() => {handleScorecard(item); setIsUpdateScoreCardModal(false)}} style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
+                        <Pressable onPress={() => {handleScorecard(item)}} style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
                             <Text>{item}</Text>
                         </Pressable>
                     ))}
@@ -219,3 +220,5 @@ export const UpdateCricketScoreCard  = ({setIsUpdateScoreCardModal, currentScore
         </View>
     );
 }
+
+export default UpdateCricketScoreCard;
