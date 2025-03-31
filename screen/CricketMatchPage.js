@@ -73,6 +73,21 @@ const CricketMatchPage = ({ route }) => {
     }, [matchId, game.name, dispatch]);
 
     useEffect(() => {
+        if(!match || !cricketToss) {
+            return;
+        }
+        setLoading(false);
+        const tossWonTeamId = cricketToss.tossWonTeam?.id;
+        const isBatting = cricketToss.tossDecision === "Batting";
+
+        const batTeamId = isBatting
+            ? (tossWonTeamId === match.home_team_id ? match.home_team_id : match.away_team_id)
+            : (tossWonTeamId !== match.home_team_id ? match.home_team_id : match.away_team_id);
+
+        dispatch(setBatTeam(batTeamId));
+    }, [match, cricketToss])
+
+    useEffect(() => {
         const fetchPlayer = async () => {
             const homePlayersResponse = await fetchTeamPlayers(BASE_URL,match.homeTeam.id, game, axiosInstance);
             const awayPlayersResponse = await fetchTeamPlayers(BASE_URL,match.awayTeam.id, game, axiosInstance);
@@ -132,7 +147,7 @@ const CricketMatchPage = ({ route }) => {
             }
             
         } catch (err) {
-            console.log("failed to update inning: ", err)
+            console.error("failed to update inning: ", err)
         }
     }
 

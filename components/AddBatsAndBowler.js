@@ -4,6 +4,7 @@ import tailwind from "twrnc";
 import { AddCricketBowler } from "./AddCricketBowler";
 import { AddCricketBatsman } from "./AddCricketBatsman";
 import { useSelector, useDispatch } from 'react-redux';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
     const [isBowlTeamPlayerModalVisible, setIsBowlTeamPlayerModalVisible] = useState(false);
@@ -20,21 +21,41 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
+    // console.log("HomePlayer: ", homePlayer)
+    // console.log("AwayPlayer: ", awayPlayer)
+    // console.log("Bat Team: ", batTeam)
+
+    // console.log("Bowler To be Bowled: ", bowlerToBeBowled)
+
     return (
-        <Pressable onPress={() => setAddBatsmanAndBowlerModalVisible(false)} style={tailwind`py-2`}>
-            <View style={tailwind`flex-row items-start justify-between mb-4`}>
-                <Pressable onPress={() => {setIsBatTeamPlayerModalVisible(true)}} style={tailwind`rounded-md shadow-md p-8 items-start`}>
-                    <Text style={tailwind`text-black text-lg`}>Striker</Text>
+        <View style={tailwind``}>
+            <View style={tailwind` mb-4 bg-white p-4`}>
+                <View style={tailwind`p-2 items-start`}>
+                    <Text style={tailwind`text-lg`}>Select Batsman Pair</Text>
+                </View>
+                <Pressable onPress={() => {setIsBatTeamPlayerModalVisible(true)}} style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
+                    <Text style={tailwind`text-black text-lg`}>Select Striker</Text>
+                    <AntDesign name="down" size={24} />
                 </Pressable>
-                <Pressable onPress={() => {setIsBatTeamPlayerModalVisible(true)}}style={tailwind`rounded-md shadow-md p-8 items-start`}>
-                    <Text style={tailwind`text-black text-lg`}>Non-Striker</Text>
+                <Pressable onPress={() => {setIsBatTeamPlayerModalVisible(true)}} style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
+                    <Text style={tailwind`text-black text-lg`}>Select Non-Striker</Text>
+                    <AntDesign name="down" size={24} />
                 </Pressable>
             </View>
-            <View style={tailwind`flex-row items-start mb-4`}>
-                <Pressable onPress={() => {setIsBowlTeamPlayerModalVisible(true)}} style={tailwind`rounded-md shadow-md p-8 items-center`}>
-                    <Text style={tailwind`text-black text-lg`}>Bowler</Text>
+            <View style={tailwind`mb-4 bg-white p-2`}>
+                <View style={tailwind`p-2 items-start`}>
+                    <Text style={tailwind`text-lg`}>Select Bowler</Text>
+                </View>
+                <Pressable onPress={() => {setIsBowlTeamPlayerModalVisible(true)}} style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
+                    <Text style={tailwind`text-black text-lg`}>Select Bowler</Text>
+                    <AntDesign name="down" size={24} />
                 </Pressable>
             </View>
+            {/* <View style={tailwind`mb-2 bg-white p-2`}>
+                <Pressable onPress={() => }style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
+                    <Text style={tailwind`text-lg`}>Start Inning</Text>
+                </Pressable>
+            </View> */}
             {isBatTeamPlayerModalVisible && (
                 <Modal
                     transparent={true}
@@ -44,7 +65,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                 >
                     <Pressable onPress={() => setIsBatTeamPlayerModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                            <AddCricketBatsman match={match} batTeam={batTeam} teamPlayer={batTeam === match.homeTeam.id ? homePlayer : awayPlayer} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
                         </View>
                     </Pressable>
                 </Modal>
@@ -64,7 +85,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                 </Modal>
             )}
             
-        </Pressable>
+        </View>
     ); 
 }
 

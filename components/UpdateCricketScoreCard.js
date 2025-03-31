@@ -6,8 +6,7 @@ import useAxiosInterceptor from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen } from '../redux/actions/actions';
-import { shallowEqual, useSelector, dispatch } from 'react-redux';
-import { Update } from '@mui/icons-material';
+import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 
 export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
@@ -145,26 +144,6 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
             }
         }
     }
-
-    useEffect(() => {
-        const fetchMatch = async () => {
-            try {
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
-                    params: {
-                        match_id: match.id.toString()
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                dispatch(getMatch(response.data || null));
-            } catch(err) {
-                console.error()
-            }
-        }
-        fetchMatch();
-    },[])
 
     const handleWicketType = (item) => {
         if(item === "Run Out"){
