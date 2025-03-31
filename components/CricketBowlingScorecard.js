@@ -4,7 +4,6 @@ import tailwind from 'twrnc';
 
 const CricketBowlingScorecard = ({
   bowling,
-  setIsModalBowlingVisible,
   convertBallToOvers,
 }) => {
   return (
@@ -44,16 +43,6 @@ const CricketBowlingScorecard = ({
           </View>
         </View>
       ))}
-
-      {/* Add Next Bowler Button */}
-      <View style={tailwind`p-4`}>
-        <Pressable
-          onPress={() => setIsModalBowlingVisible(true)}
-          style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}
-        >
-          <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Bowler</Text>
-        </Pressable>
-      </View>
     </View>
   );
 };

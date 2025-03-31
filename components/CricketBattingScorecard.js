@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useSelector } from 'react-redux';
 
-const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
+const CricketBattingScorecard = ({ batting }) => {
     return (
         <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
             <View style={tailwind`flex-row justify-between px-6 py-2`}>
@@ -50,12 +50,6 @@ const CricketBattingScorecard = ({ batting, setIsModalBattingVisible }) => {
                     </View>
                 </View>
             ))}
-            {/* Add Next Batsman Button */}
-            <View style={tailwind`p-4`}>
-                <Pressable onPress={() => { setIsModalBattingVisible(true) }} style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}>
-                    <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Batsman</Text>
-                </Pressable>
-            </View>
         </View>
     );
 };
