@@ -10,7 +10,6 @@ import CricketBattingScorecard from "./CricketBattingScorecard";
 import CricketBowlingScorecard from "./CricketBowlingScorecard";
 import CricketWicketCard from "./CricketWicketCard";
 import { useDispatch, useSelector } from "react-redux";
-import UpdateCricketScoreCard from "./UpdateCricketScoreCard";
 import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen, setBatTeam, getAwayPlayer, getHomePlayer } from "../redux/actions/actions";
 
 
@@ -30,12 +29,10 @@ const CricketScoreCard = () => {
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const homePlayer = useSelector((state) => state.teams.homePlayer);
     const awayPlayer = useSelector((state) => state.teams.awayPlayer);
-    const [isUpdateScoreCardModal, setIsUpdateScoreCardModal] = useState(false);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
-    const [isFielder, setIsFielder] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [currentScoreCard, setCurrentScoreCard] = useState() 
@@ -180,24 +177,6 @@ const CricketScoreCard = () => {
         }
         fetchTeamWickets()
     }, [currentScoreCard, match.id]);
-
-    const currentFielder = homeTeamID !== batTeam
-    ? homePlayer?.filter((player) => {
-        const currentField = !bowling?.innings?.some(
-            (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
-        )
-        return currentField;
-    }
-            
-      ) || []
-    : awayPlayer?.filter((player) => 
-        {
-            const currentField = !bowling?.innings?.filter(
-                (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
-            )
-            return currentField; 
-        } 
-     ) || [];
     
     const toggleScoreCard = (teamID) => {
         setCurrentScoreCard(teamID)
@@ -213,11 +192,6 @@ const CricketScoreCard = () => {
     } else {
         return (
             <View style={tailwind`flex-1 bg-white`}>
-                <View style={tailwind`p-4`}>
-                    <Pressable onPress={() => setIsUpdateScoreCardModal(true)}>
-                        <Text>Edit Score</Text>
-                    </Pressable>
-                </View>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
                         <Pressable onPress={() => {toggleScoreCard(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
@@ -230,10 +204,10 @@ const CricketScoreCard = () => {
                     {batting?.innings?.length > 0 ? (
                         <View style={tailwind``}>
                                 <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketBattingScorecard batting={batting} setIsModalBattingVisible={setIsModalBattingVisible}/>
+                                    <CricketBattingScorecard batting={batting} />
                                 </View>
                                 <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketBowlingScorecard bowling={bowling} setIsModalBowlingVisible={setIsModalBowlingVisible}  convertBallToOvers={convertBallToOvers} />
+                                    <CricketBowlingScorecard bowling={bowling}  convertBallToOvers={convertBallToOvers} />
                                 </View>
                                 {yetToBat.length > 0 && (
                                     <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
@@ -279,39 +253,7 @@ const CricketScoreCard = () => {
                             ))}
                             </View>
                         </Pressable>
-                    </Modal> 
-                )}
-                {isFielder && (
-                    <Modal
-                    transparent
-                    visible={isFielder}
-                    animationType="fade"
-                    onRequestClose={() => setIsFielder(false)}
-                >
-                    <Pressable 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
-                        onPress={() => setIsFielder(false)}
-                    >
-                        <View style={tailwind`bg-white rounded-t-2xl p-5 h-[100%]`}>
-                            <Text style={tailwind`text-lg font-semibold mb-3 text-center`}>Select Fielder</Text>
-                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
-                                {currentFielder?.map((item, index) => (
-                                    <Pressable 
-                                        key={index} 
-                                        style={tailwind`p-3 border-b border-gray-200`}
-                                        onPress={() => {
-                                            setSelectedFielder(item);
-                                            setIsFielder(false);
-                                            setIsModalBatsmanStrikeChange(true);
-                                        }}
-                                    >   
-                                        <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.player_name}</Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    </Pressable>
-                </Modal>
+                    </Modal>
                 )}
             </View>
         );

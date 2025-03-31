@@ -65,6 +65,7 @@ const CricketLive = ({route}) => {
     const [addBatsmanModalVisible, setAddBatsmanModalVisible] = useState(false);
     const [addBowlerModalVisible, setAddBowlerModalVisible] = useState(false);
     const [isStartNewInningModalVisible, setIsStartNewInningModalVisible] = useState(false);
+    const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
@@ -308,6 +309,23 @@ const CricketLive = ({route}) => {
 
     const currentBowling = bowling?.innings.filter((item) => item.is_current_bowler === true );
     const currentBatting = batting?.innings.filter((item) => (item.is_currently_batting === true));
+    const currentFielder = homeTeamID !== batTeam
+    ? homePlayer?.filter((player) => {
+        const currentField = !bowling?.innings?.some(
+            (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
+        )
+        return currentField;
+    }
+            
+      ) || []
+    : awayPlayer?.filter((player) => 
+        {
+            const currentField = !bowling?.innings?.filter(
+                (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
+            )
+            return currentField; 
+        } 
+     ) || [];
 
     const handleSelectBowler = () => {
         if (selectedBowlerType === "existingBowler"){
@@ -351,7 +369,7 @@ const CricketLive = ({route}) => {
         );
     } else {
         return (
-            <View>
+            <ScrollView>
                 <View>
                     <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                         <View style={tailwind`flex-row items-start justify-between ml-2 mr-2 p-2`}>
@@ -521,7 +539,64 @@ const CricketLive = ({route}) => {
                         </Pressable>
                     </Modal>
                 )}
-            </View>
+                {isModalBatsmanStrikerChange && (
+                    <Modal
+                        transparent={true}
+                        visible={isModalBatsmanStrikerChange}
+                        animationType="slide"
+                        onRequestClose={() => setIsModalBatsmanStrikeChange(false)}
+                    >
+                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsModalBatsmanStrikeChange(false)}>
+                            <View style={tailwind`p-10 bg-white rounded-xl`}>
+                                <View>
+                                    <Text>Is Strike Change</Text>
+                                </View>
+                                <View style={tailwind`flex-row justify-between`}>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4`} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
+                                        <Text style={tailwind`text-lg`}>true</Text>
+                                    </Pressable>
+                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4 `}  onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
+                                        <Text style={tailwind`text-lg`}>false</Text>
+                                    </Pressable>
+                                </View>
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
+                {/* Select Fielder */}
+                {isFielder && (
+                    <Modal
+                    transparent
+                    visible={isFielder}
+                    animationType="fade"
+                    onRequestClose={() => setIsFielder(false)}
+                >
+                    <Pressable 
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
+                        onPress={() => setIsFielder(false)}
+                    >
+                        <View style={tailwind`bg-white rounded-t-2xl p-5 h-[100%]`}>
+                            <Text style={tailwind`text-lg font-semibold mb-3 text-center`}>Select Fielder</Text>
+                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
+                                {currentFielder?.map((item, index) => (
+                                    <Pressable 
+                                        key={index} 
+                                        style={tailwind`p-3 border-b border-gray-200`}
+                                        onPress={() => {
+                                            setSelectedFielder(item);
+                                            setIsFielder(false);
+                                            setIsModalBatsmanStrikeChange(true);
+                                        }}
+                                    >   
+                                        <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.player_name}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+                )}
+            </ScrollView>
         );
         }
     }
