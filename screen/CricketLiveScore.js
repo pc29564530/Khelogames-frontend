@@ -61,7 +61,6 @@ const CricketLive = ({route}) => {
     const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings);   
     const [isWicketModalVisible, setIsWicketModalVisible] = useState(false);
     const [isBatsmanStrikerChange, setIsBatsmanStrikerChange] = useState(false);
-    const [currentWicketKeeper, setCurrentWicketKeeper] = useState();
     const [isCurrentInningEnded, setIsCurrentInningEnded] = useState(false);
     const [addBatsmanModalVisible, setAddBatsmanModalVisible] = useState(false);
     const [addBowlerModalVisible, setAddBowlerModalVisible] = useState(false);
@@ -330,6 +329,9 @@ const CricketLive = ({route}) => {
         }
       }
 
+    const currentWicketKeeper = batTeam !== homeTeamID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
+
+
     const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     )) : homePlayer?.filter((player) => !bowling?.innings.some(
@@ -339,8 +341,6 @@ const CricketLive = ({route}) => {
     const existingBowler = (batTeam?.id === homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings?.some((bowler) => bowler.player.id === player.id)
     );
-
-    // console.log("Existing Bowler : ", bowlerToBeBowled)
 
     if (isLoading) {
         return (
