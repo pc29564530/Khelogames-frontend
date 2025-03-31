@@ -4,18 +4,17 @@ import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
-import { useSelector } from "react-redux";
 
 
-export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled}) => {
+export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled,  currentBowler}) => {
     const axiosInstance = useAxiosInterceptor();
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
                 match_id: match.id,
-                team_id: batTeam !== match.awayTeam.id ? match.awayTeam.id : match.homeTeam.id,
-                bowler_id: item.id,
-                prev_bowler_id: bowling?.innings?.length > 0 ? currentBowler.player.id : null,
+                team_id: batTeam !== match.awayTeam?.id ? match.awayTeam?.id : match.homeTeam?.id,
+                bowler_id: item?.id,
+                prev_bowler_id: bowling?.innings?.length > 0 ? currentBowler[0]?.bowler_id : null,
                 ball: 0,
                 runs: 0,
                 wickets: 0,

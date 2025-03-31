@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {View, Text,Pressable,Modal, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {View, Text,Pressable,Modal, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -13,6 +13,9 @@ import { setEndInning, setBatsmanScore, setBowlerScore, addBowler, getHomePlayer
 import { useNavigation } from '@react-navigation/native';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { CricketLiveMatchModal } from '../Modals/CricketLiveMatch';
+import { AddCricketBatsman } from '../components/AddCricketBatsman';
+import { AddCricketBowler } from '../components/AddCricketBowler';
+import SetCurrentBowler from '../components/SetCurrentBowler';
 
 const CricketLive = ({route}) => {
     const navigation = useNavigation()
@@ -39,6 +42,8 @@ const CricketLive = ({route}) => {
     const homePlayer = inningData.homePlayer;
     const awayPlayer = inningData.awayPlayer;
     const cricketToss = inningData.cricketToss;
+    const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
+    const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [currentLiveScore, setCurrentLiveScore] = useState(false);
     const [menuVisible, setMenuVisible] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
@@ -51,6 +56,7 @@ const CricketLive = ({route}) => {
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
     const [isFielder, setIsFielder] = useState(false);
     const [selectedFielder, setSelectedFielder] = useState();
+    const [selectedBowlerType, setSelectedBowlerType] = useState("");
     const [wicketsData, setWicketsData] = useState([]);
     const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings);   
     const [isWicketModalVisible, setIsWicketModalVisible] = useState(false);
@@ -203,19 +209,6 @@ const CricketLive = ({route}) => {
             fetchAwayPlayers();
         }, [match.id]);
 
-        //Automate this process
-        //  const handleSelectBowler = () => {
-        //     if (selectedBowlerType === "existingBowler"){
-        //         return (
-        //             <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowler}/>
-        //         )
-        //     } else {
-        //         return (
-        //             <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowler} bowling={bowling}/>
-        //         )
-        //     }
-        //   }
-
         const handleMatchInning = () => {
             if(match?.innings?.length == 2){
                 return (
@@ -317,6 +310,38 @@ const CricketLive = ({route}) => {
     const currentBowling = bowling?.innings.filter((item) => item.is_current_bowler === true );
     const currentBatting = batting?.innings.filter((item) => (item.is_currently_batting === true));
 
+    const handleSelectBowler = () => {
+        if (selectedBowlerType === "existingBowler"){
+            return (
+                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowling}/>
+            )
+        } else {
+            return (
+                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowling} bowling={bowling}/>
+            )
+        }
+    }
+
+    const handleToggle = (item) => {
+        if(item==="newBowler") {
+           setSelectNextBowler(bowlerToBeBowled);
+        } else {
+           setSelectNextBowler(existingBowler);
+        }
+      }
+
+    const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
+        (bowler) => bowler.bowling_status && bowler.player.id === player.id
+    )) : homePlayer?.filter((player) => !bowling?.innings.some(
+        (bowler) => bowler.bowling_status && bowler.player.id === player.id
+    ));
+
+    const existingBowler = (batTeam?.id === homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
+        bowling?.innings?.some((bowler) => bowler.player.id === player.id)
+    );
+
+    // console.log("Existing Bowler : ", bowlerToBeBowled)
+
     if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -369,24 +394,30 @@ const CricketLive = ({route}) => {
                             </View>
                         </View>
                     {currentBatting?.length > 0 && currentBatting?.map((item, index) => (
-                            <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-2 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
-                                <View style={tailwind`flex-row`}>
-                                    <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
-                                    {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
-                                </View>
-                                <View style={tailwind`flex-row justify-between gap-4`}>
-                                    <Text style={tailwind`text-md text-gray-800`}>{item.runs_scored}</Text>
-                                    <Text style={tailwind`text-md text-gray-800`}>{item.balls_faced}</Text>
-                                    <Text style={tailwind`text-md text-gray-800`}>{item.fours}</Text>
-                                    <Text style={tailwind`text-md text-gray-800`}>{item.sixes}</Text>
-                                    <Text style={tailwind`text-md text-gray-800`}>{ item.balls_faced > 0 ? ((item.runs_scored/item.balls_faced)*100.0).toFixed(1) : (0).toFixed(1)}</Text>
-                                </View>
+                        <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-1 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
+                            <View style={tailwind`flex-row`}>
+                                <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
+                                {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
+                            </View>
+                            <View style={tailwind`flex-row justify-between gap-4`}>
+                                <Text style={tailwind`text-md text-gray-800`}>{item.runs_scored}</Text>
+                                <Text style={tailwind`text-md text-gray-800`}>{item.balls_faced}</Text>
+                                <Text style={tailwind`text-md text-gray-800`}>{item.fours}</Text>
+                                <Text style={tailwind`text-md text-gray-800`}>{item.sixes}</Text>
+                                <Text style={tailwind`text-md text-gray-800`}>{ item.balls_faced > 0 ? ((item.runs_scored/item.balls_faced)*100.0).toFixed(1) : (0).toFixed(1)}</Text>
+                            </View>
                         </View>
                     ))}
+                    {/* Add Next Batsman Button */}
+                    <View style={tailwind`p-4`}>
+                        <Pressable onPress={() => { setIsModalBattingVisible(true) }} style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}>
+                            <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Batsman</Text>
+                        </Pressable>
+                    </View>
                </View>
                <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                     <View style={tailwind`flex-row justify-between px-4 py-2`}>
-                        <Text style={tailwind`flex-1 text-lg font-bold text-gray-800`}>Bowling</Text>
+                        <Text style={tailwind`flex-1 text-md text-gray-800`}>Bowling</Text>
                         <View style={tailwind`flex-row flex-[3] justify-between`}>
                             <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>O</Text>
                             <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>R</Text>
@@ -397,9 +428,8 @@ const CricketLive = ({route}) => {
                     </View>
                     {currentBowling && currentBowling.map((item, index) => (
                         <View key={index} style={tailwind`flex-row justify-between px-4 py-2 border-t border-gray-200`}>
-                            <View style={tailwind`flex-1`}>
-                                <Text style={tailwind`text-lg font-bold text-gray-800`}>{item?.player?.name}</Text>
-                                <Text style={tailwind`text-md text-gray-600`}>{item?.player?.short_name}</Text>
+                            <View style={tailwind`flex-row`}>
+                                <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
                             </View>
                             <View style={tailwind`flex-row flex-[3] justify-between`}>
                                 <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>
@@ -412,14 +442,85 @@ const CricketLive = ({route}) => {
                             </View>
                         </View>
                     ))}
-                    <UpdateCricketScoreCard currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper}/>
-               </View>      
+                    {/* Add Next Bowler Button */}
+                    <View style={tailwind`p-4`}>
+                        <Pressable
+                        onPress={() => setIsModalBowlingVisible(true)}
+                        style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}
+                        >
+                        <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Bowler</Text>
+                        </Pressable>
+                    </View>
+               </View>
+               <UpdateCricketScoreCard currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper}/>
             </>
             ) : (
                 <View style={tailwind`p-1`}>
                     <AddBatsmanAndBowler match={match}/>
                 </View>
             )}
+            {/* Add Batsman */}
+            {isModalBattingVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isModalBattingVisible}
+                    onRequestClose={() => setIsModalBattingVisible(false)}
+                >  
+                    <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
+            {/* Add Bowler */}
+            {isModalBowlingVisible && (
+                    <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={isModalBowlingVisible}
+                        onRequestClose={() => setIsModalBowlingVisible(false)}
+                    >
+                        <Pressable 
+                            onPress={() => setIsModalBowlingVisible(false)} 
+                            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        >
+                            <View style={tailwind`bg-white rounded-t-3xl p-6 pb-10 shadow-lg`}>
+                                <Text style={tailwind`text-lg font-semibold text-center mb-4 text-gray-800`}>
+                                    Select Next Bowlers
+                                </Text>
+                                <View style={tailwind`flex-row justify-around mb-6`}>
+                                    <Pressable 
+                                        onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}} 
+                                        style={[tailwind`px-4 py-2 bg-blue-500 rounded-full shadow-md`, selectedBowlerType === "newBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    >
+                                        <Text style={tailwind`${selectedBowlerType === "newBowler" ? "text-white" : "text-gray-800"} font-semibold`}>New Bowler</Text>
+                                    </Pressable>
+                                    <Pressable 
+                                        onPress={() => {setSelectedBowlerType("existingBowler"), handleToggle("existingBowler")}} 
+                                        style={[tailwind`px-4 py-2 bg-gray-300 rounded-full shadow-md`, selectedBowlerType === "existingBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    >
+                                        <Text style={tailwind`${selectedBowlerType === "existingBowler" ? "text-white" : "text-gray-800"} font-semibold`}>Existing Bowler</Text>
+                                    </Pressable>
+                                </View>
+                                <View style={tailwind`max-h-60`}>
+                                    <ScrollView style={tailwind`border border-gray-300 rounded-lg p-2`}>
+                                        {handleSelectBowler()}
+                                    </ScrollView>
+                                </View>
+
+                                {/* Close Button */}
+                                <Pressable 
+                                    onPress={() => setIsModalBowlingVisible(false)}
+                                    style={tailwind`mt-6 p-3 bg-red-500 rounded-full`}
+                                >
+                                    <Text style={tailwind`text-white text-center font-semibold`}>Close</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Modal>
+                )}
             </View>
         );
         }
