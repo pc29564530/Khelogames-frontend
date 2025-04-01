@@ -2,42 +2,24 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { addCricketMatchScore } from "../redux/actions/actions";
 
-export const addCricketScoreServices = async ({sport, dispatch, item, authToken, axiosInstance}) => {
+export const addCricketScoreServices = async ({sport, dispatch, matchID, teamID, authToken, axiosInstance}) => {
     try {
-        const homeScoreData = {
-            match_id:item.match_id,
-            tournament_id: item.tournament_id,
-            team_id: item.team1_id,
+        const data = {
+            match_id:matchID, 
+            team_id: teamID,
             score: 0,
             wickets: 0,
             overs: 0,
             extras: 0,
             innings: 0
         }
-        const awayScoreData = {
-            match_id:item.match_id,
-            tournament_id: item.tournament_id,  
-            team_id: item.team2_id,
-            score: 0,
-            wickets: 0,
-            overs: 0,
-            extras: 0,
-            innings: 0
-        }
-        const homeScoreResponse = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketMatchScore`,homeScoreData, {
+        const response = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketScore`,data, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
             }
         });
-        const awayScoreResponse = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketMatchScore`,awayScoreData, {
-            headers: {
-                'Authorization':`bearer ${authToken}`,
-                'Content-Type':'application/json'
-            }
-        });
-        dispatch(addCricketMatchScore(homeScoreResponse.data || []));
-        dispatch(addCricketMatchScore(awayScoreResponse.data || []));
+        dispatch(addCricketMatchScore(response.data || []));
     } catch (err) {
         console.log("unable to add the cricket score of home team and away team ", err);
     }

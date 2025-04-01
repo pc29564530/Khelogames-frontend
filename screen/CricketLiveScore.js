@@ -17,6 +17,7 @@ import { AddCricketBatsman } from '../components/AddCricketBatsman';
 import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
+import { addCricketScoreServices } from '../services/cricketMatchServices';
 
 const CricketLive = ({route}) => {
     const navigation = useNavigation()
@@ -309,7 +310,7 @@ const CricketLive = ({route}) => {
                                     >
                                     <Text style={tailwind`text-white font-medium text-center`}>Cancel</Text>
                                     </Pressable>
-                                    <Pressable style={tailwind`rounded-lg bg-red-400 px-6 py-3 ml-2`} onPress={() => handleNextInning()}>
+                                    <Pressable style={tailwind`rounded-lg bg-red-400 px-6 py-3 ml-2`} onPress={() => handleNextInning(match.home_team_id === batTeam ? awayTeamID : homeTeamID)}>
                                         <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
                                     </Pressable>
                                 </View>
@@ -319,6 +320,15 @@ const CricketLive = ({route}) => {
                         );
                         }
                     }
+    
+    const handleNextInning = async (teamID) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            await addCricketScoreServices(sport, dispatch, match.id, teamID, authToken, axiosInstance)
+        } catch (err) {
+            console.error("Failed to start next inning: ", err);
+        }
+    }
 
     const currentBowling = bowling?.innings.filter((item) => item.is_current_bowler === true );
     const currentBatting = batting?.innings.filter((item) => (item.is_currently_batting === true));
