@@ -16,6 +16,7 @@ import { CricketLiveMatchModal } from '../Modals/CricketLiveMatch';
 import { AddCricketBatsman } from '../components/AddCricketBatsman';
 import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
+import { formattedDate } from '../utils/FormattedDateTime';
 
 const CricketLive = ({route}) => {
     const navigation = useNavigation()
@@ -241,26 +242,39 @@ const CricketLive = ({route}) => {
                 );
             } else {
                 return (
-                    <View style={tailwind`p-4 bg-white`}>
-                        <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>Current Inning</Text>
-
-                        {/* Current Inning Card */}
-                        <View style={tailwind`rounded-2xl bg-white shadow-md mb-6 border border-gray-200`}>
-                            <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
-                            <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                                {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name}
-                            </Text>
-                            <Text style={tailwind`text-md font-medium text-gray-500`}>{match.innings[0].inning}</Text>
+                    <View style={tailwind`bg-white rounded-lg shadow-lg h-160 w-90`}>
+                        <View style={tailwind`p-2`}>
+                            <Text style={tailwind`text-lg font-bold`}>Match Inning Setup</Text>
+                        </View>
+                        <View style={tailwind` bg-gray-100 p-2 rounded-md`}>
+                            <View style={tailwind``}>
+                                <Text style={tailwind`text-md text-black`}>{match.homeTeam.name} vs {match.awayTeam.name}</Text>
+                                <Text style={tailwind`text-md text-black`}>{match.match_format}</Text>
                             </View>
-                            <View style={tailwind`px-4 pb-4 pt-2`}>
-                            <Text style={tailwind`text-lg font-bold`}>
-                                {match.innings[0].score.score}/{match.innings[0].score.wickets}
-                            </Text>
+                            <View style={tailwind``}>
+                                <Text style={tailwind`text-md text-black`}>{formattedDate(match.start_timestamp)}</Text>
                             </View>
                         </View>
-
+                        <View style={tailwind`mb-4 p-4`}>
+                            <Text style={tailwind`text-lg text-gray-800 mb-4`}>Current Inning</Text>
+                            {/* Current Inning Card */}
+                            <View style={tailwind`rounded-2xl bg-white border border-gray-200 ml-2 mr-2`}>
+                                <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
+                                    <Text style={tailwind`text-lg text-gray-800`}>
+                                        {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name} Batting
+                                    </Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>1st Inning</Text>
+                                </View>
+                                <View style={tailwind`px-4 pb-4 pt-2`}>
+                                <Text style={tailwind`text-lg font-bold`}>
+                                    {match.innings[0].score.score}/{match.innings[0].score.wickets}
+                                </Text>
+                                <Text>{convertBallToOvers(match.innings[0].score.overs)} Overs</Text>
+                                </View>
+                            </View>
+                        </View>
                         {/* End Inning Button */}
-                        <View style={tailwind`mb-6`}>
+                        <View style={tailwind`p-4`}>
                             <Pressable
                             style={tailwind`rounded-lg bg-red-400 px-6 py-3 shadow-md`}
                             onPress={() => setIsCurrentInningEnded(true)}
@@ -270,16 +284,15 @@ const CricketLive = ({route}) => {
                         </View>
 
                         {/* Next Inning UI */}
-                        {isCurrentInningEnded && (
-                            <View>
-                                <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>Next Inning Setup</Text>
-
-                                <View style={tailwind`rounded-2xl bg-white shadow-md border border-gray-200 mb-6`}>
+                        {/* {isCurrentInningEnded && ( */}
+                            <View style={tailwind`p-4`}>
+                                <Text style={tailwind`text-md text-gray-800 mb-4`}>Next Inning Setup</Text>
+                                <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-6`}>
                                     <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
                                     <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                                        {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name}
+                                        {batTeam === match.homeTeam.id ? match.awayTeam.name : match.homeTeam.name}
                                     </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{match.innings[1].inning}</Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>2nd Inning</Text>
                                     </View>
                                     <View style={tailwind`px-4 pb-4 pt-2`}>
                                     <Text style={tailwind`text-lg font-semibold `}>
@@ -301,7 +314,7 @@ const CricketLive = ({route}) => {
                                     </Pressable>
                                 </View>
                                 </View>
-                            )}
+                            {/* )} */}
                             </View>
                         );
                         }
@@ -596,22 +609,22 @@ const CricketLive = ({route}) => {
                     </Pressable>
                 </Modal>
                 )}
-                {inningVisible && (
-            <Modal  
-                transparent={true}
-                animationType="fade"
-                visible={inningVisible}
-                onRequestClose={() => setInningVisible(false)}
-            >
-                <Pressable onPress={() => setInningVisible(false)} style={tailwind``}>
-                    <View style={tailwind`flex-row justify-end items-center`}>
-                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 gap-4`}>
+            {inningVisible && (
+                <Modal  
+                    transparent={true}
+                    animationType="fade"
+                    visible={inningVisible}
+                    onRequestClose={() => setInningVisible(false)}
+                >
+                    <Pressable onPress={() => setInningVisible(false)} style={tailwind`flex-1 bg-black bg-opacity-50`}>
+                        <View style={tailwind` justify-center items-center`}>
+                            <View style={tailwind`bg-white rounded-lg shadow-lg`}>
                                 {handleMatchInning()}
                             </View>
                         </View>
-                </Pressable>
-            </Modal>
-           )}
+                    </Pressable>
+                </Modal>
+            )}
            {menuVisible && (
                 <Modal
                     transparent={true}
