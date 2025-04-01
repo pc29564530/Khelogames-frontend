@@ -596,6 +596,43 @@ const CricketLive = ({route}) => {
                     </Pressable>
                 </Modal>
                 )}
+                {inningVisible && (
+            <Modal  
+                transparent={true}
+                animationType="fade"
+                visible={inningVisible}
+                onRequestClose={() => setInningVisible(false)}
+            >
+                <Pressable onPress={() => setInningVisible(false)} style={tailwind``}>
+                    <View style={tailwind`flex-row justify-end items-center`}>
+                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 gap-4`}>
+                                {handleMatchInning()}
+                            </View>
+                        </View>
+                </Pressable>
+            </Modal>
+           )}
+           {menuVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={menuVisible}
+                    onRequestClose={toggleMenu}
+                >
+                    <TouchableOpacity onPress={toggleMenu} style={tailwind``}>
+                        <View style={tailwind`flex-row justify-end`}>
+                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 gap-4`}>
+                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                    <Text style={tailwind`text-xl`}>Add New Batsman </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                    <Text style={tailwind`text-xl`}>Add New Bowler</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+            )}
             </ScrollView>
         );
         }
