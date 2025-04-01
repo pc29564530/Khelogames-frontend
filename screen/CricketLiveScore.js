@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {View, Text,Pressable,Modal, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
+import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -285,7 +285,6 @@ const CricketLive = ({route}) => {
                         </View>
 
                         {/* Next Inning UI */}
-                        {/* {isCurrentInningEnded && ( */}
                             <View style={tailwind`p-4`}>
                                 <Text style={tailwind`text-md text-gray-800 mb-4`}>Next Inning Setup</Text>
                                 <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-6`}>
@@ -315,13 +314,21 @@ const CricketLive = ({route}) => {
                                     </Pressable>
                                 </View>
                                 </View>
-                            {/* )} */}
                             </View>
                         );
                         }
                     }
     
     const handleNextInning = async (teamID) => {
+        if (!isCurrentInningEnded) {
+            Alert.alert(
+                "⚠ Inning Not Ended",
+                "You need to end the current inning before proceeding.",
+                [
+                    { text: "OK", style: "cancel" }
+                ]
+            );
+        }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             await addCricketScoreServices(sport, dispatch, match.id, teamID, authToken, axiosInstance)
