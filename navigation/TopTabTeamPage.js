@@ -11,12 +11,12 @@ const TopTabTeamPage = ({teamData, game}) => {
     return (
         <TopTab.Navigator 
             screenOptions={{
-                tabBarLabelStyle:tailwind`text-red-400`,
+                tabBarLabelStyle:tailwind`text-white`,
                 tabBarStyle:tailwind`bg-red-400`,
                 headerShown:true
             }}
-        >
-            <TopTab.Screen name="Player">
+        > 
+            <TopTab.Screen name="Squad">
                 {() => <Members teamData={teamData}/>}
             </TopTab.Screen>
             <TopTab.Screen 

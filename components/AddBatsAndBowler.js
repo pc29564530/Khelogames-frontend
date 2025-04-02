@@ -21,12 +21,6 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
-    // console.log("HomePlayer: ", homePlayer)
-    // console.log("AwayPlayer: ", awayPlayer)
-    // console.log("Bat Team: ", batTeam)
-
-    // console.log("Bowler To be Bowled: ", bowlerToBeBowled)
-
     return (
         <View style={tailwind``}>
             <View style={tailwind` mb-4 bg-white p-4`}>
