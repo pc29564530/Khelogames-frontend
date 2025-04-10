@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import {Text, View, ScrollView, Pressable, Image} from 'react-native';
+import {Text, View, ScrollView, Pressable, Image, Modal, Switch} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTeamPlayers } from '../redux/actions/actions';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { current } from '@reduxjs/toolkit';
 const positions = require('../assets/position.json');
 
@@ -17,9 +18,12 @@ const CricketTeamSquad = ({route}) => {
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const match = route.params.match;
     const game = useSelector((state) => state.sportReducers.game);
-
+    const [selectedSquad, setSelectedSquad] = useState([]);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const [isOnBench,setIsOnBench] = useState([]);
+    const [playingXI, setPlayingXI] = useState([]);
+    const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
 
     useEffect(() => {
         if (cricketToss) {
@@ -68,24 +72,77 @@ const CricketTeamSquad = ({route}) => {
         return pos;
     }
 
+    useEffect(() => {
+        const fetchSquad = async () => {
+            try {
+                const data = {
+                    match_id: match.id,
+                    team_id: currentTeamPlayer
+                }
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
+                    params: {
+                        'match_id':match.id.toString(),
+                        'team_id': currentTeamPlayer.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                setPlayingXI(response.data || [])
+            } catch (err) {
+                console.error("failed to fetch cricket_squad: ", err);
+            }
+        }
+        fetchSquad();
+    }, [currentTeamPlayer])
+
+    const handleSelectSquad = async () => {
+        try {
+            var data={
+                match_id: match.id,
+                team_id: homeTeamID === currentTeamPlayer ? homeTeamID : awayTeamID,
+                player: selectedSquad,
+                on_bench: isOnBench.find((pl) => pl.player_id)
+            }
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketSquad`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            setPlayingXI(response.data || []);
+            
+        } catch (err) {
+            console.error("Failed to create the squad for match: ", err)
+        }
+    }
+    
     const renderPlayers = () => {
-        return (
-            <View style={tailwind`flex-1`}>
-                {players.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4 p-4 bg-white rounded-lg shadow-lg flex-row items-center`}>
-                        <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
-                        <View>
-                            <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
-                            <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                <Text>{selectPosition(item.position)}</Text>
-                                <Text>{item.country}</Text>
+            return (
+                <View style={tailwind`flex-1`}>
+                    {playingXI.map((item, index) => (
+                        <View key={index} style={tailwind`mb-4 p-4 bg-white rounded-lg shadow-lg flex-row items-center`}>
+                            <Image source={{uri: item.player.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
+                            <View>
+                                <Text style={tailwind`text-lg font-semibold`}>{item.player.name}</Text>
+                                <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
+                                    <Text>{selectPosition(item.player.position)}</Text>
+                                    <Text>{item.player.country}</Text>
+                                </View>
                             </View>
+                           
                         </View>
-                       
-                    </View>
-                ))}
-            </View>
-        );
+                    ))}
+                </View>
+            );
+        }
+
+    const togglePlayerSelection = (item) => {
+       setSelectedSquad(prevSquad => [...prevSquad, item])
     }
 
     return (
@@ -94,13 +151,88 @@ const CricketTeamSquad = ({route}) => {
                 <Pressable onPress={() => {toggleTeam(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                <Pressable   onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                 </Pressable>
             </View>
+            {/* Select Squad check for admin */}
+            <View style={tailwind`mb-2 gap-4 p-2`}>
+                    <Pressable style={tailwind`rounded-md shadow-lg bg-white p-8 items-center`} onPress={() => {setIsPlayerModalVisible(true)}}>
+                        <Text style={tailwind`text-lg`}>Select Squad</Text>
+                    </Pressable>
+            </View>
+
             <View style={tailwind`flex-row justify-center items-start`}>
                     {renderPlayers()}
             </View>
+            {isPlayerModalVisible && (
+                <Modal
+                    visible={isPlayerModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setIsPlayerModalVisible(false)}
+                >
+                    <View style={tailwind`flex-1 bg-black bg-opacity-60 justify-end`}>
+                        <View style={tailwind`max-h-[80%] bg-white rounded-t-2xl shadow-xl p-4`}>
+                            {/* Header */}
+                            <View style={tailwind`flex-row justify-between items-center mb-4`}>
+                                <Text style={tailwind`text-xl font-bold`}>Select Players</Text>
+                                <Pressable onPress={() => setIsPlayerModalVisible(false)}>
+                                    <AntDesign name="close" size={24} color="black" />
+                                </Pressable>
+                            </View>
+
+                            {/* Player List */}
+                            <ScrollView contentContainerStyle={tailwind`gap-3 pb-4`}>
+                                {players.map((item, index) => (
+                                    <View key={index} style={tailwind`flex-row items-center p-3 bg-gray-100 rounded-xl shadow-sm`}>
+                                        <Image
+                                            source={{ uri: item.avatarUrl || 'https://via.placeholder.com/40' }}
+                                            style={tailwind`w-10 h-10 rounded-full mr-3 bg-gray-300`}
+                                        />
+                                        <View style={tailwind`flex-1`}>
+                                            <Text style={tailwind`text-base font-semibold`}>{item.player_name}</Text>
+                                            <View style={tailwind`flex-row items-center gap-3`}>
+                                                <Text style={tailwind`text-sm text-gray-500`}>{selectPosition(item.position)}</Text>
+                                                <Text style={tailwind`text-sm text-gray-500`}>{item.country}</Text>
+                                            </View>
+                                        </View>
+                                        <Pressable onPress={() => togglePlayerSelection(item)}>
+                                            <AntDesign
+                                                name={selectedSquad?.some(p => p.id === item.id) ? 'checkcircle' : 'pluscircleo'}
+                                                size={22}
+                                                color={selectedSquad?.some(p => p.id === item.id) ? 'green' : 'gray'}
+                                            />
+                                        </Pressable>
+                                        <View>
+                                            <Text>On Bench</Text>
+                                                <Switch 
+                                                    value={isOnBench[item.id] || false}
+                                                    onValueChange={(value) => {
+                                                        setIsOnBench(prev => ({
+                                                            ...prev,
+                                                            [item.id]:value
+                                                        }));
+                                                    }}
+                                                    trackColor={{false: "#ccc", true: "#34D399" }}
+                                                    thumbColor={isOnBench[item.id] ? "#10B981" : "#f4f3f4"}
+                                                />
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
+
+                            {/* Submit Button */}
+                            <Pressable
+                                onPress={handleSelectSquad}
+                                style={tailwind`mt-4 bg-green-600 py-3 rounded-xl items-center`}
+                            >
+                                <Text style={tailwind`text-white text-base font-semibold`}>Add to Squad</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Modal>
+            )}
         </ScrollView>
     )
 }
