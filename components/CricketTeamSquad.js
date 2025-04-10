@@ -120,23 +120,72 @@ const CricketTeamSquad = ({route}) => {
             console.error("Failed to create the squad for match: ", err)
         }
     }
+
+    const currentPlayingXI = playingXI.filter(player => player.on_bench === false);
+    const currentOnBench = playingXI.filter(player => player.on_bench === true);
     
     const renderPlayers = () => {
             return (
                 <View style={tailwind`flex-1`}>
-                    {playingXI.map((item, index) => (
-                        <View key={index} style={tailwind`mb-4 p-4 bg-white rounded-lg shadow-lg flex-row items-center`}>
-                            <Image source={{uri: item.player.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
-                            <View>
-                                <Text style={tailwind`text-lg font-semibold`}>{item.player.name}</Text>
-                                <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                    <Text>{selectPosition(item.player.position)}</Text>
-                                    <Text>{item.player.country}</Text>
+                    {currentPlayingXI.length > 0 && (
+                        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
+                            <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>Playing XI</Text>
+
+                            {currentPlayingXI.map((item, index) => (
+                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                                <Image
+                                source={{ uri: item.player.avatarUrl }}
+                                style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                                />
+                                <View style={tailwind`flex-1`}>
+                                    <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                        {item.player.name}
+                                    </Text>
+                                    <View style={tailwind`flex-row items-center gap-4 mt-1`}>
+                                        <Text style={tailwind`text-sm text-gray-600`}>
+                                        {selectPosition(item.player.positions)}
+                                        </Text>
+                                        <Text style={tailwind`text-sm text-gray-600`}>•</Text>
+                                        <Text style={tailwind`text-sm text-gray-600`}>
+                                        {item.player.country}
+                                        </Text>
+                                    </View>
                                 </View>
                             </View>
-                           
+                            ))}
                         </View>
-                    ))}
+                    )}
+
+                    {currentOnBench.length > 0 && (
+                    <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
+                        <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>On Bench</Text>
+
+                        {currentOnBench.map((item, index) => (
+                        <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                            <Image
+                            source={{ uri: item.player.avatarUrl }}
+                            style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                            />
+                            <View style={tailwind`flex-1`}>
+                            <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                {item.player.name}
+                            </Text>
+                            <View style={tailwind`flex-row items-center gap-4 mt-1`}>
+                                <Text style={tailwind`text-sm text-gray-600`}>
+                                {selectPosition(item.player.positions)}
+                                </Text>
+                                <Text style={tailwind`text-sm text-gray-600`}>•</Text>
+                                <Text style={tailwind`text-sm text-gray-600`}>
+                                {item.player.country}
+                                </Text>
+                            </View>
+                            </View>
+                        </View>
+                        ))}
+                    </View>
+                    )}
+
+                    
                 </View>
             );
         }
@@ -163,6 +212,7 @@ const CricketTeamSquad = ({route}) => {
             </View>
 
             <View style={tailwind`flex-row justify-center items-start`}>
+
                     {renderPlayers()}
             </View>
             {isPlayerModalVisible && (
