@@ -104,7 +104,7 @@ const CricketTeamSquad = ({route}) => {
                 match_id: match.id,
                 team_id: homeTeamID === currentTeamPlayer ? homeTeamID : awayTeamID,
                 player: selectedSquad,
-                on_bench: isOnBench.find((pl) => pl.player_id)
+                on_bench: isOnBench
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketSquad`, data, {
@@ -121,8 +121,8 @@ const CricketTeamSquad = ({route}) => {
         }
     }
 
-    const currentPlayingXI = playingXI.filter(player => player.on_bench === false);
-    const currentOnBench = playingXI.filter(player => player.on_bench === true);
+    const currentPlayingXI = playingXI?.filter(player => player.on_bench === false);
+    const currentOnBench = playingXI?.filter(player => player.on_bench === true);
     
     const renderPlayers = () => {
             return (
@@ -183,9 +183,7 @@ const CricketTeamSquad = ({route}) => {
                         </View>
                         ))}
                     </View>
-                    )}
-
-                    
+                    )}  
                 </View>
             );
         }
@@ -193,6 +191,9 @@ const CricketTeamSquad = ({route}) => {
     const togglePlayerSelection = (item) => {
        setSelectedSquad(prevSquad => [...prevSquad, item])
     }
+    const togglePlayerOnBench = (item) => {
+        setIsOnBench(prevOnBench => [prevOnBench, item])
+    } 
 
     return (
         <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
@@ -212,7 +213,6 @@ const CricketTeamSquad = ({route}) => {
             </View>
 
             <View style={tailwind`flex-row justify-center items-start`}>
-
                     {renderPlayers()}
             </View>
             {isPlayerModalVisible && (
@@ -257,15 +257,16 @@ const CricketTeamSquad = ({route}) => {
                                         <View>
                                             <Text>On Bench</Text>
                                                 <Switch 
-                                                    value={isOnBench[item.id] || false}
+                                                    value={isOnBench.includes(item.id)}
                                                     onValueChange={(value) => {
-                                                        setIsOnBench(prev => ({
-                                                            ...prev,
-                                                            [item.id]:value
-                                                        }));
+                                                        if (value) {
+                                                            setIsOnBench((prev) => [...prev, item.id]);
+                                                        } else {
+                                                            setIsOnBench((prev) => prev.filter((id) => id !== item.id))
+                                                        }
                                                     }}
                                                     trackColor={{false: "#ccc", true: "#34D399" }}
-                                                    thumbColor={isOnBench[item.id] ? "#10B981" : "#f4f3f4"}
+                                                    thumbColor={isOnBench.includes(item.id)? "#10B981" : "#f4f3f4"}
                                                 />
                                         </View>
                                     </View>
