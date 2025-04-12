@@ -1,27 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState , useEffect} from 'react';
-import { View, Text, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, Switch } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from './axios_config';
+import { useSelector, useDispatch } from 'react-redux';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { getTeamPlayers, setCricketMatchToss } from '../redux/actions/actions';
 const positions = require('../assets/position.json');
 
 const FootballLineUp = ({ route }) => {
-    const [homeModalVisible, setHomeModalVisible] = useState(true);
-    const [awayModalVisible, setAwayModalVisible] = useState(false);
-    const [homePlayer, setHomePlayer] = useState([]);
-    const [awayPlayer, setAwayPlayer] = useState([]);
+    const dispatch = useDispatch();
+    const match = route.params.matchData;
+    const homeTeamID = match?.homeTeam?.id;
+    const awayTeamID = match?.awayTeam?.id;
+    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamID);
+    const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
+    const [isSubstituted, setIsSubstituted] = useState([]);
+    const [currentSquad, setCurrentSquad] = useState([]);
+    const [selectedSquad, setSelectedSquad] = useState([]);
     const axiosInstance = useAxiosInterceptor();
-    const matchData = route.params.matchData;
-    const handleToggle = (team) => {
-        if (team === 'homeTeam') {
-            setHomeModalVisible(true);
-            setAwayModalVisible(false);
-        } else if (team === 'awayTeam') {
-            setHomeModalVisible(false);
-            setAwayModalVisible(true);
-        }
-    };
+    const game = useSelector((state) => state.sportReducers.game);
+    const players = useSelector((state) => state.players.players)
+
+    const toggleTeam = (teamID) => {
+        setCurrentTeamPlayer(teamID)
+    }
 
     const selectPosition = (item) => {
         var pos;
@@ -34,87 +38,206 @@ const FootballLineUp = ({ route }) => {
         return pos;
     }
 
+    const handleSelectSquad = async () => {
+        try {
+            var data={
+                match_id: match.id,
+                team_id: homeTeamID === currentTeamPlayer ? homeTeamID : awayTeamID,
+                player: selectedSquad,
+                is_substitute: isSubstituted,
+
+            }
+            console.log("data: ", data)
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addFootballMatchSquad`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            setCurrentSquad(response.data || []);
+        } catch (err) {
+            console.error("Failed to create the squad for match: ", err)
+        }
+    }
+    
     useEffect(() => {
-        const fetchHomePlayer = async () => {
+        const fetchSquad = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
+                    params: {
+                        'match_id':match.id.toString(),
+                        'team_id': currentTeamPlayer.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                setCurrentSquad(response.data || [])
+            } catch (err) {
+                console.error("failed to fetch football lineup: ", err);
+            }
+        }
+        fetchSquad();
+    }, [currentTeamPlayer])
+
+    useEffect(() => {
+        const fetchPlayers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const homeResponse = await axiosInstance.get(`${BASE_URL}/Football/getTeamsMemberFunc`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
                     params:{
-                        team_id: matchData.homeTeam.id.toString()
+                        team_id: currentTeamPlayer.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 });
-                setHomePlayer(homeResponse.data || []);
+                
+                dispatch(getTeamPlayers(response.data || []));
             } catch (err) {
                 console.error("unable to fetch the team player: ", err);
             }
         }
-        const fetchAwayPlayer = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const awayResponse = await axiosInstance.get(`${BASE_URL}/Football/getTeamsMemberFunc`, {
-                    params:{
-                        team_id: matchData.awayTeam.id.toString()
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setAwayPlayer(awayResponse.data || []);
-            } catch (err) {
-                console.error("unable to fetch the team player: ", err);
-            }
-        }
-        fetchHomePlayer();
-        fetchAwayPlayer();
-    }, []);
+        fetchPlayers();
+    }, [currentTeamPlayer]);
 
+    const currentLineUp = currentSquad.filter((item) => item.is_substitute == false);
+    const substitutionPlayer = currentSquad.filter((item) => item.is_substitute === true);
 
-    const renderPlayers = (players) => {
+    const renderPlayers = () => {
         return (
             <View style={tailwind``}>
-                {players.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
-                        <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
-                        <View>
-                            <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
-                            <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                <Text>{selectPosition(item?.position)}</Text>
-                                <Text>{item.country}</Text>
+                {currentLineUp.length > 0 && (
+                    <View>
+                    {currentLineUp?.map((item, index) => (
+                        <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
+
+                            <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
+                            <View>
+                                <Text style={tailwind`text-lg font-semibold`}>{item.player.name}</Text>
+                                <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
+                                    <Text>{selectPosition(item?.position)}</Text>
+                                    <Text>{item.country}</Text>
+                                </View>
                             </View>
                         </View>
+                    ))}
                     </View>
-                ))}
+                )}
+                {substitutionPlayer.length > 0 && (
+                    <View>  
+                        {currentLineUp.map((item, index) => (
+                            <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
+                                <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
+                                <View>
+                                    <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
+                                    <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
+                                        <Text>{selectPosition(item?.position)}</Text>
+                                        <Text>{item.country}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
             </View>
         );
     }
 
+    const togglePlayerSelection = (item) => {
+        setSelectedSquad(prevSquad => [...prevSquad, item])
+     }
+
     return (
         <ScrollView   nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
-            <View style={tailwind`flex-row justify-evenly  items-center gap-2 mb-2`}>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, homeModalVisible?tailwind`bg-red-400`:tailwind`bg-white`] } onPress={() => handleToggle('homeTeam')}> 
-                    <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.homeTeam.name}</Text>
+            <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
+                <Pressable onPress={() => {toggleTeam(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                    <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable style={[tailwind` flex-1 mt-2 bg-red-400 shadow-lg p-2 rounded-lg items-center `, awayModalVisible?tailwind`bg-red-400`:tailwind`bg-white`]} onPress={() => handleToggle('awayTeam')}>
-                    <Text style={tailwind`text-xl font-bold mb-2`}>{matchData.awayTeam.name}</Text>
+                <Pressable   onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                    <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                 </Pressable>
+            </View>
+            <View style={tailwind`mb-2 gap-4 p-2`}>
+                    <Pressable style={tailwind`rounded-md shadow-lg bg-white p-8 items-center`} onPress={() => {setIsPlayerModalVisible(true)}}>
+                        <Text style={tailwind`text-lg`}>Select Squad</Text>
+                    </Pressable>
             </View>
             <View style={tailwind``}>
-                {homeModalVisible && (
-                    <View>
-                        {renderPlayers(homePlayer)}
-                    </View>
-                )}
-                {awayModalVisible && (
-                    <View>
-                        {renderPlayers(awayPlayer)}
-                    </View>
-                )}
+                {renderPlayers(players)}
             </View>
+            {isPlayerModalVisible && (
+                <Modal
+                    visible={isPlayerModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setIsPlayerModalVisible(false)}
+                >
+                    <View style={tailwind`flex-1 bg-black bg-opacity-60 justify-end`}>
+                        <View style={tailwind`max-h-[80%] bg-white rounded-t-2xl shadow-xl p-4`}>
+                            {/* Header */}
+                            <View style={tailwind`flex-row justify-between items-center mb-4`}>
+                                <Text style={tailwind`text-xl font-bold`}>Select Players</Text>
+                                <Pressable onPress={() => setIsPlayerModalVisible(false)}>
+                                    <AntDesign name="close" size={24} color="black" />
+                                </Pressable>
+                            </View>
+
+                            {/* Player List */}
+                            <ScrollView contentContainerStyle={tailwind`gap-3 pb-4`}>
+                                {players.map((item, index) => (
+                                    <View key={index} style={tailwind`flex-row items-center p-3 bg-gray-100 rounded-xl shadow-sm`}>
+                                        <Image
+                                            source={{ uri: item.avatarUrl || 'https://via.placeholder.com/40' }}
+                                            style={tailwind`w-10 h-10 rounded-full mr-3 bg-gray-300`}
+                                        />
+                                        <View style={tailwind`flex-1`}>
+                                            <Text style={tailwind`text-base font-semibold`}>{item.player_name}</Text>
+                                            <View style={tailwind`flex-row items-center gap-3`}>
+                                                <Text style={tailwind`text-sm text-gray-500`}>{selectPosition(item.position)}</Text>
+                                                <Text style={tailwind`text-sm text-gray-500`}>{item.country}</Text>
+                                            </View>
+                                        </View>
+                                        <Pressable onPress={() => togglePlayerSelection(item)}>
+                                            <AntDesign
+                                                name={selectedSquad?.some(p => p.id === item.id) ? 'checkcircle' : 'pluscircleo'}
+                                                size={22}
+                                                color={selectedSquad?.some(p => p.id === item.id) ? 'green' : 'gray'}
+                                            />
+                                        </Pressable>
+                                        <View>
+                                            <Text></Text>
+                                                <Switch 
+                                                    value={isSubstituted.includes(item.id)}
+                                                    onValueChange={(value) => {
+                                                        if (value) {
+                                                            setIsSubstituted((prev) => [...prev, item.id]);
+                                                        } else {
+                                                            setIsSubstituted((prev) => prev.filter((id) => id !== item.id))
+                                                        }
+                                                    }}
+                                                    trackColor={{false: "#ccc", true: "#34D399" }}
+                                                    thumbColor={isSubstituted.includes(item.id)? "#10B981" : "#f4f3f4"}
+                                                />
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
+
+                            {/* Submit Button */}
+                            <Pressable onPress={() => handleSelectSquad()}
+                                style={tailwind`mt-4 bg-green-600 py-3 rounded-xl items-center`}
+                            >
+                                <Text style={tailwind`text-white text-base font-semibold`}>Add to Squad</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Modal>
+            )}
         </ScrollView>
     );
 };
