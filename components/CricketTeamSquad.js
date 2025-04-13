@@ -7,7 +7,6 @@ import useAxiosInterceptor from '../screen/axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTeamPlayers } from '../redux/actions/actions';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { current } from '@reduxjs/toolkit';
 const positions = require('../assets/position.json');
 
 const CricketTeamSquad = ({route}) => {
@@ -130,7 +129,6 @@ const CricketTeamSquad = ({route}) => {
                     {currentPlayingXI.length > 0 && (
                         <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
                             <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>Playing XI</Text>
-
                             {currentPlayingXI.map((item, index) => (
                             <View key={index} style={tailwind`flex-row items-center mb-4`}>
                                 <Image
