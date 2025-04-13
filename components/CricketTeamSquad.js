@@ -134,8 +134,8 @@ const CricketTeamSquad = ({route}) => {
                             {currentPlayingXI.map((item, index) => (
                             <View key={index} style={tailwind`flex-row items-center mb-4`}>
                                 <Image
-                                source={{ uri: item.player.avatarUrl }}
-                                style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                                    source={{ uri: item.player.avatarUrl }}
+                                    style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
                                 />
                                 <View style={tailwind`flex-1`}>
                                     <Text style={tailwind`text-base font-semibold text-gray-900`}>
@@ -161,26 +161,26 @@ const CricketTeamSquad = ({route}) => {
                         <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>On Bench</Text>
 
                         {currentOnBench.map((item, index) => (
-                        <View key={index} style={tailwind`flex-row items-center mb-4`}>
-                            <Image
-                            source={{ uri: item.player.avatarUrl }}
-                            style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
-                            />
-                            <View style={tailwind`flex-1`}>
-                            <Text style={tailwind`text-base font-semibold text-gray-900`}>
-                                {item.player.name}
-                            </Text>
-                            <View style={tailwind`flex-row items-center gap-4 mt-1`}>
-                                <Text style={tailwind`text-sm text-gray-600`}>
-                                {selectPosition(item.player.positions)}
-                                </Text>
-                                <Text style={tailwind`text-sm text-gray-600`}>•</Text>
-                                <Text style={tailwind`text-sm text-gray-600`}>
-                                {item.player.country}
-                                </Text>
+                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                                <Image
+                                    source={{ uri: item.player.avatarUrl }}
+                                    style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                                />
+                                <View style={tailwind`flex-1`}>
+                                    <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                        {item.player.name}
+                                    </Text>
+                                    <View style={tailwind`flex-row items-center gap-4 mt-1`}>
+                                        <Text style={tailwind`text-sm text-gray-600`}>
+                                        {selectPosition(item.player.positions)}
+                                        </Text>
+                                        <Text style={tailwind`text-sm text-gray-600`}>•</Text>
+                                        <Text style={tailwind`text-sm text-gray-600`}>
+                                        {item.player.country}
+                                        </Text>
+                                    </View>
+                                </View>
                             </View>
-                            </View>
-                        </View>
                         ))}
                     </View>
                     )}  

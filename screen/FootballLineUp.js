@@ -112,35 +112,56 @@ const FootballLineUp = ({ route }) => {
         return (
             <View style={tailwind``}>
                 {currentLineUp.length > 0 && (
-                    <View>
-                    {currentLineUp?.map((item, index) => (
-                        <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
-
-                            <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
-                            <View>
-                                <Text style={tailwind`text-lg font-semibold`}>{item.player.name}</Text>
-                                <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                    <Text>{selectPosition(item?.position)}</Text>
-                                    <Text>{item.country}</Text>
+                    <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
+                        <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>Current Squad</Text>
+                        {currentLineUp?.map((item, index) => (
+                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                            <Image
+                                source={{ uri: item.player.avatarUrl }}
+                                style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                            />
+                            <View style={tailwind`flex-1`}>
+                                <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                    {item.player.name}
+                                </Text>
+                                <View style={tailwind`flex-row items-center gap-4 mt-1`}>
+                                    <Text style={tailwind`text-sm text-gray-600`}>
+                                    {selectPosition(item.player.positions)}
+                                    </Text>
+                                    <Text style={tailwind`text-sm text-gray-600`}>•</Text>
+                                    <Text style={tailwind`text-sm text-gray-600`}>
+                                    {item.player.country}
+                                    </Text>
                                 </View>
                             </View>
                         </View>
-                    ))}
+                        ))}
                     </View>
                 )}
                 {substitutionPlayer.length > 0 && (
-                    <View>  
+                    <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>  
+                        <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>Substitution</Text>
                         {currentLineUp.map((item, index) => (
-                            <View key={index} style={tailwind`mb-4 p-2 w-full bg-white rounded-lg shadow-lg flex-row items-center`}>
-                                <Image source={{uri: item.avatarUrl}} style={tailwind`w-10 h-10 rounded-full mr-4 bg-gray-200`} />
-                                <View>
-                                    <Text style={tailwind`text-lg font-semibold`}>{item.player_name}</Text>
-                                    <View style={tailwind`flex-row justify-evenly items-start gap-5`}>
-                                        <Text>{selectPosition(item?.position)}</Text>
-                                        <Text>{item.country}</Text>
-                                    </View>
+                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                            <Image
+                                source={{ uri: item.player.avatarUrl }}
+                                style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                            />
+                            <View style={tailwind`flex-1`}>
+                                <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                    {item.player.name}
+                                </Text>
+                                <View style={tailwind`flex-row items-center gap-4 mt-1`}>
+                                    <Text style={tailwind`text-sm text-gray-600`}>
+                                    {selectPosition(item.player.positions)}
+                                    </Text>
+                                    <Text style={tailwind`text-sm text-gray-600`}>•</Text>
+                                    <Text style={tailwind`text-sm text-gray-600`}>
+                                    {item.player.country}
+                                    </Text>
                                 </View>
                             </View>
+                        </View>
                         ))}
                     </View>
                 )}
