@@ -13,7 +13,6 @@ const positions = require('../assets/position.json');
 const CricketTeamSquad = ({route}) => {
     const dispatch = useDispatch();
     const axiosInstance = useAxiosInterceptor(); 
-    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
     const players = useSelector(state => state.players.players)
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const match = route.params.match;
@@ -21,6 +20,7 @@ const CricketTeamSquad = ({route}) => {
     const [selectedSquad, setSelectedSquad] = useState([]);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
     const [isOnBench,setIsOnBench] = useState([]);
     const [playingXI, setPlayingXI] = useState([]);
     const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
@@ -191,9 +191,6 @@ const CricketTeamSquad = ({route}) => {
     const togglePlayerSelection = (item) => {
        setSelectedSquad(prevSquad => [...prevSquad, item])
     }
-    const togglePlayerOnBench = (item) => {
-        setIsOnBench(prevOnBench => [prevOnBench, item])
-    } 
 
     return (
         <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
