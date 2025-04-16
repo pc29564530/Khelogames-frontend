@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView} from 'react-native';
+import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView, Modal} from 'react-native';
 import useAxiosInterceptor from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
 import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { setEditFullName, setEditDescription, setProfileAvatar } from '../redux/actions/actions';
@@ -43,6 +44,28 @@ export default function EditProfile() {
     const dispatch = useDispatch();
     const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
+    const [isRolesModalVisible, setIsRolesModalVisible] = useState(false);
+    const [roles, setRoles] = useState([]);
+    const [selectedRole, setSelectedRole] = useState(null);
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken");
+                const response = await axiosInstance.get(`${BASE_URL}/getRoles`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                console.log("Roles: ", response.data)
+                setRoles(response.data || [])
+            } catch (err) {
+                console.error("Failed to fetch roles: ", err)
+            }
+        }
+        fetchRoles();
+    }, []);
 
     const uploadAvatarimage =  async () => {
         try {
@@ -144,45 +167,107 @@ export default function EditProfile() {
             console.error("unable to update edit the profile ", err)
         }
     }
+
+    console.log("Profile: ", profile)
+
+    const handleNewRole = async (item) => {
+        try {
+            console.log("role: ", item)
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const data = {
+                profile_id: profile.id,
+                role_id: item.id
+            }
+            console.log("Data: ", data)
+            const response  = await axiosInstance.post(`${BASE_URL}/addUserRole`, data, {
+                // params: {
+                //     profile_id: profile.id.toString(),
+                //     role_id: item.id.toString(),
+                // },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            setSelectedRole(response.data)
+        } catch (err) {
+            console.error("unable to add the new role: ", err)
+        }
+    }
     
     return (
-    <KeyboardAvoidingView style={tailwind`flex-1 bg-black gap-10`}>
+    <KeyboardAvoidingView style={tailwind`flex-1 bg-white gap-10`}>
         <View tyle={tailwind`flex flex-row justify-center items-start mt-4 mr-10`}>
-            <Text style={tailwind`text-white text-lg font-bold`}>Edit Profile</Text>
+            <Text style={tailwind`text-black text-lg font-bold`}>Edit Profile</Text>
         </View>
         <View style={tailwind`flex flex-row justify-center items-center mt-4`}>
             <View style={tailwind`flex-2/5 p-4`} >
                     <Image
-                        style={tailwind`h-24 w-24 rounded-full border-2 bg-white -mt-12`}
+                        style={tailwind`h-24 w-24 rounded-full border-2 bg-red-400 -mt-12`}
                         source={{
                             uri: avatarUrl||'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Fnature%2F&psig=AOvVaw0xJxtlDRiuk48-qM28maZ7&ust=1699540828195000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCLD2vozRtIIDFQAAAAAdAAAAABAE',
                         }}
                     />
                     <Pressable  style={tailwind` -mt-12 ml-18 rounded-full bg-red-500 w-8 h-8 p-1 items-center` } onPress={uploadAvatarimage}>
-                        <FontAwesome name="upload" size={20} color="white" />
+                        <FontAwesome name="upload" size={20} color="black" />
                     </Pressable>
                     </View>
 
             </View>
         <View style={tailwind`flex-2/5 gap-10 p-4`}>
             <TextInput
-            style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Full Name"
-            placeholderTextColor="white"
+                style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="Full Name"
+                placeholderTextColor="black"
             />
             <TextInput
-            style={tailwind`p-4 bg-whitesmoke rounded border m-2 text-white border-white`}
-            value={bio}
-            onChangeText={setBio}
-            placeholder="About You"
-            placeholderTextColor="white"
+                style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                value={bio}
+                onChangeText={setBio}
+                placeholder="About You"
+                placeholderTextColor="black"
             />
+            <View>
+                <Pressable onPress={() => {setIsRolesModalVisible(true)}} style={tailwind`rounded-md shadow-md p-4 items-center `}>
+                    <Text>Select Role</Text>
+                </Pressable>
+                <View>
+                    <Text>Display Roles</Text>
+                </View>
+            </View>
         </View>
+        {isRolesModalVisible && (
+            <Modal 
+                visible={isRolesModalVisible}
+                animationType='fade'
+                onRequestClose={() => setIsRolesModalVisible(false)}
+                transparent={true}
+            >
+            <View style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+                <View style={tailwind`w-4/5 bg-white rounded-lg p-5 shadow-lg`}>
+                    <Pressable onPress={() => setIsRolesModalVisible(false)} style={tailwind`self-end mb-2`}>
+                        <AntDesign name="close" size={24} color="black" />
+                    </Pressable>
+                    <Text style={tailwind`text-lg font-bold text-center mb-4`}>Select a Role</Text>
+                    {roles.map((item, i) => (
+                        <Pressable 
+                            key={i} 
+                            onPress={() => {handleNewRole(item)}} 
+                            style={[tailwind`p-4 rounded-lg mb-2 shadow`, selectedRole === item.name ? tailwind`bg-red-400` : tailwind`bg-gray-400`]}
+                        >
+                            <Text style={tailwind`text-gray-800 text-center`}>{item.name}</Text>
+                        </Pressable>
+                    ))}
+                </View>
+            </View>
+        </Modal>
+
+        )}
         <View style={tailwind`flex-1/5 gap-10 p-4`}>
             <Pressable onPress={() => handleEditProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 `} >
-                <Text style={tailwind`text-white text-xl font-bold`}>Save</Text>
+                <Text style={tailwind`text-black text-xl font-bold`}>Save</Text>
             </Pressable>
         </View>
     </KeyboardAvoidingView>
