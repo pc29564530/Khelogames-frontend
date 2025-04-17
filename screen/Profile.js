@@ -329,13 +329,13 @@ useEffect(() => {
         const translateX = interpolate(
           scrollY.value,
           [0, offsetValue],
-          [0, 76],
+          [0, 40],
           Extrapolation.CLAMP,
         )
         const translateY = interpolate(
           scrollY.value,
           [0, offsetValue],
-          [0, -10],
+          [0, -5],
           Extrapolation.CLAMP,
         )
         return { opacity, transform: [{ translateX }, { translateY }] }
@@ -345,7 +345,7 @@ useEffect(() => {
         const translateY = interpolate(
           scrollY.value,
           [0, offsetValue],
-          [0, -yValue],
+          [0, -80],
           Extrapolation.CLAMP,
         )
     
@@ -370,14 +370,14 @@ useEffect(() => {
 
     return(
       <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`safe-center`, animatedHeader]}>
-              <TouchableOpacity onPress={() =>navigation.goBack()} style={tailwind`top-4 left-2 z-30`}>
+            <Animated.View style={[tailwind`flex-row`, animatedHeader]}>
+              <TouchableOpacity onPress={() =>navigation.goBack()} style={tailwind`items-start top-2 px-2 `}>
                   <MaterialIcons name="arrow-back" size={22} color="black" />
               </TouchableOpacity>
-              <Animated.View style={[tailwind``, nameAnimatedStyles]}>
+              <Animated.View style={[tailwind`flex-1 justify-center`, nameAnimatedStyles]}>
                   <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
               </Animated.View>
-              <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind` items-end -top-8 right-2 z-20`}>
+              <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind`absolute right-0 top-2`}>
                   <MaterialIcons name="more-vert" size={22} color="black" />
               </TouchableOpacity>
             </Animated.View>
