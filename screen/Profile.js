@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +11,7 @@ import useAxiosInterceptor from './axios_config';
 import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
+import { launchImageLibrary } from 'react-native-image-picker';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
@@ -27,6 +28,13 @@ function Profile({route}) {
     const [displayText, setDisplayText] = useState('');
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
+    const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
+    const [organizationName, setOrganizationName] = useState(null);
+    const [phoneNumber, setPhoneNumber] = useState(null);
+    const [documentURL, setDocumentURL] = useState(null);
+    const [isModalUploadDocumentVisible, setIsModalUploadDocumentVisible] = useState(false);
+    const [email, setEmail] = useState(null);
+
     const otherOwner  = route.params?.username;
     console.log("Profile: ", profile.full_name)
 
@@ -368,6 +376,61 @@ useEffect(() => {
         }
       })
 
+      const handleUploadDocument = async () => {
+        try {
+            let options = { 
+                noData: true,
+                mediaType: 'image',
+            };
+    
+            const res = await launchImageLibrary(options);
+    
+            if (res.didCancel) {
+                console.log('User cancelled photo picker');
+            } else if (res.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else {
+                const type = getMediaTypeFromURL(res.assets[0].uri);
+                if(type === 'image') {
+                    const base64File = await fileToBase64(res.assets[0].uri);
+                    setDocumentURL(base64File);
+                } else {
+                    console.log('unsupported media type: ', type);
+                }
+            }
+        } catch (e) {
+            console.error("unable to load avatar image", e);
+        }
+      }
+
+      const handleVerificationDetails = async () => {
+        try {
+          const authToken = await AsyncStorage.getItem("AccessToken")
+          const data = {
+            profile_id: profileID,
+            organization_name: organizationName,
+            email: email,
+            phone_number: phoneNumber,
+            document_type: 'Verification',
+            file_path: documentURL
+          }
+          const response = await axiosInstance.getItem(`${BASE_URL}/applyForVerification`, data, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+          }
+          })
+          console.log("Verification Details: ", response.data)
+          if(response.data){
+            // setIsModalOrganizerVerified(false);
+            setIsModalUploadDocumentVisible(false)
+            
+          }
+        } catch (err) {
+          console.error("Failed to verified the details and documents: ", err)
+        }
+      }
+
     return(
       <View style={tailwind`flex-1`}>
             <Animated.View style={[tailwind`flex-row`, animatedHeader]}>
@@ -404,6 +467,11 @@ useEffect(() => {
                         {followingCount} Following
                       </Text>
                     </View>
+                  </View>
+                  <View style={tailwind` pl-2 pr-2 mb-2`}>
+                    <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => {setIsModalOrganizerVerified(true)}}>
+                        <Text style={tailwind`text-black text-xl font-bold`}>want to verified ?</Text>
+                    </Pressable>
                   </View>
                   <View style={tailwind` pl-2 pr-2`}>
                       <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => handleMessage()}>
@@ -449,6 +517,65 @@ useEffect(() => {
                   </TouchableOpacity>
                 </View>
             </Modal>
+            )}
+            {isModalOrganizerVerified && (
+              <Modal
+                transparent
+                visible={isModalOrganizerVerified}
+                animationType="fade"
+                onRequestClose={() => setIsModalOrganizerVerified(false)}
+              >
+                <View style={tailwind`flex-1 bg-black bg-opacity-30`}>
+                  <View style={tailwind`absolute w-full mt-4 bg-white rounded-md shadow-lg p-4 items-bottom`}>
+                    <View style={tailwind`flex-row items-center justify-between`}>
+                      <View style={tailwind`items-center jusitfy-evenly`}>
+                          <Text style={tailwind`text-lg`}>Verify Organizer</Text>
+                      </View>
+                      <View>
+                        <Pressable>
+                          <MaterialIcons name="close" size={24} color="black" />
+                        </Pressable>
+                      </View>
+                    </View>
+                    <View>
+                      <TextInput
+                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                        value={organizationName}
+                        onChangeText={setOrganizationName}
+                        placeholder="Oraganization Name"
+                        placeholderTextColor="black"
+                      />
+                      <TextInput
+                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                        placeholder="Phone Number"
+                        placeholderTextColor="black"
+                      />
+                      <TextInput
+                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Email"
+                        placeholderTextColor="black"
+                      />
+                    </View>
+
+                    <View style={tailwind`m-10`}>
+                      <View style={tailwind`rounded-lg shadow-lg p-4 `}>
+                          <Pressable onPress={() => handleUploadDocument()} style={tailwind`items-center`}>
+                            <Text style={tailwind`text-lg`}>Upload Documents</Text>
+                          </Pressable>
+                      </View>
+                    </View>
+                    <View>
+                      <Pressable style={tailwind`rounded-lg shadow-lg p-6 items-center`} onPress={() => handleVerificationDetails()}>
+                          <Text>Submit Verification</Text>
+                      </Pressable>
+                    </View>
+                  </View> 
+                </View>
+              </Modal>
             )}
         </View>
     );
