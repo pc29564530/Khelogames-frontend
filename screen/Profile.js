@@ -2,8 +2,8 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import Feather from 'react-native-vector-icons/Feather';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile, checkIsFollowing} from '../redux/actions/actions';
@@ -12,6 +12,7 @@ import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
 import { launchImageLibrary } from 'react-native-image-picker';
+import CountryPicker from 'react-native-country-picker-modal';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
@@ -33,7 +34,11 @@ function Profile({route}) {
     const [phoneNumber, setPhoneNumber] = useState(null);
     const [documentURL, setDocumentURL] = useState(null);
     const [isModalUploadDocumentVisible, setIsModalUploadDocumentVisible] = useState(false);
+    const [documentUploaded, setDocumentUploaded] = useState(null);
+    const [isCountryPicker, setIsCountryPicker] = useState(false);
+
     const [email, setEmail] = useState(null);
+    const [country, setCountry] = useState(null);
 
     const otherOwner  = route.params?.username;
     console.log("Profile: ", profile.full_name)
@@ -522,60 +527,106 @@ useEffect(() => {
               <Modal
                 transparent
                 visible={isModalOrganizerVerified}
-                animationType="fade"
+                animationType="slide"
                 onRequestClose={() => setIsModalOrganizerVerified(false)}
               >
-                <View style={tailwind`flex-1 bg-black bg-opacity-30`}>
-                  <View style={tailwind`absolute w-full mt-4 bg-white rounded-md shadow-lg p-4 items-bottom`}>
-                    <View style={tailwind`flex-row items-center justify-between`}>
-                      <View style={tailwind`items-center jusitfy-evenly`}>
-                          <Text style={tailwind`text-lg`}>Verify Organizer</Text>
-                      </View>
-                      <View>
-                        <Pressable>
-                          <MaterialIcons name="close" size={24} color="black" />
-                        </Pressable>
-                      </View>
+                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                  <View style={tailwind`w-full bg-white rounded-t-3xl p-6 shadow-2xl`}>
+                    
+                    {/* Header */}
+                    <View style={tailwind`flex-row justify-between items-center mb-4`}>
+                      <Text style={tailwind`text-xl font-bold text-black`}>Organizer Verification</Text>
+                      <Pressable onPress={() => setIsModalOrganizerVerified(false)}>
+                        <MaterialIcons name="close" size={24} color="black" />
+                      </Pressable>
                     </View>
-                    <View>
+
+                    {/* Input Fields */}
+                    <View style={tailwind` gap-4`}>
                       <TextInput
-                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                        style={tailwind`p-4 rounded-lg border border-gray-400  text-lg text-black`}
                         value={organizationName}
                         onChangeText={setOrganizationName}
-                        placeholder="Oraganization Name"
-                        placeholderTextColor="black"
+                        placeholder="Organization Name"
+                        placeholderTextColor="gray"
                       />
+                      <View style={tailwind`flex-row items-center space-x-3`}>
+                        <Pressable
+                          onPress={() => setIsCountryPicker(true)}
+                          style={tailwind`flex-row items-center px-4 py-3 rounded-lg bg-white border border-gray-400 shadow-md`}
+                        >
+                          <Text style={tailwind`text-base text-gray-800 font-medium`}>
+                            {country ? `${country.cca2} +${country.callingCode}` : 'IND +91'}
+                          </Text>
+                          <FontAwesome name="chevron-down" size={16} color="gray" style={tailwind`ml-2`} />
+                        </Pressable>
+
+                        <TextInput
+                          style={tailwind`flex-1 px-4 py-3 rounded-lg bg-white border border-gray-400 text-base text-gray-900 shadow-md`}
+                          value={phoneNumber}
+                          onChangeText={setPhoneNumber}
+                          placeholder="Phone Number"
+                          placeholderTextColor="gray"
+                          keyboardType="phone-pad"
+                        />
+                      </View>
                       <TextInput
-                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                        placeholder="Phone Number"
-                        placeholderTextColor="black"
-                      />
-                      <TextInput
-                        style={tailwind`p-4 bg-white rounded border m-2 text-black border-black`}
+                        style={tailwind`p-4 rounded-lg border border-gray-400 text-lg text-black`}
                         value={email}
                         onChangeText={setEmail}
                         placeholder="Email"
-                        placeholderTextColor="black"
+                        placeholderTextColor="gray"
+                        keyboardType="email-address"
                       />
                     </View>
 
-                    <View style={tailwind`m-10`}>
-                      <View style={tailwind`rounded-lg shadow-lg p-4 `}>
-                          <Pressable onPress={() => handleUploadDocument()} style={tailwind`items-center`}>
-                            <Text style={tailwind`text-lg`}>Upload Documents</Text>
-                          </Pressable>
+                    {/* Upload Button */}
+                    <View style={tailwind`mt-6 bg-gray-100`}>
+                        <View style={tailwind`p-2`}>
+                          <Text style={tailwind`text-lg`}>Required Document</Text>
+                        </View>
+                        <View style={tailwind`p-10 items-center justify-between`}>
+                        <MaterialIcons name="upload-file" size={46} color='black' />
+                        <Pressable
+                          onPress={handleUploadDocument}
+                          style={tailwind`items-center justify-center p-4  bg-red-400 rounded-xl border-white`}
+                        >
+                          <Text style={tailwind`text-white text-base font-semibold`}>
+                            {documentUploaded ? "Document Uploaded ✅" : "Upload Document"}
+                          </Text>
+                        </Pressable>
                       </View>
                     </View>
-                    <View>
-                      <Pressable style={tailwind`rounded-lg shadow-lg p-6 items-center`} onPress={() => handleVerificationDetails()}>
-                          <Text>Submit Verification</Text>
+
+                    {/* Submit Button */}
+                    <View style={tailwind`mt-6 mb-2`}>
+                      <Pressable
+                        onPress={handleVerificationDetails}
+                        style={tailwind`bg-red-400 rounded-xl p-4 items-center shadow-lg`}
+                      >
+                        <Text style={tailwind`text-white font-semibold text-base`}>Submit for Verification</Text>
                       </Pressable>
                     </View>
-                  </View> 
+                  </View>
                 </View>
               </Modal>
+            )}
+            {isCountryPicker && (
+                <CountryPicker
+                    withFilter
+                    withFlag
+                    withCountryNameButton
+                    withAlphaFilter
+                    withCallingCode
+                    withEmoji
+                    countryCode={country}
+                    onSelect={(selectedCountry) => {
+                        setCountry(selectedCountry);
+                        setIsCountryPicker(false);
+                    }}
+                    visible={isCountryPicker}
+                    onClose={() => setIsCountryPicker(false)}
+                />
             )}
         </View>
     );
