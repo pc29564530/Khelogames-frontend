@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput, Image} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -555,8 +555,21 @@ useEffect(() => {
                           onPress={() => setIsCountryPicker(true)}
                           style={tailwind`flex-row items-center px-4 py-3 rounded-lg bg-white border border-gray-400 shadow-md`}
                         >
+                          {country?.flag ? (
+                            <Image
+                              source={{ uri: `https://flagcdn.com/w40/${country.cca2.toLowerCase()}.png` }}
+                              style={{ width: 28, height: 20, marginRight: 8 }}
+                              resizeMode="contain"
+                            />
+                          ): (
+                            <Image
+                              source={{ uri: `https://flagcdn.com/w40/in.png` }}
+                              style={{ width: 28, height: 20, marginRight: 8 }}
+                              resizeMode="contain"
+                            />
+                          )}
                           <Text style={tailwind`text-base text-gray-800 font-medium`}>
-                            {country ? `${country.cca2} +${country.callingCode}` : 'IND +91'}
+                            {country ? `+${country.callingCode}` : '+91'}
                           </Text>
                           <FontAwesome name="chevron-down" size={16} color="gray" style={tailwind`ml-2`} />
                         </Pressable>
@@ -621,8 +634,13 @@ useEffect(() => {
                     withEmoji
                     countryCode={country}
                     onSelect={(selectedCountry) => {
-                        setCountry(selectedCountry);
-                        setIsCountryPicker(false);
+                      console.log("Selected Country: ", selectedCountry); // Debugging
+                      if (selectedCountry) {
+                          setCountry(selectedCountry);
+                      } else {
+                          console.error("No country selected");
+                      }
+                      setIsCountryPicker(false);
                     }}
                     visible={isCountryPicker}
                     onClose={() => setIsCountryPicker(false)}
