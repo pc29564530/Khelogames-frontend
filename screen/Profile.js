@@ -14,6 +14,7 @@ import TopTabProfile from '../navigation/TopTabProfile';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CountryPicker from 'react-native-country-picker-modal';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { KeyboardAvoidingView } from 'native-base';
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
@@ -542,7 +543,7 @@ useEffect(() => {
                     </View>
 
                     {/* Input Fields */}
-                    <View style={tailwind` gap-4`}>
+                    <KeyboardAvoidingView style={tailwind` gap-4`}>
                       <TextInput
                         style={tailwind`p-4 rounded-lg border border-gray-400  text-lg text-black`}
                         value={organizationName}
@@ -580,7 +581,7 @@ useEffect(() => {
                           onChangeText={setPhoneNumber}
                           placeholder="Phone Number"
                           placeholderTextColor="gray"
-                          keyboardType="phone-pad"
+                          keyboardType='phone-pad'
                         />
                       </View>
                       <TextInput
@@ -589,9 +590,9 @@ useEffect(() => {
                         onChangeText={setEmail}
                         placeholder="Email"
                         placeholderTextColor="gray"
-                        keyboardType="email-address"
+                        keyboardType='email'
                       />
-                    </View>
+                    </KeyboardAvoidingView>
 
                     {/* Upload Button */}
                     <View style={tailwind`mt-6 bg-gray-100`}>
