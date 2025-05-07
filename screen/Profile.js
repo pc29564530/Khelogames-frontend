@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput, Image} from 'react-native';
+import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput, Image, KeyboardAvoidingView} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -14,7 +14,6 @@ import TopTabProfile from '../navigation/TopTabProfile';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CountryPicker from 'react-native-country-picker-modal';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import { KeyboardAvoidingView } from 'native-base';
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
@@ -42,7 +41,6 @@ function Profile({route}) {
     const [country, setCountry] = useState(null);
 
     const otherOwner  = route.params?.username;
-    console.log("Profile: ", profile.full_name)
 
     useFocusEffect(
       React.useCallback(() => {
@@ -411,16 +409,16 @@ useEffect(() => {
 
       const handleVerificationDetails = async () => {
         try {
-          const authToken = await AsyncStorage.getItem("AccessToken")
+          const authToken = await AsyncStorage.getItem('AccessToken');
           const data = {
-            profile_id: profileID,
+            profile_id: profile.id,
             organization_name: organizationName,
             email: email,
-            phone_number: phoneNumber,
+            phone_number: country ? `+${country.callingCode}` : '+91' + '-' + phoneNumber,
             document_type: 'Verification',
             file_path: documentURL
           }
-          const response = await axiosInstance.getItem(`${BASE_URL}/applyForVerification`, data, {
+          const response = await axiosInstance.post(`${BASE_URL}/applyForVerification`, data, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
@@ -428,7 +426,6 @@ useEffect(() => {
           })
           console.log("Verification Details: ", response.data)
           if(response.data){
-            // setIsModalOrganizerVerified(false);
             setIsModalUploadDocumentVisible(false)
             
           }
