@@ -22,9 +22,12 @@ const TournamentPlayerStatsRow = ({ player, type }) => {
         </View>
       </View>
       <Text style={tailwind`text-base font-bold text-black`}>
-            {type === 'mostRuns' && `${player.total_runs} Runs`}
-            {type === 'highestRuns' && `${player.highest_runs} Runs`}
-            {type === 'mostSixes' && `${player.most_sixes} Sixes`}
+            {type === 'mostRuns' && `${player.stat_value} Runs`}
+            {type === 'highestRuns' && `${player.stat_value} Runs`}
+            {type === 'mostSixes' && `${player.stat_value} Sixes`}
+            {type === 'mostFours' && `${player.stat_value} Fours`}
+            {type === 'mostFifties' && `${player.stat_value} Fifties`}
+            {type === 'mostHundreds' && `${player.stat_value} Hundreds`}
         </Text>
     </View>
   );

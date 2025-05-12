@@ -24,6 +24,9 @@ const TournamentCricketStats = ({route}) => {
     const [modalData, setModalData] = useState(null);
     const [modalTitle, setModalTitle] = useState('');
     const [modalType, setModalType] = useState('');
+    const [mostFours, setMostFours] = useState(null);
+    const [mostFifties, setMostFifties] = useState(null);
+    const [mostHundreds, setMostHundreds] = useState(null);
 
     const game = useSelector(state => state.sportReducers.game);
     useEffect(() => {
@@ -33,14 +36,13 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                console.log("data: ", data)
+
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostRuns/${tournament.id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
                     }
                 })
-                console.log("Most Runs; ", response.data)
                 setMostRuns(response.data || []);
             } catch (err) {
                 console.error("Failed to fetch most runs by players: ", err);
@@ -53,17 +55,15 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                console.log("data: ", data)
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentHighestRuns/${tournament.id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
                     }
                 })
-                console.log("Most Runs; ", response.data)
                 setHighestRuns(response.data || []);
             } catch (err) {
-                console.error("Failed to fetch most runs by players: ", err);
+                console.error("Failed to fetch highest individual runs by players: ", err);
             }
         }
 
@@ -73,15 +73,67 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                console.log("most sixes data: ", data)
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostSixes/${tournament.id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
                     }
                 })
-                console.log("Most Sixes; ", response.data)
                 setMostSixes(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch most sixes by players: ", err);
+            }
+        }
+
+        const fetchMostFours = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const data = {
+                    tournament_id: tournament.id
+                }
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFours/${tournament.id}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                setMostFours(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch most sixes by players: ", err);
+            }
+        }
+
+        const fetchMostFifties = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const data = {
+                    tournament_id: tournament.id
+                }
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFifties/${tournament.id}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                setMostFifties(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch most sixes by players: ", err);
+            }
+        }
+
+        const fetchMostHundreds = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const data = {
+                    tournament_id: tournament.id
+                }
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostHundreds/${tournament.id}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                setMostHundreds(response.data || []);
             } catch (err) {
                 console.error("Failed to fetch most sixes by players: ", err);
             }
@@ -90,6 +142,9 @@ const TournamentCricketStats = ({route}) => {
         fetchMostRunsByPlayer()
         fetchHighestRunsByPlayer()
         fetchMostSixes()
+        fetchMostFours()
+        fetchMostFifties()
+        fetchMostHundreds()
     }, []);
 
     return (
@@ -166,7 +221,7 @@ const TournamentCricketStats = ({route}) => {
                     )}
                 />
             </View>
-            {/* Section: Highest Runs */}
+            {/* Section: Most Sixes */}
             <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
                 <View style={tailwind`flex-row justify-between items-center mb-3`}>
                     <Text style={tailwind`text-lg font-semibold text-black`}>
@@ -187,6 +242,79 @@ const TournamentCricketStats = ({route}) => {
                     keyExtractor={item => item.id}
                     renderItem={({item}) => (
                         <TournamentPlayerStatsRow player={item} type={"mostSixes"}/>
+                    )}
+                />
+            </View>
+
+            {/* Section: Most Fours */}
+            <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
+                <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                    <Text style={tailwind`text-lg font-semibold text-black`}>
+                        Most Fours
+                    </Text>
+                    <Pressable
+                        onPress={() => {
+                            setModalData(mostFours);
+                            setModalTitle("Most Fours");
+                            setModalType("mostFours");
+                            setModalVisible(true);
+                        }}>
+                        <AntDesign name="down" size={20} color="gray" />
+                    </Pressable>
+                </View>
+                <FlatList
+                    data={mostFours?.slice(0,1)}
+                    keyExtractor={item => item.id}
+                    renderItem={({item}) => (
+                        <TournamentPlayerStatsRow player={item} type={"mostFours"}/>
+                    )}
+                />
+            </View>
+            {/* Section: Most Fifties */}
+            <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
+                <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                    <Text style={tailwind`text-lg font-semibold text-black`}>
+                        Most Fifties
+                    </Text>
+                    <Pressable
+                        onPress={() => {
+                            setModalData(mostFifties);
+                            setModalTitle("Most Fifties");
+                            setModalType("mostFifties");
+                            setModalVisible(true);
+                        }}>
+                        <AntDesign name="down" size={20} color="gray" />
+                    </Pressable>
+                </View>
+                <FlatList
+                    data={mostFifties?.slice(0,1)}
+                    keyExtractor={item => item.id}
+                    renderItem={({item}) => (
+                        <TournamentPlayerStatsRow player={item} type={"mostFifties"}/>
+                    )}
+                />
+            </View>
+            {/* Section: Most Hundreds */}
+            <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
+                <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                    <Text style={tailwind`text-lg font-semibold text-black`}>
+                        Most Hundreds
+                    </Text>
+                    <Pressable
+                        onPress={() => {
+                            setModalData(mostFours);
+                            setModalTitle("Most Hundreds");
+                            setModalType("mostHundreds");
+                            setModalVisible(true);
+                        }}>
+                        <AntDesign name="down" size={20} color="gray" />
+                    </Pressable>
+                </View>
+                <FlatList
+                    data={mostHundreds?.slice(0,1)}
+                    keyExtractor={item => item.id}
+                    renderItem={({item}) => (
+                        <TournamentPlayerStatsRow player={item} type={"mostHundreds"}/>
                     )}
                 />
             </View>
