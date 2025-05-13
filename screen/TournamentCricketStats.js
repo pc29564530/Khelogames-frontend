@@ -32,6 +32,8 @@ const TournamentCricketStats = ({route}) => {
     const [bowlingStrike, setBowlingStrike] = useState(null);
     const [bowlingEconomy, setBowlingEconomy] = useState(null);
     const [fiveWicketsHaul, setFiveWicketsHaul] = useState(null);
+    const [battingAverage, setBattingAverage] = useState(null);
+    const [battingStrike, setBattingStrike] = useState(null);
 
     const game = useSelector(state => state.sportReducers.game);
     useEffect(() => {
@@ -234,6 +236,42 @@ const TournamentCricketStats = ({route}) => {
             }
         }
 
+        const fetchBattingAverage = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const data = {
+                    tournament_id: tournament.id
+                }
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingAverage/${tournament.id}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                setBattingAverage(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch batting average: ", err);
+            }
+        }
+
+        const fetchBattingStrike = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const data = {
+                    tournament_id: tournament.id
+                }
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingStrike/${tournament.id}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                setBattingStrike(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch batting strike: ", err);
+            }
+        }
+
         fetchMostRunsByPlayer()
         fetchHighestRunsByPlayer()
         fetchMostSixes()
@@ -245,6 +283,8 @@ const TournamentCricketStats = ({route}) => {
         fetchBowlingAverage()
         fetchBowlingStrike()
         fetchBowlingFiveWicketHaul()
+        fetchBattingAverage()
+        fetchBattingStrike()
     }, []);
 
     return (
@@ -372,6 +412,57 @@ const TournamentCricketStats = ({route}) => {
                             )}
                         />
                     </View>
+
+                    {/* Section: Batting Average */}
+                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
+                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                            <Text style={tailwind`text-lg font-semibold text-black`}>
+                                Batting Average
+                            </Text>
+                            <Pressable
+                                onPress={() => {
+                                    setModalData(battingAverage);
+                                    setModalTitle("Batting Average");
+                                    setModalType("battingAverage");
+                                    setModalVisible(true);
+                                }}>
+                                <AntDesign name="down" size={20} color="gray" />
+                            </Pressable>
+                        </View>
+                        <FlatList
+                            data={battingAverage?.slice(0,1)}
+                            keyExtractor={item => item.id}
+                            renderItem={({item}) => (
+                                <TournamentPlayerStatsRow player={item} type={"battingAverage"}/>
+                            )}
+                        />
+                    </View>
+
+                    {/* Section: Batting Strike */}
+                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
+                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                            <Text style={tailwind`text-lg font-semibold text-black`}>
+                                Batting Strike
+                            </Text>
+                            <Pressable
+                                onPress={() => {
+                                    setModalData(battingStrike);
+                                    setModalTitle("Batting Strike");
+                                    setModalType("battingStrike");
+                                    setModalVisible(true);
+                                }}>
+                                <AntDesign name="down" size={20} color="gray" />
+                            </Pressable>
+                        </View>
+                        <FlatList
+                            data={battingStrike?.slice(0,1)}
+                            keyExtractor={item => item.id}
+                            renderItem={({item}) => (
+                                <TournamentPlayerStatsRow player={item} type={"battingStrike"}/>
+                            )}
+                        />
+                    </View>
+
                     {/* Section: Most Fifties */}
                     <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
                         <View style={tailwind`flex-row justify-between items-center mb-3`}>

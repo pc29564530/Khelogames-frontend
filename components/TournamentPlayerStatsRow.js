@@ -24,6 +24,8 @@ const TournamentPlayerStatsRow = ({ player, type }) => {
       <Text style={tailwind`text-base font-bold text-black`}>
             {type === 'mostRuns' && `${player.stat_value} Runs`}
             {type === 'highestRuns' && `${player.stat_value} Runs`}
+            {type === 'battingStrike' && `${player.stat_value}`}
+            {type === 'battingAverage' && `${player.stat_value}`}
             {type === 'mostSixes' && `${player.stat_value} Sixes`}
             {type === 'mostFours' && `${player.stat_value} Fours`}
             {type === 'mostFifties' && `${player.stat_value} Fifties`}
