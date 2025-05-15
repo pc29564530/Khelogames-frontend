@@ -35,6 +35,9 @@ const TournamentPlayerStatsRow = ({ player, type }) => {
             {type === 'bowlingAverage' && `${player.stat_value}`}
             {type === 'bowlingStrike' && `${player.stat_value}`}
             {type === 'fiveWicketsHaul' && `${player.stat_value}`}
+            {type === 'mostGoals' && `${player.stat_value}`}
+            {type === 'mostYellowCard' && `${player.stat_value}`}
+            {type === 'mostRedCard' && `${player.stat_value}`}
         </Text>
     </View>
   );
