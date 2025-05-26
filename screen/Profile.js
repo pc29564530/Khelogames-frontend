@@ -13,6 +13,7 @@ import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CountryPicker from 'react-native-country-picker-modal';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
@@ -49,10 +50,11 @@ function Profile({route}) {
         fetchData()
       }, [])
     )
+      console.log("Profile: ", profile)
 
     useEffect(() => {
       checkIsFollowingFunc()
-    }, [dispatch]); 
+    }, [dispatch]);
 
     const checkIsFollowingFunc = async () => {
         try {
@@ -424,7 +426,6 @@ useEffect(() => {
               'Content-Type': 'application/json',
           }
           })
-          console.log("Verification Details: ", response.data)
           if(response.data){
             setIsModalUploadDocumentVisible(false)
             
@@ -436,16 +437,21 @@ useEffect(() => {
 
     return(
       <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`flex-row`, animatedHeader]}>
-              <TouchableOpacity onPress={() =>navigation.goBack()} style={tailwind`items-start top-2 px-2 `}>
-                  <MaterialIcons name="arrow-back" size={22} color="black" />
-              </TouchableOpacity>
+            <Animated.View style={[tailwind`flex-row items-center justify-between`, animatedHeader]}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start top-0 px-2`}>
+                <MaterialIcons name="arrow-back" size={22} color="black" />
+              </TouchableOpacity>              
               <Animated.View style={[tailwind`flex-1 justify-center`, nameAnimatedStyles]}>
-                  <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
+                <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
               </Animated.View>
-              <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind`absolute right-0 top-2`}>
+              <View style={tailwind`flex-row items-end top-0 right-0 px-2  rounded-lg`}>
+                <TouchableOpacity onPress={handleMessage} style={tailwind`mx-2`}>
+                  <AntDesign name="message1" size={22} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind`mx-2`}>
                   <MaterialIcons name="more-vert" size={22} color="black" />
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
             <Animated.Image source={profile?.avatar_url || ''} style={[tailwind`w-32 h-32 rounded-full absolute z-20 self-center bg-red-200 top-10`, animImage]}/>
             <Animated.ScrollView
@@ -471,14 +477,14 @@ useEffect(() => {
                       </Text>
                     </View>
                   </View>
-                  <View style={tailwind` pl-2 pr-2 mb-2`}>
+                  {/* <View style={tailwind` pl-2 pr-2 mb-2`}>
                     <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => {setIsModalOrganizerVerified(true)}}>
                         <Text style={tailwind`text-black text-xl font-bold`}>want to verified ?</Text>
                     </Pressable>
-                  </View>
+                  </View> */}
                   <View style={tailwind` pl-2 pr-2`}>
-                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => handleMessage()}>
-                        <Text style={tailwind`text-black text-xl font-bold`}>Message</Text>
+                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", profile)}>
+                        <Text style={tailwind`text-black text-xl font-bold`}>My Player Profile</Text>
                       </Pressable>
                   </View>
                   <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
