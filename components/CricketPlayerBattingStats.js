@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAxiosInterceptor from '../screen/axios_config';
 import tailwind from 'twrnc';
 
 const statFields = [
@@ -13,15 +15,16 @@ const StatRow = ({ label, value = "N/A" }) => (
   </View>
 );
 
-const CricketPlayerBattingStats = () => {
+const CricketPlayerBattingStats = ({playerID}) => {
   const [contentTab, setContentTab] = useState('test');
-  const [playerBattingStats, setPlayerBattingStats] = useState(null)
+  const [playerBattingStats, setPlayerBattingStats] = useState(null);
+  const axiosInstance = useAxiosInterceptor();
 
   useEffect(() => {
     const fetchPlayerBattingStats = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.get(`${BASE_URL}/getPlayerBattingStats`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getPlayerBattingStats/${playerID}`, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json',
