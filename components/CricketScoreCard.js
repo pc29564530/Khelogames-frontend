@@ -27,17 +27,20 @@ const CricketScoreCard = () => {
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
+    
     const homePlayer = useSelector((state) => state.teams.homePlayer);
     const awayPlayer = useSelector((state) => state.teams.awayPlayer);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
+    const [selectedInning, setSelectedInning] = useState("inning1")
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [currentScoreCard, setCurrentScoreCard] = useState() 
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const innings = ["inning1", "inning2"];
 
     useEffect(() => {
         if (cricketToss) {
@@ -58,12 +61,14 @@ const CricketScoreCard = () => {
     const [yetToBat, setYetToBat] = useState([]);
 
     useEffect(() => {
+        //batting score according to the inning for test match
+        //check for match type and inning if match type is test then have two innings for single team other wise only one
         const fetchBatting = async () => {
             try {
                 setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
-                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString() },
+                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString(), inning: selectedInning },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -77,14 +82,14 @@ const CricketScoreCard = () => {
             }
         };
         fetchBatting();
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.id, ]);
 
     useEffect(() => {
         const fetchBowling = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_id: match.id, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID },
+                    params: { match_id: match.id, inning: selectedInning, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID, inning: selectedInning },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -109,18 +114,32 @@ const CricketScoreCard = () => {
         loadPlayers();
     }, []);
 
+    console.log("Batting: ", batting)
+    console.log("Innning: ", selectedInning)
+
     useEffect(() => {
         const handleYetToBat = () => {
             let notBatted = [];
-            if (batTeam === homeTeamID){
-                notBatted = homePlayer.filter((item) => !batting?.innings?.some((batter) => item.id !== batter.id) )
+            if (currentScoreCard === homeTeamID){
+                notBatted = homePlayer?.filter((item) => 
+                    !batting?.innings?.some((batter) => 
+                        item.id === batter.batsman_id
+                    )
+                );
             } else {
-                notBatted = awayPlayer.filter((item) => !batting?.innings?.some((batter) => item.id !== batter.id))
+                notBatted = awayPlayer?.filter((item) => 
+                    !batting?.innings?.some((batter) => 
+                        item.id === batter.batsman_id
+                    )
+                );
             }
+            console.log("Not batted: ", notBatted)
             setYetToBat(notBatted);
-        }
+        };
         handleYetToBat();
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.id, batting, homePlayer, awayPlayer, selectedInning]);
+    
+    
 
     const handleAddNextBatsman = async () => {
         try{
@@ -137,6 +156,7 @@ const CricketScoreCard = () => {
                 batting_status: true,
                 is_striker: false,
                 is_currently_batting: true,
+                inning: selectedInning
             }
 
             const authToken = await AsyncStorage.getItem("AccessToken")
@@ -157,6 +177,7 @@ const CricketScoreCard = () => {
                 const data = {
                     match_id: match.matchId,
                     team_id: currentScoreCard,
+                    inning: selectedInning
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
@@ -170,7 +191,6 @@ const CricketScoreCard = () => {
                     },
                 })
                 dispatch(getCricketWicketFallen(response?.data || []))
-                setWicketsData(response.data || []);
             } catch (err) {
                 console.error("failed to get the wickets: ", err)
             }
@@ -201,7 +221,32 @@ const CricketScoreCard = () => {
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>
-                    {batting?.innings?.length > 0 ? (
+                    {match.match_type === "TEST" ? (
+                        <>
+                        {innings.map((item, index) => (
+                            <View key={index}>
+                                <Pressable onPress={() => {setSelectedInning(item)}}>
+                                    <Text>1st Inning</Text>
+                                </Pressable>
+                                <Pressable onPress={() => {setSelectedInning(item)}}>
+                                    <Text>2nd Inning</Text>
+                                </Pressable>
+                            </View>
+                        ))}
+                        {batting?.innings?.length > 0 ? (
+                            <View>
+                                <CricketBattingScorecard batting={batting.innings.filter(item => item.inning === selectedInning)} />
+                                <CricketBowlingScorecard bowling={bowling.filter(bw => bw.inning === selectedInning)} convertBallToOvers={convertBallToOvers} />
+                                <CricketWicketCard wickets={wickets.filter(wk => wk.inning === selectedInning)} convertBallToOvers={convertBallToOvers} />
+                            </View>
+                            ) : (
+                            <Text style={tailwind`text-center text-gray-500`}>Inning Not Started</Text>
+                        )}
+                        </>
+                        
+                    ): (
+                        <>
+                                {batting?.innings?.length > 0 ? (
                         <View style={tailwind``}>
                                 <View style={tailwind`bg-white mb-2 p-1`}>
                                     <CricketBattingScorecard batting={batting} />
@@ -235,6 +280,9 @@ const CricketScoreCard = () => {
                             </View>
                         </View>
                     )}
+                        </>
+                    )}
+                    
                     
                 </ScrollView>
                 {isYetToBatModalVisible && (

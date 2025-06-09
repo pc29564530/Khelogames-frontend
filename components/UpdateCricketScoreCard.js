@@ -9,9 +9,10 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
+export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const handleCurrentScoreEvent = (item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
         setAddCurrentScoreEvent((prevEvent) => {
@@ -39,6 +40,7 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
                     batsman_id: currentBatsman?.player?.id,
                     bowler_id: currentBowler?.player?.id,
                     runs_scored: temp,
+                    inning: currentInning
                 }
 
                 const authToken = await AsyncStorage.getItem("AccessToken")
@@ -63,7 +65,8 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
                     match_id: match.id,
                     bowler_id: currentBowler.player.id,
                     batting_team_id: batTeam,
-                    batsman_id: currentBatsman.player.id
+                    batsman_id: currentBatsman.player.id,
+                    inning: currentInning
                 }
                 
                 const authToken = await AsyncStorage.getItem("AccessToken")
@@ -88,7 +91,8 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
                     batting_team_id: batTeam,
                     bowler_id: currentBowler.player.id,
                     match_id: match.id,
-                    runs_scored: temp
+                    runs_scored: temp,
+                    inning: currentInning
                 }
 
                 const authToken = await AsyncStorage.getItem("AccessToken")
@@ -119,7 +123,8 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
                     fielder_id: wicketType === "Stamp" ? currentWicketKeeper?.id : null,
                     runs_scored: temp,
                     bowl_type: addCurrentScoreEvent.length == 2 ? addCurrentScoreEvent[1] : null,
-                    toggle_striker: isBatsmanStrikeChange
+                    toggle_striker: isBatsmanStrikeChange,
+                    inning: currentInning
                 }
 
                 if (wicketType === 'Run Out' || wicketType === "Catch") {

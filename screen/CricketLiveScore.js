@@ -18,6 +18,8 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
+import { setCurrentInning, setInningStatus } from '../redux/actions/actions';
+
 
 const CricketLive = ({route}) => {
     const navigation = useNavigation()
@@ -31,6 +33,9 @@ const CricketLive = ({route}) => {
         awayPlayer: state.teams.awayPlayer,
         cricketToss: state.cricketToss.cricketToss
       }), shallowEqual);
+
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
+    const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
       useEffect(() => {
         console.log("Updated Game Data:", inningData);
@@ -46,6 +51,8 @@ const CricketLive = ({route}) => {
     const cricketToss = inningData.cricketToss;
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
+    const [followOn, setFollowOn] = useState(false);
+    const [nextInning, setNextInning] = useState(null);
     const [currentLiveScore, setCurrentLiveScore] = useState(false);
     const [menuVisible, setMenuVisible] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
@@ -113,10 +120,9 @@ const CricketLive = ({route}) => {
                 <Pressable style={tailwind``} onPress={toggleMenu}>
                     <MaterialIcon name="more-vert" size={24} color="white" />
                 </Pressable>
-            </View>
-                
+            </View>      
         )
-    })
+    });
 
         const handleEndInning = async () => {
             try {
@@ -124,7 +130,7 @@ const CricketLive = ({route}) => {
                 const data = {
                     match_id: match.id,
                     team_id: batTeam,
-                    inning: "inning1"
+                    inning: currentInning
                 }
     
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
@@ -136,9 +142,10 @@ const CricketLive = ({route}) => {
                 if(response.data){
                     setIsCurrentInningEnded(true)
                 }
-                dispatch(setEndInning(response?.data.inning))
-                dispatch(setBatsmanScore(response.data.batsman))
-                dispatch(setBowlerScore(response.data.bowler))
+                dispatch(setEndInning(response?.data.inning));
+                dispatch(setBatsmanScore(response.data.batsman));
+                dispatch(setBowlerScore(response.data.bowler));
+                dispatch(setInningStatus("completed"));
             } catch (err) {
                 console.error("Failed to end inning: ", err);
             }
@@ -211,6 +218,18 @@ const CricketLive = ({route}) => {
             fetchAwayPlayers();
         }, [match.id]);
 
+        const getNextInning = () => {
+            if (inningStatus === "completed" && currentInning === "inning1"){
+                return "inning 2";
+            } else if (inningStatus === "completed" && currentInning === "inning2") {
+                return "inning 3";
+            } else if (inningStatus === "completed" && currentInning === "inning3") {
+                return "inning 4";
+            } else {
+                return null;
+            }
+        };
+
         const handleMatchInning = () => {
             if(match?.innings?.length == 2){
                 return (
@@ -264,7 +283,7 @@ const CricketLive = ({route}) => {
                                     <Text style={tailwind`text-lg text-gray-800`}>
                                         {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name} Batting
                                     </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>1st Inning</Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{currentInning}</Text>
                                 </View>
                                 <View style={tailwind`px-4 pb-4 pt-2`}>
                                 <Text style={tailwind`text-lg font-bold`}>
@@ -292,7 +311,7 @@ const CricketLive = ({route}) => {
                                     <Text style={tailwind`text-lg font-semibold text-gray-800`}>
                                         {batTeam === match.homeTeam.id ? match.awayTeam.name : match.homeTeam.name}
                                     </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>2nd Inning</Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{getNextInning()}</Text>
                                     </View>
                                     <View style={tailwind`px-4 pb-4 pt-2`}>
                                     <Text style={tailwind`text-lg font-semibold `}>
@@ -328,17 +347,38 @@ const CricketLive = ({route}) => {
                     { text: "OK", style: "cancel" }
                 ]
             );
+        }
+        //get match 
+        switch (inningStatus) {
+            case "not_started":
+                setNextInning("inning1");
+                //dispatch(setCurrentInning("inning1"))
+                break;
+            case "first_inning_completed":
+                setNextInning("inning2");
+                //dispatch(setCurrentInning("inning2"))
+                break;
+            case "second_inning_completed":
+                setNextInning("inning3");
+               //dispatch(setCurrentInning("inning3"))
+                break;
+            case  "third_inning_completed":
+                setNextInning("inning4")
+                //dispatch(setCurrentInning("inning4"))
+                break;
+            default:
+                break;
         }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(sport, dispatch, match.id, teamID, authToken, axiosInstance)
+            await addCricketScoreServices(sport, dispatch, match.id, teamID, nextInning, followOn, authToken, axiosInstance)
         } catch (err) {
             console.error("Failed to start next inning: ", err);
         }
     }
 
-    const currentBowling = bowling?.innings.filter((item) => item.is_current_bowler === true );
-    const currentBatting = batting?.innings.filter((item) => (item.is_currently_batting === true));
+    const currentBowling = bowling?.innings?.filter((item) => item.is_current_bowler === true );
+    const currentBatting = batting?.innings?.filter((item) => (item.is_currently_batting === true));
     const currentFielder = homeTeamID !== batTeam
     ? homePlayer?.filter((player) => {
         const currentField = !bowling?.innings?.some(
@@ -382,13 +422,29 @@ const CricketLive = ({route}) => {
 
     const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
-    )) : homePlayer?.filter((player) => !bowling?.innings.some(
+    )) : homePlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
     const existingBowler = (batTeam?.id === homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings?.some((bowler) => bowler.player.id === player.id)
     );
+
+    const checkFollowOn = () => {
+        if (match.innings.length >= 2) {
+            const firstInningScore = match.innings[0].score.score;
+            const secondInningScore = match.innings[1].score.score;
+            // Check if the second team scored less than 200 runs less than the first team's score
+            if (secondInningScore < firstInningScore - 200) {
+                <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
+                    <Text style>Follow On</Text>
+                </Pressable>
+            }
+        }
+    };
+    useEffect(() => {
+        checkFollowOn();
+    }, [match.innings]);
 
     if (isLoading) {
         return (
