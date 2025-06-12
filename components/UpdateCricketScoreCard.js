@@ -9,7 +9,7 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
+export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
     const axiosInstance = useAxiosInterceptor();
     const match = useSelector(state => state.cricketMatchScore.match);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);

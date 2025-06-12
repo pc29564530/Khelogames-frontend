@@ -27,27 +27,27 @@ const CricketScoreCard = () => {
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
-    
     const homePlayer = useSelector((state) => state.teams.homePlayer);
     const awayPlayer = useSelector((state) => state.teams.awayPlayer);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
-    const [selectedInning, setSelectedInning] = useState("inning1")
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
-    const [currentScoreCard, setCurrentScoreCard] = useState() 
+    const [currentScoreCard, setCurrentScoreCard] = useState();
+    const [selectedInning, setSelectedInning] = useState("inning1")
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
-    const innings = ["inning1", "inning2"];
 
     useEffect(() => {
         if (cricketToss) {
             if (cricketToss.tossDecision === "Batting") {
                 setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
+                setSelectedInning(cricketToss.tossWonTeam === homeTeamID ? "inning1" : "inning2");
             } else {
                 setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? awayTeamID : homeTeamID);
+                setSelectedInning(cricketToss.tossWonTeam === awayTeamID ? "inning1" : "inning2");
             }
         }
     }, [cricketToss, homeTeamID, awayTeamID]);
@@ -61,14 +61,12 @@ const CricketScoreCard = () => {
     const [yetToBat, setYetToBat] = useState([]);
 
     useEffect(() => {
-        //batting score according to the inning for test match
-        //check for match type and inning if match type is test then have two innings for single team other wise only one
         const fetchBatting = async () => {
             try {
                 setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
-                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString(), inning: selectedInning },
+                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -82,14 +80,14 @@ const CricketScoreCard = () => {
             }
         };
         fetchBatting();
-    }, [currentScoreCard, match.id, ]);
+    }, [currentScoreCard, match.id]);
 
     useEffect(() => {
         const fetchBowling = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_id: match.id, inning: selectedInning, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID, inning: selectedInning },
+                    params: { match_id: match.id, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -114,32 +112,26 @@ const CricketScoreCard = () => {
         loadPlayers();
     }, []);
 
-    console.log("Batting: ", batting)
-    console.log("Innning: ", selectedInning)
-
     useEffect(() => {
         const handleYetToBat = () => {
             let notBatted = [];
+            const allBattedIDs = new Set()
+
+            Object.keys(batting?.innings || {}).forEach(key => {
+                batting.innings[key]?.forEach(batter => {
+                    if (key === selectedInning && batter?.id) allBattedIDs.add(batter.id);
+                });
+            });
+
             if (currentScoreCard === homeTeamID){
-                notBatted = homePlayer?.filter((item) => 
-                    !batting?.innings?.some((batter) => 
-                        item.id === batter.batsman_id
-                    )
-                );
+                notBatted = homePlayer?.filter((item) => Object.keys(batting?.innings)?.map((key) => !(batting?.innings[key]).some((batter) => item.id !== batter.id)))
             } else {
-                notBatted = awayPlayer?.filter((item) => 
-                    !batting?.innings?.some((batter) => 
-                        item.id === batter.batsman_id
-                    )
-                );
+                notBatted = awayPlayer?.filter((item) => Object.keys(bowling.innings)?.map((key) => !batting?.innings[key]?.some((batter) => item.id !== batter.id)))
             }
-            console.log("Not batted: ", notBatted)
             setYetToBat(notBatted);
-        };
+        }
         handleYetToBat();
-    }, [currentScoreCard, match.id, batting, homePlayer, awayPlayer, selectedInning]);
-    
-    
+    }, [currentScoreCard, match.id]);
 
     const handleAddNextBatsman = async () => {
         try{
@@ -156,7 +148,6 @@ const CricketScoreCard = () => {
                 batting_status: true,
                 is_striker: false,
                 is_currently_batting: true,
-                inning: selectedInning
             }
 
             const authToken = await AsyncStorage.getItem("AccessToken")
@@ -177,7 +168,6 @@ const CricketScoreCard = () => {
                 const data = {
                     match_id: match.matchId,
                     team_id: currentScoreCard,
-                    inning: selectedInning
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
@@ -191,16 +181,13 @@ const CricketScoreCard = () => {
                     },
                 })
                 dispatch(getCricketWicketFallen(response?.data || []))
+                setWicketsData(response.data || []);
             } catch (err) {
                 console.error("failed to get the wickets: ", err)
             }
         }
         fetchTeamWickets()
     }, [currentScoreCard, match.id]);
-    
-    const toggleScoreCard = (teamID) => {
-        setCurrentScoreCard(teamID)
-    }
 
     if (isLoading) {
         return (
@@ -214,75 +201,77 @@ const CricketScoreCard = () => {
             <View style={tailwind`flex-1 bg-white`}>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => {toggleScoreCard(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamID); setSelectedInning(Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                         </Pressable>
-                        <Pressable onPress={() => toggleScoreCard(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamID); setSelectedInning(Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>
                     {match.match_type === "TEST" ? (
                         <>
-                        {innings.map((item, index) => (
-                            <View key={index}>
-                                <Pressable onPress={() => {setSelectedInning(item)}}>
-                                    <Text>1st Inning</Text>
-                                </Pressable>
-                                <Pressable onPress={() => {setSelectedInning(item)}}>
-                                    <Text>2nd Inning</Text>
-                                </Pressable>
-                            </View>
-                        ))}
-                        {batting?.innings?.length > 0 ? (
-                            <View>
-                                <CricketBattingScorecard batting={batting.innings.filter(item => item.inning === selectedInning)} />
-                                <CricketBowlingScorecard bowling={bowling.filter(bw => bw.inning === selectedInning)} convertBallToOvers={convertBallToOvers} />
-                                <CricketWicketCard wickets={wickets.filter(wk => wk.inning === selectedInning)} convertBallToOvers={convertBallToOvers} />
-                            </View>
-                            ) : (
-                            <Text style={tailwind`text-center text-gray-500`}>Inning Not Started</Text>
-                        )}
+                            {Object.keys(batting.innings).length > 0 ? (
+                                 <>
+                                    {Object.keys(batting.innings).map((key, index) => (
+                                        <Pressable key={key} onPress={() => setSelectedInning(key)}>
+                                            <Text style={tailwind`text-black`}>
+                                                {index === 0 ? '1st Innings' : '2nd Innings'}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
+                                    <View>
+                                        
+                                        <CricketBattingScorecard batting={batting.innings[selectedInning]} />
+                                        <CricketBowlingScorecard bowling={bowling.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
+                                        <CricketWicketCard wickets={wickets.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
+                                    </View>
+                                 </>
+                            ):(
+                                <Text style={tailwind`text-center text-gray-500`}>Inning Not Started</Text>
+                            )}
                         </>
-                        
-                    ): (
-                        <>
-                                {batting?.innings?.length > 0 ? (
-                        <View style={tailwind``}>
-                                <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketBattingScorecard batting={batting} />
-                                </View>
-                                <View style={tailwind`bg-white mb-2 p-1`}>
-                                    <CricketBowlingScorecard bowling={bowling}  convertBallToOvers={convertBallToOvers} />
-                                </View>
-                                {yetToBat.length > 0 && (
-                                    <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
-                                        <Text style={tailwind`text-black`}>Yet to bat:</Text>
-                                        <View>
-                                                {yetToBat.map((item, index) => (
-                                                <View key={index} style={tailwind`bg-red flex-1`}>
-                                                        <Text style={tailwind`text-black`}>{item.player_name}</Text>
-                                                </View>
-                                                ))}
-                                        </View>
-                                    </View>
-                                )}
-                                {wickets.length > 0 && (
-                                    <View style={tailwind`bg-white mb-2 p-1`}>
-                                        <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
-                                    </View>
-                                )}
-                        </View>
                     ):(
-                        <View style={tailwind`flex-1 p-4`}>
-                            <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
-                                <MaterialIcon name="info-outline" size={40} color="gray" />
-                                <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
-                            </View>
-                        </View>
-                    )}
+                        <>
+                            {Object.keys(batting.innings).length >  0 ? (
+                                <View style={tailwind``}>
+                                        {Object.keys(batting.innings)?.map((key, index) => (
+                                            <View style={tailwind`bg-white mb-2 p-1`} key = {index}>
+                                                <CricketBattingScorecard batting={batting.innings[key]} />
+                                            </View>
+                                        ))}
+                                        {Object.keys(batting.innings).map((key, index) => (
+                                            <View style={tailwind`bg-white mb-2 p-1`} key= {index}>
+                                                    <CricketBowlingScorecard bowling={bowling.innings[key]} convertBallToOvers={convertBallToOvers}/>
+                                            </View>
+                                        ))}
+                                        {yetToBat.length > 0 && (
+                                            <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
+                                                <Text style={tailwind`text-black`}>Yet to bat:</Text>
+                                                <View>
+                                                        {yetToBat.map((item, index) => (
+                                                        <View key={index} style={tailwind`bg-red flex-1`}>
+                                                                <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                                                        </View>
+                                                        ))}
+                                                </View>
+                                            </View>
+                                        )}
+                                        {wickets.length > 0 && (
+                                            <View style={tailwind`bg-white mb-2 p-1`}>
+                                                <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
+                                            </View>
+                                        )}
+                                </View>
+                            ):(
+                                <View style={tailwind`flex-1 p-4`}>
+                                    <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
+                                        <MaterialIcon name="info-outline" size={40} color="gray" />
+                                        <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
+                                    </View>
+                                </View>
+                            )}
                         </>
                     )}
-                    
                     
                 </ScrollView>
                 {isYetToBatModalVisible && (
