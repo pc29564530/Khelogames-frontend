@@ -11,6 +11,17 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 
+export const renderInningScore = (scores) => {
+    return scores?.map((score, index) => (
+      <View key={index} style={tailwind`flex-row`}>
+        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+          {score.score}/{score.wickets} ({convertBallToOvers(score.overs)})
+        </Text>
+      </View>
+    ));
+  };
+  
+
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -46,48 +57,30 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     return (
         <ScrollView>
             <View style={tailwind`p-4`}>
-            {matches?.length > 0 ? (
-                    matches?.map((stage, index) => (
-                        <View key={index} style={tailwind`bg-white`}>
-                            {Object?.keys(stage?.group_stage).length > 0 && 
-                                Object?.entries(stage?.group_stage).map(([stageName, matchs]) => (
-                                    matchs.length > 0 && (
-                                        <View key={stageName}>
-                                            {matchs.length>0 && (
-                                                <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
-                                            )}
-                                            {matchs?.map((item, ind) => (
-                                                MatchesData(item, ind, dispatch )
-                                            ))}
-                                        </View>
-                                    )
-                                ))
-                            }
-                            {Object?.keys(stage.knockout_stage).length > 0 &&
-                                Object?.entries(stage.knockout_stage).map(([stageName, matchs]) => (
-                                    matchs.length > 0 && (
-                                        <View key={stageName}>
-                                            {matchs.length>0 && (
-                                                <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
-                                            )}
-                                            {matchs.map((item, ind) => (
-                                                MatchesData(item, ind, dispatch)
-                                            ))}
-                                        </View>
-                                    )
-                                ))
-                            }
-                        </View>
-                    ))
-                ) : (
-                    <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
-                )}
+            {matches[0]?.knockout_stage &&
+            Object.entries(matches[0].knockout_stage).map(([stageName, knockoutMatches]) => (
+                <View key={stageName}>
+                    <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{knockoutMatches["round"]}</Text>
+                    {knockoutMatches["matches"].map((item, index) => {
+                        return <MatchesData item={item} ind={index} key={index}/>
+                    })}
+                </View>
+            ))}
+            {matches[0]?.group_stage &&
+            Object.entries(matches[0].group_stage).map(([stageName, groupMatches]) => (
+                <View key={stageName}>
+                    <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
+                    {groupMatches["matches"]?.map((item, index) => {
+                        return <MatchesData item={item} ind={index} key={index}/>
+                    })}
+                </View>
+            ))}
             </View>
         </ScrollView>
     );
 }
 
-const MatchesData = (item, ind, dispatch) => {
+const MatchesData = ({item, ind}) => {
     const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
         navigation.navigate("CricketMatchPage", {item: item.matchId})
@@ -96,25 +89,25 @@ const MatchesData = (item, ind, dispatch) => {
         <Pressable key={ind} 
             style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`} 
             onPress={() => handleCricketMatchPage(item)}
-        >
+        >   
             <View style={tailwind`flex-row items-center justify-between `}>
                 <View style={tailwind`flex-row`}>
                     <View style={tailwind``}>
                         <Image 
-                            source={{ uri: item.awayTeam?.media_url }} 
+                            source={{ uri: item.teams.home_team?.media_url }} 
                             style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
                         />
                         <Image 
-                            source={{ uri: item.homeTeam?.media_url }} 
+                            source={{ uri: item.teams.away_team?.media_url }} 
                             style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
                         />
                     </View>
                     <View style={tailwind``}>
                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                            {item.homeTeam?.name}
+                            {item.teams.home_team?.name}
                         </Text>
                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                            {item.awayTeam?.name}
+                            {item.teams.away_team?.name}
                         </Text>
                     </View>
                 </View>
@@ -124,20 +117,14 @@ const MatchesData = (item, ind, dispatch) => {
                         {item.status !== "not_started" && (
                             <View>
                             <View style={tailwind``}>
-                                {item.homeScore  && item.homeScore.inning === "inning1" && (
-                                    <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.homeScore.overs)})</Text>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                            {item.homeScore.score}/{item.homeScore.wickets}
-                                        </Text>
+                                {item.scores.home_score  && (
+                                    <View style={tailwind``}>
+                                        {renderInningScore(item.scores.home_score)}
                                     </View>
                                 )}
-                                {item.awayScore && item.awayScore.inning === "inning1" && (
-                                    <View style={tailwind`flex-row`}>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(item.awayScore.overs)})</Text>
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                            {item.awayScore.score}/{item.awayScore.wickets}
-                                        </Text>
+                                {item.scores.away_score && (
+                                    <View style={tailwind``}>
+                                        {renderInningScore(item.scores.away_score)}
                                     </View>
                                 )}
                             </View>
@@ -146,13 +133,13 @@ const MatchesData = (item, ind, dispatch) => {
                         <View style={tailwind`w-0.4 h-10 bg-gray-200 left-2`}/>
                         <View style={tailwind`mb-2 ml-4 items-center justify-evenly`}>
                             <Text style={tailwind`text-md text-gray-800`}>
-                                {formatToDDMMYY(convertToISOString(item.startTimeStamp))}
+                                {formatToDDMMYY(convertToISOString(item.start_timestamp))}
                             </Text>
                             {item.status !== "not_started" ? (
                                 <Text style={tailwind`text-md text-gray-800`}>{item.status}</Text>
                             ) : (
                                 <Text style={tailwind`text-md text-gray-800`}>
-                                    {formattedTime(convertToISOString(item.startTimeStamp))}
+                                    {formattedTime(convertToISOString(item.start_timestamp))}
                                 </Text>
                             )}
                         </View>
