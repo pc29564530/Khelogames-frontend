@@ -18,7 +18,7 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
-import { setCurrentInning, setInningStatus } from '../redux/actions/actions';
+import { setCurrentInning, setInningStatus, setBatTeam } from '../redux/actions/actions';
 
 
 const CricketLive = ({route}) => {
@@ -219,12 +219,12 @@ const CricketLive = ({route}) => {
         }, [match.id]);
 
         const getNextInning = () => {
-            if (inningStatus === "completed" && currentInning === "inning1"){
-                return "inning 2";
-            } else if (inningStatus === "completed" && currentInning === "inning2") {
-                return "inning 3";
-            } else if (inningStatus === "completed" && currentInning === "inning3") {
-                return "inning 4";
+            if (inningStatus === "completed" && currentInning === 1){
+                return 2;
+            } else if (inningStatus === "completed" && currentInning === 2) {
+                return 3;
+            } else if (inningStatus === "completed" && currentInning === 3) {
+                return 4;
             } else {
                 return null;
             }
@@ -351,19 +351,19 @@ const CricketLive = ({route}) => {
         //get match 
         switch (inningStatus) {
             case "not_started":
-                setNextInning("inning1");
+                setNextInning(1);
                 //dispatch(setCurrentInning("inning1"))
                 break;
             case "first_inning_completed":
-                setNextInning("inning2");
+                setNextInning(2);
                 //dispatch(setCurrentInning("inning2"))
                 break;
             case "second_inning_completed":
-                setNextInning("inning3");
+                setNextInning(3);
                //dispatch(setCurrentInning("inning3"))
                 break;
             case  "third_inning_completed":
-                setNextInning("inning4")
+                setNextInning(4)
                 //dispatch(setCurrentInning("inning4"))
                 break;
             default:

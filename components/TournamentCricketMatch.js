@@ -15,8 +15,11 @@ export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
       <View key={index} style={tailwind`flex-row`}>
         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-          {score.score}/{score.wickets} ({convertBallToOvers(score.overs)})
+          {score.score}/{score.wickets}
         </Text>
+        {score.is_inning_completed === false && (
+            <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(score.overs)})</Text>
+        )}
       </View>
     ));
   };
@@ -83,7 +86,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 const MatchesData = ({item, ind}) => {
     const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
-        navigation.navigate("CricketMatchPage", {item: item.matchId})
+        navigation.navigate("CricketMatchPage", {item: item.id})
     }
     return (
         <Pressable key={ind} 
