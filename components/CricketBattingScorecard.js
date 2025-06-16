@@ -18,7 +18,7 @@ const CricketBattingScorecard = ({ batting }) => {
                 </View>
             </View>
             {/* Batting Data */}
-            {batting?.innings?.map((item, index) => (
+            {batting?.map((item, index) => (
                 <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-2 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
                     <View style={tailwind``}>
                         <View style={tailwind`flex-row`}>

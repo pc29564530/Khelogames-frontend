@@ -21,7 +21,7 @@ const CricketBowlingScorecard = ({
       </View>
 
       {/* Bowling Data */}
-      {bowling?.innings?.map((item, index) => (
+      {bowling?.map((item, index) => (
         <View
           key={index}
           style={tailwind`flex-row justify-between px-4 py-2  ${item.is_current_bowler ? 'bg-red-100' : 'bg-white'}`}

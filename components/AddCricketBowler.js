@@ -4,10 +4,12 @@ import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
+import { useSelector  } from "react-redux";
 
 
 export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled,  currentBowler}) => {
     const axiosInstance = useAxiosInterceptor();
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning)
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
@@ -21,7 +23,8 @@ export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, 
                 wide: 0,
                 no_ball: 0,
                 bowling_status: true,
-                is_current_bowler: true
+                is_current_bowler: true,
+                inning: currentInning
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBall`, data, {

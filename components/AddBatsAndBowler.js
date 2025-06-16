@@ -17,7 +17,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
     const dispatch = useDispatch();
     const bowlerToBeBowled = batTeam?.id === match.homeTeam.id ? awayPlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
-        )) : homePlayer?.filter((player) => !bowling?.innings.some(
+        )) : homePlayer?.filter((player) => !bowling?.innings?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 

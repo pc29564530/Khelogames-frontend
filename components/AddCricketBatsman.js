@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 
 export const AddCricketBatsman = ({match, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
     const axiosInstance = useAxiosInterceptor();
+    const currentInning = useSelector((state) => state.addCricketInning.currentInning)
     const teamPlayer = batTeam === match.awayTeam?.id ? awayPlayer : homePlayer;
 
     const handleAddNextBatsman = async (item) => {
@@ -24,7 +25,8 @@ export const AddCricketBatsman = ({match, batTeam, homePlayer, awayPlayer, game,
                 sixes: 0,
                 batting_status: true,
                 is_striker:false,
-                is_currently_batting: true
+                is_currently_batting: true,
+                inning_number: currentInning,
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBatScore`, data, {

@@ -505,3 +505,35 @@ export const getAwayPlayer = (player) => {
         payload: player
     }
 }
+
+// Inning Management Actions
+export const SET_CURRENT_INNING = 'SET_CURRENT_INNING';
+export const SET_INNING_STATUS = 'SET_INNING_STATUS';
+export const SET_BATTING_TEAM = 'SET_BATTING_TEAM';
+export const SET_INNING_COMPLETED = 'SET_INNING_COMPLETED';
+
+export const setCurrentInning = (inning) => ({
+    type: SET_CURRENT_INNING,
+    payload: inning
+});
+
+export const setInningStatus = (status) => ({
+    type: SET_INNING_STATUS,
+    payload: status
+});
+
+export const setBattingTeam = (teamId) => ({
+    type: SET_BATTING_TEAM,
+    payload: teamId
+});
+
+export const setInningCompleted = (inningData) => ({
+    type: SET_INNING_COMPLETED,
+    payload: {
+        inning: inningData.inning,
+        teamId: inningData.teamId,
+        score: inningData.score,
+        wickets: inningData.wickets,
+        overs: inningData.overs
+    }
+});
