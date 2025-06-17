@@ -9,7 +9,8 @@ import { useSelector  } from "react-redux";
 
 export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled,  currentBowler}) => {
     const axiosInstance = useAxiosInterceptor();
-    const currentInning = useSelector(state => state.cricketMatchInning.currentInning)
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
+    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
@@ -24,7 +25,7 @@ export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, 
                 no_ball: 0,
                 bowling_status: true,
                 is_current_bowler: true,
-                inning: currentInning
+                inning_number: currentInningNumber,
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBall`, data, {

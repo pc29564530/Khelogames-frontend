@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
@@ -215,7 +215,8 @@ const CricketMatchPage = ({ route }) => {
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const game = useSelector((state) => state.sportReducers.game);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss);
-    const currentInning = useSelector(state => state.cricketMatchScore.currentInning);
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
+    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchScore.inningStatus);
 
     const [loading, setLoading] = useState(true);
@@ -293,6 +294,7 @@ const CricketMatchPage = ({ route }) => {
             const isHomeBatting = cricketToss.tossWonTeam.id === match.homeTeam.id && cricketToss.tossDecision === "Batting";
             dispatch(setCurrentInning("inning1"));
             dispatch(setInningStatus("in_progress"));
+            dispatch(setCurrentInningNumber(1));
             dispatch(setBatTeam(isHomeBatting ? match.homeTeam.id : match.awayTeam.id));
         }
     }, [cricketToss, match]);
@@ -303,7 +305,7 @@ const CricketMatchPage = ({ route }) => {
             await axiosInstance.post(`${BASE_URL}/${game.name}/endInning`, {
                 match_id: match.id,
                 team_id: batTeam,
-                inning: currentInning
+                inning: currentInningNumber
             }, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
@@ -314,7 +316,7 @@ const CricketMatchPage = ({ route }) => {
             dispatch(setInningStatus("completed"));
             
             if (match.match_type === "TEST" && currentInning === 1) {
-                dispatch(setCurrentInning(2));
+                dispatch(setCurrentInningNumber(2));
             }
         } catch (err) {
             console.error("Failed to end inning: ", err);

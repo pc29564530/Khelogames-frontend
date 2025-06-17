@@ -13,6 +13,7 @@ import profileReducers from "./profileReducers";
 import footballMatchPlayerScoreReducers from "./fooballMatchPlayerScoreReducers";
 import footballMatchScoreReducers from "./footballMatchScoreReducers";
 import cricketMatchScore from "./cricketMatchScoreReducers";
+import cricketMatchInning from "./cricketMatchInning"
 import cricketMatchPlayerScore from "./cricketMatchPlayerScoreReducers";
 import tournamentsReducers from "./tournamentsReducers";
 import sportReducers from "./sportReducers";
@@ -21,6 +22,7 @@ import teamsReducers from "./teamsReducers";
 import matchesReducers from "./matchesReducers";
 import teamPlayerReducers from "./teamPlayerReducers";
 import cricketTossReducers from "./cricketMatchTossReducers";
+import cricketMatchInningReducer from "./cricketMatchInning";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
@@ -38,13 +40,15 @@ const rootReducer = combineReducers({
     playerScore: footballMatchPlayerScoreReducers,
     cricketPlayerScore: cricketMatchPlayerScore,
     cricketMatchScore: cricketMatchScore,
+
     tournamentsReducers: tournamentsReducers,
     sportReducers: sportReducers,
     matches: matchesReducers,
     clubReducers: clubReducers,
     teams: teamsReducers,
     players: teamPlayerReducers,
-    cricketToss: cricketTossReducers
+    cricketToss: cricketTossReducers,
+    cricketMatchInning: cricketMatchInningReducer
 });
 
 export default rootReducer;
