@@ -32,7 +32,7 @@ const CricketMatchDetail = ({route}) => {
                 toss_win: teamID
             }
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/Cricket/addCricketToss`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketToss`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
