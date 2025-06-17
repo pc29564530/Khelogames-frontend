@@ -62,7 +62,7 @@ const CricketTeamSquad = ({route}) => {
 
     const selectPosition = (item) => {
         var pos;
-        positions["positions"].map(( itm ) => {
+        positions["positions"]?.map(( itm ) => {
             if (itm.code === item) {
                 pos =  itm.name;
                 return;

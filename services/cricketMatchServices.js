@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
-import { addCricketMatchScore, setCurrentInning } from "../redux/actions/actions";
+import { addCricketMatchScore, setCurrentInning, setCurrentInningNumber } from "../redux/actions/actions";
 
 export const addCricketScoreServices = async ({sport, dispatch, matchID, teamID, inning, authToken, axiosInstance}) => {
     try {
@@ -20,6 +20,7 @@ export const addCricketScoreServices = async ({sport, dispatch, matchID, teamID,
                 'Content-Type':'application/json'
             }
         });
+        dispatch(setCurrentInningNumber(inning))
         dispatch(setCurrentInning(inning));
         dispatch(inningStatus("is_progress"))
         dispatch(setBatTeam(response.data.team_id))

@@ -93,7 +93,7 @@ const MatchHeader = ({ match, cricketToss, onBackPress, onMenuPress }) => {
                 );
             }
         } else {
-            if ((match.status_code === "in_progress" || match.status_code === "break") && match.awayScore.length > 0 && match.homeScore.length > 0) {
+            if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
                 return (
                     <View style={tailwind`items-center -top-4`}>
                         <Text style={tailwind`text-white text-sm`}>
@@ -315,7 +315,7 @@ const CricketMatchPage = ({ route }) => {
             
             dispatch(setInningStatus("completed"));
             
-            if (match.match_type === "TEST" && currentInning === 1) {
+            if (match.match_type === "TEST" && currentInningNumber === 1) {
                 dispatch(setCurrentInningNumber(2));
             }
         } catch (err) {

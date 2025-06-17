@@ -36,7 +36,7 @@ const CricketScoreCard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [currentScoreCard, setCurrentScoreCard] = useState();
-    const [selectedInning, setSelectedInning] = useState("inning1")
+    const [selectedInning, setSelectedInning] = useState(1);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
 
@@ -44,10 +44,10 @@ const CricketScoreCard = () => {
         if (cricketToss) {
             if (cricketToss.tossDecision === "Batting") {
                 setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
-                setSelectedInning(cricketToss.tossWonTeam === homeTeamID ? "inning1" : "inning2");
+                setSelectedInning(cricketToss.tossWonTeam === homeTeamID ? 1 : 2);
             } else {
                 setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? awayTeamID : homeTeamID);
-                setSelectedInning(cricketToss.tossWonTeam === awayTeamID ? "inning1" : "inning2");
+                setSelectedInning(cricketToss.tossWonTeam === awayTeamID ? 1 : 2);
             }
         }
     }, [cricketToss, homeTeamID, awayTeamID]);
@@ -115,21 +115,27 @@ const CricketScoreCard = () => {
     useEffect(() => {
         const handleYetToBat = () => {
             let notBatted = [];
-            const allBattedIDs = new Set()
-
+            const allBattedIDs = new Set();
+        
             Object.keys(batting?.innings || {}).forEach(key => {
                 batting.innings[key]?.forEach(batter => {
                     if (key === selectedInning && batter?.id) allBattedIDs.add(batter.id);
                 });
             });
-
-            if (currentScoreCard === homeTeamID){
-                notBatted = homePlayer?.filter((item) => Object.keys(batting?.innings)?.map((key) => !(batting?.innings[key]).some((batter) => item.id !== batter.id)))
+        
+            if (currentScoreCard === homeTeamID) {
+                if (Array.isArray(homePlayer)) {
+                    notBatted = homePlayer.filter(item => !allBattedIDs.has(item.id));
+                }
             } else {
-                notBatted = awayPlayer?.filter((item) => Object.keys(bowling.innings)?.map((key) => !batting?.innings[key]?.some((batter) => item.id !== batter.id)))
+                if (Array.isArray(awayPlayer)) {
+                    notBatted = awayPlayer.filter(item => !allBattedIDs.has(item.id));
+                }
             }
+        
             setYetToBat(notBatted);
-        }
+        };
+        
         handleYetToBat();
     }, [currentScoreCard, match.id]);
 
@@ -234,14 +240,14 @@ const CricketScoreCard = () => {
                         <>
                             {Object.keys(batting.innings).length >  0 ? (
                                 <View style={tailwind``}>
-                                        {Object.keys(batting.innings)?.map((key, index) => (
+                                        {Object.keys(batting?.innings)?.map((key, index) => (
                                             <View style={tailwind`bg-white mb-2 p-1`} key = {index}>
-                                                <CricketBattingScorecard batting={batting.innings[key]} />
+                                                <CricketBattingScorecard batting={batting?.innings[key]} />
                                             </View>
                                         ))}
-                                        {Object.keys(batting.innings).map((key, index) => (
+                                        {Object.keys(batting?.innings).map((key, index) => (
                                             <View style={tailwind`bg-white mb-2 p-1`} key= {index}>
-                                                    <CricketBowlingScorecard bowling={bowling.innings[key]} convertBallToOvers={convertBallToOvers}/>
+                                                <CricketBowlingScorecard bowling={bowling?.innings[key]} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         ))}
                                         {yetToBat.length > 0 && (

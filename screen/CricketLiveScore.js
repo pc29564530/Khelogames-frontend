@@ -18,7 +18,7 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
-import { setCurrentInning, setInningStatus, setBatTeam } from '../redux/actions/actions';
+ import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber } from '../redux/actions/actions';
 
 
 const CricketLive = ({route}) => {
@@ -35,6 +35,7 @@ const CricketLive = ({route}) => {
       }), shallowEqual);
 
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
+    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
       useEffect(() => {
@@ -130,7 +131,7 @@ const CricketLive = ({route}) => {
                 const data = {
                     match_id: match.id,
                     team_id: batTeam,
-                    inning: currentInning
+                    inning: currentInningNumber
                 }
     
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
@@ -219,11 +220,11 @@ const CricketLive = ({route}) => {
         }, [match.id]);
 
         const getNextInning = () => {
-            if (inningStatus === "completed" && currentInning === 1){
+            if (inningStatus === "completed" && currentInningNumber === 1){
                 return 2;
-            } else if (inningStatus === "completed" && currentInning === 2) {
+            } else if (inningStatus === "completed" && currentInningNumber === 2) {
                 return 3;
-            } else if (inningStatus === "completed" && currentInning === 3) {
+            } else if (inningStatus === "completed" && currentInningNumber === 3) {
                 return 4;
             } else {
                 return null;
@@ -283,7 +284,7 @@ const CricketLive = ({route}) => {
                                     <Text style={tailwind`text-lg text-gray-800`}>
                                         {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name} Batting
                                     </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{currentInning}</Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{currentInningNumber}</Text>
                                 </View>
                                 <View style={tailwind`px-4 pb-4 pt-2`}>
                                 <Text style={tailwind`text-lg font-bold`}>
@@ -296,8 +297,8 @@ const CricketLive = ({route}) => {
                         {/* End Inning Button */}
                         <View style={tailwind`p-4`}>
                             <Pressable
-                            style={tailwind`rounded-lg bg-red-400 px-6 py-3 shadow-md`}
-                            onPress={() => setIsCurrentInningEnded(true)}
+                                style={tailwind`rounded-lg bg-red-400 px-6 py-3 shadow-md`}
+                                onPress={() => setIsCurrentInningEnded(true)}
                             >
                             <Text style={tailwind`text-white text-base font-semibold text-center`}>End Current Inning</Text>
                             </Pressable>
