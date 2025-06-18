@@ -195,6 +195,9 @@ const CricketScoreCard = () => {
         fetchTeamWickets()
     }, [currentScoreCard, match.id]);
 
+    console.log("Batting: ", batting)
+    console.log("Bowling: ", bowling)
+
     if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -207,18 +210,18 @@ const CricketScoreCard = () => {
             <View style={tailwind`flex-1 bg-white`}>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamID); setSelectedInning(Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                         </Pressable>
-                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamID); setSelectedInning(Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>
-                    {match.match_type === "TEST" ? (
+                    {match.match_format === "Test" ? (
                         <>
-                            {Object.keys(batting.innings).length > 0 ? (
+                            {batting?.innings && Object.keys(batting?.innings).length > 0 ? (
                                  <>
-                                    {Object.keys(batting.innings).map((key, index) => (
+                                    {Object.keys(batting?.innings).map((key, index) => (
                                         <Pressable key={key} onPress={() => setSelectedInning(key)}>
                                             <Text style={tailwind`text-black`}>
                                                 {index === 0 ? '1st Innings' : '2nd Innings'}
@@ -227,8 +230,8 @@ const CricketScoreCard = () => {
                                     ))}
                                     <View>
                                         
-                                        <CricketBattingScorecard batting={batting.innings[selectedInning]} />
-                                        <CricketBowlingScorecard bowling={bowling.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
+                                        <CricketBattingScorecard batting={batting?.innings && batting.innings[selectedInning]} />
+                                        <CricketBowlingScorecard bowling={batting?.innings && bowling.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
                                         <CricketWicketCard wickets={wickets.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
                                     </View>
                                  </>
@@ -238,7 +241,7 @@ const CricketScoreCard = () => {
                         </>
                     ):(
                         <>
-                            {Object.keys(batting.innings).length >  0 ? (
+                            {batting?.innings && Object.keys(batting?.innings).length >  0 ? (
                                 <View style={tailwind``}>
                                         {Object.keys(batting?.innings)?.map((key, index) => (
                                             <View style={tailwind`bg-white mb-2 p-1`} key = {index}>
