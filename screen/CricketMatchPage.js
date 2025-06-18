@@ -332,7 +332,7 @@ const CricketMatchPage = ({ route }) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.put(
                 `${BASE_URL}/${game.name}/updateMatchStatus`,
-                { id: match.matchId, status_code: statusCode },
+                { id: match.id, status_code: statusCode },
                 {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,

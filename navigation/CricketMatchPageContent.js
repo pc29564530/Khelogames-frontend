@@ -31,7 +31,7 @@ function CricketMatchPageContent() {
                     component={CricketMatchDetails}
                     initialParams={{match:match}}
                 />
-                {match?.status !== "not_started" && (
+                {match?.status_code !== "not_started" && (
                     <TopTab.Screen 
                         name="Scorecard"
                         component={CricketScoreCard}
