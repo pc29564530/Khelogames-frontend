@@ -536,3 +536,13 @@ export const setCurrentInningNumber = (inningNumber) => ({
     type: actionTypes.SET_CURRENT_INNING_NUMBER,
     payload: inningNumber
 })
+
+export const getCricketMatchSquad = (players) => ({
+    type: actionTypes.GET_CRICKET_MATCH_SQUAD,
+    payload: players
+})
+
+export const setCricketMatchSquad = (players) => ({
+    type: actionTypes.GET_CRICKET_MATCH_SQUAD,
+    payload: players
+})
