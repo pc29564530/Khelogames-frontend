@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
@@ -5,18 +6,43 @@ import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 import { addBatsman } from "../redux/actions/actions";
 import { useSelector } from "react-redux";
+import { getCricketMatchSquad } from "../redux/actions/actions";
 
 
-export const AddCricketBatsman = ({match, batTeam, homePlayer, awayPlayer, game, dispatch}) => {
+export const AddCricketBatsman = ({match, batTeam, game, dispatch}) => {
     const axiosInstance = useAxiosInterceptor();
     const currentInning = useSelector((state) => state.cricketMatchInning.currentInning)
     const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber)
-    const teamPlayer = batTeam === match.awayTeam?.id ? awayPlayer : homePlayer;
+    const cricketMatchSquad = useSelector(state => state.players.squads)
+
+    const fetchBattingSquad = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem('authToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
+                    params: {
+                        "match_id": match.id,
+                        "team_id": batTeam
+                    },
+                    headers: {
+                        "Authorization": `Bearer ${authToken}`,
+                        "Content-Type": "application/json"
+                    }
+                })
+                console.log("Batting : ", response.data)
+                dispatch(getCricketMatchSquad(response.data || []));
+            } catch (err) {
+                console.error("Failed to fetch batting squad", err);
+            }
+    }
+
+    useEffect(() => {
+        fetchBattingSquad();
+    }, []);
 
     const handleAddNextBatsman = async (item) => {
         try {
             const data = {
-                batsman_id: item.id,
+                batsman_id: item.player.id,
                 match_id: match.id,
                 team_id: batTeam,
                 position: item.position,
@@ -44,9 +70,9 @@ export const AddCricketBatsman = ({match, batTeam, homePlayer, awayPlayer, game,
 
     return (
         <View>
-            {teamPlayer.map((item, index) => (
+            {cricketMatchSquad.map((item, index) => (
                 <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
-                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player_name}</Text>
+                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player.name}</Text>
                 </Pressable>
             ))}
         </View>

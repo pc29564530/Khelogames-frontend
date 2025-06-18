@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
@@ -5,18 +6,44 @@ import tailwind from "twrnc";
 import useAxiosInterceptor from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
 import { useSelector  } from "react-redux";
+import { getCricketMatchSquad } from "../redux/actions/actions";
 
 
-export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, bowling, bowlerToBeBowled,  currentBowler}) => {
+export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, dispatch, bowling,  currentBowler}) => {
     const axiosInstance = useAxiosInterceptor();
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
+    const cricketMatchSquad = useSelector(state => state.players.squads);
+
+    const fetchBowlingSquad = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('authToken');
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
+                params: {
+                    "match_id": match.id,
+                    "team_id": batTeam === homeTeam ? awayTeam : homeTeam
+                },
+                headers: {
+                    "Authorization": `Bearer ${authToken}`,
+                    "Content-Type": "application/json"
+                }
+            })
+            dispatch(getCricketMatchSquad(response.data || []));
+        } catch (err) {
+            console.error("Failed to fetch bowling squad", err);
+        }
+    }
+
+    useEffect(() => {
+        fetchBowlingSquad();
+    }, []);
+   
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
                 match_id: match.id,
-                team_id: batTeam !== match.awayTeam?.id ? match.awayTeam?.id : match.homeTeam?.id,
-                bowler_id: item?.id,
+                team_id: batTeam !== awayTeam ? awayTeam : homeTeam,
+                bowler_id: item?.player.id,
                 prev_bowler_id: bowling?.innings?.length > 0 ? currentBowler[0]?.bowler_id : null,
                 ball: 0,
                 runs: 0,
@@ -46,9 +73,9 @@ export const AddCricketBowler = ({match, batTeam, homePlayer, awayPlayer, game, 
 
     return (
         <View>
-            {bowlerToBeBowled.map((item, index) => (
+            {cricketMatchSquad.map((item, index) => (
                 <Pressable key={index} onPress={() => {handleAddNextBowler(item)}} style={tailwind``}>
-                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player_name}</Text>
+                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player.name}</Text>
                 </Pressable>
             ))}
         </View>
