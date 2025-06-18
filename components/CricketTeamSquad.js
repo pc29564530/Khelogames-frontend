@@ -5,7 +5,7 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useSelector, useDispatch } from 'react-redux';
-import { getTeamPlayers } from '../redux/actions/actions';
+import { getTeamPlayers, setCricketMatchToss, setCricketMatchSquad, getCricketMatchSqud } from '../redux/actions/actions';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 const positions = require('../assets/position.json');
 
@@ -20,8 +20,8 @@ const CricketTeamSquad = ({route}) => {
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
     const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
+    const cricketMatchSquad= useSelector(state => state.players.squads)
     const [isOnBench,setIsOnBench] = useState([]);
-    const [playingXI, setPlayingXI] = useState([]);
     const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
 
     useEffect(() => {
@@ -51,7 +51,6 @@ const CricketTeamSquad = ({route}) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                
                 dispatch(getTeamPlayers(response.data || []));
             } catch (err) {
                 console.error("unable to fetch the team player: ", err);
@@ -89,7 +88,7 @@ const CricketTeamSquad = ({route}) => {
                         'Content-Type': 'application/json',
                     },
                 })
-                setPlayingXI(response.data || [])
+                dispatch(getCricketMatchSqud(response.data || []));
             } catch (err) {
                 console.error("failed to fetch cricket_squad: ", err);
             }
@@ -112,16 +111,15 @@ const CricketTeamSquad = ({route}) => {
                     'Content-Type': 'application/json',
                 },
             })
-
-            setPlayingXI(response.data || []);
+            dispatch(setCricketMatchSquad(response.data || []));
             
         } catch (err) {
             console.error("Failed to create the squad for match: ", err)
         }
     }
 
-    const currentPlayingXI = playingXI?.filter(player => player.on_bench === false);
-    const currentOnBench = playingXI?.filter(player => player.on_bench === true);
+    const currentPlayingXI = cricketMatchSquad?.filter(player => player.on_bench === false);
+    const currentOnBench = cricketMatchSquad?.filter(player => player.on_bench === true);
     
     const renderPlayers = () => {
             return (
