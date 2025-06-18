@@ -5,7 +5,7 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import useAxiosInterceptor from '../screen/axios_config';
 import { useSelector, useDispatch } from 'react-redux';
-import { getTeamPlayers, setCricketMatchToss, setCricketMatchSquad, getCricketMatchSqud } from '../redux/actions/actions';
+import { getTeamPlayers, setCricketMatchToss, setCricketMatchSquad, getCricketMatchSquad } from '../redux/actions/actions';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 const positions = require('../assets/position.json');
 
@@ -88,7 +88,8 @@ const CricketTeamSquad = ({route}) => {
                         'Content-Type': 'application/json',
                     },
                 })
-                dispatch(getCricketMatchSqud(response.data || []));
+                console.log("Squad: ", response.data)
+                dispatch(getCricketMatchSquad(response.data || []));
             } catch (err) {
                 console.error("failed to fetch cricket_squad: ", err);
             }
