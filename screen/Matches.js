@@ -13,8 +13,23 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
+
+export const renderInningScore = (scores) => {
+    console.log("Score: ", scores)
+    return scores?.map((score, index) => (
+      <View key={index} style={tailwind`flex-row`}>
+        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+          {score.score}/{score.wickets}
+        </Text>
+        {score.is_inning_completed === false && (
+            <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(score.overs)})</Text>
+        )}
+      </View>
+    ));
+  };
 
 const checkSport = (item, game) => {
     if (game?.name === 'football') {
@@ -26,36 +41,27 @@ const checkSport = (item, game) => {
         );
     } else if (game?.name === 'cricket') {
         return (
-            <View style={tailwind` items-center`}>
-                <View style={tailwind`flex-row items-center`}>
-                    {item.homeScore !== null ? (
-                        <>
-                            <Text style={tailwind`text-black text-lg`}>({item.homeScore.overs})</Text>
-                            <Text style={tailwind`text-black text-lg`}>{item.homeScore.score}</Text>
-                            <Text style={tailwind`text-black text-lg`}>/</Text>
-                            <Text style={tailwind`text-black text-lg`}>{item.homeScore.wickets}</Text>
-                        </>
-                    ):(
-                        <>
-                            <Text style={tailwind`text-black text-lg`}>-</Text>
-                        </>
-                    )}
+            <View style={tailwind`items-center justify-center flex-row right-4`}>
+                    <View style={tailwind`mb-2 flex-row`}>
+                        
+                        {item.status_code !== "not_started" && (
+                            <View>
+                            <View style={tailwind``}>
+                                {item.homeScore && (
+                                    <View style={tailwind``}>
+                                        {renderInningScore(item.homeScore)}
+                                    </View>
+                                )}
+                                {item.awayScore && (
+                                    <View style={tailwind``}>
+                                        {renderInningScore(item.awayScore)}
+                                    </View>
+                                )}
+                            </View>
+                            </View>
+                        )}
+                    </View>
                 </View>
-                <View style={tailwind`flex-row items-center`}>
-                    {item.awayScore !== null ? (
-                        <>
-                            <Text style={tailwind`text-black text-lg`}>({item.awayScore.overs})</Text>
-                            <Text style={tailwind`text-black text-lg`}>{item.awayScore.score}</Text>
-                            <Text style={tailwind`text-black text-lg`}>/</Text>
-                            <Text style={tailwind`text-black text-lg`}>{item.awayScore.wickets}</Text>
-                        </>
-                    ): (
-                        <>
-                            <Text style={tailwind`text-black text-lg`}>-</Text>
-                        </>
-                    )}
-                </View>
-            </View>
         );
     }
 };
