@@ -19,7 +19,7 @@ const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'ex
 
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
-      <View key={index} style={tailwind`flex-row`}>
+      <View key={index} style={tailwind`flex-row ml-2`}>
         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
           {score.score}/{score.wickets}
         </Text>

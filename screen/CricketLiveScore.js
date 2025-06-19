@@ -623,7 +623,7 @@ const CricketLive = ({route}) => {
                                     <Text style={tailwind`text-lg text-gray-800`}>
                                         {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name} Batting
                                     </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{currentInningNumber}</Text>
+                                    <Text style={tailwind`text-md font-medium text-gray-500`}>Inning {currentInningNumber}</Text>
                                 </View>
                                 {batTeam === match.homeTeam.id ? (
                                     renderInningScore(match.homeScore)
@@ -643,6 +643,7 @@ const CricketLive = ({route}) => {
                         </View>
 
                         {/* Next Inning UI */}
+                        {currentInning < MAX_INNINGS[match.match_format] && !isCurrentInningEnded && (
                             <View style={tailwind`p-4`}>
                                 <Text style={tailwind`text-md text-gray-800 mb-4`}>Next Inning Setup</Text>
                                 <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-6`}>
@@ -652,13 +653,20 @@ const CricketLive = ({route}) => {
                                     </Text>
                                     <Text style={tailwind`text-md font-medium text-gray-500`}>{getNextInning()}</Text>
                                     </View>
-                                    <View style={tailwind`px-4 pb-4 pt-2`}>
-                                    <Text style={tailwind`text-lg font-semibold `}>
-                                        {/* 🎯 Target: {match.innings[0].score.score + 1} runs */}
-                                    </Text>
-                                    </View>
+                                    
+                                        {match.match_format === "Test" ? (
+                                            <View style={tailwind`px-4 pb-4 pt-2`}>
+                                                 <Text>{getLeadTrailStatus(match)}</Text>
+                                            </View>
+                                        ) : (
+                                            <View style={tailwind`px-4 pb-4 pt-2`}>
+                                                <Text style={tailwind`text-lg font-semibold `}>
+                                                    🎯 Target: {match.home_team_id === batTeam  ? match?.awayScore[currentInningNumber-1] + 1 || {} : match?.homeScore[currentInningNumber-1] + 1 || {}} runs
+                                                </Text>
+                                            </View>
+                                        )}
+                                    
                                 </View>
-
                                 {/* Buttons */}
                                 <View style={tailwind`flex-row justify-between`}>
                                     <Pressable
@@ -671,9 +679,10 @@ const CricketLive = ({route}) => {
                                         <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
                                     </Pressable>
                                 </View>
-                                </View>
                             </View>
+                        )}         
                         </View>
+                    </View>
                     </Pressable>
                 </Modal>
             )}
