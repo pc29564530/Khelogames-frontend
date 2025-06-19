@@ -19,6 +19,7 @@ import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
  import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber } from '../redux/actions/actions';
+import { renderInningScore } from './Matches';
 
 
 const CricketLive = ({route}) => {
@@ -232,7 +233,7 @@ const CricketLive = ({route}) => {
         };
 
         const handleMatchInning = () => {
-            if(match?.innings?.length == 2){
+            if(match.awayScore.length >= 1 ||  match.homeScore.length >= 1){
                 return (
                     <View style={tailwind`p-6 bg-gray-100 rounded-lg shadow-md`}>
                         <Text style={tailwind`text-2xl font-bold text-gray-800 mb-4`}>Current Inning</Text>
@@ -286,12 +287,11 @@ const CricketLive = ({route}) => {
                                     </Text>
                                     <Text style={tailwind`text-md font-medium text-gray-500`}>{currentInningNumber}</Text>
                                 </View>
-                                <View style={tailwind`px-4 pb-4 pt-2`}>
-                                <Text style={tailwind`text-lg font-bold`}>
-                                    {match.innings[0].score.score}/{match.innings[0].score.wickets}
-                                </Text>
-                                <Text>{convertBallToOvers(match.innings[0].score.overs)} Overs</Text>
-                                </View>
+                                {batTeam === match.homeTeam.id ? (
+                                    renderInningScore(match.homeScore)
+                                ) : (
+                                    renderInningScore(match.awayScore)
+                                )}
                             </View>
                         </View>
                         {/* End Inning Button */}
@@ -378,11 +378,11 @@ const CricketLive = ({route}) => {
         }
     }
 
-    const currentBowling = bowling?.innings?.filter((item) => item.is_current_bowler === true );
-    const currentBatting = batting?.innings?.filter((item) => (item.is_currently_batting === true));
+    const currentBowling = bowling?.innings[currentInningNumber].filter((item) => item.is_current_bowler === true );
+    const currentBatting = batting?.innings[currentInningNumber].filter((item) => (item.is_currently_batting === true));
     const currentFielder = homeTeamID !== batTeam
     ? homePlayer?.filter((player) => {
-        const currentField = !bowling?.innings?.some(
+        const currentField = !bowling?.innings[currentInningNumber].some(
             (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
         )
         return currentField;
@@ -391,7 +391,7 @@ const CricketLive = ({route}) => {
       ) || []
     : awayPlayer?.filter((player) => 
         {
-            const currentField = !bowling?.innings?.filter(
+            const currentField = !bowling?.innings[currentInningNumber].filter(
                 (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
             )
             return currentField; 
@@ -421,31 +421,42 @@ const CricketLive = ({route}) => {
     const currentWicketKeeper = batTeam !== homeTeamID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
 
-    const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings?.some(
+    const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
-    )) : homePlayer?.filter((player) => !bowling?.innings?.some(
+    )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
     const existingBowler = (batTeam?.id === homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
-        bowling?.innings?.some((bowler) => bowler.player.id === player.id)
+        bowling?.innings[currentInningNumber].some((bowler) => bowler.player.id === player.id)
     );
 
     const checkFollowOn = () => {
-        if (match.innings.length >= 2) {
-            const firstInningScore = match.innings[0].score.score;
-            const secondInningScore = match.innings[1].score.score;
-            // Check if the second team scored less than 200 runs less than the first team's score
-            if (secondInningScore < firstInningScore - 200) {
-                <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
-                    <Text style>Follow On</Text>
-                </Pressable>
+        if (match && match.awayScore?.length == 1 || match.homeScore.length == 1){
+            if (batTeam?.id === homeTeamID) {
+                const firstInningScore = match.awayScore.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match.homeScore.find((inning) => inning.inning_number === 2);
+                if (secondInningScore < firstInningScore - 200) {
+                    <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
+                        <Text style>Follow On</Text>
+                    </Pressable>
+                }
+            } else {
+                const firstInningScore = match.homeScore.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match.awayScore.find((inning) => inning.inning_number === 2);
+                if (secondInningScore < firstInningScore - 200) {
+                    <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
+                        <Text style>Follow On</Text>
+                    </Pressable>
+                }
             }
         }
     };
     useEffect(() => {
-        checkFollowOn();
-    }, [match.innings]);
+        if (match.match_format === "Test") {
+            checkFollowOn();
+        }
+    }, [match]);
 
     if (isLoading) {
         return (
@@ -466,20 +477,11 @@ const CricketLive = ({route}) => {
                             <Text>{match.match_format}</Text>
                         </View>
                         <View>
-    
                             <View>
                                 {match.home_team_id === batTeam ? (
-                                    <View style={tailwind`flex-row gap-2`}>
-                                        <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
-                                        <Text style={tailwind`text-lg font-bold`}>{match.homeScore.score}/{match.homeScore.wickets }</Text>
-                                        <Text style={tailwind`text-lg font-bold`}>({convertBallToOvers(match.homeScore.overs)})</Text>
-                                    </View>
+                                    renderInningScore(match.homeScore)
                                 ):(
-                                    <View style={tailwind`flex-row gap-2`}>
-                                        <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
-                                        <Text style={tailwind`text-lg font-bold`}>{match.awayScore.score}/{match.awayScore.wickets}</Text>
-                                        <Text style={tailwind`text-lg font-bold`}>({convertBallToOvers(match.awayScore.overs)})</Text>
-                                    </View>
+                                    renderInningScore(match.awayScore)
                                 )}
                             </View>
                         </View>

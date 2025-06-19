@@ -18,7 +18,6 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
 
 export const renderInningScore = (scores) => {
-    console.log("Score: ", scores)
     return scores?.map((score, index) => (
       <View key={index} style={tailwind`flex-row`}>
         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
