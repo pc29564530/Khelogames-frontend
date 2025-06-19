@@ -391,51 +391,35 @@ const CricketMatchPage = ({ route }) => {
                 onStatusSelect={handleUpdateResult}
             />
 
-            {menuVisible && (
+{menuVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
                     visible={menuVisible}
                     onRequestClose={() => setMenuVisible(false)}
                 >
-                    <TouchableOpacity 
-                        onPress={() => setMenuVisible(false)} 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-                    >
-                        <View style={tailwind`bg-white rounded-t-lg p-6`}>
-                            <Pressable 
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    setStatusVisible(true);
-                                }}
-                                style={tailwind`py-3 border-b border-gray-200`}
-                            >
-                                <Text style={tailwind`text-lg text-gray-700`}>
-                                    Update Match Status
-                                </Text>
-                            </Pressable>
-                            <Pressable 
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    setInningVisible(true);
-                                }}
-                                style={tailwind`py-3 border-b border-gray-200`}
-                            >
-                                <Text style={tailwind`text-lg text-gray-700`}>
-                                    Set Team Inning
-                                </Text>
-                            </Pressable>
-                            <Pressable 
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    setAddBatsmanAndBowlerModalVisible(true);
-                                }}
-                                style={tailwind`py-3`}
-                            >
-                                <Text style={tailwind`text-lg text-gray-700`}>
-                                    Add Batsman & Bowler
-                                </Text>
-                            </Pressable>
+                    <TouchableOpacity onPress={() => setMenuVisible(false)} style={tailwind`flex-1`}>
+                        <View style={tailwind`flex-row justify-end`}>
+                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`}>
+                                <TouchableOpacity onPress={() => setStatusVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Edit Match</Text>
+                                </TouchableOpacity>
+                                {/* <TouchableOpacity onPress={() => setInningVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Set Inning</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                    <Text style={tailwind`text-xl`}>End Inning</Text>
+                                </TouchableOpacity> */}
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Delete Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Share</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {match.status_code !== "finished" && navigation.navigate('Live Match')}}>
+                                    <Text style={tailwind`text-xl`}>Edit Score</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </TouchableOpacity>
                 </Modal>
