@@ -71,8 +71,8 @@ const Members = ({teamData}) => {
         }
         fetchMembers();
     }, []);
-    const handleProfile = (itm) => {
-        navigation.navigate('PlayerProfile', {profileData:itm} );
+    const handleProfile = (item) => {
+        navigation.navigate('PlayerProfile', {profileID: item.profile_id});
     }
 
     useEffect(() => {
@@ -156,7 +156,7 @@ const Members = ({teamData}) => {
                         <Pressable
                             key={index}
                             style={tailwind`shadow-lg rounded-lg w-full bg-white p-2 flex-row items-center mb-1`}
-                            onPress={() => handleProfile({ itm: item })}
+                            onPress={() => handleProfile(item)}
                         >
                             <View style={tailwind`flex-row items-center`}>
                                 {item.media_url ? (

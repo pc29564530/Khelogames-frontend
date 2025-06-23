@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {setGames, setGame } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 
-const CreatePlayerProfile = ({route}) => {
+const CreatePlayerProfile = () => {
     const profile = useSelector((state) => state.profile.profile)
     //const [playerBio, setPlayerBio] = useState('');
     const [playerSport, setPlayerSport] = useState('');
@@ -57,7 +57,7 @@ const CreatePlayerProfile = ({route}) => {
                     sports: playerSport.name,
                     country: playerCountry.name,
                     game_id: playerSport.id,
-                    player_id: profile.id
+                    profile_id: profile.id
             }
             const response = await axiosInstance.post(`${BASE_URL}/newPlayer`, data, {
                 headers: {

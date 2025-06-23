@@ -483,7 +483,7 @@ useEffect(() => {
                     </Pressable>
                   </View> */}
                   <View style={tailwind` pl-2 pr-2`}>
-                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", profile)}>
+                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", {profileID: profile?.id})}>
                         <Text style={tailwind`text-black text-xl font-bold`}>My Player Profile</Text>
                       </Pressable>
                   </View>
