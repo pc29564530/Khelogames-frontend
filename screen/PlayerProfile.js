@@ -19,6 +19,7 @@
         const game = useSelector(state => state.sportReducers.game);
         const profile = useSelector(state => state.profile.profile);
         const [isOwner, setIsOwner] = useState(false);
+        const [headerContentType, setHeaderContentType] = useState("Matches");
 
         useEffect(() => {
             const fetchPlayerProfile = async () => {
@@ -70,6 +71,30 @@
             checkProfileOwner();
         }, [profile]);
 
+        const handleContentType = (contentType) => {
+            if (contentType === "Matches") {
+                if(player.game_id === game.id && game.name === "football") {
+                    return (
+                        <Text style={tailwind`text-center text-gray-500 mt-10`}>
+                            Match history will appear here.
+                        </Text>
+                    )
+                } else if(player.game_id === game.id && game.name === "cricket") {
+                    return (
+                        <Text style={tailwind`text-center text-gray-500 mt-10`}>
+                            Match history will appear here.
+                        </Text>
+                    )
+                }
+            } else if(contentType === "Stats"){
+                if(player.game_id === game.id && game.name === "football") {
+                    return <FootballPlayerStats player={player} />;
+                } else if(player.game_id === game.id && game.name === "cricket") {
+                    return <CricketPlayerStats  player={player}/>;
+                }
+            }
+        }
+
         const avatarStyle = tailwind`w-24 h-24 rounded-full bg-gray-200 items-center justify-center overflow-hidden`;
         return (
             <View style={tailwind`flex-1 bg-gray-50`}>
@@ -94,12 +119,16 @@
                                 <Text style={tailwind`text-sm text-gray-500`}>{player?.country}</Text>
                             </View>
                         </View>
-                        {player.game_id == game.id && game.name === "football" && (
-                            <FootballPlayerStats player={player} />
-                        )}
-                        {player.game_id === game.id && game.name === "cricket" && (
-                            <CricketPlayerStats  player={player}/>
-                        )}
+                        <View style={tailwind`flex-row items-center p-4 mb-6 bg-white justify-evenly`}>
+                            {['Matches', 'Stats'].map((contentType, index) => (
+                                <Pressable key={index} onPress={() => setHeaderContentType(contentType)} style={tailwind`shadow-lg rounded-lg p-6`}>
+                                    <Text>{contentType}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                        <View>
+                            {handleContentType(headerContentType)}
+                        </View>
                     </View>
                 ) : (
                     <View style={tailwind`mx-4 mt-16`}>
