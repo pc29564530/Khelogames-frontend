@@ -29,6 +29,28 @@ const FootballMatchPage = ({ route }) => {
 
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
 
+    useEffect(() => {
+        const fetchMatchData = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
+                    params: { match_id: matchID.toString() },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                dispatch(getMatch(response.data || null));
+            } catch (err) {
+                console.error("Failed to fetch match data: ", err);
+                setError("Failed to load match data. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchMatchData();
+    }, [matchID, game.name, dispatch])
+
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
         setMenuVisible(false);
@@ -49,15 +71,6 @@ const FootballMatchPage = ({ route }) => {
             setLoading(false);
         }
     };
-
-    const fetchPenalty = async () => {
-        try{
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.get(`${BASE_URL}/`)
-        } catch (err) {
-            console.error("Unable to fetch penalty of match: ", err);
-        }
-    }
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
 
@@ -95,11 +108,32 @@ const FootballMatchPage = ({ route }) => {
                             <Text  style={tailwind`text-white`}>{match.homeTeam.name}</Text>
                         </View>
                     </View>
-                    <View style={tailwind`flex-row gap-2 justify-center items-center`}>
-                        <Text style={tailwind`text-white text-lg`}>{match?.homeScore?.homeScore?.score}</Text>
-                        <Text style={tailwind`text-white text-lg`}>-</Text>
-                        <Text style={tailwind`text-white text-lg`}>{match?.awayScore?.awayScore?.score}</Text>
-                    </View>
+                    <View style={tailwind`items-center justify-center gap-1`}>
+                        {/* Main Score */}
+                        <View style={tailwind`flex-row items-center gap-1`}>
+                            <Text style={tailwind`text-white text-2xl font-bold`}>{match?.homeScore?.goals}</Text>
+                            <Text style={tailwind`text-white text-2xl font-bold`}>-</Text>
+                            <Text style={tailwind`text-white text-2xl font-bold`}>{match?.awayScore?.goals}</Text>
+                        </View>
+
+                        {/* Penalty Shootout Score */}
+                        {match?.homeScore?.penalty_shootout !== null &&
+                            match?.awayScore?.penalty_shootout !== null && (
+                            <View style={tailwind`flex-row items-center mt-1`}>
+                                <View style={tailwind` px-2 py-0.5`}>
+                                <Text style={tailwind`text-white text-lg font-semibold`}>PEN</Text>
+                                </View>
+                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>
+                                {match?.homeScore?.penalty_shootout}
+                                </Text>
+                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>-</Text>
+                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>
+                                {match?.awayScore?.penalty_shootout}
+                                </Text>
+                            </View>
+                            )}
+                        </View>
+
                     <View style={tailwind`items-center`}>
                         {match.awayTeam?.media_url ? (
                             <Image/>

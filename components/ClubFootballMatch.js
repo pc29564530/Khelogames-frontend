@@ -12,7 +12,7 @@ import {findTournamentByID} from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentBySportAction, getTournamentByIdAction, getMatch } from '../redux/actions/actions';
 import { getTournamentBySport } from '../services/tournamentServices';
-import { convertToISOString } from '../utils/FormattedDateTime';
+import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 
 const ClubFootballMatch = ({teamData}) => {
     const [matches, setMatches] = useState([]);
@@ -32,7 +32,7 @@ const ClubFootballMatch = ({teamData}) => {
     const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/football/getMatchByTeamFunc`, {
+            const response = await axiosInstance.get(`${BASE_URL}/football/getMatchesByTeam`, {
                 params: {
                     id: teamData.id.toString()
                 },
@@ -53,8 +53,7 @@ const ClubFootballMatch = ({teamData}) => {
     };
 
     const handleMatchPage = (item) => {
-        dispatch(getMatch(item))
-        navigation.navigate("FootballMatchPage", { item });
+        navigation.navigate("FootballMatchPage", { matchID: item.id });
     };
 
     const handleDropDown = () => {
@@ -89,45 +88,77 @@ const ClubFootballMatch = ({teamData}) => {
                     matches.map((item, index) => (
                         <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
                             <View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
+                            <View style={tailwind`flex-row items-center justify-between `}>
                                     <View style={tailwind`flex-row`}>
-                                        {/* //<Image source={{ uri: item.team1_avatar_url }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayTeam.name}</Text>
-                                    </View>
-                                    {(item.status !== "not_started") && (
-                                        <View>
-                                            <Text>{item.awayScore.score}</Text>
+                                        <View style={tailwind``}>
+                                            <Image 
+                                                source={{ uri: item.awayTeam?.media_url }} 
+                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                            />
+                                            <Image 
+                                                source={{ uri: item.homeTeam?.media_url }} 
+                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                            />
                                         </View>
-                                    )}
-                                </View>
-                                <View style={tailwind`justify-between items-center mb-1 gap-1 p-1 flex-row`}>
-                                    <View style={tailwind`flex-row`}>
-                                        {/* <Image source={{ uri: item.home_team_name }} style={tailwind`w-6 h-6 bg-violet-200 rounded-full `} /> */}
-                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.homeTeam.name}</Text>
-                                    </View>
-                                    {item.status !== "not_started"  && (
-                                        <View>
-                                            <Text>{item.homeScore.score}</Text>
+                                        <View style={tailwind``}>
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                {item.homeTeam?.name}
+                                            </Text>
+                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                {item.awayTeam?.name}
+                                            </Text>
                                         </View>
-                                    )}
+                                    </View>
+
+                                    <View style={tailwind`items-center justify-center flex-row`}>
+                                        <View style={tailwind`mb-2 flex-row items-center gap-4`}>
+                                                {item.status !== "not_started" && (
+                                                    <View>
+                                                    <View style={tailwind``}>
+                                                        {item.homeScore  && (
+                                                            <View style={tailwind``}>
+                                                                <View key={index} style={tailwind`flex-row ml-2`}>
+                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                                        {item.awayScore.goals}
+                                                                    </Text>
+                                                                    {item.awayScore?.penalty_shootout && (
+                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                                        ({item.awayScore.penalty_shootout})
+                                                                    </Text>
+                                                                    )}
+                                                                </View>
+                                                            </View>
+                                                        )}
+                                                        {item.awayScore && (
+                                                            <View style={tailwind``}>
+                                                                <View key={index} style={tailwind`flex-row ml-2`}>
+                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                                        {item.homeScore.goals}
+                                                                    </Text>
+                                                                    {item.homeScore?.penalty_shootout && (
+                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                                        ({item.homeScore.penalty_shootout})
+                                                                    </Text>
+                                                                    )}
+                                                                </View>
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                    </View>
+                                                )}
+                                                <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
+                                                <View style={tailwind`mb-2 right`}>
+                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
+                                                    {item.status !== "not_started" ? (
+                                                        <Text style={tailwind`ml-2 text-md text-gray-800`}>{item.status_code}</Text>
+                                                    ):(
+                                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
+                                                    )}
+                                                </View>
+                                        </View>
+                                    </View> 
                                 </View>
                             </View>
-                            <View style={tailwind`h-16 items-center justify-center w-0.2 bg-black`}></View>
-                            {item.status === "not_started" ? (
-                                <View style={tailwind`items-center justify-evenly`}>
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedDate(convertToISOString(item.startTimeStamp))}</Text>
-                                    </View>
-                                    
-                                    <View style={tailwind`justify-center items-start`}>
-                                        <Text style={tailwind`text-gray-600`}>{formattedTime(convertToISOString(item.startTimeStamp))}</Text>
-                                    </View>
-                                </View>
-                            ):(
-                                <View style={tailwind`justify-center items-start`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.status}</Text>
-                                </View>
-                            )}
                         </Pressable>
                     ))
                 ) : (
