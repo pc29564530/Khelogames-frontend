@@ -216,7 +216,22 @@ const Matches = () => {
                                     </View>
                                     <View style={tailwind`items-center justify-center flex-row`}>
                                         <View style={tailwind`mb-2 flex-row items-center gap-4`}>
-                                                {item.status_code !== "not_started" && checkSport(item, game)}
+                                                {item.status !== "not_started" && (
+                                                    <View>
+                                                    <View style={tailwind``}>
+                                                        {item.scores.home_score  && checkSport(item, game) && (
+                                                            <View style={tailwind``}>
+                                                                {renderInningScore(item.homeScore)}
+                                                            </View>
+                                                        )}
+                                                        {item.scores.away_score && (
+                                                            <View style={tailwind``}>
+                                                                {renderInningScore(item.awayScore)}
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                    </View>
+                                                )}
                                                 <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
                                                 <View style={tailwind`mb-2 right`}>
                                                     <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
