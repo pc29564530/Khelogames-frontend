@@ -7,11 +7,12 @@ import { BASE_URL } from '../constants/ApiConstants';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 
-const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
+const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayerIn, setSelectedPlayerIn] = useState(null);
     const [selectedPlayerOut, setSelectedPlayerOut] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
+    const [description, setDescription] = useState(null);
     const [teamID, setTeamID] = useState(null);
     const axiosInstance = useAxiosInterceptor();
 
@@ -40,57 +41,79 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
             console.error("unable to add the substitution: ", err);
         }
     }
+    
+    const formatIncidentType = (type) => {
+        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
 
     return (
-        <View style={tailwind``}>
+        <ScrollView style={tailwind``}>
+
+            {/* Header Section */}
+            <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football {formatIncidentType(selectedIncident)}</Text>
             {/* Added the events: */}
-            <View>
-                <View>
-                    <Text>Edit Periods</Text>
-                </View>
-                <View style={tailwind`flex-row items-center  justify-between`}>
-                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setSelectedHalf("first_half")}>
-                        <Text>1st Half</Text>
+            <View style={tailwind`mb-6`}>
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
+                <View style={tailwind`flex-row items-center justify-between`}>
+                        <Pressable 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'first_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
+                        onPress={() => setSelectedHalf('first_half')}
+                    >
+                        <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
                     </Pressable>
-                    <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setSelectedHalf("second_half")}>
-                        <Text>2nd Half</Text>
+                    
+                    <Pressable 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'second_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
+                        onPress={() => setSelectedHalf('second_half')}
+                    >
+                        <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
                     </Pressable>
                 </View>
-                
             </View>
             {/* Minute Selector */}
-            <View style={tailwind`flex-row items-center mb-4`}>
-                <Text style={tailwind`mr-2`}>Incident Time:</Text>
-                <Picker
-                    selectedValue={selectedMinute}
-                    style={tailwind`h-50 w-30`}
-                    onValueChange={(itemValue) => setSelectedMinute(itemValue)}>
-                    {minutes.map((minute) => (
-                        <Picker.Item label={`${minute}`} value={minute} key={minute} />
-                    ))}
-                </Picker>
+            <View style={tailwind`mb-6`}>
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Incident Time (Minute):</Text>
+                <Dropdown
+                    style={tailwind`border p-3 bg-white rounded-lg shadow-md`}
+                    options={minutes}
+                    onSelect={(index, value) => setSelectedMinute(value)}
+                    defaultValue={selectedMinute}
+                    renderRow={(minute) => (
+                        <Text style={tailwind`text-lg p-3 text-center`}>{minute}</Text>
+                    )}
+                />
             </View>
 
-            <View style={tailwind`flex-row items-center  justify-between`}>
-                <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setTeamID(homeTeam.id)}>
-                    <Text>{homeTeam.name}</Text>
-                </Pressable>
-                <Pressable style={tailwind`border roounded-md h-30 w-30`} onPress={() => setTeamID(awayTeam.id)}>
-                    <Text>{awayTeam.name}</Text>
-                </Pressable>
+            {/* Team Selector */}
+            <View style={tailwind`mb-6`}>
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
+                <View style={tailwind`flex-row justify-between`}>
+                    <Pressable 
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(homeTeam.id)}
+                    >
+                        <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
+                    </Pressable>
+                    <Pressable 
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(awayTeam.id)}
+                    >
+                        <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
+                    </Pressable>
+                </View>
             </View>
 
             {/* Select Players */}
-            <View style={tailwind`mb-4 items-start justify-between`}>
+            <View style={tailwind`mb-4 items-start justify-between flex-row`}>
                 <View style={tailwind``}>
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player In:</Text>
                     <Dropdown 
-                        style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                        options={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                        style={tailwind`p-4 bg-white rounded-lg shadow-md`}
+                        options={teamID === homeTeam.id ? homeSquad.filter(itm => itm.is_substitute === true) : awaySquad.filter(itm => itm.is_substitute === true)}
                         onSelect={(index, item) => setSelectedPlayerIn(item)}
                         data={teamID === homeTeam.id ? homePlayer : awayPlayer}
                         renderRow={(item) => (
-                            <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
+                            <View key={index} style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
                                     src={item.media_url}
                                     style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
@@ -111,10 +134,10 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                 <View style={tailwind``}>
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player Out:</Text>
                     <Dropdown 
-                        style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                        options={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                        style={tailwind`p-4 bg-white rounded-lg`}
+                        options={teamID === homeTeam.id ? homeSquad.filter(itm => itm.is_substitute === true) : awaySquad.filter(itm => itm.is_substitute === true)}
                         onSelect={(index, item) => setSelectedPlayerOut(item)}
-                        data={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                        data={teamID === homeTeam.id ? homeSquad : awaySquad}
                         renderRow={(item) => (
                             <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
@@ -146,12 +169,12 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
             </View>
             {/* Confirm Button */}
             <Pressable 
-                style={tailwind`p-4 bg-blue-600 rounded-lg shadow-lg flex items-center justify-center`}
+                style={tailwind`p-4 bg-red-400 rounded-lg shadow-lg flex items-center justify-center`}
                 onPress={() => handleAddSubstitution()}
             >
                 <Text style={tailwind`text-white font-semibold text-lg`}>Confirm</Text>
             </Pressable>
-        </View>
+        </ScrollView>
     );
 }
 

@@ -7,9 +7,9 @@ import AddFootballShootout from './AddFootballShootoutIncident';
 import AddFootballIncident from './AddFootballIncident';
 import AddFootballPeriods from './AddFootballPeriods';
 
-const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period", "corner_kick"];
+const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period", "corner_kick", ];
 
-const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
+const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, homeSquad, awaySquad}) => {
     const scrollViewRef = useRef(null);
     const [selectedIncident, setSelectedIncident] = useState("");
     const [substitutionModalVisible, setSubstitutionModalVisible] = useState(false);
@@ -18,19 +18,28 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
     const [penaltyModalVisible, setPenaltyModalVisible] = useState(false);
     const [missedPenaltyVisible, setMissedPenaltyVisible] = useState(false);
     const [periodsModalVisible, setPeriodsModalVisible] = useState(false);
-
+    const [commanModalVisible, setCommanModalVisible] = useState(false);
     const handleIncident = (item) => {
-        if (item === "penalty_shootout") {
-            setShootoutModalVisible(true);
-        } else if (item === "penalty") {
-            setPenaltyModalVisible(true);
-        } else if(item === "penalty_miss"){
-            setMissedPenaltyVisible(true);
-        } else if (item === "substitution"){
-            setSubstitutionModalVisible(true);
-        } else if(item === "period") {
-            setPeriodsModalVisible(true);
-        } 
+        switch (item) {
+            case "penalty_shootout":
+                setShootoutModalVisible(true);
+                break;
+            case "penalty":
+                setPenaltyModalVisible(true);
+                break;
+            case "penalty_miss":
+                setMissedPenaltyVisible(true);
+                break;
+            case "substitution":
+                setSubstitutionModalVisible(true);
+                break;
+            case "period":
+                setPeriodsModalVisible(true);
+                break;
+            default:
+                setCommanModalVisible(true);
+                break;
+        }
         setSelectedIncident(item);
     }
 
@@ -61,6 +70,28 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 </View>
                 </View>
             </View>
+            {commanModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={commanModalVisible}
+                    onRequestClose={() => setCommand(false)}
+                >
+                    <Pressable onPress={() => setCommanModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <View style={tailwind`bg-white rounded-md p-4`}>
+                            <AddFootballIncident matchData={matchData} 
+                                awayPlayer={awayPlayer} 
+                                homePlayer={homePlayer} 
+                                awayTeam={matchData.awayTeam} 
+                                homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
+                            />
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
             {substitutionModalVisible && (
                 <Modal
                     transparent={true}
@@ -75,6 +106,9 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 homePlayer={homePlayer} 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
                             />
                         </View>
                     </Pressable>
@@ -94,6 +128,9 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 homePlayer={homePlayer} 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
                             />
                         </View>
                     </Pressable>
@@ -113,6 +150,9 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 homePlayer={homePlayer} 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
+                                selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
                             />
                         </View>
                     </Pressable>
@@ -133,6 +173,8 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
                                 selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
                             />
                         </View>
                     </Pressable>
@@ -153,6 +195,8 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                                 awayTeam={matchData.awayTeam} 
                                 homeTeam={matchData.homeTeam}
                                 selectedIncident={selectedIncident}
+                                homeSquad={homeSquad}
+                                awaySquad={awaySquad}
                             />
                         </View>
                     </Pressable>

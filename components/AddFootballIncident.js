@@ -3,13 +3,15 @@ import {View, Text, TextInput, Pressable, Modal, Image, ScrollView} from 'react-
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
+import { useSelector } from 'react-redux';
 
-const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam}) => {
+const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamID, setTeamID] = useState(homeTeam.id);
     const [description, setDescription] = useState('');
+    const game = useSelector(state => state.sportsReducer.game)
 
     const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
 
@@ -25,7 +27,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 "player_id":selectedPlayer.id,
                 "description":description
             }
-            const response = await axiosInstance.post(`${BASE_URL}/Football/addFootballIncidents`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addFootballIncidents`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -36,10 +38,14 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
         }
     }
 
+    const formatIncidentType = (type) => {
+        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
     return (
         <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>
             {/* Header Section */}
-            <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football Penalty</Text>
+            <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football {formatIncidentType(selectedIncident)}</Text>
             {/* Select Period */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
@@ -48,7 +54,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                         style={[tailwind`p-3 rounded-lg`, teamID === 'first_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
                         onPress={() => setSelectedHalf('first_half')}
                     >
-                        <Text style={tailwind`text-white font-semibold`}>{item}</Text>
+                        <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
                     </Pressable>
                     
                     <Pressable 

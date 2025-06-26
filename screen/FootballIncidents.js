@@ -8,16 +8,62 @@ import useAxiosInterceptor from './axios_config';
 import AddFootballModalIncident from '../components/AddFootballModalIncidents';
 import IncidentCheck from '../components/IncidentsCheck';
 
+// change the code so that when no incident is done it does not show the header
+
 const FootballIncidents = ({ route }) => {
     const [incidentModalVisible, setIncidentModalVisible] = useState(false);
     const [incidents, setIncidents] = useState([]);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
+    const [homeSquad, setHomeSquad] = useState([]);
+    const [awaySquad, setAwaySquad] = useState([]);
     const [penaltyH, setPenaltyH] = useState([]);
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
     const matchData = route.params.matchData;
     const axiosInstance = useAxiosInterceptor();
+
+    useEffect(() => {
+        const fetchHSquad = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
+                    params: {
+                        'match_id':match.id.toString(),
+                        'team_id': match.home_team_id.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                setAwaySquad(response.data || [])
+            } catch (err) {
+                console.error("failed to fetch football lineup: ", err);
+            }
+        }
+        const fetchASquad = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
+                    params: {
+                        'match_id':match.id.toString(),
+                        'team_id': match.away_team_id.toString()
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                setAwaySquad(response.data || [])
+            } catch (err) {
+                console.error("failed to fetch football lineup: ", err);
+            }
+        }
+        fetchHSquad();
+        fetchASquad();
+    }, [])
+
 
     useEffect(() => {
         const fetchPlayersAndIncidents = async () => {
@@ -152,6 +198,8 @@ const FootballIncidents = ({ route }) => {
                                     homePlayer={homePlayer} 
                                     awayTeam={matchData.awayTeam} 
                                     homeTeam={matchData.homeTeam}
+                                    awaySquad={awaySquad}
+                                    homeSquad={homeSquad}
                                 />
                             </View>
                         </Pressable>
