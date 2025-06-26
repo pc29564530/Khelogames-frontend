@@ -11,7 +11,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamID, setTeamID] = useState(homeTeam.id);
     const [description, setDescription] = useState('');
-    const game = useSelector(state => state.sportsReducer.game)
+    const game = useSelector((state) => state.sportReducers.game);
 
     const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
 
@@ -51,14 +51,14 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
                 <View style={tailwind`flex-row items-center justify-between`}>
                         <Pressable 
-                        style={[tailwind`p-3 rounded-lg`, teamID === 'first_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'first_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
                         onPress={() => setSelectedHalf('first_half')}
                     >
                         <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
                     </Pressable>
                     
                     <Pressable 
-                        style={[tailwind`p-3 rounded-lg`, teamID === 'second_half' ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]} 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'second_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
                         onPress={() => setSelectedHalf('second_half')}
                     >
                         <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
@@ -83,13 +83,13 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
                 <View style={tailwind`flex-row justify-between`}>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]}
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
                         onPress={() => setTeamID(homeTeam.id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
                     </Pressable>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-blue-600` : tailwind`bg-gray-200`]}
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
                         onPress={() => setTeamID(awayTeam.id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
@@ -101,7 +101,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
                 <Dropdown
                     style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                    options={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
                     onSelect={(index, item) => setSelectedPlayer(item)}
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
@@ -134,7 +134,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
             </View>
             {/* Confirm Button */}
             <Pressable 
-                style={tailwind`p-4 bg-blue-600 rounded-lg shadow-lg flex items-center justify-center`}
+                style={tailwind`p-4 bg-red-400 rounded-lg shadow-lg flex items-center justify-center`}
                 onPress={() => handleAddIncident()}
             >
                 <Text style={tailwind`text-white font-semibold text-lg`}>Confirm`</Text>

@@ -51,7 +51,7 @@ const AddFootballPeriods = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
                             style={[
                                 tailwind`p-3 m-1 rounded-lg border`,
                                 selectedHalf === item.slug 
-                                    ? tailwind`bg-blue-600` 
+                                    ? tailwind`bg-red-400` 
                                     : tailwind`bg-gray-200`
                             ]} 
                             onPress={() => setSelectedHalf(item.slug)}
@@ -85,7 +85,7 @@ const AddFootballPeriods = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
 
             {/* Submit Button */}
             <Pressable 
-                style={tailwind`p-4 bg-blue-600 rounded-lg shadow-lg flex items-center justify-center`}
+                style={tailwind`p-4 bg-red-400 rounded-lg shadow-lg flex items-center justify-center`}
                 onPress={handleAddIncident}
             >
                 <Text style={tailwind`text-white font-semibold text-lg`}>Confirm</Text>

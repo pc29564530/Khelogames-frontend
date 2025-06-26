@@ -1,42 +1,39 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Pressable, Image, ScrollView} from 'react-native';
+import {View, Text, TextInput, Pressable, Modal, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from '../screen/axios_config';
-import { BASE_URL } from '../constants/ApiConstants';
 
-const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
+const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident}) => {
+    console.log("Line no 8: comman incidents")
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const [goalScore, setGoalScore] = useState(false);
+    const [selectedHalf, setSelectedHalf] = useState("first_half");
+    const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamID, setTeamID] = useState(homeTeam.id);
     const [description, setDescription] = useState('');
-    const axiosInstance = useAxiosInterceptor()
-    
-    const handleAddShootout = async () => {
+
+    const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
+
+    const handleAddIncident = async () => {
         try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 "match_id":matchData.id,
                 "team_id":teamID,
-                "periods":'',
+                "periods":selectedHalf,
                 "incident_type":selectedIncident,
-                "incident_time":0,
+                "incident_time":selectedMinute,
                 "player_id":selectedPlayer.id,
-                "description":'',
-                "penalty_shootout_scored":goalScore
+                "description":description
             }
-            console.log("Penalty Shootout Data: ", data)
-            const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidents`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/Football/addFootballIncidents`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
             })
-            console.log(response.data)
         } catch (err) {
-            console.error("unable to add the football penalty shootout: ", err)
+            console.error("unable to add the incident: ", err);
         }
     }
 
@@ -45,9 +42,42 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     }
 
     return (
-        <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full bg-white`}>
+        <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>
             {/* Header Section */}
             <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football {formatIncidentType(selectedIncident)}</Text>
+            {console.log(`Add Football ${formatIncidentType(selectedIncident)} Incident`)}
+            {/* Select Period */}
+            <View style={tailwind`mb-6`}>
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
+                <View style={tailwind`flex-row items-center justify-between`}>
+                        <Pressable 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'first_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
+                        onPress={() => setSelectedHalf('first_half')}
+                    >
+                        <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
+                    </Pressable>
+                    
+                    <Pressable 
+                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'second_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
+                        onPress={() => setSelectedHalf('second_half')}
+                    >
+                        <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
+                    </Pressable>
+                </View>
+            </View>
+            {/* Minute Selector */}
+            <View style={tailwind`mb-6`}>
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Incident Time (Minute):</Text>
+                <Dropdown
+                    style={tailwind`border p-3 bg-white rounded-lg shadow-md`}
+                    options={minutes}
+                    onSelect={(index, value) => setSelectedMinute(value)}
+                    defaultValue={selectedMinute}
+                    renderRow={(minute) => (
+                        <Text style={tailwind`text-lg p-3 text-center`}>{minute}</Text>
+                    )}
+                />
+            </View>
             {/* Team Selector */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
@@ -66,13 +96,12 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     </Pressable>
                 </View>
             </View>
-
             {/* Player Selector */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
                 <Dropdown
-                    style={tailwind`p-4 bg-white border border-gray-200`}
-                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
+                    style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
+                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false): awaySquad.filter(player => player.is_substitute === false)}
                     onSelect={(index, item) => setSelectedPlayer(item)}
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
@@ -93,55 +122,24 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     </View>
                 </Dropdown>
             </View>
-
+            {/* Description Input */}
             <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>Goal Scored?</Text>
-
-                <View style={tailwind`flex-row justify-between gap-4`}>
-                    <Pressable
-                    onPress={() => setGoalScore(true)}
-                    style={[
-                        tailwind`flex-1 px-4 py-3 rounded-2xl border shadow-md items-center`,
-                        goalScore === true
-                        ? tailwind`bg-green-600 border-green-700`
-                        : tailwind`bg-white border-gray-300`,
-                    ]}
-                    >
-                    <Text style={goalScore === true
-                        ? tailwind`text-white text-lg font-semibold`
-                        : tailwind`text-gray-800 text-lg font-medium`}>
-                        ✅ Yes
-                    </Text>
-                    </Pressable>
-
-                    <Pressable
-                    onPress={() => setGoalScore(false)}
-                    style={[
-                        tailwind`flex-1 px-4 py-3 rounded-2xl border shadow-md items-center`,
-                        goalScore === false
-                        ? tailwind`bg-red-600 border-red-700`
-                        : tailwind`bg-white border-gray-300`,
-                    ]}
-                    >
-                    <Text style={goalScore === false
-                        ? tailwind`text-white text-lg font-semibold`
-                        : tailwind`text-gray-800 text-lg font-medium`}>
-                        ❌ No
-                    </Text>
-                    </Pressable>
-                </View>
-                </View>
-
-
+                <Text style={tailwind`text-lg font-semibold mb-2`}>Description:</Text>
+                <TextInput
+                    style={tailwind`border p-4 rounded-lg bg-white shadow-md`}
+                    placeholder="Enter details about the substitution"
+                    value={description}
+                    onChangeText={setDescription}
+                />
+            </View>
             {/* Confirm Button */}
             <Pressable 
                 style={tailwind`p-4 bg-red-400 rounded-lg shadow-lg flex items-center justify-center`}
-                onPress={() => handleAddShootout()}
+                onPress={() => handleAddIncident()}
             >
-                <Text style={tailwind`text-white font-semibold text-lg`}>Confirm</Text>
+                <Text style={tailwind`text-white font-semibold text-lg`}>Confirm`</Text>
             </Pressable>
         </ScrollView>
     );
 }
-
-export default AddFootballShootout;
+export default AddFootballCommanIncidents;

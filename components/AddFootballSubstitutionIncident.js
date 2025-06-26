@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Pressable, Picker, Image} from 'react-native';
+import {View, Text, TextInput, Pressable, Picker, Image, ScrollView} from 'react-native';
 import useAxiosInterceptor from "../screen/axios_config";
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -135,7 +135,7 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player Out:</Text>
                     <Dropdown 
                         style={tailwind`p-4 bg-white rounded-lg`}
-                        options={teamID === homeTeam.id ? homeSquad.filter(itm => itm.is_substitute === true) : awaySquad.filter(itm => itm.is_substitute === true)}
+                        options={teamID === homeTeam.id ? homeSquad.filter(itm => itm.is_substitute === false) : awaySquad.filter(itm => itm.is_substitute === false)}
                         onSelect={(index, item) => setSelectedPlayerOut(item)}
                         data={teamID === homeTeam.id ? homeSquad : awaySquad}
                         renderRow={(item) => (
