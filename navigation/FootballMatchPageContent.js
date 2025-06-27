@@ -34,11 +34,13 @@ function FootballMatchPageContent({matchData}) {
                     component={FootballDetails}
                     initialParams={{matchData:matchData}}
                 />
-                <TopTab.Screen
-                    name="Incident"
-                    component={FootballIncidents}
-                    initialParams={{matchData:matchData}}
-                />
+                {matchData.status_code !== "not_started" && (
+                    <TopTab.Screen
+                        name="Incident"
+                        component={FootballIncidents}
+                        initialParams={{matchData:matchData}}
+                    />
+                )}
                 <TopTab.Screen 
                     name="LineUp"
                     component={FootballLineUp}

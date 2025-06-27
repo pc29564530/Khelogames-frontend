@@ -16,7 +16,6 @@ import { sportsServices } from '../services/sportsServices';
 
 const CreatePlayerProfile = () => {
     const profile = useSelector((state) => state.profile.profile)
-    //const [playerBio, setPlayerBio] = useState('');
     const [playerSport, setPlayerSport] = useState('');
     const [mediaUrl, setMediaUrl] = useState('');
     const [position, setPosition] = useState('');

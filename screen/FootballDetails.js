@@ -61,7 +61,6 @@ const FootballDetails = ({route}) => {
            <View style={tailwind`mt-2`}>
                 <Text style={tailwind`text-lg ml-2`}>Teams</Text>
                 <View style={tailwind`flex-row justify-between items-center gap-2 ml-2 mr-2 `}>
-                   
                     <Pressable style={tailwind`flex-1 items-center shadow-lg rounded-lg p-4 bg-white mt-2 justify-between`}>
                         <Text >{matchData.homeTeam.name}</Text>
                     </Pressable>

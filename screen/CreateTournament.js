@@ -198,7 +198,7 @@ const CreateTournament = () => {
             </View>
             {/* Submit Button */}
             <Pressable
-                style={tailwind`bg-blue-600 py-3 rounded-md bg-white items-center shadow-md border border-gray-300 `}
+                style={tailwind`bg-red-400 py-3 rounded-md bg-white items-center shadow-md border border-gray-300 `}
                 onPress={() => handleCreateTournament()}
             >
                 <Text style={tailwind`text-black-200 text-lg font-semibold`}>

@@ -49,8 +49,7 @@ function Profile({route}) {
         verifyUser();
         fetchData()
       }, [])
-    )
-      console.log("Profile: ", profile)
+    );
 
     useEffect(() => {
       checkIsFollowingFunc()
