@@ -107,10 +107,10 @@ const matchesData = (item, ind) => {
                 </View>
                 <View style={tailwind`items-center justify-center flex-row`}>
                     <View style={tailwind`mb-2 flex-row items-center gap-4`}>
-                            {item.status !== "not_started" && (
+                            {item.status_code !== "not_started" && (
                                 <View>
-                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.homeScore?.score || '0'}</Text>
-                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item.awayScore?.score || '0'}</Text>
+                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.homeScore?.score || '0'}</Text>
+                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>{item?.awayScore?.score || '0'}</Text>
                                 </View>
                             )}
                             <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
