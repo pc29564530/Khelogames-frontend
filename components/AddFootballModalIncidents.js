@@ -51,45 +51,45 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
         <View style={tailwind``}>
             <View>
             <View style={tailwind`mt-6`}>
-            <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Select Incident Type</Text>
-            <View style={tailwind`flex-row items-center`}>
-                <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                ref={scrollViewRef}
-                contentContainerStyle={tailwind`gap-3 px-2`}
-                >
-                {incidentsTypes.map((item, index) => {
-                    const isSelected = selectedIncident === item;
-                    return (
-                    <Pressable
-                        key={index}
-                        onPress={() => handleIncident(item)}
-                        style={[
-                        tailwind`px-5 py-2 rounded-full border shadow-sm`,
-                        isSelected
-                            ? tailwind`bg-orange-500 border-orange-600`
-                            : tailwind`bg-white border-gray-300`,
-                        ]}
+                <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Select Incident Type</Text>
+                <View style={tailwind`flex-row items-center`}>
+                    <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    ref={scrollViewRef}
+                    contentContainerStyle={tailwind`gap-3 px-2`}
                     >
-                        <Text style={[
-                        tailwind`text-sm font-semibold capitalize`,
-                        isSelected ? tailwind`text-white` : tailwind`text-gray-800`
-                        ]}>
-                        {item.replace(/_/g, ' ')}
-                        </Text>
-                    </Pressable>
-                    );
-                })}
-                </ScrollView>
+                    {incidentsTypes.map((item, index) => {
+                        const isSelected = selectedIncident === item;
+                        return (
+                        <Pressable
+                            key={index}
+                            onPress={() => handleIncident(item)}
+                            style={[
+                            tailwind`px-5 py-2 rounded-full border shadow-sm`,
+                            isSelected
+                                ? tailwind`bg-orange-500 border-orange-600`
+                                : tailwind`bg-white border-gray-300`,
+                            ]}
+                        >
+                            <Text style={[
+                            tailwind`text-sm font-semibold capitalize`,
+                            isSelected ? tailwind`text-white` : tailwind`text-gray-800`
+                            ]}>
+                            {item.replace(/_/g, ' ')}
+                            </Text>
+                        </Pressable>
+                        );
+                    })}
+                    </ScrollView>
 
-                <Pressable onPress={scrollRight} style={tailwind`ml-2 p-2`}>
-                <MaterialIcons name="keyboard-arrow-right" size={32} color="gray" />
-                </Pressable>
+                    <Pressable onPress={scrollRight} style={tailwind`ml-2 p-2`}>
+                        <MaterialIcons name="keyboard-arrow-right" size={32} color="gray" />
+                    </Pressable>
+                </View>
             </View>
             </View>
-            </View>
-            {commanModalVisible && (
+            {commanModalVisible  && (
                 <Modal
                     transparent={true}
                     animationType="slide"

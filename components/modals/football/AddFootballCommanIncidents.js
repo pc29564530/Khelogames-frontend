@@ -5,7 +5,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 
 const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident}) => {
-    console.log("Line no 8: comman incidents")
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
