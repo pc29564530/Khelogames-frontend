@@ -33,7 +33,7 @@ function CreateThread() {
 
     const handleMediaSelection = async () => {
         try {
-          const {mediaURL, mediaType} = await SelectMedia();
+          const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
           setMediaURL(mediaURL);
           setMediaType(mediaType);
           setLikeCount(0);
@@ -158,8 +158,9 @@ function CreateThread() {
             {mediaType === 'image' && <Image source={{uri: mediaURL}} />}
             {mediaType === 'video' && <Video source={{uri: mediaURL}} controls={true} />}
             <View style={tailwind`flex-1 justify-end items-end p-4`}>
-              <Pressable style={tailwind`bg-red-400 rounded-full p-2`} onPress={handleMediaSelection}>
-                  <FontAwesome name="image" size={25} color="white" />
+              <Pressable style={tailwind`bg-red-400 rounded-full p-4`} onPress={handleMediaSelection}>
+                  <MaterialIcons name="perm-media" size={25} color="white" />
+                  <Text style={tailwind`text-white`}>Upload</Text>
               </Pressable>
             </View>
             {isCommunityListModal && (
