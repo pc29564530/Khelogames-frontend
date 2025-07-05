@@ -3,7 +3,25 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import { uploadMedia } from './uploads/mediaService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
+import DocumentPicker, { types } from 'react-native-document-picker';
+import { Platform } from 'react-native';
 
+const copyContentUriToFile = async (uri, name) => {
+    try {
+        // For content:// URIs, we need to copy the file to a temporary location
+        const tempPath = `${RFNS.TemporaryDirectoryPath}/temp_${Date.now()}_${name}`;
+        
+        // Copy the file from content URI to temporary path
+        await RFNS.copyFile(uri, tempPath);
+        
+        return tempPath; // Return the file path without file:// prefix
+    } catch (err) {
+        console.error("Failed to copy content URI to file: ", err);
+        throw err;
+    }
+}
+
+// Get Media Type from url
 function getMediaTypeFromURL(url) {
     const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
     if (fileExtensionMatch) {
@@ -19,7 +37,7 @@ function getMediaTypeFromURL(url) {
     }
     return null;
 }
-
+// convert file to base64
 const fileToBase64 = async (filePath) => {
     try {
       const fileContent = await RFNS.readFile(filePath, 'base64');
@@ -30,52 +48,45 @@ const fileToBase64 = async (filePath) => {
     }
   };
 
+
+// Select media functionality
 export const SelectMedia =  async (axiosInstance) => {
+  try {
+    const res = await DocumentPicker.pickSingle({
+      type: [types.images, types.video]
+    })
+    const file = {
+      uri: res.uri,
+      name: res.name,
+      type: res.type,
+      size: res.size,
+    }
 
-    return new Promise((resolve, reject) =>  {
-        let options = { 
-            noData: true,
-            mediaType: 'mixed',
+    const fileURL = await copyContentUriToFile(file.uri, res.name)
+
+    const {uploadID, totalChunks} = await uploadMedia(fileURL, file.type, axiosInstance)
+    try {
+      const authToken = await AsyncStorage.getItem("AccessToken");
+      const data = {
+          "upload_id": uploadID,
+          "total_chunks": totalChunks,
+          "media_type": file.type
+      }
+      const response = await axiosInstance.post(`${BASE_URL}/completedChunkUpload`, data, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
         }
-        
-         launchImageLibrary(options, async (res) => {
-          
-            if (res.didCancel) {
-                console.log('User cancelled photo picker');
-                reject("User cancelled photo picker");
-              } else if (res.error) {
-                console.log('ImagePicker Error: ', response.error);
-                reject("Failed to pick media: ", res.error);
-              } else {
-                const type = getMediaTypeFromURL(res.assets[0].uri);
+      })
+      return {
+        mediaURL: response.data.file_url,
+        mediaType: file.type
+      }
 
-                
-                if(type === 'image' || type === 'video') {
-
-                  // const base64File = await fileToBase64(res.assets[0].uri);
-                    const {uploadID, totalChunks} = await uploadMedia(res.assets[0].uri, type, axiosInstance)
-                    console.log("Line no 58: upload id: ", uploadID);
-                    console.log("Total chunks: ", totalChunks);
-                    console.log("Media Type: ", type)
-                    const authToken = await AsyncStorage.getItem("AccessToken");
-                    const data = {
-                        "upload_id": uploadID,
-                        "total_chunks": totalChunks,
-                        "media_type": type
-                    }
-                    const response = await axiosInstance.post(`${BASE_URL}/completedChunkUpload`, data, {
-                      headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                      }
-                    })
-                    console.log("Upload URl: ", response.data)
-                    // const uploadURL = await uploadMediaWithTUS(res.assets[0].uri, type)
-                    resolve({mediaURL: response.data.file_url, mediaType: type});
-                } else {
-                  console.log('unsupported media type:', type);
-                }
-              }
-          });
-    });
+    } catch (err) {
+      console.log("Failed to get file url from upload media:", err);
+    }
+  } catch {
+    console.log('Error in SelectMedia');
+  }
 };

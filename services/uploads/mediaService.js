@@ -1,18 +1,15 @@
-import RNFS from 'react-native-fs';
-import * as tus from 'tus-js-client';
-import { AUTH_URL, BASE_URL } from '../../constants/ApiConstants';
-import { Platform } from 'react-native';
-import {TusClient} from 'react-native-tus-client';
-import { v4 as uuidv4 } from 'uuid';
+import RFNS from 'react-native-fs';
+import {BASE_URL } from '../../constants/ApiConstants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
 const   CHUNK_SIZE = 5 * 1024 * 1024;
 
+// Create chunk
 const createChunk = async (fileUrl, CHUNK_SIZE) => {
     try {
-        const file = await RNFS.stat(fileUrl)
+        const file = await RFNS.stat(fileUrl)
         const totalSize = file.size;
         const chunks = [];
         for(let start = 0; start < totalSize; start += CHUNK_SIZE) {
@@ -33,15 +30,16 @@ const createChunk = async (fileUrl, CHUNK_SIZE) => {
 const readChunk = async (fileUrl, start, CHUNK_SIZE) => {
     try {
         const path = fileUrl.replace('file://', '');
-        const tempPath = `${RNFS.TemporaryDirectoryPath}/chunk_${start}.part`;
+        const tempPath = `${RFNS.TemporaryDirectoryPath}/chunk_${start}.part`;
         
-        const fileBuffer = await RNFS.read(path, CHUNK_SIZE, start, 'base64');
-        await RNFS.writeFile(tempPath, fileBuffer, 'base64');
+        const fileBuffer = await RFNS.read(path, CHUNK_SIZE, start, 'base64');
+        await RFNS.writeFile(tempPath, fileBuffer, 'base64');
         return `file://${tempPath}`;
     } catch(err) {
         console.error("Failed to read chunk: ", err)
     }
 }
+// Upload chunk to database
 
 const uploadChunk = async (chunkData, totalChunks, uploadID, chunkIndex, axiosInstance) => {
     try {
@@ -54,10 +52,7 @@ const uploadChunk = async (chunkData, totalChunks, uploadID, chunkIndex, axiosIn
             type: 'application/octet-stream',
             name: `chunk_${chunkIndex}`,
         });
-        // console.log("Chunks: ", chunkData)
-        console.log("Upload Id: ", uploadID)
-        console.log("Chunk Index: ", chunkIndex)
-        console.log("Total Chunks: ", totalChunks)
+
         const authToken = await AsyncStorage.getItem('AccessToken')
         const uploadedDataUrl = await axiosInstance.post(`${BASE_URL}/createUploadChunks`, formData, {
             headers: {
@@ -65,7 +60,6 @@ const uploadChunk = async (chunkData, totalChunks, uploadID, chunkIndex, axiosIn
                 'Content-Type': 'multipart/form-data',
             }
         });
-        console.log("Line no Response 73: ", uploadedDataUrl.data)
         return uploadedDataUrl.data
     } catch (err) {
         console.error("Failed to upload the chunks: ", err)
@@ -73,6 +67,7 @@ const uploadChunk = async (chunkData, totalChunks, uploadID, chunkIndex, axiosIn
     }
 }
 
+//Generate custom uuid
 const generateCustomUUID = () => {
   return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.floor(Math.random() * 16);
@@ -85,9 +80,8 @@ const generateCustomUUID = () => {
 export const uploadMedia = async (fileUrl, fileType, axiosInstance) => {
 
     try {
-        console.log("Axios Instance: ", axiosInstance)
+        // Generate random upload id
         const uploadID = generateCustomUUID()
-        console.log("Linen no 324: ", uploadID)
         const {chunks, totalSize, totalChunks} = await createChunk(fileUrl, CHUNK_SIZE);
         for(let i = 0; i <chunks.length; i++){
             const data = chunks[i];
@@ -95,8 +89,6 @@ export const uploadMedia = async (fileUrl, fileType, axiosInstance) => {
                 const chunkData = await readChunk(fileUrl, data.start, data.size);
                 await uploadChunk(chunkData, totalChunks,uploadID, data.chunkIndex, axiosInstance);
                 const progress = ((i/totalChunks)*100).toFixed(2);
-                console.log("Progress: ", progress)
-                // write the progess for total chunks uploaded
             } catch (err) {
                 console.error("Failed to upload chunks; ", err)
                 throw err
@@ -111,8 +103,6 @@ export const uploadMedia = async (fileUrl, fileType, axiosInstance) => {
     }
     
 }
-
-// export const uploadMediaWithTUS = async (fileUrl, fileType) => {
 //     try {
 //         const stats = await RNFS.stat(fileUrl); // Use await here
 //         const file = {

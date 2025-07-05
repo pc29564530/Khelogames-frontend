@@ -33,6 +33,7 @@ function CreateThread() {
 
     const handleMediaSelection = async () => {
         try {
+          // Select media functionality
           const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
           setMediaURL(mediaURL);
           setMediaType(mediaType);
