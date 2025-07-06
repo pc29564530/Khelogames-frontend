@@ -115,7 +115,7 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                         renderRow={(item) => (
                             <View key={index} style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
-                                    src={item.media_url}
+                                    src={{uri: item.media_url}}
                                     style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
                                     resizeMode="cover"
                                 />
@@ -141,7 +141,7 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                         renderRow={(item) => (
                             <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
-                                    src={item.media_url}
+                                    src={{uri: item.media_url}}
                                     style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
                                     resizeMode="cover"
                                 />

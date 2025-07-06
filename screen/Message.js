@@ -28,7 +28,7 @@ function Message({ route }) {
   const isMountedRef = useRef(true);
 
   const handleMediaSelection = async () => {
-    const {mediaURL, mediaType} = await SelectMedia();
+    const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
     setMediaURL(mediaURL);
     setMediaType(mediaType);
     setUploadImage(true);

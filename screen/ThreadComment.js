@@ -85,7 +85,7 @@ function ThreadComment ({route}) {
                       source={{uri:item.media_url}}
                     />
                   )}
-                  {item.media_type === 'video' && (
+                  {(item.media_type === "video/mp4" || item.media_type === "video/quicktime" || item.media_type === "video/mkv") && (
                     <Video style={tailwind`w-full h-70 aspect-w-1 aspect-h-1 -mt-7`}
                       source={{uri:item.media_url}} controls={true} />
                   )}

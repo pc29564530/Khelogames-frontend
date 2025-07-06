@@ -17,6 +17,7 @@ const CreateClub = () => {
     const [isCountryPicker, setIsCountryPicker] = useState(false);
     const [teamName, setTeamName] = useState('');
     const [mediaUrl, setMediaUrl] = useState('');
+    const [mediaType, setMediaType] = useState('');
     const [national, setNational] = useState(false);
     const [country, setCountry] = useState('');
     const [gender, setGender] = useState('');
@@ -26,8 +27,9 @@ const CreateClub = () => {
     const game = useSelector((state) => state.sportReducers.game)
 
     const handleMediaSelection = async () => {
-        const { mediaURL } = await SelectMedia();
+        const { mediaURL, mediaType } = await SelectMedia(axiosInstance);
         setMediaUrl(mediaURL);
+        setMediaType(mediaType)
     };
 
     const handleSubmit = async () => {
@@ -42,7 +44,6 @@ const CreateClub = () => {
                 player_count: 0,
                 game_id: game.id
             };
-            console.log("data: ", newTeam)
             const authToken = await AsyncStorage.getItem('AccessToken');
 
             const response = await axiosInstance.post(

@@ -106,7 +106,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                             <Image
-                                src={item.media_url}
+                                src={{uri: item.media_url}}
                                 style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
                                 resizeMode="cover"
                             />
