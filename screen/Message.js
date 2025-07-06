@@ -133,8 +133,8 @@ function Message({ route }) {
             sender_username: user,
             receiver_username: profileData.owner,
             sent_at: new Date().toISOString(),
-            media_url: '',
-            media_type: '',
+            media_url: mediaURL,
+            media_type: mediaType,
         }
 
         if(uploadImage){
@@ -201,6 +201,9 @@ function Message({ route }) {
                         style={{ width: 200, height: 200 }}
                     />
                 )}
+                {(item.media_type == "video/mp4" || item.media_type == "video/quicktime" || item.media_type == "video/mkv") && (
+                  <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} onFullscreenPlayerWillPresent={() => {handleFullScreen()}} onVolumeChange={()=>{handleVolume()}} resizeMode='cover'/>
+                )}
                 {item.content && (
                     <Text
                         style={[
@@ -226,7 +229,7 @@ function Message({ route }) {
                 placeholder="Enter message..."
                 placeholderTextColor="black"
             />
-            <FontAwesome onPress={handleMediaSelection} name="camera" size={24} color="black" />
+            <FontAwesome onPress={() => handleMediaSelection} name="camera" size={24} color="black" />
             <Pressable onPress={sendMessage} style={tailwind`bg-blue-400 rounded-2xl p-2`}>
                 <Text style={tailwind`text-white`}>Send</Text>
             </Pressable>
