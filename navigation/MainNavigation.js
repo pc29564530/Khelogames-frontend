@@ -197,7 +197,7 @@ export default function MainNavigation() {
                     <>
                         <Stack.Screen name="SignUp" component={SignUp}
                             options={() => ({
-                            headerShown: false,
+                            headerShown: true,
                             headerTitle: null,
                             headerBackTitleVisible: false,
                             headerLeft: false

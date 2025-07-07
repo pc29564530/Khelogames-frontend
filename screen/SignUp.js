@@ -12,7 +12,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { background } from 'native-base/lib/typescript/theme/styled-system';
 
-function SignUp() {
+const SignUp = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     
@@ -106,61 +106,41 @@ function SignUp() {
     const handleEmailSignUp = async () => {
         try {
             if (!validateForm()) {
-                return;
-            }
+                  return;
+              }
+              setLoading(true);
+            const signupData = {
+                full_name: formData.fullName.trim(),
+                email: formData.email.toLowerCase().trim(),
+                password: formData.password
+            };
 
-            setLoading(true);
+            const response = await axios.post(`${AUTH_URL}/createEmailSignUp`, signupData);
 
-            // Check if email already exists
-            const emailCheckResponse = await axios.get(`${AUTH_URL}/getUserByEmail`, {
-                params: { email: formData.email }
-            });
-
-            if (emailCheckResponse.data && emailCheckResponse.data.email === formData.email) {
-                setErrors({ email: 'Email already registered. Please sign in instead.' });
-                return;
-            }
-        } catch (err) {
-            // If user doesn't exist (404), proceed with registration
-            if (err.response?.status === 404) {
-                try {
-                    const signupData = {
-                        full_name: formData.fullName.trim(),
-                        email: formData.email.toLowerCase().trim(),
-                        password: formData.password
-                    };
-
-                    const response = await axios.post(`${AUTH_URL}/createEmailSignUp`, signupData);
-
-                    if (response.data.success) {
-                        const newUser = response.data.user;
-                        dispatch(setUser(newUser));
-                        
-                        showAlert(
-                            'Account Created!', 
-                            'Please check your email to verify your account.',
-                            [
-                                {
-                                    text: 'OK',
-                                    onPress: () => navigation.navigate('User', { userId: newUser.id })
-                                }
-                            ]
-                        );
-                    } else {
-                        showAlert('Error', response.data.message || 'Failed to create account');
-                    }
-
-                } catch (signUpErr) {
-                    console.error("Email signup error:", signUpErr);
-                    const errorMessage = signUpErr.response?.data?.message || 'Failed to create account. Please try again.';
-                    showAlert('Error', errorMessage);
-                }
+            if (response.data.success) {
+                const newUser = response.data.user;
+                dispatch(setUser(newUser));
+                
+                showAlert(
+                    'Account Created!', 
+                    'Please check your email to verify your account.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('User', { userId: newUser.id })
+                        }
+                    ]
+                );
             } else {
-                console.error("Error checking email:", err);
-                showAlert('Error', 'Failed to verify email. Please try again.');
+                showAlert('Error', response.data.message || 'Failed to create account');
             }
+
+        } catch (signUpErr) {
+            console.error("Email signup error:", signUpErr);
+            const errorMessage = signUpErr.response?.data?.message || 'Failed to create account. Please try again.';
+            showAlert('Error', errorMessage);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
     };
 
@@ -173,7 +153,7 @@ function SignUp() {
             const userData = await GoogleSignin.signIn();
             
             if (userData?.data?.user) {
-                await processGoogleSignUp(userData.data);
+                await processGoogleSignUp(userData.data, navigation);
             }
         } catch (error) {
             console.error('Google Sign-Up Error:', error);
@@ -192,49 +172,31 @@ function SignUp() {
         }
     };
 
-    const processGoogleSignUp = async (userData) => {
-        try {
-            // Check if email already exists
-            const emailCheckResponse = await axios.get(`${AUTH_URL}/getUserByEmail`, {
-                params: { email: userData.user.email }
-            });
+    const processGoogleSignUp = async (userData, navigation) => {
+          try {
+              const googleSignupData = {
+                  google_id: userData.user.id,
+                  email: userData.user.email,
+                  full_name: userData.user.name || userData.user.email.split('@')[0],
+                  avatar_url: userData.user.photo,
+                  id_token: userData.idToken
+              };
 
-            if (emailCheckResponse.data && emailCheckResponse.data.email === userData.user.email) {
-                showAlert('Account Exists', 'This email is already registered. Please sign in instead.');
-                return;
-            }
-        } catch (err) {
-            // If user doesn't exist (404), proceed with registration
-            if (err.response?.status === 404) {
-                try {
-                    const googleSignupData = {
-                        google_id: userData.user.id,
-                        email: userData.user.email,
-                        full_name: userData.user.name || userData.user.email.split('@')[0],
-                        avatar_url: userData.user.photo,
-                        id_token: userData.idToken
-                    };
+              const response = await axios.post(`${AUTH_URL}/google/createGoogleSignUp`, googleSignupData);
 
-                    const response = await axios.post(`${AUTH_URL}/google/createGoogleSignUp`, googleSignupData);
-
-                    if (response.data.success) {
-                        const newUser = response.data.user;
-                        dispatch(setUser(newUser));
-                        navigation.navigate('User', { userId: newUser.id });
-                        showAlert('Success', 'Account created successfully with Google!');
-                    } else {
-                        showAlert('Error', response.data.message || 'Failed to create account with Google');
-                    }
-                } catch (signUpErr) {
-                    console.error("Google signup error:", signUpErr);
-                    const errorMessage = signUpErr.response?.data?.message || 'Failed to create account with Google. Please try again.';
-                    showAlert('Error', errorMessage);
-                }
-            } else {
-                console.error("Error checking email:", err);
-                showAlert('Error', 'Failed to verify email. Please try again.');
-            }
-        }
+              if (response.data.success) {
+                  const newUser = response.data.user;
+                  dispatch(setUser(newUser));
+                  navigation.navigate('User', { userId: newUser.id });
+                  showAlert('Success', 'Account created successfully with Google!');
+              } else {
+                  showAlert('Error', response.data.message || 'Failed to create account with Google');
+              }
+          } catch (signUpErr) {
+              console.error("Google signup error:", signUpErr);
+              const errorMessage = signUpErr.response?.data?.message || 'Failed to create account with Google. Please try again.';
+              showAlert('Error', errorMessage);
+          }
     };
 
     const handleNavigateLogin = () => {
@@ -253,7 +215,7 @@ function SignUp() {
             </Pressable>
         </View>
       )
-    })
+    });
 
     return (
         <ScrollView style={tailwind`flex-1 bg-black`} showsVerticalScrollIndicator={false}>
