@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const logoPath = require('/Users/pawan/project/clone/Khelogames-frontend/assets/images/Khelogames.png');
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import {setAuthenticated} from '../redux/actions/actions';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 function SignIn() {
     const dispatch = useDispatch();
@@ -19,16 +20,24 @@ function SignIn() {
     const [userInfo, setUserInfo] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [otp, setOTP] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState()
     const navigation = useNavigation();
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const [formData, setFormData] = useState({
+      email: '',
+      password:''
+    })
     useEffect(() => {
+
       GoogleSignin.configure({
-        webClientId:process.env.WEB_CLIENT_ID,
+        webClientId:'508438848661-nhd7e6qu8harii3vti9t1l0o7osq85a5.apps.googleusercontent.com',
         offlineAccess: false,
       });
     }, []);
 
-
+    console.log("Web Client ID: ", process.env.WEB_CLIENT_ID)
 
     const handleVerify = async () => {
         try {
@@ -93,6 +102,44 @@ function SignIn() {
       }
     }
 
+    const handleEmailSignIn = async () => {
+        try {
+            if (!validateForm()) {
+                return;
+            }
+
+            setLoading(true);
+
+            const signinData = {
+                email: formData.email.toLowerCase().trim(),
+                password: formData.password
+            };
+
+            const response = await axios.post(`${AUTH_URL}/createEmailSignIn`, signinData);
+            const item = response.data;
+
+            // Store tokens
+            await AsyncStorage.setItem("AccessToken", item.access_token);
+            await AsyncStorage.setItem("Role", item.user.role);
+            await AsyncStorage.setItem("User", item.user.username);
+            await AsyncStorage.setItem("RefreshToken", item.refresh_token);
+            await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
+            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
+
+            dispatch(setAuthenticated(!isAuthenticated));
+            dispatch(setUser(item.user));
+            
+            showAlert('Success', 'Signed in successfully!');
+        } catch (err) {
+            console.error('Email sign in error:', err);
+            const errorMessage = err.response?.data?.message || 'Invalid credentials. Please try again.';
+            showAlert('Error', errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     const handleRedirect = async (idToken) => {
         try {
           const verifyGmail = await axios.get(`${AUTH_URL}/getUserByGmail`, {
@@ -130,22 +177,139 @@ function SignIn() {
           }
         }
     }
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
+    };
+
+    const showAlert = (title, message) => {
+            Alert.alert(title, message, [{ text: 'OK' }]);
+        };
+
+        const validateForm = () => {
+        const newErrors = {};
+
+        // Email validation
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!validateEmail(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+
+        // Password validation
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (!validatePassword(formData.password)) {
+            newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and number';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePassword = (password) => {
+        // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(password);
+    };
     
     return (
       <View style={tailwind`flex-1 bg-black p-6`}>
-        <View style={tailwind`items-center`}>
+        {/* <View style={tailwind`items-center`}>
           <Image src="" style={tailwind`rounded-full h-30 w-30 bg-white`}/>
-        </View>
-        <View style={tailwind`items-center mb-10`}>
-          <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign Up / Sign In</Text>
-        </View>
-        {/* Remove signup/signin using mobile */}
-        {/* <View style={tailwind`mb-6`}>
-          <Pressable style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`} onPress={() => setModalVisible(true)}>
-          <AntDesign name="mobile1" size={24} color="black" />
-            <Text style={tailwind`text-lg font-semibold text-gray-800`}>Login using mobile</Text>
-          </Pressable>
         </View> */}
+        <View style={tailwind`items-center mb-10`}>
+          <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign In</Text>
+        </View>
+
+        {/* Login using a Gmail account */}
+        <View style={tailwind`mb-4`}>
+          {/* Email Input */}
+          <View style={tailwind`mb-4`}>
+              <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
+                  <MaterialIcons name="email" size={24} color="#9CA3AF" />
+                  <TextInput
+                      style={tailwind`flex-1 text-white text-lg pl-3`}
+                      placeholder="Email Address"
+                      placeholderTextColor="#9CA3AF"
+                      value={formData.email}
+                      onChangeText={(text) => handleInputChange('email', text)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                  />
+              </View>
+              {errors?.email && (
+                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                      {errors.email}
+                  </Text>
+              )}
+          </View>
+
+          {/* Password Input */}
+          <View style={tailwind`mb-4`}>
+              <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
+                  <MaterialIcons name="lock" size={24} color="#9CA3AF" />
+                  <TextInput
+                      style={tailwind`flex-1 text-white text-lg pl-3`}
+                      placeholder="Password"
+                      placeholderTextColor="#9CA3AF"
+                      value={formData.password}
+                      onChangeText={(text) => handleInputChange('password', text)}
+                      secureTextEntry={!showPassword}
+                  />
+                  <Pressable onPress={() => setShowPassword(!showPassword)}>
+                      <MaterialIcons 
+                          name={showPassword ? "visibility" : "visibility-off"} 
+                          size={24} 
+                          color="#9CA3AF" 
+                      />
+                  </Pressable>
+              </View>
+              {errors?.password && (
+                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                      {errors?.password}
+                  </Text>
+              )}
+          </View>
+
+          {/* Email Signup Button */}
+          <Pressable 
+              style={tailwind`bg-red-500 py-4 rounded-lg shadow-md ${loading ? 'opacity-50' : ''}`}
+              onPress={handleEmailSignIn}
+              disabled={loading}
+          >
+              {loading ? (
+                  <ActivityIndicator size="small" color="white" />
+              ) : (
+                  <Text style={tailwind`text-white text-lg font-bold text-center`}>
+                      Create Account
+                  </Text>
+              )}
+          </Pressable>
+      </View>
+
+        {/* Divider */}
+        <View style={tailwind`flex-row items-center mb-4`}>
+            <View style={tailwind`flex-1 h-px bg-gray-600`} />
+            <Text style={tailwind`text-gray-400 px-4`}>or</Text>
+            <View style={tailwind`flex-1 h-px bg-gray-600`} />
+        </View>
   
         <View style={tailwind`mb-6`}>
           <Pressable onPress={() => handleGoogleRedirect()} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
@@ -154,11 +318,11 @@ function SignIn() {
           </Pressable>
         </View>
         {/* Remove Sign Up  */}
-        {/* <View style={tailwind`mb-6`}>
+        <View style={tailwind`mb-6`}>
           <Pressable onPress={() => navigation.navigate("SignUp")} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Add New Account</Text>
           </Pressable>
-        </View> */}
+        </View>
         {modalVisible && (
             <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
               <View onPress={() => setModalVisible(false)} style={tailwind`flex-1 justify-center items-center bg-white`}>
@@ -178,7 +342,7 @@ function SignIn() {
                   </View>
                 </View>
                 <View style={tailwind`mt-10 mr-20 ml-20 gap-10`}>
-                  <Pressable style={tailwind`bg-blue-600 py-4 rounded-md shadow-md flex-row items-center justify-center p-3 w-40 h-14 `} onPress={() => handleSendOTP()}>
+                  <Pressable style={tailwind`bg-red-400 py-4 rounded-md shadow-md flex-row items-center justify-center p-3 w-40 h-14 `} onPress={() => handleSendOTP()}>
                     <AntDesign name="arrowright" size={24} color="white" />
                     <Text style={tailwind`text-white text-center text-lg font-bold ml-2`}>Send OTP</Text>
                   </Pressable>
@@ -195,7 +359,7 @@ function SignIn() {
                   </View>
                 </View>
                 <View style={tailwind`mt-10 mr-20 ml-20`}>
-                  <Pressable onPress={() => handleVerify()} style={tailwind`bg-blue-600 py-4 rounded-md shadow-md p-3 w-40 h-14 items-center justify-between`}>
+                  <Pressable onPress={() => handleVerify()} style={tailwind`bg-red-400 py-4 rounded-md shadow-md p-3 w-40 h-14 items-center justify-between`}>
                     <Text style={tailwind`text-white text-center text-lg font-bold`}>Verify</Text>
                   </Pressable>
                 </View>
