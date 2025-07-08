@@ -32,7 +32,7 @@ function SignIn() {
     useEffect(() => {
 
       GoogleSignin.configure({
-        webClientId:'508438848661-nhd7e6qu8harii3vti9t1l0o7osq85a5.apps.googleusercontent.com',
+        webClientId:process.env.WEB_CLIENT_ID,
         offlineAccess: false,
       });
     }, []);
@@ -85,6 +85,7 @@ function SignIn() {
         await GoogleSignin.hasPlayServices();
         await GoogleSignin.signOut()
         const userData = await GoogleSignin.signIn();
+        console.log("User data: ", userData)
         setUserInfo(userData.data);
         await axios.get(`${AUTH_URL}/google/handleGoogleRedirect`)
         handleRedirect(userData.data.idToken);
@@ -110,6 +111,15 @@ function SignIn() {
 
             setLoading(true);
 
+            const emailCheckResponse = await axios.get(`${AUTH_URL}/getUserByEmail`, {
+                params: { email: formData.email.toLowerCase().trim() }
+            });
+
+            if (emailCheckResponse.data && emailCheckResponse.data.email === formData.email) {
+                setErrors({ email: 'Email already registered. Please sign in instead.' });
+                return;
+            }
+            
             const signinData = {
                 email: formData.email.toLowerCase().trim(),
                 password: formData.password
