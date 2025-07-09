@@ -18,11 +18,11 @@ import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScro
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
+    const {username,profile} = route.params;
+    const propsUsername = username;
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
-    const profile = useSelector((state) => state.profile.profile)
     const navigation = useNavigation();
-    const [profileData, setProfileData] = useState([]);
     const following = useSelector((state) => state.user.following);
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
     const [moreTabVisible, setMoreTabVisible] = useState(false);
@@ -41,7 +41,6 @@ function Profile({route}) {
     const [email, setEmail] = useState(null);
     const [country, setCountry] = useState(null);
 
-    const otherOwner  = route.params?.username;
 
     useFocusEffect(
       React.useCallback(() => {
@@ -60,12 +59,12 @@ function Profile({route}) {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/isFollowing`, {
               params: {
-                following_owner: otherOwner
+                following_owner: propsUsername
               },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
+              headers: {
+                  'Authorization': `Bearer ${authToken}`,
+                  'Content-Type': 'application/json'
+              }
             });
             dispatch(checkIsFollowing(response.data));
         } catch (err) {
@@ -76,7 +75,7 @@ function Profile({route}) {
     const handleReduxFollow = async () => {
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${otherOwner}`,{},{
+          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${propsUsername}`,{},{
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -98,7 +97,7 @@ function Profile({route}) {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `${BASE_URL}/unFollow/${otherOwner}`,
+          `${BASE_URL}/unFollow/${propsUsername}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -152,7 +151,7 @@ function Profile({route}) {
         console.log("User not found in AsyncStorage.");
         return;
       }
-      if(otherOwner === owner){
+      if(propsUsername === owner){
         const response = await axios.get(`${AUTH_URL}/getProfile/${owner}`);
         if (response.data === null) {
           setProfileData([]);
@@ -170,7 +169,7 @@ function Profile({route}) {
           }
         }
       } else {
-        const response = await axios.get(`${AUTH_URL}/getProfile/${otherOwner}`)
+        const response = await axios.get(`${AUTH_URL}/getProfile/${propsUsername}`)
        if( response.data == null ){
           setProfileData([])
         } else {
@@ -193,11 +192,11 @@ function Profile({route}) {
 
   const verifyUser = async () => {
     const authUser = await AsyncStorage.getItem("User");
-    if(otherOwner === authUser) {
+    if(propsUsername === authUser) {
       setShowEditProfileButton(true);
       setCurrentUser(authUser);
     } else {
-      setCurrentUser(otherOwner);
+      setCurrentUser(propsUsername);
     }
   }
 
@@ -242,11 +241,11 @@ function Profile({route}) {
           const currentUser = await AsyncStorage.getItem("User");
           const data = {
             following_owner:currentUser,
-            follower_owner:otherOwner
+            follower_owner:propsUsername
           }
           const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
             params: {
-              following_owner:otherOwner
+              following_owner:propsUsername
             },
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -258,7 +257,7 @@ function Profile({route}) {
           } else {
             Alert.alert(
               "No Mutual Connection Found",
-              `You are not followed by ${otherOwner}. You cannot send a message.`,
+              `You are not followed by ${propsUsername}. You cannot send a message.`,
               [{ text: "OK" }]
             )
           }
@@ -462,7 +461,7 @@ useEffect(() => {
                   <View style={tailwind`items-center`}>
                     <View style={tailwind`mt-18`}>
                       <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
-                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.owner}</Text>
+                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.username}</Text>
                     </View>
                   </View>
                   <View style={tailwind`mt-2 items-center`}>

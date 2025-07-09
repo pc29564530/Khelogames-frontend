@@ -29,11 +29,11 @@ function ProfileMenu() {
   const [currentUser, setCurrentUser] = useState('');
   const [showMyCommunity, setShowMyCommunity] = useState(false);
   const [myCommunityData, setMyCommunityData] = useState([]);
-  const [profileData, setProfileData] = useState([]);
   const [displayText, setDisplayText] = useState('');
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentRole, setCurrentRole] = useState('');
+  const user = useSelector(state => state.user.user)
 
   useEffect(() => {
     const roleStatus = async () => {
@@ -172,15 +172,15 @@ function ProfileMenu() {
   return (
     <View style={tailwind`flex-1`}>
       <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
-        {profileData.avatar_url ? (
-          <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profileData.avatar_url }} />
+        {profile.avatar_url ? (
+          <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
         ) : (
           <View style={tailwind`w-32 h-32 rounded-full bg-white items-center justify-center`}>
             <Text style={tailwind`text-red-500 text-4xl`}>{displayText}</Text>
           </View>
         )}
-        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profileData.full_name}</Text>
-        <Text style={tailwind`text-xl text-white`}>@{currentUser}</Text>
+        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile.full_name}</Text>
+        <Text style={tailwind`text-xl text-white`}>@{profile.username}</Text>
         <View style={tailwind`flex-row justify-center mt-5`}>
           <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
           <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
@@ -189,17 +189,10 @@ function ProfileMenu() {
       </View>
       <ScrollView>
         <View style={tailwind`mt-5 p-4`}>
-          <Pressable onPress={() => handleUser({username: profileData.owner, navigation})} style={tailwind`flex-row items-center py-2`}>
+          <Pressable onPress={() => navigation.navigate('Profile', {username: profile.username, profile: profile})} style={tailwind`flex-row items-center py-2`}>
             <FontAwesome name="user" size={24} color="#F87171" />
             <Text style={tailwind`text-2xl text-black pl-4`}>Profile</Text>
           </Pressable>
-
-          {/* {currentRole === 'admin' && ( */}
-            {/* <Pressable onPress={() => handleNavigation('CreatePlayerProfile')} style={tailwind`flex-row items-center py-2`}>
-              <FontAwesome name="user" size={24} color="white" />
-              <Text style={tailwind`text-2xl text-white pl-4`}>Player Profile</Text>
-            </Pressable> */}
-          {/* )} */}
 
           <Pressable onPress={() => handleNavigation('Club')} style={tailwind`flex-row items-center py-2`}>
             <AntDesign name="team" size={24} color="#F87171" />
