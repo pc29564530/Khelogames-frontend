@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUser } from '../redux/actions/actions';
-import tailwind, { style } from 'twrnc';
+import tailwind from 'twrnc';
 import { AUTH_URL } from '../constants/ApiConstants';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { background } from 'native-base/lib/typescript/theme/styled-system';
+import { setAuthenticated, setUser } from '../redux/actions/actions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignUp = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -31,10 +32,10 @@ const SignUp = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
-        GoogleSignin.configure({
-            webClientId: process.env.WEB_CLIENT_ID,
-            offlineAccess: false,
-        });
+      GoogleSignin.configure({
+        webClientId:process.env.WEBCLIENTID,
+        offlineAccess: false,
+      });
     }, []);
 
     // Input validation functions
@@ -115,22 +116,20 @@ const SignUp = () => {
                 password: formData.password
             };
 
-            const response = await axios.post(`${AUTH_URL}/createEmailSignUp`, signupData);
-
-            if (response.data.success) {
-                const newUser = response.data.user;
+            const response = await axios.post(`${AUTH_URL}/google/createEmailSignUp`, signupData);
+            if (response.data.Success) {
+              const item = response.data
+                const newUser = response.data.User;
                 dispatch(setUser(newUser));
-                
-                showAlert(
-                    'Account Created!', 
-                    'Please check your email to verify your account.',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => navigation.navigate('User', { userId: newUser.id })
-                        }
-                    ]
-                );
+                dispatch(setAuthenticated(!isAuthenticated));
+
+                await AsyncStorage.setItem("Role", item.User.role);
+                await AsyncStorage.setItem("User", item.User.username);
+                await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
+                await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
+                await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
+                await AsyncStorage.setItem("RefreshTokenExpiresAt", item.Session.RefreshTokenExpiresAt);
+                navigation.navigate("JoinCommunity");
             } else {
                 showAlert('Error', response.data.message || 'Failed to create account');
             }
@@ -144,33 +143,29 @@ const SignUp = () => {
         }
     };
 
-    const handleGoogleSignUp = async () => {
-        try {
-            setLoading(true);
-            await GoogleSignin.hasPlayServices();
-            await GoogleSignin.signOut(); // Clear previous sessions
-            
-            const userData = await GoogleSignin.signIn();
-            
-            if (userData?.data?.user) {
-                await processGoogleSignUp(userData.data, navigation);
-            }
-        } catch (error) {
-            console.error('Google Sign-Up Error:', error);
-            
-            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                console.log('User cancelled sign-in');
-            } else if (error.code === statusCodes.IN_PROGRESS) {
-                console.log('Sign-in is in progress');
-            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                showAlert('Error', 'Google Play Services are not available');
-            } else {
-                showAlert('Error', 'Google sign-up failed. Please try again.');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+    const handleGoogleRedirect = async () => {
+      try {
+        await GoogleSignin.hasPlayServices();
+        await GoogleSignin.signOut()
+        const userData = await GoogleSignin.signIn();
+        const { idToken } = await GoogleSignin.getTokens();
+
+        await axios.get(`${AUTH_URL}/google/handleGoogleRedirect`)
+        await processGoogleSignUp(userData.data, navigation);
+
+      } catch (error) {
+          console.error('Google Sign-Up Error:', error);
+          if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+              console.log('User cancelled sign-in');
+          } else if (error.code === statusCodes.IN_PROGRESS) {
+              console.log('Sign-in is in progress');
+          } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+              showAlert('Error', 'Google Play Services are not available');
+          } else {
+             showAlert('Error', 'Google sign-up failed. Please try again.');
+          }
+      }
+    }
 
     const processGoogleSignUp = async (userData, navigation) => {
           try {
@@ -183,18 +178,25 @@ const SignUp = () => {
               };
 
               const response = await axios.post(`${AUTH_URL}/google/createGoogleSignUp`, googleSignupData);
-
-              if (response.data.success) {
-                  const newUser = response.data.user;
+              if (response.data.Success) {
+                  const newUser = response.data.User;
+                  const item = response.data
                   dispatch(setUser(newUser));
-                  navigation.navigate('User', { userId: newUser.id });
+                  dispatch(setAuthenticated(!isAuthenticated));
+                  await AsyncStorage.setItem("Role", item.User.role);
+                  await AsyncStorage.setItem("User", item.User.username);
+                  await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
+                  await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
+                  await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
+                  await AsyncStorage.setItem("RefreshTokenExpiresAt", item.Session.RefreshTokenExpiresAt);
+                  navigation.navigate('JoinCommunity');
                   showAlert('Success', 'Account created successfully with Google!');
               } else {
-                  showAlert('Error', response.data.message || 'Failed to create account with Google');
+                  showAlert('Error', response.data.Message || 'Failed to create account with Google');
               }
           } catch (signUpErr) {
               console.error("Google signup error:", signUpErr);
-              const errorMessage = signUpErr.response?.data?.message || 'Failed to create account with Google. Please try again.';
+              const errorMessage = signUpErr.response?.data?.Message || 'Failed to create account with Google. Please try again.';
               showAlert('Error', errorMessage);
           }
     };
@@ -353,7 +355,7 @@ const SignUp = () => {
                 <View style={tailwind`mb-4`}>
                     <Pressable 
                         style={tailwind`bg-white py-4 rounded-lg shadow-md flex-row items-center justify-center ${loading ? 'opacity-50' : ''}`}
-                        onPress={handleGoogleSignUp}
+                        onPress={() => handleGoogleRedirect()}
                         disabled={loading}
                     >
                         <AntDesign name="google" size={24} color="black" />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, Image, View, TextInput, Pressable, Modal } from 'react-native';
+import { Text, Image, View, TextInput, Pressable, Modal, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -27,7 +27,7 @@ function SignIn() {
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
     const [formData, setFormData] = useState({
       email: '',
-      password:''
+      hash_password:''
     })
     useEffect(() => {
 
@@ -85,10 +85,10 @@ function SignIn() {
         await GoogleSignin.hasPlayServices();
         await GoogleSignin.signOut()
         const userData = await GoogleSignin.signIn();
-        console.log("User data: ", userData)
+        const { idToken } = await GoogleSignin.getTokens();
         setUserInfo(userData.data);
         await axios.get(`${AUTH_URL}/google/handleGoogleRedirect`)
-        handleRedirect(userData.data.idToken);
+        handleGoogleSignIn(userData.data.idToken);
 
       } catch (error) {
         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -110,31 +110,26 @@ function SignIn() {
             }
 
             setLoading(true);
-
-            const emailCheckResponse = await axios.get(`${AUTH_URL}/getUserByEmail`, {
-                params: { email: formData.email.toLowerCase().trim() }
-            });
-
-            if (emailCheckResponse.data && emailCheckResponse.data.email === formData.email) {
-                setErrors({ email: 'Email already registered. Please sign in instead.' });
-                return;
-            }
             
             const signinData = {
                 email: formData.email.toLowerCase().trim(),
                 password: formData.password
             };
 
-            const response = await axios.post(`${AUTH_URL}/createEmailSignIn`, signinData);
+            const response = await axios.post(`${AUTH_URL}/google/createEmailSignIn`, signinData);
             const item = response.data;
-
+            if(!item.Success){
+              Alert.alert(response.data.message)
+              return
+            }
+            
             // Store tokens
-            await AsyncStorage.setItem("AccessToken", item.access_token);
-            await AsyncStorage.setItem("Role", item.user.role);
-            await AsyncStorage.setItem("User", item.user.username);
-            await AsyncStorage.setItem("RefreshToken", item.refresh_token);
-            await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
-            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
+            await AsyncStorage.setItem("AccessToken", item.AccessToken);
+            await AsyncStorage.setItem("Role", item.User.role);
+            await AsyncStorage.setItem("User", item.User.username);
+            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
+            await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
+            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
 
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
@@ -142,43 +137,49 @@ function SignIn() {
             showAlert('Success', 'Signed in successfully!');
         } catch (err) {
             console.error('Email sign in error:', err);
-            const errorMessage = err.response?.data?.message || 'Invalid credentials. Please try again.';
-            showAlert('Error', errorMessage);
+        
+        // Handle different error scenarios
+        if (err.response) {
+            // Server responded with error status
+            const errorData = err.response.data;
+            if (errorData && errorData.message) {
+                showAlert('Error', errorData.message);
+            } else {
+                showAlert('Error', 'Sign in failed. Please try again.');
+            }
+        } else if (err.request) {
+            // Network error
+            showAlert('Error', 'Network error. Please check your connection.');
+        } else {
+            // Other error
+            showAlert('Error', 'An unexpected error occurred. Please try again.');
+        }
         } finally {
             setLoading(false);
         }
     };
 
 
-    const handleRedirect = async (idToken) => {
+    const handleGoogleSignIn = async (idToken) => {
         try {
-          const verifyGmail = await axios.get(`${AUTH_URL}/getUserByGmail`, {
-            params: {
-              gmail: userInfo.user.email
-            }
-          });
-          if (verifyGmail.data.gmail === userInfo.user.email) {
             const response = await axios.post(`${AUTH_URL}/google/createGoogleSignIn`,{
-              code: idToken
-            }); 
+                code: idToken,
+            });
             const item = response.data;
             setUserInfo(item)
-            await AsyncStorage.setItem("AccessToken", item.access_token);
-            await AsyncStorage.setItem("Role", item.user.role);
-            await AsyncStorage.setItem("User", item.user.username);
-            await AsyncStorage.setItem("RefreshToken", item.refresh_token);
-            await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
-            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
+            if(!item.Success){
+              Alert.alert(response.data.message)
+              return
+            }
+            await AsyncStorage.setItem("AccessToken", item.AccessToken);
+            await AsyncStorage.setItem("Role", item.User.role);
+            await AsyncStorage.setItem("User", item.User.username);
+            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
+            await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
+            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
-          } else {
-            const response = await axios.post(`${AUTH_URL}/google/createGoogleSignUp`,{
-              code: idToken
-            }); 
-            const item = response.data;
-            setUserInfo(item)
-            navigation.navigate('User',{gmail: item})
-          }
+            navigation.navigate("Home")
         } catch(err) {
           if (err.message === "Gmail does not exists, Please Sign Up"){
             console.error(err.message); 
@@ -204,26 +205,23 @@ function SignIn() {
     };
 
     const showAlert = (title, message) => {
-            Alert.alert(title, message, [{ text: 'OK' }]);
-        };
+        Alert.alert(title, message, [{ text: 'OK' }]);
+    };
 
-        const validateForm = () => {
+    const validateForm = () => {
         const newErrors = {};
-
         // Email validation
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!validateEmail(formData.email)) {
             newErrors.email = 'Please enter a valid email address';
         }
-
         // Password validation
         if (!formData.password) {
             newErrors.password = 'Password is required';
         } else if (!validatePassword(formData.password)) {
             newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and number';
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -301,14 +299,14 @@ function SignIn() {
           {/* Email Signup Button */}
           <Pressable 
               style={tailwind`bg-red-500 py-4 rounded-lg shadow-md ${loading ? 'opacity-50' : ''}`}
-              onPress={handleEmailSignIn}
+              onPress={() => handleEmailSignIn()}
               disabled={loading}
           >
               {loading ? (
                   <ActivityIndicator size="small" color="white" />
               ) : (
                   <Text style={tailwind`text-white text-lg font-bold text-center`}>
-                      Create Account
+                      Sign In
                   </Text>
               )}
           </Pressable>
@@ -322,7 +320,7 @@ function SignIn() {
         </View>
   
         <View style={tailwind`mb-6`}>
-          <Pressable onPress={() => handleGoogleRedirect()} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
+          <Pressable onPress={handleGoogleRedirect} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
             <AntDesign name="google" size={24} color="black" />
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Sign In using Gmail</Text>
           </Pressable>
