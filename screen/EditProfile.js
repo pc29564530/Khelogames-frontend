@@ -149,7 +149,6 @@ export default function EditProfile() {
                 bio: bio,
                 avatar_url: avatarUrl,
             }
-            console.log("data: ", data)
 
             const response = await axiosInstance.put(`${BASE_URL}/updateProfile`, data, {
                 headers: {
@@ -168,22 +167,16 @@ export default function EditProfile() {
         }
     }
 
-    console.log("Profile: ", profile)
-
     const handleNewRole = async (item) => {
         try {
-            console.log("role: ", item)
             const authToken = await AsyncStorage.getItem("AccessToken")
+            const authUser = await AsyncStorage.getItem("User")
             const data = {
-                profile_id: profile.id,
+                public_id: authUser.public_id,
                 role_id: item.id
             }
             console.log("Data: ", data)
             const response  = await axiosInstance.post(`${BASE_URL}/addUserRole`, data, {
-                // params: {
-                //     profile_id: profile.id.toString(),
-                //     role_id: item.id.toString(),
-                // },
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

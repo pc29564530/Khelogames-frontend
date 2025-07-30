@@ -11,9 +11,11 @@ const SetCurrentBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatc
     const handleUpdateBowlerStatus = async (item) => {
         try {
             const data = {
-                match_id: match.id,
-                current_bowler_id: currentBowler.player.id,
-                next_bowler_id: item.id
+                match_public_id: match.public_id,
+                team_public_id: batTeam === match.homeTeam.public_id ? batTeam : match.awayTeam.public_id,
+                current_bowler_public_id: currentBowler.player.public_id,
+                next_bowler_public_id: item.public_id,
+                inning_number: inningNumber
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateBowlingBowlerStatus`, data, {

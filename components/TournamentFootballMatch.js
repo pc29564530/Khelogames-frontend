@@ -27,7 +27,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     }, [match]);
     const fetchTournamentMatchs = async () => {
         try {
-            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentId: tournament.id, game: game});  
+            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentPublicID: tournament.public_id, game: game});  
             if(item === null ){
                 return item;
             }
@@ -77,7 +77,7 @@ const matchesData = (item, ind) => {
     const dispatch = useDispatch();
     const handleFootballMatchPage = (item) => {
         dispatch(getMatch(item))
-        navigation.navigate("FootballMatchPage", {matchID: item.id});
+        navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id});
     }
     return (
         <Pressable key={ind} 

@@ -17,12 +17,12 @@ const AddFootballPeriods = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                "match_id":matchData.id,
-                "team_id":null,
+                "match_public_id":matchData.public_id,
+                "team_public_id":null,
                 "periods":selectedHalf,
                 "incident_type":selectedIncident,
                 "incident_time":selectedMinute,
-                "player_id":null,
+                "player_public_id":null,
                 "description":"description"
             }
             const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidents`, data, {

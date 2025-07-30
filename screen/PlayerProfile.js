@@ -11,9 +11,8 @@
     import FootballPlayerStats from '../components/FootballPlayerStats';
 
     const PlayerProfile = ({ route }) => {
-        const profileID = route.params.profileID;
+        const player = route.params.player;
         const [loading, setLoading] = useState(true);
-        const [player, setPlayer] = useState(null)
         const axiosInstance = useAxiosInterceptor();
         const navigation = useNavigation();
         const game = useSelector(state => state.sportReducers.game);
@@ -21,26 +20,6 @@
         const [isOwner, setIsOwner] = useState(false);
         const [headerContentType, setHeaderContentType] = useState("Matches");
 
-        useEffect(() => {
-            const fetchPlayerProfile = async () => {
-                try {
-                    const authToken = await AsyncStorage.getItem("AccessToken");
-                    const response = await axiosInstance.get(`${BASE_URL}/getPlayerByProfileID`, {
-                        params: { profile_id: profileID },
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    setPlayer(response.data || null);
-                } catch (err) {
-                    console.error("Error fetching player:", err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchPlayerProfile();
-        }, [profileID]);
 
         const handleAddActivity = () => {
             if (isOwner){
@@ -64,7 +43,8 @@
         useEffect(() => {
             const checkProfileOwner = async () => {
                 const currentOwner = await AsyncStorage.getItem('User');
-                if (currentOwner === profile.owner) {
+                //check for currentOwner temp fix change with user_public_id
+                if (currentOwner.id === profile.user_id) {
                     setIsOwner(true);
                 }
             };

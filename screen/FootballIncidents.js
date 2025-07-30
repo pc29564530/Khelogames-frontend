@@ -20,7 +20,7 @@ const FootballIncidents = ({ route }) => {
     const [penaltyH, setPenaltyH] = useState([]);
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
-    const matchData = route.params.matchData;
+    const match = route.params.matchData;
     const axiosInstance = useAxiosInterceptor();
 
     useEffect(() => {
@@ -29,8 +29,8 @@ const FootballIncidents = ({ route }) => {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
                     params: {
-                        'match_id':match.id.toString(),
-                        'team_id': match.home_team_id.toString()
+                        'match_public_id':match.public_id.toString(),
+                        'team_public_id': match.homeTeam.public_id.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -47,8 +47,8 @@ const FootballIncidents = ({ route }) => {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
                     params: {
-                        'match_id':match.id.toString(),
-                        'team_id': match.away_team_id.toString()
+                        'match_public_id':match.public_id.toString(),
+                        'team_public_id': match.awayTeam.public_id.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -69,20 +69,18 @@ const FootballIncidents = ({ route }) => {
         const fetchPlayersAndIncidents = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const homeResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc`, {
-                    params: { team_id: matchData.homeTeam.id.toString() },
+                const homeResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc/${match.homeTeam.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
                 setHomePlayer(homeResponse.data || []);
 
-                const awayResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc`, {
-                    params: { team_id: matchData.awayTeam.id.toString() },
+                const awayResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc/${match.awayTeam.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
                 setAwayPlayer(awayResponse.data || []);
 
                 const incidentsResponse = await axiosInstance.get(`${BASE_URL}/football/getFootballIncidents`, {
-                    params: { match_id: matchData.id },
+                    params: { match_public_id: match.public_id },
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
                 setIncidents(incidentsResponse.data[1].incidents || []);
@@ -128,7 +126,7 @@ const FootballIncidents = ({ route }) => {
                             </View>
                             {penaltyShootoutIncidents.map((item, index) => (
                                 <View key={index} style={tailwind`p-2 bg-white`}>
-                                    {item.team_id === matchData.homeTeam.id ? (
+                                    {item.team_id === match.homeTeam.id ? (
                                             <View style={tailwind`flex-row justify-start gap-2`}>
                                                 <Text style={tailwind`text-md`}>{item.penalty_shootout_scored ? '⚽' : '🚫'}</Text>
                                                 <Text style={tailwind`h-10 w-0.2 bg-gray-400`} />
@@ -156,7 +154,7 @@ const FootballIncidents = ({ route }) => {
                                     </Text>
                                 </View>
                                 <View style={tailwind`gap-4`}>
-                                    <IncidentCheck incident={extraHalfTime} matchData={matchData} />
+                                    <IncidentCheck incident={extraHalfTime} match={match} />
                                 </View>
                             </View>
                             <View style={tailwind`mb-4`}>
@@ -166,7 +164,7 @@ const FootballIncidents = ({ route }) => {
                                     </Text>
                                 </View>
                                 <View style={tailwind`gap-4`}>
-                                    <IncidentCheck incident={secondHalf} matchData={matchData} />
+                                    <IncidentCheck incident={secondHalf} match={match} />
                                 </View>
                             </View>
                             <View style={tailwind`mb-4`}>
@@ -176,7 +174,7 @@ const FootballIncidents = ({ route }) => {
                                     </Text>
                                 </View>
                                 <View style={tailwind`gap-4`}>
-                                    <IncidentCheck incident={firstHalf} matchData={matchData} />
+                                    <IncidentCheck incident={firstHalf} match={match} />
                                 </View>
                             </View>
                         </View>
@@ -193,11 +191,11 @@ const FootballIncidents = ({ route }) => {
                         <Pressable onPress={() => setIncidentModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                             <View style={tailwind`bg-white rounded-t-lg p-8`}>
                                 <AddFootballModalIncident 
-                                    matchData={matchData} 
+                                    match={match} 
                                     awayPlayer={awayPlayer} 
                                     homePlayer={homePlayer} 
-                                    awayTeam={matchData.awayTeam} 
-                                    homeTeam={matchData.homeTeam}
+                                    awayTeam={match.awayTeam} 
+                                    homeTeam={match.homeTeam}
                                     awaySquad={awaySquad}
                                     homeSquad={homeSquad}
                                 />

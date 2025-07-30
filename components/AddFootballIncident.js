@@ -9,7 +9,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
-    const [teamID, setTeamID] = useState(homeTeam.id);
+    const [teamPublicID, setTeamPublicID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
     const game = useSelector((state) => state.sportReducers.game);
 
@@ -19,12 +19,12 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                "match_id":matchData.id,
-                "team_id":teamID,
+                "match_public_id":matchData.public_id,
+                "team_public_id":teamPublicID,
                 "periods":selectedHalf,
                 "incident_type":selectedIncident,
                 "incident_time":selectedMinute,
-                "player_id":selectedPlayer.id,
+                "player_public_id":selectedPlayer.public_id,
                 "description":description
             }
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addFootballIncidents`, data, {
@@ -83,14 +83,14 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
                 <View style={tailwind`flex-row justify-between`}>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(homeTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamPublicID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamPublicID(homeTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
                     </Pressable>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(awayTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamPublicID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamPublicID(awayTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
                     </Pressable>
@@ -101,7 +101,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
                 <Dropdown
                     style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
+                    options={teamPublicID === homeTeam.public_id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
                     onSelect={(index, item) => setSelectedPlayer(item)}
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>

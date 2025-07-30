@@ -27,7 +27,7 @@ const Members = ({teamData}) => {
         const fetchPlayerProfile = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getPlayersBySport`, {
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayersBySport/${game.id}`, {
                     params: {
                         'game_id': game.id.toString()
                     },
@@ -50,8 +50,7 @@ const Members = ({teamData}) => {
         const fetchMembers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
-                    params: { team_id: teamData.id.toString()},
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${teamData.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -82,8 +81,8 @@ const Members = ({teamData}) => {
     const handleAddPlayer = useCallback (async (selectedItem) => {
         try {
             const data = {
-                team_id:teamData.id,
-                player_id: selectedItem.id,
+                team_public_id:teamData.public_id,
+                player_public_id: selectedItem.public_id,
                 join_date: new Date()
             }
             const authToken = await AsyncStorage.getItem('AcessToken');
@@ -120,8 +119,8 @@ const Members = ({teamData}) => {
             
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                team_id: teamData.id,
-                player_id: playerID,
+                team_public_id: teamData.public_id,
+                player_public_id: item.public_id,
                 leave_date: new Date()
             }
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/removePlayerFromTeam`, data, {

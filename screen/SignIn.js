@@ -48,7 +48,7 @@ function SignIn() {
             dispatch(setMobileNumberVerified(true))
             await AsyncStorage.setItem("AccessToken", item.access_token);
             await AsyncStorage.setItem("Role", item.user.role);
-            await AsyncStorage.setItem("User", item.user.username);
+            await AsyncStorage.setItem("User", item.user);
             await AsyncStorage.setItem("RefreshToken", item.refresh_token);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
@@ -122,11 +122,13 @@ function SignIn() {
               Alert.alert(response.data.message)
               return
             }
+
+            console.log("User Line: ", response.data)
             
             // Store tokens
             await AsyncStorage.setItem("AccessToken", item.AccessToken);
             await AsyncStorage.setItem("Role", item.User.role);
-            await AsyncStorage.setItem("User", item.User.username);
+            await AsyncStorage.setItem("User", item.User);
             await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
@@ -173,7 +175,7 @@ function SignIn() {
             }
             await AsyncStorage.setItem("AccessToken", item.AccessToken);
             await AsyncStorage.setItem("Role", item.User.role);
-            await AsyncStorage.setItem("User", item.User.username);
+            await AsyncStorage.setItem("User", item.User);
             await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);

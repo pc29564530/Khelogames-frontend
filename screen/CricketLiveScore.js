@@ -141,8 +141,8 @@ const CricketLive = ({route}) => {
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const data = {
-                    match_id: match.id,
-                    team_id: batTeam,
+                    match_public_id: match.public_id,
+                    team_public_id: batTeam,
                     inning: currentInningNumber
                 }
     
@@ -175,7 +175,7 @@ const CricketLive = ({route}) => {
                     }
                 }
                 const data = {
-                    id: match.id,
+                    match_public_id: match.public_id,
                     result: winningTeam
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken");
@@ -194,10 +194,7 @@ const CricketLive = ({route}) => {
             const fetchHomePlayers = async () => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
-                        params:{
-                            team_id: match.homeTeam.id.toString()
-                        },
+                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${match.homeTeam.public_id}`, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json',
@@ -212,10 +209,7 @@ const CricketLive = ({route}) => {
             const fetchAwayPlayers = async () => {
                 try {
                     const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
-                        params:{
-                            team_id: match.awayTeam.id.toString()
-                        },
+                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${ match.awayTeam.public_id}`, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json',
@@ -280,7 +274,7 @@ const CricketLive = ({route}) => {
         }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(sport, dispatch, match.id, teamID, nextInning, followOn, authToken, axiosInstance)
+            await addCricketScoreServices(sport, dispatch, match.public_id, teamID, nextInning, followOn, authToken, axiosInstance)
         } catch (err) {
             console.error("Failed to start next inning: ", err);
         }

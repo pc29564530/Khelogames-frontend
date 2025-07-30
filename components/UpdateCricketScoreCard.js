@@ -35,10 +35,10 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
             try {
             
                 const data = {
-                    match_id: match.id,
-                    batsman_team_id: batTeam,
-                    batsman_id: currentBatsman?.player?.id,
-                    bowler_id: currentBowler?.player?.id,
+                    match_public_id: match.public_id,
+                    batsman_team_public_id: batTeam,
+                    batsman_public_id: currentBatsman?.player?.public_id,
+                    bowler_public_id: currentBowler?.player?.public_id,
                     runs_scored: temp,
                     inning: currentInning
                 }
@@ -61,11 +61,11 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
         } else if(addCurrentScoreEvent[0] === "no_ball"){
             try {
                 const data = {
+                    match_public_id: match.public_id,
+                    bowler_public_id: currentBowler.player.public_id,
+                    batting_team_public_id: batTeam,
+                    batsman_public_id: currentBatsman.player.public_id,
                     runs_scored: temp,
-                    match_id: match.id,
-                    bowler_id: currentBowler.player.id,
-                    batting_team_id: batTeam,
-                    batsman_id: currentBatsman.player.id,
                     inning: currentInning
                 }
                 
@@ -87,10 +87,10 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
         } else if(addCurrentScoreEvent[0] === "wide") {
             try {
                 const data = {
-                    batsman_id: currentBatsman.player.id,
-                    batting_team_id: batTeam,
-                    bowler_id: currentBowler.player.id,
-                    match_id: match.id,
+                    match_public_id: match.public_id,
+                    batsman_public_id: currentBatsman.player.public_id,
+                    batting_team_public_id: batTeam,
+                    bowler_public_id: currentBowler.player.public_id,
                     runs_scored: temp,
                     inning: currentInning
                 }
@@ -114,13 +114,13 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
         } else if(addCurrentScoreEvent[0] === "wicket") {
             try {
                 const data = {
-                    match_id: match.id,
-                    batting_team_id: batTeam,
-                    bowling_team_id: match.home_team_id === batTeam?match.away_team_id: match.home_team_id,
-                    Batsman_id: currentBatsman?.player.id,
-                    bowler_id: currentBowler?.player.id,
+                    match_public_id: match.public_id,
+                    batting_team_public_id: batTeam,
+                    bowling_team_public_id: match.homeTeam.public_id === batTeam?match.awayTeam.public_id: match.homeTeam.public_id,
+                    Batsman_public_id: currentBatsman?.player.public_id,
+                    bowler_public_id: currentBowler?.player.public_id,
                     wicket_type: wicketType,
-                    fielder_id: wicketType === "Stamp" ? currentWicketKeeper?.id : null,
+                    fielder_public_id: wicketType === "Stamp" ? currentWicketKeeper?.public_id : null,
                     runs_scored: temp,
                     bowl_type: addCurrentScoreEvent.length == 2 ? addCurrentScoreEvent[1] : null,
                     toggle_striker: isBatsmanStrikeChange,
@@ -128,7 +128,7 @@ export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisibl
                 }
 
                 if (wicketType === 'Run Out' || wicketType === "Catch") {
-                    data.fielder_id = selectedFielder.id
+                    data.fielder_public_id = selectedFielder.public_id
                 }
 
                 const authToken = await AsyncStorage.getItem("AccessToken")

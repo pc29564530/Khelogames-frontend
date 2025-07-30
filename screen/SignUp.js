@@ -118,13 +118,13 @@ const SignUp = () => {
 
             const response = await axios.post(`${AUTH_URL}/google/createEmailSignUp`, signupData);
             if (response.data.Success) {
-              const item = response.data
+              const item = response.formData
                 const newUser = response.data.User;
                 dispatch(setUser(newUser));
                 dispatch(setAuthenticated(!isAuthenticated));
 
                 await AsyncStorage.setItem("Role", item.User.role);
-                await AsyncStorage.setItem("User", item.User.username);
+                await AsyncStorage.setItem("User", item.User);
                 await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
                 await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
                 await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
@@ -184,7 +184,7 @@ const SignUp = () => {
                   dispatch(setUser(newUser));
                   dispatch(setAuthenticated(!isAuthenticated));
                   await AsyncStorage.setItem("Role", item.User.role);
-                  await AsyncStorage.setItem("User", item.User.username);
+                  await AsyncStorage.setItem("User", item.User);
                   await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
                   await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
                   await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);

@@ -55,8 +55,7 @@ const CreatePlayerProfile = () => {
                     positions: position,
                     sports: playerSport.name,
                     country: playerCountry.name,
-                    game_id: playerSport.id,
-                    profile_id: profile.id
+                    game_id: game.id
             }
             const response = await axiosInstance.post(`${BASE_URL}/newPlayer`, data, {
                 headers: {

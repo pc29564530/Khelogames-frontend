@@ -10,19 +10,19 @@ import { BASE_URL } from '../constants/ApiConstants';
 const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [goalScore, setGoalScore] = useState(false);
-    const [teamID, setTeamID] = useState(homeTeam.id);
+    const [teamID, setTeamID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
     const axiosInstance = useAxiosInterceptor()
     
     const handleAddShootout = async () => {
         try {
             const data = {
-                "match_id":matchData.id,
-                "team_id":teamID,
+                "match_public_id":matchData.public_id,
+                "team_public_id":teamID,
                 "periods":'',
                 "incident_type":selectedIncident,
                 "incident_time":0,
-                "player_id":selectedPlayer.id,
+                "player_public_id":selectedPlayer.public_id,
                 "description":'',
                 "penalty_shootout_scored":goalScore
             }
@@ -53,14 +53,14 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
                 <View style={tailwind`flex-row justify-between`}>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(homeTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(homeTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
                     </Pressable>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(awayTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(awayTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
                     </Pressable>
@@ -72,7 +72,7 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
                 <Dropdown
                     style={tailwind`p-4 bg-white border border-gray-200`}
-                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
+                    options={teamID === homeTeam.public_id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
                     onSelect={(index, item) => setSelectedPlayer(item)}
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>

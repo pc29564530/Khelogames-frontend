@@ -39,18 +39,20 @@ const CricketScoreCard = () => {
     const [selectedInning, setSelectedInning] = useState(1);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const homeTeamPublicID = match?.homeTeam?.public_id;
+    const awayTeamPublicID = match?.awayTeam?.public_id;
 
     useEffect(() => {
         if (cricketToss) {
             if (cricketToss.tossDecision === "Batting") {
-                setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
-                setSelectedInning(cricketToss.tossWonTeam === homeTeamID ? 1 : 2);
+                setCurrentScoreCard(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
+                setSelectedInning(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? 1 : 2);
             } else {
-                setCurrentScoreCard(cricketToss.tossWonTeam.id === homeTeamID ? awayTeamID : homeTeamID);
-                setSelectedInning(cricketToss.tossWonTeam === awayTeamID ? 1 : 2);
+                setCurrentScoreCard(cricketToss.tossWonTeam.public_id === awayTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
+                setSelectedInning(cricketToss.tossWonTeam.public_id === awayTeamPublicID ? 1 : 2);
             }
         }
-    }, [cricketToss, homeTeamID, awayTeamID]);
+    }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
     useEffect(() => {
         if(match) {
@@ -66,7 +68,7 @@ const CricketScoreCard = () => {
                 setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
-                    params: { match_id: match.id.toString(), team_id: homeTeamID===currentScoreCard?homeTeamID.toString(): awayTeamID.toString() },
+                    params: { match_public_id: match.public_id.toString(), team_public_id: homeTeamPublicID===currentScoreCard?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -80,14 +82,14 @@ const CricketScoreCard = () => {
             }
         };
         fetchBatting();
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.public_id]);
 
     useEffect(() => {
         const fetchBowling = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_id: match.id, team_id: awayTeamID!==currentScoreCard?awayTeamID: homeTeamID },
+                    params: { match_public_id: match.public_id, team_public_id: awayTeamPublicID!==currentScoreCard?awayTeamPublicID: homeTeamPublicID },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -103,8 +105,8 @@ const CricketScoreCard = () => {
 
     useEffect(() => {
         const loadPlayers = async () => {
-            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamID, game, axiosInstance);
-            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamID, game, axiosInstance);
+            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamPublicID, game, axiosInstance);
+            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamPublicID, game, axiosInstance);
             dispatch(getHomePlayer(homePlayersResponse));
             dispatch(getAwayPlayer(awayPlayersResponse));
         };
@@ -123,7 +125,7 @@ const CricketScoreCard = () => {
                 });
             });
         
-            if (currentScoreCard === homeTeamID) {
+            if (currentScoreCard === homeTeamPublicID) {
                 if (Array.isArray(homePlayer)) {
                     notBatted = homePlayer.filter(item => !allBattedIDs.has(item.id));
                 }
@@ -137,15 +139,15 @@ const CricketScoreCard = () => {
         };
         
         handleYetToBat();
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.public_id]);
 
     const handleAddNextBatsman = async () => {
         try{
 
             const data = {
-                batsman_id: item.id,
-                match_id: match.matchId,
-                team_id: batTeam,
+                match_public_id: match.public_id,
+                team_public_id: batTeam,
+                batsman_public_id: item.public_id,
                 position: item.position,
                 runs_scored: 0,
                 balls_faced: 0,
@@ -172,8 +174,8 @@ const CricketScoreCard = () => {
         const fetchTeamWickets = async () => {
             try {
                 const data = {
-                    match_id: match.matchId,
-                    team_id: currentScoreCard,
+                    match_public_id: match.public_id,
+                    team_public_id: currentScoreCard,
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
@@ -210,10 +212,10 @@ const CricketScoreCard = () => {
             <View style={tailwind`flex-1 bg-white`}>
                 <ScrollView style={tailwind`bg-white`}>
                     <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamPublicID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamPublicID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                         </Pressable>
-                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamPublicID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamPublicID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
                             <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                         </Pressable>
                     </View>

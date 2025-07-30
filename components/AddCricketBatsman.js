@@ -20,8 +20,8 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch}) => {
                 const authToken = await AsyncStorage.getItem('authToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
                     params: {
-                        "match_id": match.id,
-                        "team_id": batTeam
+                        "match_public_id": match.public_id,
+                        "team_public_id": batTeam
                     },
                     headers: {
                         "Authorization": `Bearer ${authToken}`,
@@ -42,9 +42,9 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch}) => {
     const handleAddNextBatsman = async (item) => {
         try {
             const data = {
-                batsman_id: item.player.id,
-                match_id: match.id,
-                team_id: batTeam,
+                match_public_id: match.public_id,
+                team_public_id: batTeam,
+                batsman_public_id: item.player.public_id,
                 position: item.position,
                 runs_scored: 0,
                 balls_faced: 0,

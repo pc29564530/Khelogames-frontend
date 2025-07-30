@@ -14,12 +14,13 @@ import { useSelector } from 'react-redux';
 const FootballDetails = ({route}) => {
     const matchData = route.params.matchData;
     const tournament = useSelector((state) => state.tournamentsReducers.tournament)
+    const game = useSelector((state) => state.sportsReducers.game)
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
-    const handleTournamentPage = async (tournamentID) => {
+    const handleTournamentPage = async (tournamentPublicID) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournament/${tournamentPublicID}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -39,7 +40,7 @@ const FootballDetails = ({route}) => {
 
         const addFootballScore = async () => {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentPublicID}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -54,7 +55,7 @@ const FootballDetails = ({route}) => {
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
-            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(tournament.id)}>
+            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(tournament.public_id)}>
                 <Text style={tailwind` text-2xl`}>{tournament.name}</Text>
                 <MaterialCommunityIcons name="greater-than" size={24} color="black" />
             </Pressable>

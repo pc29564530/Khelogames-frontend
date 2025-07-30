@@ -16,7 +16,7 @@ import { addThreadComment } from '../services/commentServices';
 function ThreadComment ({route}) {
     const navigation = useNavigation();
     const commentInputRef = useRef();
-    const { item } = route.params;
+    const { item, publicID } = route.params;
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const commentText = useSelector((state) => state.comments.commentText)
@@ -24,7 +24,7 @@ function ThreadComment ({route}) {
     const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === item.id)).like_count)
 
       const handleReduxSubmit = async () => {
-        addThreadComment({commentText: commentText, dispatch: dispatch, itemId: item.id, axiosInstance: axiosInstance})
+        addThreadComment({commentText: commentText, dispatch: dispatch, itemPublicID: item.public_id, axiosInstance: axiosInstance})
     }
 
     useEffect(()=> {

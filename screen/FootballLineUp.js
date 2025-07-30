@@ -12,9 +12,9 @@ const positions = require('../assets/position.json');
 const FootballLineUp = ({ route }) => {
     const dispatch = useDispatch();
     const match = route.params.matchData;
-    const homeTeamID = match?.homeTeam?.id;
-    const awayTeamID = match?.awayTeam?.id;
-    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamID);
+    const homeTeamPublicID = match?.homeTeam?.public_id;
+    const awayTeamPublicID = match?.awayTeam?.public_id;
+    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
     const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
     const [isSubstituted, setIsSubstituted] = useState([]);
     const [currentSquad, setCurrentSquad] = useState([]);
@@ -41,11 +41,10 @@ const FootballLineUp = ({ route }) => {
     const handleSelectSquad = async () => {
         try {
             var data={
-                match_id: match.id,
-                team_id: homeTeamID === currentTeamPlayer ? homeTeamID : awayTeamID,
+                match_public_id: match.public_id,
+                team_public_id: homeTeamPublicID === currentTeamPlayer ? homeTeamPublicID : awayTeamPublicID,
                 player: selectedSquad,
                 is_substitute: isSubstituted,
-
             }
             console.log("data: ", data)
             const authToken = await AsyncStorage.getItem("AccessToken")
@@ -67,8 +66,8 @@ const FootballLineUp = ({ route }) => {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
                     params: {
-                        'match_id':match.id.toString(),
-                        'team_id': currentTeamPlayer.toString()
+                        'match_public_id':match.public_id.toString(),
+                        'team_public_id': currentTeamPlayer.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -87,10 +86,7 @@ const FootballLineUp = ({ route }) => {
         const fetchPlayers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
-                    params:{
-                        team_id: currentTeamPlayer.toString()
-                    },
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${currentTeamPlayer.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -225,7 +221,7 @@ const FootballLineUp = ({ route }) => {
                                         </View>
                                         <Pressable onPress={() => togglePlayerSelection(item)}>
                                             <AntDesign
-                                                name={selectedSquad?.some(p => p.id === item.id) ? 'checkcircle' : 'pluscircleo'}
+                                                name={selectedSquad?.some(p => p.public_id === item.public_id) ? 'checkcircle' : 'pluscircleo'}
                                                 size={22}
                                                 color={selectedSquad?.some(p => p.id === item.id) ? 'green' : 'gray'}
                                             />
@@ -233,16 +229,16 @@ const FootballLineUp = ({ route }) => {
                                         <View>
                                             <Text></Text>
                                                 <Switch 
-                                                    value={isSubstituted.includes(item.id)}
+                                                    value={isSubstituted.includes(item.public_id)}
                                                     onValueChange={(value) => {
                                                         if (value) {
-                                                            setIsSubstituted((prev) => [...prev, item.id]);
+                                                            setIsSubstituted((prev) => [...prev, item.public_id]);
                                                         } else {
-                                                            setIsSubstituted((prev) => prev.filter((id) => id !== item.id))
+                                                            setIsSubstituted((prev) => prev.filter((public_id) => public_id !== item.public_id))
                                                         }
                                                     }}
                                                     trackColor={{false: "#ccc", true: "#34D399" }}
-                                                    thumbColor={isSubstituted.includes(item.id)? "#10B981" : "#f4f3f4"}
+                                                    thumbColor={isSubstituted.includes(item.public_id)? "#10B981" : "#f4f3f4"}
                                                 />
                                         </View>
                                     </View>

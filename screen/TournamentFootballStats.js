@@ -32,7 +32,7 @@ const TournamentFootballStats = ({route}) => {
                     tournament_id: tournament.id
                 }
 
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -50,7 +50,7 @@ const TournamentFootballStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -66,9 +66,9 @@ const TournamentFootballStats = ({route}) => {
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const data = {
-                    tournament_id: tournament.id
+                    tournament_public_id: tournament.public_id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'

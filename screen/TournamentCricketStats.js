@@ -44,7 +44,7 @@ const TournamentCricketStats = ({route}) => {
                     tournament_id: tournament.id
                 }
 
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostRuns/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostRuns/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -62,7 +62,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentHighestRuns/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentHighestRuns/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -80,7 +80,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostSixes/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostSixes/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -116,7 +116,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFifties/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFifties/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -134,7 +134,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostHundreds/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostHundreds/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -152,7 +152,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostWickets/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostWickets/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -170,7 +170,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingEconomy/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingEconomy/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -188,7 +188,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingAverage/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingAverage/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -206,7 +206,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingStrike/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingStrike/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -224,7 +224,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentFiveWicketsHaul/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentFiveWicketsHaul/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -242,7 +242,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingAverage/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingAverage/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -260,7 +260,7 @@ const TournamentCricketStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingStrike/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingStrike/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'

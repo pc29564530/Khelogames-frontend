@@ -9,12 +9,11 @@ import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
 import ThreadItem from './ThreadItems';
 
-const ThreadProfileCompement = ({owner}) => {
+const ThreadProfileCompement = ({userPublicID}) => {
     const navigation = useNavigation();
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const likesCount = useSelector((state) => state.Like)
-    const [ownername,setOwnername] = useState(owner);
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
     const [hasReplies, setHasReplies] = useState(true);
     const [displayText, setDisplayText] = useState('');
@@ -22,7 +21,7 @@ const ThreadProfileCompement = ({owner}) => {
       navigation.navigate('ThreadComment', {item: item, itemId: id})
     }
 
-    const handleLikes = async (id) => {
+    const handleLikes = async (threadPublicID) => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const headers = {
@@ -31,19 +30,19 @@ const ThreadProfileCompement = ({owner}) => {
         }
 
         // here when click on like icon call api createLike
-        const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
+        const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${threadPublicID}`, {headers});
         if(userCount.data == 0) {
-          const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
+          const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${threadPublicID}`,null, {headers} );
           if(response.status === 200) {
             try {
-              const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
+              const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${threadPublicID}`,null,{headers});
               const updateLikeData = {
                 like_count: updatedLikeCount.data,
-                id: id
+                thread_public_id: threadPublicID
               }
 
               const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-              dispatch(setLikes(id, newLikeCount.data.like_count));
+              dispatch(setLikes(threadPublicID, newLikeCount.data.like_count));
             } catch (err) {
               console.error(err);
             }
@@ -58,7 +57,7 @@ const ThreadProfileCompement = ({owner}) => {
       const fetchData = async () => {
         try { 
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.get(`${BASE_URL}/getThreadByUser/${owner}`, {
+          const response = await axiosInstance.get(`${BASE_URL}/getThreadByUser/${userPublicID}`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json',
@@ -75,10 +74,10 @@ const ThreadProfileCompement = ({owner}) => {
             setThreadWithUserProfile([]);
           } else {
             const threadUser = item.map(async (item, index) => {
-              const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`);
+              const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.public_id}`);
               let displayText = '';
               if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                const usernameInitial = profileResponse.data.username ? profileResponse.data.usename.charAt(0) : '';
                 displayText = usernameInitial.toUpperCase();
                 setDisplayText(displayText);
               }
@@ -100,11 +99,11 @@ const ThreadProfileCompement = ({owner}) => {
       };
   
       fetchData();
-    }, [owner]); 
+    }, [username]); 
 
     //update the handleUser to directly navigate to profile and profile menu
-    const handleUser = async (username) => {
-      navigation.navigate('Profile', {username: username})
+    const handleUser = async (userPublicID) => {
+      navigation.navigate('Profile', {userPublicID: userPublicID})
     }
 
     return (

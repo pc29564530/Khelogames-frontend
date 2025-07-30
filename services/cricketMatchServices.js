@@ -2,11 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { addCricketMatchScore, setCurrentInning, setCurrentInningNumber } from "../redux/actions/actions";
 
-export const addCricketScoreServices = async ({sport, dispatch, matchID, teamID, inning, authToken, axiosInstance}) => {
+export const addCricketScoreServices = async ({sport, dispatch, matchPublicID, teamPublicID, inning, authToken, axiosInstance}) => {
     try {
         const data = {
-            match_id:matchID, 
-            team_id: teamID,
+            match_public_id:matchPublicID, 
+            team_public_id: teamPublicID,
             inning: inning,
             score: 0,
             wickets: 0,
@@ -23,17 +23,17 @@ export const addCricketScoreServices = async ({sport, dispatch, matchID, teamID,
         dispatch(setCurrentInningNumber(inning))
         dispatch(setCurrentInning(inning));
         dispatch(inningStatus("is_progress"))
-        dispatch(setBatTeam(response.data.team_id))
+        dispatch(setBatTeam(response.data.team_public_id))
         dispatch(addCricketMatchScore(response.data || []));
     } catch (err) {
         console.log("unable to add the cricket score of home team and away team ", err);
     }
 }
 
-export const matchBattingScoreBoard = async ({ matchID, teamID}) => {
+export const matchBattingScoreBoard = async ({ matchPublicID, teamPublicID}) => {
     try {
         const authToken = await AsyncStorage.getItem("AccessToken")
-        const battingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getPlayerScoreFunc`,{match_id: matchID, team_id: teamID, inning: "inning1"}, {
+        const battingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getPlayerScoreFunc`,{match_public_id: matchPublicID, team_public_id: teamPublicID, inning: "inning1"}, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
