@@ -180,8 +180,8 @@ const CricketScoreCard = () => {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
                     params: {
-                        "match_id": match.id.toString(),
-                        "team_id": currentScoreCard.toString()
+                        "match_public_id": match.public_id.toString(),
+                        "team_public_id": currentScoreCard.toString()
                     },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
@@ -195,7 +195,7 @@ const CricketScoreCard = () => {
             }
         }
         fetchTeamWickets()
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.public_id]);
 
     console.log("Batting: ", batting)
     console.log("Bowling: ", bowling)

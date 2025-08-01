@@ -9,7 +9,9 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         const item = response.data;
         await AsyncStorage.setItem("AccessToken", item.access_token);
         await AsyncStorage.setItem("Role", item.user.role);
-        await AsyncStorage.setItem("User", item.user);
+        await AsyncStorage.setItem("UserPublicID", item.user.public_id);
+        await AsyncStorage.setItem("AuthID", item.user.id.toString());
+        await AsyncStorage.setItem("AuthUsername", item.user.username);
         await AsyncStorage.setItem("RefreshToken", item.refresh_token);
         await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
         await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);

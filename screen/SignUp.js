@@ -124,7 +124,9 @@ const SignUp = () => {
                 dispatch(setAuthenticated(!isAuthenticated));
 
                 await AsyncStorage.setItem("Role", item.User.role);
-                await AsyncStorage.setItem("User", item.User);
+                await AsyncStorage.setItem("UserPublicID", item.User.public_id);
+                await AsyncStorage.setItem("AuthID", item.User.id.toString());
+                await AsyncStorage.setItem("AuthUsername", item.User.username);
                 await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
                 await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
                 await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
@@ -184,7 +186,9 @@ const SignUp = () => {
                   dispatch(setUser(newUser));
                   dispatch(setAuthenticated(!isAuthenticated));
                   await AsyncStorage.setItem("Role", item.User.role);
-                  await AsyncStorage.setItem("User", item.User);
+                  await AsyncStorage.setItem("UserPublicID", item.User.public_id);
+                  await AsyncStorage.setItem("AuthID", item.User.id.toString());
+                  await AsyncStorage.setItem("AuthUsername", item.User.username);
                   await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
                   await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
                   await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);

@@ -28,9 +28,6 @@ const User = ({ route }) => {
     if (gmail) {
       setGmailA(gmail);
     }
-    // if (mobileNumber) {
-    //   setMobileNumberA(mobileNumber);
-    // }
   }, [gmail]);
 
   const handleAccount = async () => {
@@ -46,7 +43,9 @@ const User = ({ route }) => {
             await AsyncStorage.setItem("AccessToken", response.data.access_token);
           }
           if (response.data.user && response.data.user.public_id) {
-            await AsyncStorage.setItem("User", response.data.user);
+            await AsyncStorage.setItem("UserPublicID", item.user.public_id);
+            await AsyncStorage.setItem("AuthID", item.user.id.toString());
+            await AsyncStorage.setItem("AuthUsername", item.user.username);
           }
           if (response.data.refresh_token) {
             await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);

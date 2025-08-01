@@ -20,11 +20,11 @@ export const addCricketScoreServices = async ({sport, dispatch, matchPublicID, t
                 'Content-Type':'application/json'
             }
         });
-        dispatch(setCurrentInningNumber(inning))
-        dispatch(setCurrentInning(inning));
+        dispatch(setCurrentInningNumber(response.data.inning.inning_number))
+        dispatch(setCurrentInning(response.data.inning.inning_number));
         dispatch(inningStatus("is_progress"))
-        dispatch(setBatTeam(response.data.team_public_id))
-        dispatch(addCricketMatchScore(response.data || []));
+        dispatch(setBatTeam(response.data.team.public_id))
+        dispatch(addCricketMatchScore(response.data.inning || []));
     } catch (err) {
         console.log("unable to add the cricket score of home team and away team ", err);
     }
