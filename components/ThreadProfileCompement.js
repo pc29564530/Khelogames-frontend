@@ -17,8 +17,8 @@ const ThreadProfileCompement = ({userPublicID}) => {
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
     const [hasReplies, setHasReplies] = useState(true);
     const [displayText, setDisplayText] = useState('');
-    const handleThreadComment = (item, id) => {
-      navigation.navigate('ThreadComment', {item: item, itemId: id})
+    const handleThreadComment = (item, threadPublicID) => {
+      navigation.navigate('ThreadComment', {item: item, publicID: threadPublicID})
     }
 
     const handleLikes = async (threadPublicID) => {
@@ -99,11 +99,11 @@ const ThreadProfileCompement = ({userPublicID}) => {
       };
   
       fetchData();
-    }, [username]); 
+    }, []); 
 
     //update the handleUser to directly navigate to profile and profile menu
-    const handleUser = async (userPublicID) => {
-      navigation.navigate('Profile', {userPublicID: userPublicID})
+    const handleUser = async (profilePublicID) => {
+      navigation.navigate('Profile', {profilePublicID: profilePublicID})
     }
 
     return (

@@ -46,6 +46,18 @@ function SignIn() {
             const item = response.data;
             dispatch(verifyOTP(item))
             dispatch(setMobileNumberVerified(true))
+             const fallback = {
+              RefreshToken: response.data.refresh_token,
+              RefreshTokenExpiresAt: response.data.refresh_token_expires_at,
+              AccessToken: response.data.access_token,
+              AccessTokenExpiresAt: response.data.access_token_expires_at,
+              Role: response.data.role,
+              UserPublicID: response.data.public_id,
+              AuthID: response.data.id,
+              AuthUsername: response.data.username,
+            };
+            console.log("Fall Back Line no 60: ", fallback)
+            await AsyncStorage.setItem('FallBack', JSON.stringify(fallback));
             await AsyncStorage.setItem("AccessToken", item.access_token);
             await AsyncStorage.setItem("Role", item.User.role);
             await AsyncStorage.setItem("UserPublicID", item.User.public_id);
@@ -56,6 +68,7 @@ function SignIn() {
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
+
         } catch (err) {
             console.error('Failed to verify OTP:', err);
         }
@@ -124,16 +137,14 @@ function SignIn() {
               Alert.alert(response.data.message)
               return
             }
-            
-            // Store tokens
             await AsyncStorage.setItem("AccessToken", item.AccessToken);
+            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
+            await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
+            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
             await AsyncStorage.setItem("Role", item.User.role);
             await AsyncStorage.setItem("UserPublicID", item.User.public_id);
             await AsyncStorage.setItem("AuthID", item.User.id.toString());
             await AsyncStorage.setItem("AuthUsername", item.User.username);
-            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
-            await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
-            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
 
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));

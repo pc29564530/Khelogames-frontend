@@ -23,11 +23,11 @@ const PostByCommunity = ({route}) => {
     const [displayText, setDisplayText] = useState('');
     const community = route.params?.communityPageData;
 
-    const handleThreadComment = (item, id) => {
-        navigation.navigate('ThreadComment', {item: item, itemId: id})
+    const handleThreadComment = (item, publicID) => {
+        navigation.navigate('ThreadComment', {item: item, publicID: publicID})
     }
 
-    const handleLikes = async (id) => {
+    const handleLikes = async (publicID) => {
         try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const headers = {
@@ -36,19 +36,18 @@ const PostByCommunity = ({route}) => {
           }
   
           // here when click on like icon call api createLike
-          const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
+          const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${publicID}`, {headers});
           if(userCount.data == 0) {
-            const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
+            const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${publicID}`,null, {headers} );
             if(response.status === 200) {
               try {
-                const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
+                const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${publicID}`,null,{headers});
                 const updateLikeData = {
                   like_count: updatedLikeCount.data,
-                  id: id
                 }
   
-                const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-                dispatch(setLikes(id, newLikeCount.data.like_count))
+                const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like/${publicID}`, updateLikeData, {headers});
+                dispatch(setLikes(publicID, newLikeCount.data.like_count))
               } catch (err) {
                 console.error(err);
               }
@@ -59,15 +58,15 @@ const PostByCommunity = ({route}) => {
         }
       }
 
-      const handleUser = async (username) => {
+      const handleUser = async (publicID) => {
         try {
           const user = await AsyncStorage.getItem('User');
-          if(username === undefined || username === null) {
+          if(publicID === undefined || publicID === null) {
             const response = await axiosInstance.get(`${AUTH_URL}/user/${user}`);
-            navigation.navigate('Profile', { username: response.data.username });
+            navigation.navigate('Profile', { profilePublicID: response.data.public_id });
           } else {
-            const response = await axiosInstance.get(`${AUTH_URL}/user/${username}`);
-            navigation.navigate('Profile', { username: response.data.username });
+            const response = await axiosInstance.get(`${AUTH_URL}/user/${publicID}`);
+            navigation.navigate('Profile', { profilePublicID: response.data.public_id });
           }
   
         } catch (err) {
@@ -108,7 +107,7 @@ const PostByCommunity = ({route}) => {
             {threads.map((item,i) => (
                 <View key={i} style={tailwind`bg-white mb-2 `}>
                     <View >
-                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
+                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.public_id)}}>
                           {item.profile && item.profile.avatar_url ? (
                               <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red`} />
                             ):(
@@ -142,7 +141,7 @@ const PostByCommunity = ({route}) => {
                     </View>
                     <View style={tailwind`w-full h-0.4 bg-gray-400 mb-2`}></View>
                     <View style={tailwind`flex-row justify-evenly gap-50`}>
-                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
+                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.public_id)}>
                         <FontAwesome 
                             name="thumbs-o-up"
                             color="black"
@@ -150,7 +149,7 @@ const PostByCommunity = ({route}) => {
                         />
                         <Text style={tailwind`text-black`}>Like</Text> 
                       </Pressable>
-                      <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment(item, item.id)}>
+                      <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment(item, item.public_id)}>
                         <FontAwesome 
                            name="comment-o"
                            color="black"

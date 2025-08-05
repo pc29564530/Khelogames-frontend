@@ -31,7 +31,7 @@ function ThreadComment ({route}) {
       const handleLikeCount = async () => {
         try {
           const authToken =  await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.get(`${BASE_URL}/getThread/${item.id}`, null , {
+          const response = await axiosInstance.get(`${BASE_URL}/getThread/${item.public_id}`, null , {
             headers: { 
               'Authorization': `Bearer ${authToken}`,
               'content-type': 'application/json'
@@ -60,7 +60,7 @@ function ThreadComment ({route}) {
         <View style={tailwind`flex-1 bg-white`}>
             <ScrollView  style={tailwind`bg-white`}>
                   <View  style={tailwind`p-2`}>
-                      <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({username: item.username, navigation})}}>
+                      <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({username: item.profile.username, navigation})}}>
                         {item.profile?.avatar_url ? (
                             <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-red-400`} />
                           ):(
@@ -73,8 +73,8 @@ function ThreadComment ({route}) {
                         }
                         
                         <View style={tailwind`ml-3`}>
-                          <Text style={tailwind`font-bold text-black text-lg`}>{item.full_name}</Text>
-                          <Text style={tailwind`text-black`}>@{item.username}</Text>
+                          <Text style={tailwind`font-bold text-black text-lg`}>{item.profile.full_name}</Text>
+                          <Text style={tailwind`text-black`}>@{item?.profile?.username}</Text>
                         </View>
                       </Pressable>
                   </View>
@@ -94,7 +94,7 @@ function ThreadComment ({route}) {
                   </View>
                   <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
                   <View style={tailwind`flex-row justify-evenly gap-50 h-10 mb-2`}>
-                    <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: itemId, dispatch, axiosInstance})}>
+                    <Pressable style={tailwind`items-center`} onPress={() => handleLikes({id: item.public_id, dispatch, axiosInstance})}>
                       <FontAwesome
                         name="thumbs-o-up"
                         color="black"
@@ -119,7 +119,7 @@ function ThreadComment ({route}) {
             <KeyboardAvoidingView style={tailwind`flex-end p-0.2 bg-white justify-between flex-row shadow-lg`}>
               <TextInput
                 ref={commentInputRef}
-                style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-gray-300 text-lg text-white`} // Updated border color
+                style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-gray-300 text-lg text-black`} // Updated border color
                 value={commentText}
                 onChangeText={(text) => dispatch(setCommentText(text))}
                 placeholder="Write a comment..."

@@ -19,7 +19,7 @@ function ProfileMenu() {
   const navigation = useNavigation();
   const axiosInstance = useAxiosInterceptor();
   const route = useRoute();
-  const following_owner = route.params?.username;
+  const following_owner = route.params?.authUserPublicID;
 
   const following = useSelector((state) => state.user.following);
   const profile = useSelector((state) => state.profile.profile);
@@ -46,14 +46,14 @@ function ProfileMenu() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const authUser = await AsyncStorage.getItem("User");
-        const response = await axios.get(`${AUTH_URL}/getProfile/${authUser}`);
-        if (!response.data.avatar_url || response.data.avatar_url === '') {
-          const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
-          setDisplayText(usernameInitial.toUpperCase());
-        } else {
-          setDisplayText('');
-        }
+        const authPublicID = await AsyncStorage.getItem("UserPublicID");
+        const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
+        // if (!response.data?.avatar_url) {
+        //   const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
+        //   setDisplayText(usernameInitial.toUpperCase());
+        // } else {
+        //   setDisplayText('');
+        // }
         dispatch(getProfile(response.data));
         setProfileData(response.data);
       } catch (err) {
@@ -172,15 +172,15 @@ function ProfileMenu() {
   return (
     <View style={tailwind`flex-1`}>
       <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
-        {profile.avatar_url ? (
+        {profile?.avatar_url ? (
           <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
         ) : (
           <View style={tailwind`w-32 h-32 rounded-full bg-white items-center justify-center`}>
             <Text style={tailwind`text-red-500 text-4xl`}>{displayText}</Text>
           </View>
         )}
-        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile.full_name}</Text>
-        <Text style={tailwind`text-xl text-white`}>@{profile.username}</Text>
+        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name}</Text>
+        <Text style={tailwind`text-xl text-white`}>@{profile?.username}</Text>
         <View style={tailwind`flex-row justify-center mt-5`}>
           <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
           <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
@@ -189,7 +189,7 @@ function ProfileMenu() {
       </View>
       <ScrollView>
         <View style={tailwind`mt-5 p-4`}>
-          <Pressable onPress={() => navigation.navigate('Profile', {username: profile.username, profile: profile})} style={tailwind`flex-row items-center py-2`}>
+          <Pressable onPress={() => navigation.navigate('Profile', {profilePublicID: profile.public_id})} style={tailwind`flex-row items-center py-2`}>
             <FontAwesome name="user" size={24} color="#F87171" />
             <Text style={tailwind`text-2xl text-black pl-4`}>Profile</Text>
           </Pressable>

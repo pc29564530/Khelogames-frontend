@@ -6,18 +6,14 @@ import { AUTH_URL } from '../constants/ApiConstants';
 import { useDispatch } from 'react-redux';
 import { logout } from '../redux/actions/actions';
 
-
-
 //create a new instance of the axios
 const axiosInstance = axios.create();
-
 
 function useAxiosInterceptor() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
   
     useEffect(() => {
-
       //request of axios
       axiosInstance.interceptors.request.use(
         async (config) => {
@@ -38,24 +34,24 @@ function useAxiosInterceptor() {
           return response;
         },
         async (error) => {
-          if (error.response && error.response.status === 401) {
+          const originalRequest = error.config;
+
+          if (error.response && error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
             try {
               const refreshToken = await AsyncStorage.getItem('RefreshToken');
               if (refreshToken) {
                 const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
                   'refresh_token': refreshToken,
                 });
-                if (response.data.access_token) {
-                  // Renewal was successful, update the access token
-                  await AsyncStorage.setItem('AccessToken', response.data.access_token);
-                  error.config.headers['Authorization'] = `Bearer ${response.data.access_token}`;
-                  return axiosInstance(error.config);
+                if (response.data.AccessToken) {
+                  await AsyncStorage.setItem('AccessToken', response.data.AccessToken);
+                  originalRequest.headers['Authorization'] = `Bearer ${response.data.AccessToken}`;
+                  return axiosInstance(originalRequest);
                 } else {
-                  // Failed to renew token or received an invalid token
                   await handleTokenExpiry();
                 }
               } else {
-                // No refresh token is available
                 await handleTokenExpiry();
               }
             } catch (err) {
@@ -70,20 +66,20 @@ function useAxiosInterceptor() {
 
     const handleTokenExpiry = async () => {
       try {
-        const username = await AsyncStorage.getItem('User');
-        if (username) {
-          await axios.delete(`${AUTH_URL}/removeSession/${username}`)
+        const userPublicID = await AsyncStorage.getItem('UserPublicID');
+        if (userPublicID) {
+          await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`)
         }
         dispatch(logout())
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');
-        await AsyncStorage.removeItem('User');
+        await AsyncStorage.removeItem('UserPublicID');
+        await AsyncStorage.removeItem('Username')
       } catch (error) {
         console.error("Error during token expiry handling: ", error);
       }
       navigation.navigate('SignIn');
     }
-  
     return axiosInstance;
   }
   

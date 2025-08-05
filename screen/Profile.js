@@ -18,7 +18,7 @@ import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScro
 
 function Profile({route}) {
     const axiosInstance = useAxiosInterceptor();
-    const {userPublicID,profile} = route.params;
+  const {profilePublicID} = route.params;
 
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
@@ -28,6 +28,8 @@ function Profile({route}) {
     const [moreTabVisible, setMoreTabVisible] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
+    const [player, setPlayer] = useState(null);
+    const profile = useSelector(state => state.profile.profile)
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
@@ -40,6 +42,24 @@ function Profile({route}) {
 
     const [email, setEmail] = useState(null);
     const [country, setCountry] = useState(null);
+
+    useEffect(() => {
+      const fetchProfile = async () => {
+        const authToken = await AsyncStorage.getItem("UserPublicID")
+        const response = await axiosInstance.get(`${BASE_URL}/profile/${profilePublicID}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        if (response.data !== null && !response.data){
+          dispatch(getProfile(response.data))
+        }
+      }
+      if(profilePublicID !== profile.public_id){
+        fetchProfile();
+      }
+    },[profilePublicID])
 
 
     useFocusEffect(
@@ -191,10 +211,10 @@ function Profile({route}) {
   
 
   const verifyUser = async () => {
-    const authUser = await AsyncStorage.getItem("User");
-    if(userPublicID === authUser) {
+    const authPublicID = await AsyncStorage.getItem("UserPublicID");
+    if(userPublicID === authPublicID) {
       setShowEditProfileButton(true);
-      setCurrentUser(authUser);
+      setCurrentUser(authUserPublicID);
     } else {
       setCurrentUser(userPublicID);
     }
@@ -203,7 +223,7 @@ function Profile({route}) {
   useEffect( () => {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const currentUser = await AsyncStorage.getItem("User");
+        const authPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -218,7 +238,7 @@ function Profile({route}) {
     }
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const currentUser = await AsyncStorage.getItem("User");
+      const authPublicID = await AsyncStorage.getItem("UserPublicID");
       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -238,9 +258,9 @@ function Profile({route}) {
   const handleMessage = async () => {
     try {
           const authToken = await AsyncStorage.getItem("AccessToken");
-          const currentUser = await AsyncStorage.getItem("User");
+          const authPublicID = await AsyncStorage.getItem("UserPublicID");
           const data = {
-            following_owner:currentUser,
+            following_owner:authPublicID,
             follower_owner:userPublicID
           }
           const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
@@ -299,6 +319,27 @@ const addPlayerProfile = () => {
 useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
 }, [isFollowing]);
+
+
+useEffect(() => {
+            const fetchPlayerWithProfile = async () => {
+                try {
+                    const authToken = await AsyncStorage.getItem("AccessToken");
+                    const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    setPlayer(response.data || null);
+                } catch (err) {
+                    console.error("Error fetching player:", err);
+                } finally {
+                    setLoading(false);
+                }
+            }
+            fetchPlayerWithProfile()
+        })
 
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
@@ -481,7 +522,7 @@ useEffect(() => {
                     </Pressable>
                   </View> */}
                   <View style={tailwind` pl-2 pr-2`}>
-                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", {profileID: profile?.id})}>
+                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", {player: player})}>
                         <Text style={tailwind`text-black text-xl font-bold`}>My Player Profile</Text>
                       </Pressable>
                   </View>
