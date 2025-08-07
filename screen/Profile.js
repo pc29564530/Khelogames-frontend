@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile, checkIsFollowing} from '../redux/actions/actions';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
@@ -17,8 +17,8 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
-    const axiosInstance = useAxiosInterceptor();
-    const {userPublicID,profile} = route.params;
+    const {profilePublicID} = route.params;
+    console.log("Profile Public ID: ", profilePublicID)
 
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
@@ -28,6 +28,8 @@ function Profile({route}) {
     const [moreTabVisible, setMoreTabVisible] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
+    const [player, setPlayer] = useState(null);
+    const profile = useSelector(state => state.profile.profile)
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
@@ -41,6 +43,22 @@ function Profile({route}) {
     const [email, setEmail] = useState(null);
     const [country, setCountry] = useState(null);
 
+     useEffect(() => {
+      const fetchProfile = async () => {
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const userPublicID = await AsyncStorage.getItem("UserPublicID");
+        const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        dispatch(getProfile(response.data))
+      }
+      if(profilePublicID !== profile.public_id){
+        fetchProfile();
+      }
+    },[profilePublicID])
 
     useFocusEffect(
       React.useCallback(() => {
@@ -146,13 +164,13 @@ function Profile({route}) {
 
   const fetchData = async () => {
     try {
-      const owner = await AsyncStorage.getItem('User')
-      if (!owner) {
+      const userPublicID = await AsyncStorage.getItem('UserPublicID')
+      if (!userPublicID) {
         console.log("User not found in AsyncStorage.");
         return;
       }
-      if(userPublicID === owner){
-        const response = await axios.get(`${AUTH_URL}/getProfile/${owner}`);
+      if(userPublicID === profilePublicID){
+        const response = await axios.get(`${AUTH_URL}/getProfile/${userPublicID}`);
         if (response.data === null) {
           setProfileData([]);
         } else {
@@ -191,10 +209,10 @@ function Profile({route}) {
   
 
   const verifyUser = async () => {
-    const authUser = await AsyncStorage.getItem("User");
-    if(userPublicID === authUser) {
+    const authPublicID = await AsyncStorage.getItem("UserPublicID");
+    if(userPublicID === authPublicID) {
       setShowEditProfileButton(true);
-      setCurrentUser(authUser);
+      setCurrentUser(authPublicID);
     } else {
       setCurrentUser(userPublicID);
     }
@@ -203,7 +221,7 @@ function Profile({route}) {
   useEffect( () => {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const currentUser = await AsyncStorage.getItem("User");
+        const authPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -218,7 +236,7 @@ function Profile({route}) {
     }
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const currentUser = await AsyncStorage.getItem("User");
+      const currentUser = await AsyncStorage.getItem("UserPublicID");
       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -238,7 +256,7 @@ function Profile({route}) {
   const handleMessage = async () => {
     try {
           const authToken = await AsyncStorage.getItem("AccessToken");
-          const currentUser = await AsyncStorage.getItem("User");
+          const currentUser = await AsyncStorage.getItem("UserPublicID");
           const data = {
             following_owner:currentUser,
             follower_owner:userPublicID
@@ -295,6 +313,26 @@ const addPlayerProfile = () => {
     return 'Follow'
   }
 }
+
+    useEffect(() => {
+        const fetchPlayerWithProfile = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken");
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                setPlayer(response.data || null);
+            } catch (err) {
+                console.error("Error fetching player:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchPlayerWithProfile()
+    })
 
 useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
