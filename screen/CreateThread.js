@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import  RFNS from 'react-native-fs';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import Video from 'react-native-video';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
@@ -18,7 +18,6 @@ import { BASE_URL } from '../constants/ApiConstants';
 function CreateThread() {
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
     const route = useRoute();
     const dispatch = useDispatch();
     const [title, setTitle] = useState('');
@@ -26,6 +25,7 @@ function CreateThread() {
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [likeCount, setLikeCount] = useState(0);
+    const [selectedCommunityPublicID, setSelectedCommunityPublicID] = useState(null);
     const [communityList, setCommunityList] = useState([]);
     const [isCommunityListModal, setIsCommunityListModal] = useState(false);
     const [communityType, setCommunityType] = useState(route.params?.communityType || 'Select Community')
@@ -59,7 +59,7 @@ function CreateThread() {
               } else {
                   const communityWithDisplayText = item.map((item, index) => {
                       let displayText = '';
-                      const words = item.communities_name.split(' ');
+                      const words = item.name.split(' ');
                       displayText = words[0].charAt(0).toUpperCase();
                       if(words.length>1){
                           displayText += words[1].charAt(0).toUpperCase()
@@ -77,41 +77,19 @@ function CreateThread() {
 
     const HandleSubmit = async () => {
         const thread = {
-          communities_name: communityType,
+          community_public_id: selectedCommunityPublicID?.public_id,
           title: title,
           content: content,
-          mediaType: mediaType,
           mediaURL: mediaURL,
-          likeCount: likeCount,
+          mediaType: mediaType,
         };
-        addNewThreadServices({dispatch: dispatch, axiosInstance: axiosInstance, thread: thread, navigation: navigation});
+        addNewThreadServices({dispatch: dispatch, thread: thread, navigation: navigation});
     }
 
     const handleSelectCommunity = () => {
       setIsCommunityListModal(true);
       fetchCommunity()
     }
-    
-    useEffect(() => {
-      let isMount = true; 
-      const fetchData = async () => {
-          try {
-            if (isMount) {
-              if (isFocused && route.params?.communityType) {
-                setCommunityType(route.params.communityType);
-              }
-            }
-          } catch (e) {
-            console.error("unable to set the community type: ", err)
-          }
-      }
-      fetchData();
-      return () => {
-        isMount= false;
-      };
-    }, [isFocused, route.params?.communityType]);
-    
-
     navigation.setOptions({
       headerTitle:'',
       headerStyle:tailwind`bg-red-400 shadow-lg`,
@@ -123,7 +101,7 @@ function CreateThread() {
       ),
       headerRight:()=>(
         <View style={tailwind`flex-row items-center mr-2 gap-18`}>
-        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
+        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={() => handleSelectCommunity}>
           <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
           <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
         </Pressable>
@@ -175,14 +153,14 @@ function CreateThread() {
                 <ScrollView style={tailwind`bg-white rounded-md shadow-md pt-14`}>
                   <Text style={tailwind`text-3xl text-gray-400`}>Select Community</Text>
                   {communityList.map((item,index)=> (
-                      <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-white shadow-md mb-2 rounded-md p-2 gap-3 flex-row`}>
+                      <Pressable key={index} onPress={()=>selectedCommunityPublicID(item)} style={tailwind`bg-white shadow-md mb-2 rounded-md p-2 gap-3 flex-row`}>
                           <View style={tailwind`w-12 h-12 rounded-12 bg-red-400 items-center justify-center`}>
                               <Text style={tailwind`text-white text-xl`}>
                                   {item.displayText}
                               </Text>
                           </View>
                           <View>
-                              <Text style={tailwind`text-black text-2xl`}>{item.communities_name}</Text>
+                              <Text style={tailwind`text-black text-2xl`}>{item.name}</Text>
                               <Text style={tailwind`text-black`}>{item.description}</Text>
                           </View>
                       </Pressable>

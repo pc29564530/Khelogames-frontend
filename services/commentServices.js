@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL, AUTH_URL } from "../constants/ApiConstants";
 import { addComments, setComments, setCommentText } from "../redux/actions/actions";
+import axiosInstance from "../screen/axios_config";
 
-export const getThreadComment = async ({dispatch, axiosInstance, threadPublicID}) => {
+export const getThreadComment = async ({dispatch, threadPublicID}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getComment/${threadPublicID}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getComments/${threadPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

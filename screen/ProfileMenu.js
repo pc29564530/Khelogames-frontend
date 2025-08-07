@@ -8,7 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { logoutServies } from '../services/authServies';
@@ -17,15 +17,8 @@ import { handleUser } from '../utils/ThreadUtils';
 function ProfileMenu() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const axiosInstance = useAxiosInterceptor();
   const route = useRoute();
-  const following_owner = route.params?.username;
-
-  const following = useSelector((state) => state.user.following);
   const profile = useSelector((state) => state.profile.profile);
-
-  const [isFollowing, setIsFollowing] = useState(following.some((item) => item === following_owner));
-  const [showLogoutButton, setShowLogoutButton] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [showMyCommunity, setShowMyCommunity] = useState(false);
   const [myCommunityData, setMyCommunityData] = useState([]);
@@ -46,39 +39,22 @@ function ProfileMenu() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const authUser = await AsyncStorage.getItem("User");
-        const response = await axios.get(`${AUTH_URL}/getProfile/${authUser}`);
+        const authPublicID = await AsyncStorage.getItem("UserPublicID");
+        const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
         if (!response.data.avatar_url || response.data.avatar_url === '') {
-          const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+          const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
           setDisplayText(usernameInitial.toUpperCase());
         } else {
           setDisplayText('');
         }
         dispatch(getProfile(response.data));
-        setProfileData(response.data);
       } catch (err) {
         console.error('Unable to fetch the profile data: ', err);
       }
     };
 
     fetchProfileData();
-  }, [dispatch]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      setIsFollowing(following.some((item) => item === following_owner));
-      const verifyUser = async () => {
-        const authUser = await AsyncStorage.getItem('User');
-        if (!following_owner) {
-          setShowLogoutButton(true);
-          setCurrentUser(authUser);
-        } else {
-          setCurrentUser(following_owner);
-        }
-      };
-      verifyUser();
-    }, [following_owner, following])
-  );
+  }, []);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -128,37 +104,7 @@ function ProfileMenu() {
   };
 
   const handleLogout = () => {
-    logoutServies({ dispatch });
-  };
-
-  const handleFollowButton = async () => {
-    try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      if (isFollowing) {
-        await axiosInstance.delete(`${BASE_URL}/unFollow/${following_owner}`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        dispatch(setUnFollowUser(following_owner));
-      } else {
-        const response = await axiosInstance.post(
-          `${BASE_URL}/create_follow/${following_owner}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-        dispatch(setFollowUser(response.data));
-      }
-      setIsFollowing(!isFollowing);
-    } catch (err) {
-      console.error(err);
-    }
+    logoutServies({ dispatch, navigation });
   };
 
   const handleNavigation = (screen) => {
@@ -166,21 +112,21 @@ function ProfileMenu() {
   };
 
   const handleCommunityPage = (item) => {
-    navigation.navigate('CommunityPage', { communityData: item });
+    navigation.navigate('CommunityPage', { item: item, communityPublicID: item.public_id });
   };
 
   return (
     <View style={tailwind`flex-1`}>
       <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
-        {profile.avatar_url ? (
+        {profile?.avatar_url ? (
           <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
         ) : (
           <View style={tailwind`w-32 h-32 rounded-full bg-white items-center justify-center`}>
-            <Text style={tailwind`text-red-500 text-4xl`}>{displayText}</Text>
+            <Text style={tailwind`text-red-500 text-4xl`}>NA</Text>
           </View>
         )}
-        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile.full_name}</Text>
-        <Text style={tailwind`text-xl text-white`}>@{profile.username}</Text>
+        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name}</Text>
+        <Text style={tailwind`text-xl text-white`}>@{profile?.username}</Text>
         <View style={tailwind`flex-row justify-center mt-5`}>
           <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
           <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
@@ -189,7 +135,7 @@ function ProfileMenu() {
       </View>
       <ScrollView>
         <View style={tailwind`mt-5 p-4`}>
-          <Pressable onPress={() => navigation.navigate('Profile', {username: profile.username, profile: profile})} style={tailwind`flex-row items-center py-2`}>
+          <Pressable onPress={() => navigation.navigate('Profile', {profilePublicID: profile.public_id})} style={tailwind`flex-row items-center py-2`}>
             <FontAwesome name="user" size={24} color="#F87171" />
             <Text style={tailwind`text-2xl text-black pl-4`}>Profile</Text>
           </Pressable>
@@ -216,20 +162,17 @@ function ProfileMenu() {
               {myCommunityData.map((item, index) => (
                 <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2`}>
                   <Image source="" style={tailwind`h-12 w-12 bg-red-500 rounded-md mr-4`} />
-                  <Text style={tailwind`text-2xl text-black`}>{item.community_name}</Text>
+                  <Text style={tailwind`text-2xl text-black`}>{item.name}</Text>
                 </Pressable>
               ))}
             </ScrollView>
           )}
         </View>
-
-        {showLogoutButton && (
-          <View style={tailwind`mt-10 items-center`}>
-            <TouchableOpacity onPress={handleLogout} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
-              <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={tailwind`mt-10 items-center`}>
+          <TouchableOpacity onPress={handleLogout} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
+            <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

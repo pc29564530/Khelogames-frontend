@@ -22,14 +22,15 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
     }
 };
 
-export const logoutServies = async ({dispatch}) => {
+export const logoutServies = async ({dispatch, navigation}) => {
     try {
-        const userPublicID = await AsyncStorage.getItem('User');
+        const userPublicID = await AsyncStorage.getItem('UserPublicID');
         await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`);
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');
         await AsyncStorage.removeItem('User');
+        Navigation.navigate("SignIn");
       } catch (err) {
         alert("Failed to logout");
         console.log('Failed to logout', err);
