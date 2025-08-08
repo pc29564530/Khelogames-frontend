@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import {View, Text, Image, ScrollView, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
@@ -12,15 +12,15 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 function MessagePage() {
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
     const [followingWithProfile, setFollowingWithProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
     const [communities, setCommunities] = useState([]);
     const following = useSelector((state) => state.user.following)
+    //change this method to all profile
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const currentUser = await AsyncStorage.getItem('User');
+            const currentUser = await AsyncStorage.getItem('UserPublicID');
             const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -33,10 +33,10 @@ function MessagePage() {
                 setFollowingWithProfile([]);
                 dispatch(getFollowingUser([]));
             } else {
-                const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
+                const followingProfile = item.map(async (itm, index) => {                  
+                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${itm.user_public_id}`);
                     if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                        const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
+                        const usernameInitial = profileResponse.data.username ? profileResponse.data.username.charAt(0) : '';
                         setDisplayText(usernameInitial.toUpperCase());
                     } else {
                         setDisplayText('');
@@ -55,7 +55,7 @@ function MessagePage() {
 
     const fetchCommunity = async () => {
         try {
-            const currentUser = await AsyncStorage.getItem('User');
+            const currentUser = await AsyncStorage.getItem('UserPublicID');
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getCommunityByMessage`, {
                 headers: {
@@ -66,42 +66,7 @@ function MessagePage() {
             if(!response.data || response.data === null) {
                 setCommunities([]);
             } else {
-                try { 
-                    let dispayText = '';
-
-                    const communityData = response.data.map( async (item, index) => {
-                        const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${item}`,null, {
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`,
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        return response.data
-                    });
-
-                    const communityDataResponse = await Promise.all(communityData);
-
-                    const communityWithDisplayText = communityDataResponse.map((item) => {
-                    const [communities_name] = item.communities_name.split(' '); // Split the string into an array using space as separator
-                    const firstLetter = communities_name.charAt(0).toUpperCase();
-                        return {...item, dispayText: firstLetter };
-                    })
-                    const communityItem = await Promise.all(communityWithDisplayText)
-                    
-                    try {
-                        const profileData = communityItem.map(async (item) => {
-                            const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${currentUser}`);
-                            return {...item, profileData: profileResponse.data}
-                        })
-                        const communityWithProfile = await Promise.all(profileData);
-                        // console.log("Fullcommunity: ", communityWithProfile)
-                        setCommunities(communityWithProfile)
-                    } catch (err) {
-                        console.error("unable to fetch the profile of the admin ", err)
-                    }
-                } catch(err) {
-                    console.error("unable to fetch the community", err);
-                }
+                setCommunities(response.data)
             }
 
         } catch(err) {
@@ -184,7 +149,7 @@ function MessagePage() {
                             </Text>
                         </View>
                         <View  style={tailwind`text-black p-2 mb-1`}>
-                            <Text style={tailwind`text-black font-bold text-xl `}>{item.communities_name}</Text>
+                            <Text style={tailwind`text-black font-bold text-xl `}>{item.name}</Text>
                             <Text style={tailwind`text-black`}>{item.discription}</Text>
                         </View>
                     </Pressable>

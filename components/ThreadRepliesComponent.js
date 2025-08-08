@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, View, Text } from "react-native";
-import useAxiosInterceptor from "../screen/axios_config";
+import axiosInstance from "../screen/axios_config";
 import { AUTH_URL, BASE_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import tailwind from "twrnc";
 import ThreadItem from "./ThreadItems";
 import { handleLikes, handleThreadComment, handleUser } from "../utils/ThreadUtils";
 
-const ThreadRepliesComponent = ({ owner }) => {
-    const usernameInitial = owner ? owner.charAt(0) : "";
-    const displayText = usernameInitial.toUpperCase();
-    const axiosInstance = useAxiosInterceptor();
+const ThreadRepliesComponent = ({ profilePublicID }) => {
     const [thread, setThread] = useState([]);
     const [profile, setProfile] = useState([]);
     const [repliesWithProfile, setRepliesWithProfile] = useState([]);
@@ -21,7 +18,7 @@ const ThreadRepliesComponent = ({ owner }) => {
         const fetchData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getCommentByUser/${owner}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/getCommentByUser/${profilePublicID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -53,7 +50,7 @@ const ThreadRepliesComponent = ({ owner }) => {
                 const threadData = await Promise.all(threadPromise);
                 
                 const threadDataWithProfile = threadData.map(async (item) => {
-                    const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.username}`, {
+                    const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.profile.public_id}`, {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json',
@@ -74,7 +71,7 @@ const ThreadRepliesComponent = ({ owner }) => {
             }
         };
         fetchData();
-    }, [owner]);
+    }, [profilePublicID]);
 
     return (
         <ScrollView style={tailwind`flex-1 bg-white`} nestedScrollEnabled={true}>

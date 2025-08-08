@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {ScrollView, View, Text} from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage'
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import {setThreads, setLikes} from '../redux/actions/actions';
@@ -9,16 +9,15 @@ import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
 import ThreadItem from './ThreadItems';
 
-const ThreadProfileCompement = ({userPublicID}) => {
+const ThreadProfileCompement = ({profilePublicID}) => {
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const likesCount = useSelector((state) => state.Like)
     const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
     const [hasReplies, setHasReplies] = useState(true);
     const [displayText, setDisplayText] = useState('');
-    const handleThreadComment = (item, id) => {
-      navigation.navigate('ThreadComment', {item: item, itemId: id})
+    const handleThreadComment = (item, threadPublicID) => {
+      navigation.navigate('ThreadComment', {item: item, threadPublicID: threadPublicID})
     }
 
     const handleLikes = async (threadPublicID) => {
@@ -41,8 +40,8 @@ const ThreadProfileCompement = ({userPublicID}) => {
                 thread_public_id: threadPublicID
               }
 
-              const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-              dispatch(setLikes(threadPublicID, newLikeCount.data.like_count));
+              const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like/${threadPublicID}`, {headers});
+              dispatch(setLikes(threadPublicID, newLikeCount.data.like_counts));
             } catch (err) {
               console.error(err);
             }
@@ -56,55 +55,28 @@ const ThreadProfileCompement = ({userPublicID}) => {
     useEffect(() => {
       const fetchData = async () => {
         try { 
-          const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.get(`${BASE_URL}/getThreadByUser/${userPublicID}`, {
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (response.data === null || response.data.length === 0) {
-              setHasReplies(false);
-              return;
-          }
-          
-          const item = response.data;
-          if (item === null) {
-            setThreadWithUserProfile([]);
-          } else {
-            const threadUser = item.map(async (item, index) => {
-              const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.public_id}`);
-              let displayText = '';
-              if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                const usernameInitial = profileResponse.data.username ? profileResponse.data.usename.charAt(0) : '';
-                displayText = usernameInitial.toUpperCase();
-                setDisplayText(displayText);
-              }
-              const timestamp  = item.created_at;
-              const timeDate = new Date(timestamp)
-              const options = { month:'long', day:'2-digit'}
-              const formattedTime = timeDate.toLocaleString('en-US', options)
-              item.created_at = formattedTime;
-              return { ...item, profile: profileResponse.data, displayText };
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getThreadByUser/${profilePublicID}`, {
+              headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
             });
-            const threadsWithUserData = await Promise.all(threadUser);
-            
-            setThreadWithUserProfile(threadsWithUserData);
-            // dispatch(setThreads(threadsWithUserData));
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      };
-  
-      fetchData();
-    }, [username]); 
 
-    //update the handleUser to directly navigate to profile and profile menu
-    const handleUser = async (userPublicID) => {
-      navigation.navigate('Profile', {userPublicID: userPublicID})
-    }
+            if (response.data === null || response.data.length === 0) {
+                setHasReplies(false);
+                return;
+            }
+            
+            const item = response.data;
+              setThreadWithUserProfile(item);
+              // dispatch(setThreads(threadsWithUserData));
+        } catch (err) {
+          console.error("Failed to get thread by user: ", err)
+        }
+      }
+      fetchData();
+    }, []); 
 
     return (
         <ScrollView style={tailwind`flex-1 bg-white`} vertical={true} nestedScrollEnabled={true}>

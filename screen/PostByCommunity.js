@@ -18,16 +18,13 @@ const PostByCommunity = ({route}) => {
     const axiosInstance = useAxiosInterceptor();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
-    const likesCount = useSelector((state) => state.Like)
-    const [threadWithUserProfile, setThreadWithUserProfile] = useState([]);
-    const [displayText, setDisplayText] = useState('');
-    const community = route.params?.communityPageData;
+    const community = route.params?.item;
 
-    const handleThreadComment = (item, id) => {
-        navigation.navigate('ThreadComment', {item: item, itemId: id})
+    const handleThreadComment = (item, threadPublicID) => {
+        navigation.navigate('ThreadComment', {item: item, threadPublicID: threadPublicID})
     }
 
-    const handleLikes = async (id) => {
+    const handleLikes = async (threadPublicID) => {
         try {
           const authToken = await AsyncStorage.getItem('AccessToken');
           const headers = {
@@ -36,19 +33,19 @@ const PostByCommunity = ({route}) => {
           }
   
           // here when click on like icon call api createLike
-          const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${id}`, {headers});
+          const userCount = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${threadPublicID}`, {headers});
           if(userCount.data == 0) {
-            const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${id}`,null, {headers} );
+            const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${threadPublicID}`,null, {headers} );
             if(response.status === 200) {
               try {
-                const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${id}`,null,{headers});
+                const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${threadPublicID}`,null,{headers});
                 const updateLikeData = {
                   like_count: updatedLikeCount.data,
-                  id: id
+                  public_id: threadPublicID
                 }
   
-                const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like`, updateLikeData, {headers});
-                dispatch(setLikes(id, newLikeCount.data.like_count))
+                const newLikeCount = await axiosInstance.put(`${BASE_URL}/update_like/${threadPublicID}`, {headers});
+                dispatch(setLikes(threadPublicID, newLikeCount.data.like_count))
               } catch (err) {
                 console.error(err);
               }
@@ -59,27 +56,15 @@ const PostByCommunity = ({route}) => {
         }
       }
 
-      const handleUser = async (username) => {
-        try {
-          const user = await AsyncStorage.getItem('User');
-          if(username === undefined || username === null) {
-            const response = await axiosInstance.get(`${AUTH_URL}/user/${user}`);
-            navigation.navigate('Profile', { username: response.data.username });
-          } else {
-            const response = await axiosInstance.get(`${AUTH_URL}/user/${username}`);
-            navigation.navigate('Profile', { username: response.data.username });
-          }
-  
-        } catch (err) {
-          console.error(err);
-        }
+      const handleProfile = async (item) => {
+            navigation.navigate('Profile', { profilePublicID: item.profile.public_id });
       }
 
     const fetchThreadByCommunity = async () => {
 
         try {
             const authToken = AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.get(`${BASE_URL}/GetAllThreadsByCommunityDetailsFunc/${community.communities_name}`,null, {
+            const response = await axiosInstance.get(`${BASE_URL}/GetAllThreadsByCommunityDetailsFunc/${community.name}`,null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -108,13 +93,13 @@ const PostByCommunity = ({route}) => {
             {threads.map((item,i) => (
                 <View key={i} style={tailwind`bg-white mb-2 `}>
                     <View >
-                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser(item.username)}}>
+                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleProfile(item)}}>
                           {item.profile && item.profile.avatar_url ? (
                               <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red`} />
                             ):(
                               <View style={tailwind`w-12 h-12 rounded-12 bg-black items-center justify-center`}>
                                 <Text style={tailwind`text-red-500 text-6x3`}>
-                                  {displayText}
+                                  NA
                                 </Text>
                               </View>
                             )
@@ -122,18 +107,18 @@ const PostByCommunity = ({route}) => {
                           
                           <View style={tailwind`ml-3`}>
                             <Text style={tailwind`font-bold text-black`}>{item.profile && item.profile.full_name?item.profile.full_name:''}</Text>
-                            <Text style={tailwind`text-black`}>@{item.username}</Text>
+                            <Text style={tailwind`text-black`}>@{item.profile.username}</Text>
                           </View>
                         </Pressable>
                     </View>
                     <Text style={tailwind`text-black p-3 pl-2`}>{item.content}</Text>
-                    {item.media_type === 'image' && (
+                    {item.media_type === 'image/jpg' && (
                       <Image
                       style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                         source={{uri:item.media_url}}
                       />
                     )}
-                    {item.media_type === 'video' && (
+                    {item.media_type === 'video/mp4' && (
                       <Video style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`}
                       source={{uri:item.media_url}} controls={true} />
                     )}
@@ -142,7 +127,7 @@ const PostByCommunity = ({route}) => {
                     </View>
                     <View style={tailwind`w-full h-0.4 bg-gray-400 mb-2`}></View>
                     <View style={tailwind`flex-row justify-evenly gap-50`}>
-                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes(item.id)}>
+                      <Pressable  style={tailwind`items-center`} onPress={() => handleLikes({threadPublicID: item.public_id})}>
                         <FontAwesome 
                             name="thumbs-o-up"
                             color="black"
@@ -150,7 +135,7 @@ const PostByCommunity = ({route}) => {
                         />
                         <Text style={tailwind`text-black`}>Like</Text> 
                       </Pressable>
-                      <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment(item, item.id)}>
+                      <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment({item: item, threadPublicID: item.public_id})}>
                         <FontAwesome 
                            name="comment-o"
                            color="black"
