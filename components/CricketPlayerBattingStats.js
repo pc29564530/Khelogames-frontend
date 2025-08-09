@@ -15,7 +15,7 @@ const StatRow = ({ label, value = "N/A" }) => (
   </View>
 );
 
-const CricketPlayerBattingStats = ({playerID}) => {
+const CricketPlayerBattingStats = ({playerPublicID}) => {
   const [contentTab, setContentTab] = useState('test');
   const [playerBattingStats, setPlayerBattingStats] = useState(null);
   
@@ -24,7 +24,7 @@ const CricketPlayerBattingStats = ({playerID}) => {
     const fetchPlayerBattingStats = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const response = await axiosInstance.get(`${BASE_URL}/getPlayerBattingStats/${playerID}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getPlayerBattingStats/${playerPublicID}`, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json',

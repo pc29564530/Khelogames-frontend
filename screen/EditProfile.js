@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView, Modal} from 'react-native';
-import useAxiosInterceptor from './axios_config'
+import axiosInstance from './axios_config'
 import {launchImageLibrary} from 'react-native-image-picker';
 import  RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
@@ -42,7 +42,7 @@ export default function EditProfile() {
     const [coverUrl, setCoverUrl] = useState('');
     const [avatarType, setAvatarType] = useState('');
     const dispatch = useDispatch();
-    const axiosInstance = useAxiosInterceptor();
+    
     const navigation = useNavigation();
     const [isRolesModalVisible, setIsRolesModalVisible] = useState(false);
     const [roles, setRoles] = useState([]);
@@ -100,9 +100,9 @@ export default function EditProfile() {
     const fetchUserProfile = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
+            const userPublicID = await AsyncStorage.getItem('UserPublicID');
 
-            const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${user}`, {
+            const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${userPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -172,10 +172,8 @@ export default function EditProfile() {
             const authToken = await AsyncStorage.getItem("AccessToken")
             const authUser = await AsyncStorage.getItem("User")
             const data = {
-                public_id: authUser.public_id,
                 role_id: item.id
             }
-            console.log("Data: ", data)
             const response  = await axiosInstance.post(`${BASE_URL}/addUserRole`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,

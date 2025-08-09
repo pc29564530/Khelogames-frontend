@@ -129,7 +129,7 @@ const SignUp = () => {
                 await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
                 await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
                 await AsyncStorage.setItem("RefreshTokenExpiresAt", item.Session.RefreshTokenExpiresAt);
-                navigation.navigate("JoinCommunity");
+                navigation.navigate("Home");
             } else {
                 showAlert('Error', response.data.message || 'Failed to create account');
             }
