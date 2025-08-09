@@ -47,27 +47,23 @@ const TournamentStanding = ({route}) => {
     }
 
     const handleTeamToggle = (team) => {
-
         if (selectedTeams.includes(team)) {
             setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
         } else {
             handleTeamToGroup(team.public_id)
             setSelectedTeams([...selectedTeams, team]);
-
         }
     };
 
 
     const handleTeamToGroup = async (publicID) => {
         try {
-            
             const authToken = await AsyncStorage.getItem('AccessToken');
             const groupData = {
                 tournament_public_id: tournament.public_id,
                 group_id: selectedGroup !== null ? selectedGroup.id: null,
                 team_public_id: publicID
             }
-
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentStanding`,groupData, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -101,7 +97,6 @@ const TournamentStanding = ({route}) => {
                 </View>
             )}
         </View>
-
 
         {isModalCreateStandingVisible && 
             <Modal
@@ -192,7 +187,6 @@ const TournamentStanding = ({route}) => {
                 </Modal>
             )}
     </ScrollView>
-       
   )
 }
 

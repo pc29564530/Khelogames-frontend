@@ -14,7 +14,6 @@ import CreateCommunity from '../screen/CreateCommunity';
 import Profile from '../screen/Profile';
 import EditProfile from '../screen/EditProfile';
 import ThreadComment from '../screen/ThreadComment';
-import JoinCommunity from '../screen/JoinCommunity';
 import CommunityList from '../screen/CommunityList';
 import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
@@ -86,14 +85,6 @@ export default function MainNavigation() {
                                 headerBackTitleVisible: false,
                                 headerLeft: false
                                 })}
-                        />
-                        <Stack.Screen name="JoinCommunity" component={JoinCommunity}
-                            options={() => ({
-                                headerShown: false,
-                                headerTitle: null,
-                                headerBackTitleVisible: false,
-                                headerLeft: false
-                            })}
                         />
                         <Stack.Screen name="CreateThread" component={CreateThread} />
                         <Stack.Screen name="Shorts" component={Shorts} />
