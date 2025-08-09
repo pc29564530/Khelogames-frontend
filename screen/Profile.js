@@ -524,7 +524,7 @@ useEffect(() => {
                       </Pressable>
                   </View>
                   <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
-                    <TopTabProfile profileData={profile} />
+                    <TopTabProfile profile={profile} />
                   </View>
                 </View>
             </Animated.ScrollView>

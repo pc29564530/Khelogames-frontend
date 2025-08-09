@@ -151,10 +151,7 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log("Game: ", game)
         if (game.name === "football") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding`, {
-                params: {
-                    tournament_public_id: tournament.public_id.toString(),
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding/${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -162,19 +159,14 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
             })
             dispatch(setStandings(response.data || []));
         } else if (game.name === "cricket") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding`, {
-                params: {
-                    tournament_public_id: tournament.public_id.toString(),
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             })
             dispatch(setStandings(response.data || []));
-        }
-        
-        
+        }     
     } catch (err) {
         console.error("Unable to fetch the standings of tournament: ", err);
     }

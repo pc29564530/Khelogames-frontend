@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
@@ -17,7 +17,7 @@ import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 const ClubFootballMatch = ({teamData}) => {
     const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [currentRole, setCurrentRole] = useState('');
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -32,10 +32,7 @@ const ClubFootballMatch = ({teamData}) => {
     const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/football/getMatchesByTeam`, {
-                params: {
-                    id: teamData.id.toString()
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/football/getMatchesByTeam/${teamData.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -53,7 +50,7 @@ const ClubFootballMatch = ({teamData}) => {
     };
 
     const handleMatchPage = (item) => {
-        navigation.navigate("FootballMatchPage", { matchID: item.id });
+        navigation.navigate("FootballMatchPage", { matchPublicID: item.public_id });
     };
 
     const handleDropDown = () => {
@@ -61,7 +58,7 @@ const ClubFootballMatch = ({teamData}) => {
     };
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        const tournamentId = tournamentItem.tournament_id;
+        const tournamentPublicID = tournamentItem.tournament_id;
         const tournamentStatus = ["live", "previous", "upcoming"];
         const tournamentBySport = await getTournamentBySport({ axiosInstance, sport });
         dispatch(getTournamentBySportAction(tournamentBySport));
@@ -72,9 +69,9 @@ const ClubFootballMatch = ({teamData}) => {
         navigation.navigate("TournamentPage", { tournament, currentRole });
     }
 
-    let tournamentsID = new Set();
+    let tournamentsPublicID = new Set();
     matches.map((item) => {
-        tournamentsID.add(item.tournament.id);
+        tournamentsPublicID.add(item.tournament.public_id);
     })
 
     return (
@@ -173,8 +170,8 @@ const ClubFootballMatch = ({teamData}) => {
                     >
                         <Pressable style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`} onPress={() => setIsDropDownVisible(false)}>
                             <View style={tailwind`bg-white rounded-md p-4`}>
-                                {[...tournamentsID]?.map((tournamentID, index) => {
-                                    const tournamentItem = matches.find((item) => item.tournament.id === tournamentID );
+                                {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
+                                    const tournamentItem = matches.find((item) => item.tournament.public_id === tournamentPublicID );
                                     return (
                                         <Pressable
                                             key={index}

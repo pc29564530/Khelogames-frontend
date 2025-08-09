@@ -6,7 +6,7 @@ import tailwind from 'twrnc';
 import CountryPicker from 'react-native-country-picker-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 
 const sports = ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'];
@@ -18,7 +18,7 @@ const AddPlayerToClub = () => {
     const [playerCountry, setPlayerCountry] = useState('');
     const [isSportVisible, setIsSportVisible] = useState(false);
     const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
     const navigation  = useNavigation();
     const handleSportSelection = (sport) => {
         setPlayerSport(sport);

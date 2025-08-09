@@ -1,12 +1,12 @@
 import React, {useEffect} from 'react';
 import {View, Image, Text} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { getThreadComment } from '../services/commentServices';
 
 function Comment({thread}) {
-    const axiosInstance = useAxiosInterceptor();
+    
     const dispatch = useDispatch();
     const comments = useSelector((state) => state.comments.comments);
     //Implementing redux

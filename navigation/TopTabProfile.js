@@ -4,8 +4,8 @@ import ThreadProfileComponent from "../components/ThreadProfileCompement";
 import ThreadRepliesComponent from "../components/ThreadRepliesComponent";
 import tailwind from "twrnc";
 
-const TopTabProfile = ({profileData}) => {
-    const owner = profileData.owner
+const TopTabProfile = ({profile}) => {
+    const profilePublicID = profile.public_id
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator 
@@ -16,10 +16,10 @@ const TopTabProfile = ({profileData}) => {
             }}
         >
             <TopTab.Screen name="Thread"> 
-                {props=> <ThreadProfileComponent {...props} owner={owner}/>}
+                {props=> <ThreadProfileComponent {...props} profilePublicID={profilePublicID}/>}
             </TopTab.Screen>
             <TopTab.Screen name="Replies" >
-            {props=> <ThreadRepliesComponent {...props} owner={owner}/>}
+            {props=> <ThreadRepliesComponent {...props} profilePublicID={profilePublicID}/>}
             </TopTab.Screen>
         </TopTab.Navigator>
     );

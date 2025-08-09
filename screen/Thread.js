@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import {View} from 'react-native';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import {useSelector, useDispatch} from 'react-redux';
 import tailwind from 'twrnc';
 import ThreadItem from '../components/ThreadItems';

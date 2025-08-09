@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 
 const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
@@ -12,7 +12,7 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const [goalScore, setGoalScore] = useState(false);
     const [teamID, setTeamID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
-    const axiosInstance = useAxiosInterceptor()
+    const axiosInstance = axiosInstance()
     
     const handleAddShootout = async () => {
         try {

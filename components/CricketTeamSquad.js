@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import {Text, View, ScrollView, Pressable, Image, Modal, Switch} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTeamPlayers, setCricketMatchToss, setCricketMatchSquad, getCricketMatchSquad } from '../redux/actions/actions';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -11,7 +11,7 @@ const positions = require('../assets/position.json');
 
 const CricketTeamSquad = ({route}) => {
     const dispatch = useDispatch();
-    const axiosInstance = useAxiosInterceptor(); 
+     
     const players = useSelector(state => state.players.players)
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const match = route.params.match;
@@ -19,6 +19,8 @@ const CricketTeamSquad = ({route}) => {
     const [selectedSquad, setSelectedSquad] = useState([]);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const homeTeamPublicID = match?.homeTeam?.public_id;
+    const awayTeamPublicID = match?.awayTeam?.public_id;
     const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
     const cricketMatchSquad= useSelector(state => state.players.squads)
     const [isOnBench,setIsOnBench] = useState([]);
@@ -27,15 +29,15 @@ const CricketTeamSquad = ({route}) => {
     useEffect(() => {
         if (cricketToss) {
             if (cricketToss.tossDecision === "Batting") {
-                setCurrentTeamPlayer(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
+                setCurrentTeamPlayer(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             } else {
-                setCurrentTeamPlayer(cricketToss.tossWonTeam.id === awayTeamID ? homeTeamID : awayTeamID);
+                setCurrentTeamPlayer(cricketToss.tossWonTeam.public_id === awayTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             }
         }
-    }, [cricketToss, homeTeamID, awayTeamID]);
+    }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
-    const toggleTeam = (teamID) => {
-        setCurrentTeamPlayer(teamID)
+    const toggleTeam = (teamPublicID) => {
+        setCurrentTeamPlayer(teamPublicID)
     }
 
     useEffect(() => {
@@ -44,7 +46,7 @@ const CricketTeamSquad = ({route}) => {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
                     params:{
-                        team_id: currentTeamPlayer.toString()
+                        team_public_id: currentTeamPlayer.toString()
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -74,21 +76,16 @@ const CricketTeamSquad = ({route}) => {
         const fetchSquad = async () => {
             try {
                 const data = {
-                    match_id: match.id,
-                    team_id: currentTeamPlayer
+                    match_public_id: match.public_id,
+                    team_public_id: currentTeamPlayer
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
-                    params: {
-                        'match_id':match.id.toString(),
-                        'team_id': currentTeamPlayer.toString()
-                    },
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`,data, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 })
-                console.log("Squad: ", response.data)
                 dispatch(getCricketMatchSquad(response.data || []));
             } catch (err) {
                 console.error("failed to fetch cricket_squad: ", err);
@@ -100,8 +97,8 @@ const CricketTeamSquad = ({route}) => {
     const handleSelectSquad = async () => {
         try {
             var data={
-                match_id: match.id,
-                team_id: homeTeamID === currentTeamPlayer ? homeTeamID : awayTeamID,
+                match_public_id: match.public_id,
+                team_public_id: homeTeamPublicID === currentTeamPlayer ? homeTeamPublicID : awayTeamPublicID,
                 player: selectedSquad,
                 on_bench: isOnBench
             }
@@ -192,10 +189,10 @@ const CricketTeamSquad = ({route}) => {
     return (
         <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
             <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                <Pressable onPress={() => {toggleTeam(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                <Pressable onPress={() => {toggleTeam(homeTeamPublicID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamPublicID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable   onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                <Pressable   onPress={() => toggleTeam(awayTeamPublicID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamPublicID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                 </Pressable>
             </View>

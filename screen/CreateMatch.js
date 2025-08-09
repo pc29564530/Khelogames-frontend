@@ -12,7 +12,7 @@ import {
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import DateTimePicker from 'react-native-modern-datepicker';
 const filePath = require('../assets/knockout.json')
@@ -39,7 +39,7 @@ const CreateMatch = ({ route }) => {
     const [result, setResult] = useState(null);
     const [matchType, setMatchType] = useState('');
     const [stage, setStage] = useState('');
-    const axiosInstance = useAxiosInterceptor();
+    
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
@@ -60,9 +60,9 @@ const CreateMatch = ({ route }) => {
   
     const handleSelectTeam = (item) => {
       if (team1 === null) {
-        setTeam1(item.id);
+        setTeam1(item.public_id);
       } else {
-        setTeam2(item.id);
+        setTeam2(item.public_id);
       }
       setIsModalTeamVisible(false);
     };

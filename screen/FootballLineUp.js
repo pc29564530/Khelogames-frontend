@@ -3,7 +3,7 @@ import React, { useState , useEffect} from 'react';
 import { View, Text, Pressable, ScrollView, Image, Modal, Switch } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { getTeamPlayers, setCricketMatchToss } from '../redux/actions/actions';
@@ -19,7 +19,7 @@ const FootballLineUp = ({ route }) => {
     const [isSubstituted, setIsSubstituted] = useState([]);
     const [currentSquad, setCurrentSquad] = useState([]);
     const [selectedSquad, setSelectedSquad] = useState([]);
-    const axiosInstance = useAxiosInterceptor();
+    
     const game = useSelector((state) => state.sportReducers.game);
     const players = useSelector((state) => state.players.players)
 
@@ -86,7 +86,7 @@ const FootballLineUp = ({ route }) => {
         const fetchPlayers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${currentTeamPlayer.public_id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${currentTeamPlayer}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -172,10 +172,10 @@ const FootballLineUp = ({ route }) => {
     return (
         <ScrollView   nestedScrollEnabled={true} style={tailwind`flex-1 p-2 bg-white`}>
             <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                <Pressable onPress={() => {toggleTeam(homeTeamID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
+                <Pressable onPress={() => {toggleTeam(homeTeamPublicID)}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamPublicID === currentTeamPlayer ? tailwind`bg-red-400`: tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
                 </Pressable>
-                <Pressable   onPress={() => toggleTeam(awayTeamID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
+                <Pressable   onPress={() => toggleTeam(awayTeamPublicID)} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamPublicID===currentTeamPlayer?tailwind`bg-red-400`:tailwind`bg-white`]}>
                     <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
                 </Pressable>
             </View>

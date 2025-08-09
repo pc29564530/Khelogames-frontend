@@ -40,10 +40,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     const fetchTournamentMatchs = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch`, {
-                params: {
-                    tournament_id: tournament.id,
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch/${tournament.public_id}`, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -86,7 +83,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 const MatchesData = ({item, ind}) => {
     const navigation = useNavigation()
     const handleCricketMatchPage = (item) => {
-        navigation.navigate("CricketMatchPage", {item: item.id})
+        navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id})
     }
     return (
         <Pressable key={ind} 

@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Image, FlatList} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'native-base';
@@ -19,7 +19,7 @@ const TournamentCricketStats = ({route}) => {
     const [showAll, setShowAll] = useState(false);
     const [highestRuns, setHighestRuns] = useState(null);
     const [mostSixes, setMostSixes] = useState(null);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [modalVisible, setModalVisible] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [modalTitle, setModalTitle] = useState('');

@@ -4,7 +4,7 @@ import { View, Text, ScrollView, Pressable, Modal, ActivityIndicator } from 'rea
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import AddFootballModalIncident from '../components/AddFootballModalIncidents';
 import IncidentCheck from '../components/IncidentsCheck';
 
@@ -21,7 +21,7 @@ const FootballIncidents = ({ route }) => {
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
     const match = route.params.matchData;
-    const axiosInstance = useAxiosInterceptor();
+    
 
     useEffect(() => {
         const fetchHSquad = async () => {

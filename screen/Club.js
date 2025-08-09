@@ -5,7 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import {setGames, setGame, getTeams, getTeamsBySport } from '../redux/actions/actions';
@@ -14,7 +14,7 @@ import { sportsServices } from '../services/sportsServices';
 const Club = () => {
     const navigation = useNavigation();
     const scrollViewRef = useRef(null);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [currentRole, setCurrentRole] = useState('');
     const [selectedSport, setSelectedSport] = useState("football");
     const dispatch = useDispatch();

@@ -2,13 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { addFootballMatchScore } from "../redux/actions/actions";
 
-export const getFootballMatches  = async ({axiosInstance, tournamentId, game}) => {
+export const getFootballMatches  = async ({axiosInstance, tournamentPublicID, game}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch`, {
-            params: {
-                tournament_id: tournamentId.toString(),
-            },
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch/${tournamentPublicID}`, {
             headers: {
                 'Authorization': `bearer ${authToken}`,
                 'Content-Type': 'application/json'

@@ -3,10 +3,8 @@ import { Pressable, View, Text } from "react-native";
 import { BASE_URL } from "../constants/ApiConstants";
 import { setBowlerScore } from "../redux/actions/actions";
 import tailwind from "twrnc";
-import useAxiosInterceptor from "../screen/axios_config";
 
 const SetCurrentBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatch, existingBowler, currentBowler}) => {
-    const axiosInstance = useAxiosInterceptor()
 
     const handleUpdateBowlerStatus = async (item) => {
         try {

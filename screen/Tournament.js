@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import {View, Text, Pressable, ScrollView, Image, Modal} from 'react-native';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -15,7 +15,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 
 const Tournament = () => {
-    const axiosInstance = useAxiosInterceptor();
+    
     const navigation = useNavigation();
     const [currentRole, setCurrentRole] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');

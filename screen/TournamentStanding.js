@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal, TextInput, ScrollView,Touchable, FlatList} from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
 //import SelectTeamBySport from '../components/SelectTeamBySport';
@@ -16,7 +16,7 @@ import { TextFormatOutlined } from '@mui/icons-material';
 
 const TournamentStanding = ({route}) => {
     const {tournament, currentRole} = route.params;
-    const axiosInstance = useAxiosInterceptor();
+    
     const [isModalTeamVisible, setIsModalTeamVisible] = useState(false);
     const [groupName, setGroupName] = useState('');
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -51,21 +51,21 @@ const TournamentStanding = ({route}) => {
         if (selectedTeams.includes(team)) {
             setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
         } else {
-            handleTeamToGroup(team.id)
+            handleTeamToGroup(team.public_id)
             setSelectedTeams([...selectedTeams, team]);
 
         }
     };
 
 
-    const handleTeamToGroup = async (id) => {
+    const handleTeamToGroup = async (publicID) => {
         try {
             
             const authToken = await AsyncStorage.getItem('AccessToken');
             const groupData = {
-                tournament_id: tournament.id,
+                tournament_public_id: tournament.public_id,
                 group_id: selectedGroup !== null ? selectedGroup.id: null,
-                team_id: id
+                team_public_id: publicID
             }
 
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentStanding`,groupData, {

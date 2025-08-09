@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react'
 import {View, Text, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen } from '../redux/actions/actions';
@@ -10,7 +10,7 @@ import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 
 export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
-    const axiosInstance = useAxiosInterceptor();
+    
     const match = useSelector(state => state.cricketMatchScore.match);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const handleCurrentScoreEvent = (item) => {

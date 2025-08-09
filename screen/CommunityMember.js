@@ -7,7 +7,7 @@ import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
 
 function  CommunityMember({route}) {
-    const axiosInstance = useAxiosInterceptor();
+    
     const [communityWithProfile, setCommunityWithProfile] = useState([]);
     const navigation = useNavigation();
     const communityData = route.params?.item;

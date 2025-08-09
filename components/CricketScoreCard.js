@@ -2,7 +2,7 @@ import {useEffect, useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import tailwind from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import useAxiosInterceptor from "../screen/axios_config";
+import axiosInstance from "../screen/axios_config";
 import { BASE_URL } from "../constants/ApiConstants";
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchTeamPlayers } from "../services/teamServices";
@@ -20,7 +20,7 @@ const convertBallToOvers = (item) => {
 };
 
 const CricketScoreCard = () => {
-    const axiosInstance = useAxiosInterceptor();
+    
     const dispatch = useDispatch();
     const game = useSelector(state => state.sportReducers.game);
     const match = useSelector((state) => state.cricketMatchScore.match);

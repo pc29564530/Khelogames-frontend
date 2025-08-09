@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from 'react-native-modern-datepicker';
 import CountryPicker from 'react-native-country-picker-modal';
@@ -16,14 +16,13 @@ const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
-    const [sport, setSport] = useState(null);
     const [startOn, setStartOn] = useState(null);
     const [country, setCountry] = useState('');
     const [category, setCategory] = useState('');
     const [groupCount, setGroupCount] = useState(null);
     const [maxTeamGroup, setMaxGroupTeam] = useState(null);
     const [stage, setStage] = useState(null)
-    const axiosInstance = useAxiosInterceptor();
+    
 
     const [isSportVisible, setIsSportVisible] = useState(false);
     const [isLevelVisible, setIsLevelVisible] = useState(false);
@@ -40,8 +39,8 @@ const CreateTournament = () => {
         try {
             const data = {
                     name: tournamentName,
-                    sports: sport,
                     country: category==='international'?'':country,
+                    status_code: "not_started",
                     level: category,
                     start_timestamp: modifyDateTime(startOn),
                     game_id: game.id,
@@ -51,7 +50,6 @@ const CreateTournament = () => {
                     has_knockout: isKnockout
                 }
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournament`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -76,7 +74,7 @@ const CreateTournament = () => {
             // } catch (err) {
             //     console.log("Unable to add the organizer to the tournament: ", err);
             // }
-            navigation.navigate("TournamentPage", { tournament: item, currentRole: 'user', sport: item.sport_type });
+            navigation.navigate("TournamentPage", { tournament: item, currentRole: 'user' });
 
         } catch (err) {
             console.log("Unable to create a new tournament ", err);
@@ -84,7 +82,7 @@ const CreateTournament = () => {
     };
 
     navigation.setOptions({
-        headerTitle:'',
+      headerTitle:'',
       headerStyle:tailwind`bg-red-400 shadow-lg`,
       headerTintColor:'white',
       headerLeft: ()=> (

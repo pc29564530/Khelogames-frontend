@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
-const axiosInstance = useAxiosInterceptor();
+
 export const ProfileService=async(userPublicID)=>{
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');

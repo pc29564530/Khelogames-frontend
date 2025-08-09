@@ -3,14 +3,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
-import useAxiosInterceptor from "../screen/axios_config";
+import axiosInstance from "../screen/axios_config";
 import { addBatsman } from "../redux/actions/actions";
 import { useSelector } from "react-redux";
 import { getCricketMatchSquad } from "../redux/actions/actions";
 
 
 export const AddCricketBatsman = ({match, batTeam, game, dispatch}) => {
-    const axiosInstance = useAxiosInterceptor();
+    
     const currentInning = useSelector((state) => state.cricketMatchInning.currentInning)
     const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber)
     const cricketMatchSquad = useSelector(state => state.players.squads)

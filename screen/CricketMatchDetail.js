@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import CheckBox from '@react-native-community/checkbox';
 import {useSelector, useDispatch } from 'react-redux';
 import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
@@ -13,7 +13,7 @@ import { setCricketMatchToss } from '../redux/actions/actions';
 const CricketMatchDetail = ({route}) => {
     const [isTossed, setIsTossed] = useState(false);
     const dispatch = useDispatch();
-    const axiosInstance = useAxiosInterceptor();
+    
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
     // const [tossData, setTossData] = useState({});

@@ -2,7 +2,7 @@
     import { Text, View, Image, TouchableOpacity, ActivityIndicator, Pressable, Alert } from 'react-native';
     import tailwind from 'twrnc';
     import { useNavigation } from '@react-navigation/native';
-    import useAxiosInterceptor from './axios_config';
+    import axiosInstance from './axios_config';
     import AsyncStorage from '@react-native-async-storage/async-storage';
     import AntDesign from 'react-native-vector-icons/AntDesign';
     import { BASE_URL } from '../constants/ApiConstants';
@@ -13,7 +13,6 @@
     const PlayerProfile = ({ route }) => {
         const player = route.params.player;
         const [loading, setLoading] = useState(true);
-        const axiosInstance = useAxiosInterceptor();
         const navigation = useNavigation();
         const game = useSelector(state => state.sportReducers.game);
         const profile = useSelector(state => state.profile.profile);

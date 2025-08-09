@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Text, View,Pressable, Image, ScrollView} from 'react-native'
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +15,7 @@ const PostByCommunity = ({route}) => {
     
     //get the thread by community
     const navigation = useNavigation()
-    const axiosInstance = useAxiosInterceptor();
+    
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads)
     const community = route.params?.item;

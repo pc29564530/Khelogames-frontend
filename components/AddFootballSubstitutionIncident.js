@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Pressable, Picker, Image, ScrollView} from 'react-native';
-import useAxiosInterceptor from "../screen/axios_config";
+import axiosInstance from "../screen/axios_config";
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -13,8 +13,8 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [description, setDescription] = useState(null);
-    const [teamID, setTeamID] = useState(null);
-    const axiosInstance = useAxiosInterceptor();
+    const [teamPublicID, setTeamPublicID] = useState(null);
+    
 
     const minutes = Array.from({length:90}, (_,i)=> i+1);
 
@@ -23,13 +23,13 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 "match_public_id":matchData.public_id,
-                "team_public_id":teamID,
+                "team_public_id":teamPublicID,
                 "periods":selectedHalf,
                 "incident_type":selectedIncident,
                 "incident_time":selectedMinute,
-                "player_in_id":selectedPlayerIn.public_id,
-                "player_out_id":selectedPlayerOut.public_id,
-                "description":description
+                "description":description,
+                "player_in_public_id":selectedPlayerIn.public_id,
+                "player_out_public_id":selectedPlayerOut.public_id
             }
             const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidentsSubs`, data, {
                 headers: {
@@ -89,14 +89,14 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
                 <View style={tailwind`flex-row justify-between`}>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(homeTeam.public_id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamPublicID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamPublicID(homeTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
                     </Pressable>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(awayTeam.public_id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamPublicID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamPublicID(awayTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
                     </Pressable>
@@ -109,9 +109,9 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player In:</Text>
                     <Dropdown 
                         style={tailwind`p-4 bg-white rounded-lg shadow-md`}
-                        options={teamID === homeTeam.public_id ? homeSquad.filter(itm => itm.is_substitute === true) : awaySquad.filter(itm => itm.is_substitute === true)}
+                        options={teamPublicID === homeTeam.public_id ? homeSquad.filter(itm => itm.is_substitute === true) : awaySquad.filter(itm => itm.is_substitute === true)}
                         onSelect={(index, item) => setSelectedPlayerIn(item)}
-                        data={teamID === homeTeam.public_id ? homePlayer : awayPlayer}
+                        data={teamPublicID === homeTeam.public_id ? homePlayer : awayPlayer}
                         renderRow={(item) => (
                             <View key={index} style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
@@ -135,9 +135,9 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player Out:</Text>
                     <Dropdown 
                         style={tailwind`p-4 bg-white rounded-lg`}
-                        options={teamID === homeTeam.public_id ? homeSquad.filter(itm => itm.is_substitute === false) : awaySquad.filter(itm => itm.is_substitute === false)}
+                        options={teamPublicID === homeTeam.public_id ? homeSquad.filter(itm => itm.is_substitute === false) : awaySquad.filter(itm => itm.is_substitute === false)}
                         onSelect={(index, item) => setSelectedPlayerOut(item)}
-                        data={teamID === homeTeam.public_id ? homeSquad : awaySquad}
+                        data={teamPublicID === homeTeam.public_id ? homeSquad : awaySquad}
                         renderRow={(item) => (
                             <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import tailwind from 'twrnc';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 
 const statFields = [
@@ -16,7 +16,7 @@ const StatRow = ({ label, value = "N/A" }) => (
   </View>
 );
 
-const CricketPlayerBowlingStats = ({playerID}) => {
+const CricketPlayerBowlingStats = ({playerPublicID}) => {
   const [contentTab, setContentTab] = useState('test');
   const [playerBowlingStats, setPlayerBowlingStats] = useState(null);
 

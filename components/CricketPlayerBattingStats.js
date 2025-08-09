@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 
 const statFields = [
@@ -18,7 +18,7 @@ const StatRow = ({ label, value = "N/A" }) => (
 const CricketPlayerBattingStats = ({playerID}) => {
   const [contentTab, setContentTab] = useState('test');
   const [playerBattingStats, setPlayerBattingStats] = useState(null);
-  const axiosInstance = useAxiosInterceptor();
+  
 
   useEffect(() => {
     const fetchPlayerBattingStats = async () => {

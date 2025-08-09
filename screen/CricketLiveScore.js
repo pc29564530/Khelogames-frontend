@@ -3,7 +3,7 @@ import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, 
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useSelector, useDispatch, shallowEqual } from 'react-redux';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import { UpdateCricketScoreCard } from '../components/UpdateCricketScoreCard';
@@ -60,7 +60,6 @@ const CricketLive = ({route}) => {
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const [wicketType, setWicketType] = useState("");
     const [currentBattingBatsman, setCurrentBattingBatsman] = useState([]);
-    const axiosInstance = useAxiosInterceptor()
     const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState([]);
     const [inningVisible, setInningVisible] = useState(false);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
@@ -80,6 +79,8 @@ const CricketLive = ({route}) => {
     const [isLoading, setIsLoading] = useState(false);
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
+    const homeTeamPublicID = match?.homeTeam?.public_id;
+    const awayTeamPublicID = match?.awayTeam?.public_id;
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
 
@@ -91,9 +92,6 @@ const CricketLive = ({route}) => {
     
     //check for next inning
    const showNextInning = currentInningNumber < MAX_INNINGS[match.match_format];
-
-    
-
     useEffect(() => {
         if(match) {
             setIsLoading(false);
@@ -107,16 +105,16 @@ const CricketLive = ({route}) => {
     useEffect(() => {
         if (cricketToss) {
             if (cricketToss.tossDecision === "Batting") {
-                setCurrentLiveScore(cricketToss.tossWonTeam.id === homeTeamID ? homeTeamID : awayTeamID);
+                setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             } else {
-                setCurrentLiveScore(cricketToss.tossWonTeam.id === homeTeamID ? awayTeamID : homeTeamID);
+                setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
             }
         }
-    }, [cricketToss, homeTeamID, awayTeamID]);
+    }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
 
-    const bowlTeamID = match.away_team_id === batTeam ? match.home_team_id : match.away_team_id;    
+    const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;    
     navigation.setOptions({
         headerTitle:'',
         headerLeft:()=>(
@@ -169,9 +167,9 @@ const CricketLive = ({route}) => {
                 var winningTeam = null;
                 if(isCurrentInningEnded && match.innings.length== 2){
                     if(match.innings?.[0].score.score > match.innings?.[1].score.score){
-                        winningTeam = match.innings?.[0].team_id;
+                        winningTeam = match.innings?.[0].team.public_id;
                     } else if(match.innings?.[0].score.score < match.innings?.[1].score.score){
-                        winningTeam = match.innings?.[1].team_id;
+                        winningTeam = match.innings?.[1].team.public;
                     }
                 }
                 const data = {
@@ -241,7 +239,7 @@ const CricketLive = ({route}) => {
         return scoreArray?.find((inning) => inning.inning_number === currentInningNumber);
     }
 
-    const handleNextInning = async (teamID) => {
+    const handleNextInning = async (teamPublicID) => {
         if (!isCurrentInningEnded) {
             Alert.alert(
                 "⚠ Inning Not Ended",
@@ -274,7 +272,7 @@ const CricketLive = ({route}) => {
         }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(sport, dispatch, match.public_id, teamID, nextInning, followOn, authToken, axiosInstance)
+            await addCricketScoreServices(sport, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
         } catch (err) {
             console.error("Failed to start next inning: ", err);
         }
@@ -282,7 +280,7 @@ const CricketLive = ({route}) => {
 
     const currentBowling = bowling?.innings[currentInningNumber].filter((item) => item.is_current_bowler === true );
     const currentBatting = batting?.innings[currentInningNumber].filter((item) => (item.is_currently_batting === true));
-    const currentFielder = homeTeamID !== batTeam
+    const currentFielder = homeTeamPublicID !== batTeam
     ? homePlayer?.filter((player) => {
         const currentField = !bowling?.innings[currentInningNumber].some(
             (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
@@ -320,22 +318,22 @@ const CricketLive = ({route}) => {
         }
       }
 
-    const currentWicketKeeper = batTeam !== homeTeamID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
+    const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
 
-    const bowlerToBeBowled = batTeam?.id === homeTeamID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
+    const bowlerToBeBowled = batTeam?.id === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
-    const existingBowler = (batTeam?.id === homeTeamID ? awayPlayer : homePlayer)?.filter((player) => 
+    const existingBowler = (batTeam?.id === homeTeamPublicID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings[currentInningNumber].some((bowler) => bowler.player.id === player.id)
     );
 
     const checkFollowOn = () => {
         if (match && match.awayScore?.length == 1 || match.homeScore.length == 1){
-            if (batTeam?.id === homeTeamID) {
+            if (batTeam?.id === homeTeamPublicID) {
                 const firstInningScore = match.awayScore.find((inning) => inning.inning_number === 1);
                 const secondInningScore = match.homeScore.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {
@@ -615,7 +613,7 @@ const CricketLive = ({route}) => {
                             <View style={tailwind`rounded-2xl bg-white border border-gray-200 ml-2 mr-2`}>
                                 <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
                                     <Text style={tailwind`text-lg text-gray-800`}>
-                                        {batTeam === match.homeTeam.id ? match.homeTeam.name : match.awayTeam.name} Batting
+                                        {batTeam === match.homeTeam.public_id ? match.homeTeam.name : match.awayTeam.name} Batting
                                     </Text>
                                     <Text style={tailwind`text-md font-medium text-gray-500`}>Inning {currentInningNumber}</Text>
                                 </View>
@@ -643,7 +641,7 @@ const CricketLive = ({route}) => {
                                 <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-6`}>
                                     <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
                                     <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                                        {batTeam === match.homeTeam.id ? match.awayTeam.name : match.homeTeam.name}
+                                        {batTeam === match.homeTeam.public_id ? match.awayTeam.name : match.homeTeam.name}
                                     </Text>
                                     <Text style={tailwind`text-md font-medium text-gray-500`}>{getNextInning()}</Text>
                                     </View>
@@ -655,7 +653,7 @@ const CricketLive = ({route}) => {
                                         ) : (
                                             <View style={tailwind`px-4 pb-4 pt-2`}>
                                                 <Text style={tailwind`text-lg font-semibold `}>
-                                                    🎯 Target: {match.home_team_id === batTeam  ? match?.awayScore[currentInningNumber-1] + 1 || {} : match?.homeScore[currentInningNumber-1] + 1 || {}} runs
+                                                    🎯 Target: {match.homeTeam.public_id === batTeam  ? match?.awayScore[currentInningNumber-1] + 1 || {} : match?.homeScore[currentInningNumber-1] + 1 || {}} runs
                                                 </Text>
                                             </View>
                                         )}
@@ -669,7 +667,7 @@ const CricketLive = ({route}) => {
                                     >
                                     <Text style={tailwind`text-white font-medium text-center`}>Cancel</Text>
                                     </Pressable>
-                                    <Pressable style={tailwind`rounded-lg bg-red-400 px-6 py-3 ml-2`} onPress={() => handleNextInning(match.home_team_id === batTeam ? awayTeamID : homeTeamID)}>
+                                    <Pressable style={tailwind`rounded-lg bg-red-400 px-6 py-3 ml-2`} onPress={() => handleNextInning(homeTeamPublicID === batTeam ? awayTeamPublicID : homeTeamPublicID)}>
                                         <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
                                     </Pressable>
                                 </View>

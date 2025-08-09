@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import FootballMatchPageContent from '../navigation/FootballMatchPageContent';
 import { formattedTime, formattedDate, convertToISOString } from '../utils/FormattedDateTime';
@@ -16,12 +16,12 @@ import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScro
 
 const FootballMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const matchID = route.params.matchID;                                                                         
+    const matchPublicID = route.params;                                                                         
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -33,8 +33,7 @@ const FootballMatchPage = ({ route }) => {
         const fetchMatchData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
-                    params: { match_id: matchID.toString() },
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID${matchPublicID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -49,7 +48,7 @@ const FootballMatchPage = ({ route }) => {
             }
         }
         fetchMatchData();
-    }, [matchID, game.name, dispatch])
+    }, [matchPublicID, game.name, dispatch])
 
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
@@ -57,7 +56,7 @@ const FootballMatchPage = ({ route }) => {
         setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const data = { id: matchID, status_code: itm };
+            const data = { match_public_id: matchPublicID, status_code: itm };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,

@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import Dropdown from 'react-native-modal-dropdown';
 const periodsPath = require('../assets/format_periods.json');
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 
 const AddFootballPeriods = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident}) => {
@@ -12,7 +12,7 @@ const AddFootballPeriods = ({matchData, awayPlayer, homePlayer, awayTeam, homeTe
     const [selectedMinute, setSelectedMinute] = useState('45');
     const periodsData = periodsPath["formatPeriod"];
     const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
-    const axiosInstance = useAxiosInterceptor();
+    
     const handleAddIncident = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");

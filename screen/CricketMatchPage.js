@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -21,7 +21,7 @@ const getLeadTrailStatus = ({match}) => {
     const awayInnings = match.awayScore;
     const homeTotalScore = match.homeScore.map((item) => item.score).reduce((a,b) => a+b);
     const awayTotalScore = match.awayScore.map((item) => item.score).reduce((a,b) => a+b);
-    if(homeInnings[0].team_id === batTeam) {
+    if(homeInnings[0].team === batTeam) {
         if(homeTotalScore > awayTotalScore) {
             return `${homeTeam.name} is leading by ${homeTotalScore - awayTotalScore} runs`;
         } else {
@@ -206,9 +206,9 @@ const StatusModal = ({ visible, onClose, onStatusSelect }) => {
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
     
-    const matchId = route.params.item;
+    
+    const matchPublicID = route.params;
     const match = useSelector((state) => state.cricketMatchScore.match);
     const homePlayer = useSelector(state => state.teams.homePlayer);
     const awayPlayer = useSelector(state => state.teams.awayPlayer);
@@ -237,8 +237,7 @@ const CricketMatchPage = ({ route }) => {
         const fetchMatch = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID`, {
-                    params: { match_id: matchId.toString() },
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -254,16 +253,16 @@ const CricketMatchPage = ({ route }) => {
         };
 
         fetchMatch();
-    }, [matchId, game.name, dispatch]);
+    }, [matchPublicID, game.name, dispatch]);
 
     useEffect(() => {
         if (!match || !cricketToss) return;
 
-        const tossWonTeamId = cricketToss.tossWonTeam?.id;
+        const tossWonTeamPublicId = cricketToss.tossWonTeam?.public_id;
         const isBatting = cricketToss.tossDecision === "Batting";
         const batTeamId = isBatting
-            ? (tossWonTeamId === match.home_team_id ? match.home_team_id : match.away_team_id)
-            : (tossWonTeamId !== match.home_team_id ? match.home_team_id : match.away_team_id);
+            ? (tossWonTeamPublicId === match.homeTeam.public_id ? match.homeTeam.public_id : match.awayTeam.public_id)
+            : (tossWonTeamPublicId !== match.homeTeam.public_id ? match.awayTeam.public_id : match.awayTeam.public_id);
 
         dispatch(setBatTeam(batTeamId));
     }, [match, cricketToss]);
@@ -272,8 +271,8 @@ const CricketMatchPage = ({ route }) => {
         const fetchPlayers = async () => {
             try {
                 const [homePlayers, awayPlayers] = await Promise.all([
-                    fetchTeamPlayers(BASE_URL, match.homeTeam.id, game, axiosInstance),
-                    fetchTeamPlayers(BASE_URL, match.awayTeam.id, game, axiosInstance)
+                    fetchTeamPlayers(BASE_URL, match.homeTeam.public_id, game, axiosInstance),
+                    fetchTeamPlayers(BASE_URL, match.awayTeam.public_id, game, axiosInstance)
                 ]);
                 
                 dispatch(getHomePlayer(homePlayers));
@@ -284,18 +283,18 @@ const CricketMatchPage = ({ route }) => {
             }
         };
 
-        if (match?.homeTeam?.id && match?.awayTeam?.id) {
+        if (match?.homeTeam?.public_id && match?.awayTeam?.public_id) {
             fetchPlayers();
         }
-    }, [match?.homeTeam?.id, match?.awayTeam?.id]);
+    }, [match?.homeTeam?.public_id, match?.awayTeam?.public_id]);
 
     useEffect(() => {
         if (cricketToss && match) {
-            const isHomeBatting = cricketToss.tossWonTeam.id === match.homeTeam.id && cricketToss.tossDecision === "Batting";
+            const isHomeBatting = cricketToss.tossWonTeam.public_id === match.homeTeam.public_id && cricketToss.tossDecision === "Batting";
             dispatch(setCurrentInning("inning1"));
             dispatch(setInningStatus("in_progress"));
             dispatch(setCurrentInningNumber(1));
-            dispatch(setBatTeam(isHomeBatting ? match.homeTeam.id : match.awayTeam.id));
+            dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
         }
     }, [cricketToss, match]);
 
@@ -303,8 +302,8 @@ const CricketMatchPage = ({ route }) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             await axiosInstance.post(`${BASE_URL}/${game.name}/endInning`, {
-                match_id: match.id,
-                team_id: batTeam,
+                match_public_id: match.public_id,
+                team_public_id: batTeam,
                 inning: currentInningNumber
             }, {
                 headers: {
@@ -449,7 +448,7 @@ const CricketMatchPage = ({ route }) => {
                                         value={teamInning === 1}
                                         onValueChange={() => {
                                             setTeamInning("1");
-                                            dispatch(setBatTeam(match.homeTeam.id));
+                                            dispatch(setBatTeam(match.homeTeam.public_id));
                                             setInningVisible(false);
                                         }}
                                     />
@@ -462,7 +461,7 @@ const CricketMatchPage = ({ route }) => {
                                         value={teamInning === 2}
                                         onValueChange={() => {
                                             setTeamInning(2);
-                                            dispatch(setBatTeam(match.awayTeam.id));
+                                            dispatch(setBatTeam(match.awayTeam.public_id));
                                             setInningVisible(false);
                                         }}
                                     />
