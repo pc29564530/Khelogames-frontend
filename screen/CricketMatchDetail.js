@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Modal} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import CheckBox from '@react-native-community/checkbox';
 import {useSelector, useDispatch } from 'react-redux';
 import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
@@ -13,7 +13,7 @@ import { setCricketMatchToss } from '../redux/actions/actions';
 const CricketMatchDetail = ({route}) => {
     const [isTossed, setIsTossed] = useState(false);
     const dispatch = useDispatch();
-    const axiosInstance = useAxiosInterceptor();
+    
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
     // const [tossData, setTossData] = useState({});
@@ -49,8 +49,7 @@ const CricketMatchDetail = ({route}) => {
         const fetchTossData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss`, {
-                    params:{match_id: match.id},
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss/${match.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -119,10 +118,10 @@ const CricketMatchDetail = ({route}) => {
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>
                             <Text style={tailwind`text-xl font-bold text-gray-600 mb-4`}>Select Team for Toss</Text>
                             <View style={tailwind`flex-row justify-evenly mb-4`}>
-                                <Pressable onPress={() => handleTeam(match.homeTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.id && tailwind`bg-red-400`]}>
+                                <Pressable onPress={() => handleTeam(match.homeTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{match.homeTeam.name}</Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(match.awayTeam.id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.id && tailwind`bg-red-400`]}>
+                                <Pressable onPress={() => handleTeam(match.awayTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{match.awayTeam.name}</Text>
                                 </Pressable>
                             </View>

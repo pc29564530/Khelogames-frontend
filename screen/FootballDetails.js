@@ -5,7 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
@@ -14,32 +14,31 @@ import { useSelector } from 'react-redux';
 const FootballDetails = ({route}) => {
     const matchData = route.params.matchData;
     const tournament = useSelector((state) => state.tournamentsReducers.tournament)
+    const game = useSelector((state) => state.sportsReducers.game)
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
-    const handleTournamentPage = async (tournamentID) => {
+    
+    const handleTournamentPage = async (tournamentPublicID) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournament/${tournamentPublicID}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
             const item = response.data || [];
-            navigation.navigate("TournamentPage", {tournament:item, currentRole: 'admin', sport:item?.sports})
+            navigation.navigate("TournamentPage", {tournament:item, currentRole: 'admin'})
         } catch (err) {
             console.error("unable to fetch the tournament data: ", err)
         }
         
     }
 
-    console.log("tournament: ", tournament)
-
     useEffect(() => {
 
         const addFootballScore = async () => {
             const authToken = await AsyncStorage.getItem('AccessToken')
-            const response = await axiosInstance.get(`${BASE_URL}/${matchData.sports}/getTournament/${tournamentID}`, null, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournament/${tournamentPublicID}`, null, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -54,7 +53,7 @@ const FootballDetails = ({route}) => {
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
-            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(tournament.id)}>
+            <Pressable style={tailwind`flex-row items-start shadow-lg p-6 bg-white mt-2 justify-between`} onPress={() => handleTournamentPage(tournament.public_id)}>
                 <Text style={tailwind` text-2xl`}>{tournament.name}</Text>
                 <MaterialCommunityIcons name="greater-than" size={24} color="black" />
             </Pressable>

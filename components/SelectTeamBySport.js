@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {View, Text, Modal, Pressable} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
 import { addTeamToGroup, getTeams, getTeamsBySport } from '../redux/actions/actions';
@@ -12,7 +12,7 @@ const SelectTeamBySport = ({tournament, groups }) => {
     const [teamID, setTeamID] = useState(null);
     const [groupID, setGroupID] = useState(null);
     const [isModalGroupVisible, setIsModalGroupVisible] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
     const teams = useSelector((state) => state.teams.teams)
     const dispatch = useDispatch();
 

@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal, ScrollView } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { formattedDate, formattedTime, formatToDDMMYY, convertToISOString } from '../utils/FormattedDateTime';
@@ -16,7 +16,7 @@ const ClubCricketMatch = ({ teamData }) => {
     const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState([]);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [currentRole, setCurrentRole] = useState('');
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -44,10 +44,7 @@ const ClubCricketMatch = ({ teamData }) => {
     const fetchClubMatch = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchesByTeam`, {
-                params: {
-                    id: teamData.id.toString()
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchesByTeam/${teamData.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -69,20 +66,20 @@ const ClubCricketMatch = ({ teamData }) => {
     };
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        const tournamentId = tournamentItem.tournament_id;
+        const tournamentPublicID = tournamentItem.public_id;
         const tournamentStatus = ["live", "previous", "upcoming"];
         const tournamentBySport = await getTournamentBySport({ axiosInstance, sport });
         dispatch(getTournamentBySportAction(tournamentBySport));
-        const foundTournament = findTournamentByID({ tournamentBySport, tournamentId, tournamentStatus });
+        const foundTournament = findTournamentByID({ tournamentBySport, tournamentPublicID, tournamentStatus });
         if (foundTournament !== null) {
             dispatch(getTournamentByIdAction(foundTournament));
         }
         navigation.navigate("TournamentPage", { tournament, currentRole });
     };
 
-    let tournamentsID = new Set();
+    let tournamentsPublicID = new Set();
     matches.map((item) => {
-        tournamentsID.add(item.tournament_id);
+        tournamentsPublicID.add(item.tournament.public_id);
     })
 
     return (
@@ -167,8 +164,8 @@ const ClubCricketMatch = ({ teamData }) => {
                 >
                     <Pressable style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`} onPress={() => setIsDropDownVisible(false)}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            {[...tournamentsID]?.map((tournamentID, index) => {
-                                const tournamentItem = matches.find((item) => item.tournament.id === tournamentID );
+                            {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
+                                const tournamentItem = matches.find((item) => item.tournament.public_id === tournamentPublicID );
                                 return (
                                     <Pressable
                                         key={index}

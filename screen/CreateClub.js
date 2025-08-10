@@ -4,7 +4,7 @@ import { View, Text, Pressable, TextInput, FlatList, Image, ScrollView } from 'r
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { SelectMedia } from '../services/SelectMedia';
@@ -22,7 +22,7 @@ const CreateClub = () => {
     const [country, setCountry] = useState('');
     const [gender, setGender] = useState('');
     const [category, setCategory] = useState('');
-    const axiosInstance = useAxiosInterceptor();
+    
     const dispatch = useDispatch();
     const game = useSelector((state) => state.sportReducers.game)
 
@@ -34,7 +34,7 @@ const CreateClub = () => {
 
     const handleSubmit = async () => {
         try {
-            const user = await AsyncStorage.getItem('User');
+            const userPublicID = await AsyncStorage.getItem('UserPublicID');
             const newTeam = {
                 name: teamName,
                 media_url: mediaUrl,

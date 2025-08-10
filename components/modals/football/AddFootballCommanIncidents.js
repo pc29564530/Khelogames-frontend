@@ -8,7 +8,7 @@ const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
-    const [teamID, setTeamID] = useState(homeTeam.id);
+    const [teamID, setTeamID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
 
     const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
@@ -17,12 +17,12 @@ const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                "match_id":matchData.id,
-                "team_id":teamID,
+                "match_public_id":matchData.public_id,
+                "team_public_id":teamID,
                 "periods":selectedHalf,
                 "incident_type":selectedIncident,
                 "incident_time":selectedMinute,
-                "player_id":selectedPlayer.id,
+                "player_public_id":selectedPlayer.public_id,
                 "description":description
             }
             const response = await axiosInstance.post(`${BASE_URL}/Football/addFootballIncidents`, data, {
@@ -44,7 +44,6 @@ const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam
         <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>
             {/* Header Section */}
             <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football {formatIncidentType(selectedIncident)}</Text>
-            {console.log(`Add Football ${formatIncidentType(selectedIncident)} Incident`)}
             {/* Select Period */}
             <View style={tailwind`mb-6`}>
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
@@ -82,14 +81,14 @@ const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
                 <View style={tailwind`flex-row justify-between`}>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(homeTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(homeTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
                     </Pressable>
                     <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamID(awayTeam.id)}
+                        style={[tailwind`p-4 flex-1 rounded-lg`, teamID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
+                        onPress={() => setTeamID(awayTeam.public_id)}
                     >
                         <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
                     </Pressable>
@@ -100,7 +99,7 @@ const AddFootballCommanIncidents = ({matchData, awayPlayer, homePlayer, awayTeam
                 <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
                 <Dropdown
                     style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                    options={teamID === homeTeam.id ? homeSquad.filter(player => player.is_substitute === false): awaySquad.filter(player => player.is_substitute === false)}
+                    options={teamID === homeTeam.public_id ? homeSquad.filter(player => player.is_substitute === false): awaySquad.filter(player => player.is_substitute === false)}
                     onSelect={(index, item) => setSelectedPlayer(item)}
                     renderRow={(item) => (
                         <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>

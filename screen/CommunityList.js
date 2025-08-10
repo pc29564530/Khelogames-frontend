@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Image} from 'react-native';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -11,7 +11,7 @@ const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/image
 function CommunityList() {
     const [communityList, setCommunityList] = useState([]);
     // const [dispayText, setDisplayText] = useState('')
-    const axiosInstance = useAxiosInterceptor();
+    
     const navigation = useNavigation();
     const fetchCommunity = async () => {
         try {

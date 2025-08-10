@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, Text, Pressable, Image, Modal, ScrollView, TextInput, TouchableOpacity} from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -12,7 +12,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 
 const Members = ({teamData}) => {   
-    const axiosInstance = useAxiosInterceptor();
+    
     const [member, setMember] = useState([]);
     const [searchPlayer, setSearchPlayer] = useState('');
     const [playerProfile, setPlayerProfile] = useState([]);
@@ -27,10 +27,7 @@ const Members = ({teamData}) => {
         const fetchPlayerProfile = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getPlayersBySport`, {
-                    params: {
-                        'game_id': game.id.toString()
-                    },
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayersBySport/${game.id}`, {
                     headers:{
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type':'application/json',
@@ -50,8 +47,7 @@ const Members = ({teamData}) => {
         const fetchMembers = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AcessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc`, {
-                    params: { team_id: teamData.id.toString()},
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${teamData.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -82,8 +78,8 @@ const Members = ({teamData}) => {
     const handleAddPlayer = useCallback (async (selectedItem) => {
         try {
             const data = {
-                team_id:teamData.id,
-                player_id: selectedItem.id,
+                team_public_id:teamData.public_id,
+                player_public_id: selectedItem.public_id,
                 join_date: new Date()
             }
             const authToken = await AsyncStorage.getItem('AcessToken');
@@ -115,13 +111,12 @@ const Members = ({teamData}) => {
     }
 
     const handleRemovePlayer = useCallback ( async(item) => {
-        const playerID = item.id;
         try {
             
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                team_id: teamData.id,
-                player_id: playerID,
+                team_public_id: teamData.public_id,
+                player_public_id: item.public_id,
                 leave_date: new Date()
             }
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/removePlayerFromTeam`, data, {
@@ -131,13 +126,13 @@ const Members = ({teamData}) => {
                 },
             });
             const item = response.data;
-            const updatedPlayers = players.filter((player) => player.id !== item.player_id);
+            const updatedPlayers = players.filter((player) => player.id !== item.id);
             setMember(updatedPlayers);
             dispatch(getTeamPlayers(updatedPlayers));
         } catch (err) {
             console.error("Unable to remove the player from team: ", err)
         }
-    }, [players, axiosInstance, teamData.id, dispatch, game.name]);
+    }, [players, axiosInstance, teamData.public_id, dispatch, game.name]);
 
     return (
         <View style={tailwind`flex-1`}>

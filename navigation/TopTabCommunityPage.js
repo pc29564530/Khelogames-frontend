@@ -3,7 +3,7 @@ import tailwind from 'twrnc';
 import PostByCommunity from '../screen/PostByCommunity';
 import CommunityMember from '../screen/CommunityMember';
 
-function TopTabCommunityPage({communityPageData}) {
+function TopTabCommunityPage({item}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -16,12 +16,12 @@ function TopTabCommunityPage({communityPageData}) {
                 <TopTab.Screen 
                     name="Post"
                     component={PostByCommunity}
-                    initialParams={{communityPageData: communityPageData}}
+                    initialParams={{item: item}}
                 />
                 <TopTab.Screen 
                     name="Member"
                     component={CommunityMember}
-                    initialParams={{communityPageData: communityPageData}}
+                    initialParams={{item: item}}
                 />
         </TopTab.Navigator>
     );

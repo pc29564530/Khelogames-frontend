@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Image, Pressable, ScrollView, Modal } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,7 +13,7 @@ import { Alert } from 'react-native';
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
+    
     const [teamDisplay, setTeamDisplay] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
@@ -43,7 +43,7 @@ const TournamentTeam = ({ route }) => {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const tournamentTeams =  await getTeamsByTournamentID({tournamentID: tournament.id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
+                const tournamentTeams =  await getTeamsByTournamentID({tournamentPublicID: tournament.public_id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
                 dispatch(getTeams(tournamentTeams));
             } catch (err) {
                 console.error("unable to fetch the tournament teams: ", err);

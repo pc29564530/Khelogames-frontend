@@ -20,7 +20,7 @@ const User = ({ route }) => {
   const [access, setAccess] = useState(null);
   const [aexpire, setAExpire] = useState(null);
   const [rexpire, setRExpire] = useState(null);
-  const { gmail, mobileNumber } = route.params;
+  const { gmail } = route.params;
   const [gmailA, setGmailA] = useState(gmail);
   const [mobileNumberA, setMobileNumberA] = useState(mobileNumber);
 
@@ -28,10 +28,10 @@ const User = ({ route }) => {
     if (gmail) {
       setGmailA(gmail);
     }
-    if (mobileNumber) {
-      setMobileNumberA(mobileNumber);
-    }
-  }, [gmail, mobileNumber]);
+    // if (mobileNumber) {
+    //   setMobileNumberA(mobileNumber);
+    // }
+  }, [gmail]);
 
   const handleAccount = async () => {
       try {
@@ -45,8 +45,8 @@ const User = ({ route }) => {
           if (response.data.access_token) {
             await AsyncStorage.setItem("AccessToken", response.data.access_token);
           }
-          if (response.data.user && response.data.user.username) {
-            await AsyncStorage.setItem("User", response.data.user.username);
+          if (response.data.user && response.data.user.public_id) {
+            await AsyncStorage.setItem("User", response.data.user);
           }
           if (response.data.refresh_token) {
             await AsyncStorage.setItem("RefreshToken", response.data.refresh_token);

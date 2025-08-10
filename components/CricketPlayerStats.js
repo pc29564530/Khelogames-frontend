@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import CricketPlayerBattingStats from './CricketPlayerBattingStats';
 import CricketPlayerBowlingStats from './CricketPlayerBowlingStats';
    
-export const CricketPlayerStats = ({playerID}) => {
+export const CricketPlayerStats = ({player}) => {
     const [activeTab, setActiveTab] = useState("batting");
     return (
         <View style={tailwind`p-2`}>
@@ -33,8 +33,8 @@ export const CricketPlayerStats = ({playerID}) => {
                     </Pressable>
             </View>
             <View>
-                {activeTab === "batting" && <CricketPlayerBattingStats  playerID={playerID} />}
-                {activeTab === "bowling" && <CricketPlayerBowlingStats playerID = {playerID}/>}
+                {activeTab === "batting" && <CricketPlayerBattingStats  playerPublicID={player.public_id} />}
+                {activeTab === "bowling" && <CricketPlayerBowlingStats playerPublicID = {player.public_id}/>}
             </View>
         </View>
     );

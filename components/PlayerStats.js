@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import {Text, View, ScrollView, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -12,14 +12,14 @@ export const CricketPlayerStats = ({player}) => {
     const [playerStats, setPlayerStats] = useState(null);
     const [selectedFormat, setSelectedFormat] = useState("Test");
 
-    const axiosInstance = useAxiosInterceptor();
+    
     useEffect(() => {
         const fetchPlayerStats = async () => {
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get( `${BASE_URL}/getPlayerCricketStats`, {
                     params: {
-                        "player_id": player.id
+                        "player_public_id": player.public_id
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,

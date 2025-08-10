@@ -3,14 +3,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
 import tailwind from "twrnc";
-import useAxiosInterceptor from "../screen/axios_config";
+import axiosInstance from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
 import { useSelector  } from "react-redux";
 import { getCricketMatchSquad } from "../redux/actions/actions";
 
 
 export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, dispatch, bowling,  currentBowler}) => {
-    const axiosInstance = useAxiosInterceptor();
+    
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const cricketMatchSquad = useSelector(state => state.players.squads);
@@ -20,8 +20,8 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
             const authToken = await AsyncStorage.getItem('authToken');
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
                 params: {
-                    "match_id": match.id,
-                    "team_id": batTeam === homeTeam ? awayTeam : homeTeam
+                    "match_public_id": match.public_id,
+                    "team_public_id": batTeam === homeTeam.public_id ? awayTeam.public_id : homeTeam.public_id
                 },
                 headers: {
                     "Authorization": `Bearer ${authToken}`,
@@ -41,10 +41,10 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
     const handleAddNextBowler = async (item) => {
         try {
             const data = {
-                match_id: match.id,
-                team_id: batTeam !== awayTeam ? awayTeam : homeTeam,
-                bowler_id: item?.player.id,
-                prev_bowler_id: bowling?.innings?.length > 0 ? currentBowler[0]?.bowler_id : null,
+                match_public_id: match.public_id,
+                team_public_id: batTeam !== awayTeam.public_id ? awayTeam.public_id : homeTeam.public_id,
+                bowler_public_id: item?.player.public_id,
+                prev_bowler_public_id: bowling?.innings?.length > 0 ? currentBowler[0]?.bowler_public_id : null,
                 ball: 0,
                 runs: 0,
                 wickets: 0,

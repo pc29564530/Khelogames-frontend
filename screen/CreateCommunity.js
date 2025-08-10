@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Pressable, View, TextInput, Text } from 'react-native';
 import AsyncStorage  from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -14,11 +14,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 function CreateCommunity () {
     const navigation = useNavigation();
     const route= useRoute();
-    const axiosInstance = useAxiosInterceptor();
+    
     const [communityName, setCommunityName] = useState('');
     const [description, setDescription] = useState('');
     const dispatch = useDispatch();
-    const community = useSelector((state) => state.community.community)
+    const community = useSelector((state) => state.community.community);
     const [communityType, setCommunityType] = useState(route.params?.communityType || 'Community Type');
 
     const handleCreateCommunity = async () => {

@@ -6,7 +6,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { launchImageLibrary } from 'react-native-image-picker';
 import  RFNS from 'react-native-fs';
-import useAxiosInterceptor from './axios_config'; 
+import axiosInstance from './axios_config'; 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import EmojiSelector from 'react-native-emoji-selector';
@@ -51,7 +51,6 @@ function CommunityMessage ({route}) {
     const [showEmojiSelect, setShowEmojiSelect] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [admin, setAdmin] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
     const navigation = useNavigation();
 
     const handleUpload = () => {
@@ -97,7 +96,7 @@ function CommunityMessage ({route}) {
         try {
             const user = await AsyncStorage.getItem("Users")
             const data = {
-                community_name: communityData.communities_name,
+                name: communityData.name,
                 sender_username: user,
                 content: content
             }

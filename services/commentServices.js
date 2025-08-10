@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL, AUTH_URL } from "../constants/ApiConstants";
 import { addComments, setComments, setCommentText } from "../redux/actions/actions";
+import axiosInstance from "../screen/axios_config";
 
-export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {
+export const getThreadComment = async ({dispatch, threadPublicID}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getComment/${threadId}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getComments/${threadPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -16,12 +17,11 @@ export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {
                 dispatch(setComments([]));
             } else {
                 const itemComment = item.map(async (item,index) => {
-                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item.owner}`);
-                        if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                            const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                            return {...item, profile: profileResponse.data, displayText: usernameInitial.toUpperCase()}
+                        if (!item.profile.avatar_url || item.profile.avatar_url === '') {
+                            const usernameInitial = item.profile.full_name ? item.profile.full_name.charAt(0) : '';
+                            return {...item, profile: item.profile, displayText: usernameInitial.toUpperCase()}
                         } else {
-                            return {...item, profile: profileResponse.data}
+                            return {...item, profile: item.profile}
                         }
                     })
                 const commentData = await Promise.all(itemComment);
@@ -33,10 +33,10 @@ export const getThreadComment = async ({dispatch, axiosInstance, threadId}) => {
 
 }
 
-export const addThreadComment = async ({commentText, dispatch, itemId, axiosInstance}) => {
+export const addThreadComment = async ({commentText, dispatch, itemPublicID, axiosInstance}) => {
     try {
         const authToken =  await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemId}`, {comment_text: commentText}, {
+        const response = await axiosInstance.post(`${BASE_URL}/createComment/${itemPublicID}`, {comment_text: commentText}, {
             headers: { 
                 'Authorization': `Bearer ${authToken}`,
                 'content-type': 'application/json'

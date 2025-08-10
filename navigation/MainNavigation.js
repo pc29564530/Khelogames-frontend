@@ -14,7 +14,6 @@ import CreateCommunity from '../screen/CreateCommunity';
 import Profile from '../screen/Profile';
 import EditProfile from '../screen/EditProfile';
 import ThreadComment from '../screen/ThreadComment';
-import JoinCommunity from '../screen/JoinCommunity';
 import CommunityList from '../screen/CommunityList';
 import CommunityPage from '../screen/CommunityPage';
 import CommunityType from '../screen/CommunityType';
@@ -33,7 +32,7 @@ import TournamentDescription from '../screen/TournamentDescription';
 import CreatePlayerProfile from '../screen/CreatePlayerProfile';
 import PlayerProfile from '../screen/PlayerProfile';
 import CricketMatchPage from '../screen/CricketMatchPage';
-import AddCricketMatchPlayer from '../screen/AddCricketMatchPlayer';
+// import AddCricketMatchPlayer from '../screen/AddCricketMatchPlayer';
 import EditMatchScore from '../screen/EditMatchScore';
 import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
@@ -86,14 +85,6 @@ export default function MainNavigation() {
                                 headerBackTitleVisible: false,
                                 headerLeft: false
                                 })}
-                        />
-                        <Stack.Screen name="JoinCommunity" component={JoinCommunity}
-                            options={() => ({
-                                headerShown: false,
-                                headerTitle: null,
-                                headerBackTitleVisible: false,
-                                headerLeft: false
-                            })}
                         />
                         <Stack.Screen name="CreateThread" component={CreateThread} />
                         <Stack.Screen name="Shorts" component={Shorts} />
@@ -170,7 +161,7 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
-                        <Stack.Screen name="AddCricketMatchPlayer" component={AddCricketMatchPlayer} />
+                        {/* <Stack.Screen name="AddCricketMatchPlayer" component={AddCricketMatchPlayer} /> */}
                         <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage} 
                             options={{
@@ -181,7 +172,7 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
-                        <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} />
+                        {/* <Stack.Screen name="AddFootballPlayerScore" component={AddFootballPlayerScore} /> */}
                         <Stack.Screen name="Follow" component={Follow} 
                             options={{
                                 headerShown: true,
@@ -197,7 +188,7 @@ export default function MainNavigation() {
                     <>
                         <Stack.Screen name="SignUp" component={SignUp}
                             options={() => ({
-                            headerShown: false,
+                            headerShown: true,
                             headerTitle: null,
                             headerBackTitleVisible: false,
                             headerLeft: false

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 const TournamentMatches = ({ route, navigation }) => {
     const { tournament, currentRole } = route.params;
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
     const teams = useSelector((state) => state.teams.teams);
     const game = useSelector(state => state.sportReducers.game);
     

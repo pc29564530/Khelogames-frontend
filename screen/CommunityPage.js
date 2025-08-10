@@ -5,7 +5,7 @@ import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { TopTabCommunityPage } from '../navigation/TopTabCommunityPage';
 import { BASE_URL } from '../constants/ApiConstants';
 import {useSelector, useDispatch} from 'react-redux';
@@ -17,8 +17,7 @@ function CommunityPage({route}) {
     const dispatch = useDispatch();
     const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity);
     const [memberCount, setMemeberCount] = useState(1);
-    const axiosInstance = useAxiosInterceptor();
-    const communityPageData = route.params?.item;
+    const {item, communityPublicID} = route.params;
 
     useEffect(() => {
         fetchCommunityJoinedByUser();
@@ -44,16 +43,15 @@ function CommunityPage({route}) {
         }
     };
     
-    const handleAnnouncement = (communityPageData) => {
-        navigation.navigate('CommunityMessage', {communityPageData:communityPageData})
+    const handleAnnouncement = (item) => {
+        navigation.navigate('CommunityMessage', {item:item})
     }
 
     //community member length
     const fetchCommunityLength = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const communities_name = communityPageData.communities_name;
-            const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communities_name}`,null, {
+            const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communityPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -66,10 +64,10 @@ function CommunityPage({route}) {
     }
 
     //to join any community from the community list
-    const handleJoinCommunity = async (item) => {
+    const handleJoinCommunity = async (communityPublicID) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`${BASE_URL}/addJoinCommunity`, {community_name: item}, {
+            const response = await axiosInstance.post(`${BASE_URL}/addJoinCommunity/${communityPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -169,39 +167,39 @@ function CommunityPage({route}) {
                     <MaterialIcons name="arrow-back" size={22} color="black" />
                 </Pressable>
                 <Animated.View style={[tailwind`items-center`, nameAnimatedStyles]}>
-                    <Text style={[tailwind`text-xl text-black`]}>{communityPageData?.communities_name}</Text>
+                    <Text style={[tailwind`text-xl text-black`]}>{item?.name}</Text>
                 </Animated.View>
             </Animated.View>
             <Animated.Image source={""} style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-10 bg-yellow-300`, animImage]}/>
             <Animated.ScrollView onScroll={handleScroll} contentContainerStyle={{height: 856}} style={tailwind`bg-white`}>
                 <View style={tailwind`mt-20 items-center`}>
                     <View style={tailwind`items-center`}>
-                        <Text style={tailwind`text-black font-bold text-2xl`}>{communityPageData.communities_name}</Text>
-                        {/* <Text style={tailwind`text-white text-`}>{communityPageData.description}</Text> */}
+                        <Text style={tailwind`text-black font-bold text-2xl`}>{item.name}</Text>
+                        {/* <Text style={tailwind`text-white text-`}>{item.description}</Text> */}
                         <Text style={tailwind`text-black text-sm mt-1`}>Community - {memberCount} member</Text>
                     </View>
                 </View>
                 <View style={tailwind`p-2 flex-row items-center justify-between`}>
-                    <Pressable style={tailwind` items-start flex-row rounded bg-red-400 items-center p-2`} onPress={() => handleAnnouncement(communityPageData)}>
+                    <Pressable style={tailwind` items-start flex-row rounded bg-red-400 items-center p-2`} onPress={() => handleAnnouncement(item)}>
                         <AntDesign name="sound" size={20} color="white" style={tailwind`items-center`} />
                         <Text style={tailwind`text-white text-xl ml-2`}>Announcements</Text>
                     </Pressable>
                     <Pressable
                         style={tailwind`rounded-md  ${
-                            joinedCommunity?.some(c => c.community_name === communityPageData.communities_name)
+                            joinedCommunity?.some(c => c.name === item.name)
                                 ? 'bg-gray-500'
                                 : 'bg-blue-500'
                         } p-2 m-3 ml-20`}
-                        onPress={() => handleJoinCommunity(communityPageData.communities_name)}
+                        onPress={() => handleJoinCommunity(item.public_id)}
                     >
                         <Text style={tailwind`text-white text-xl pl-1.5`}>
-                            {joinedCommunity?.some(c => c.community_name === communityPageData.communities_name) ? 'Joined' : 'Join'}
+                            {joinedCommunity?.some(c => c.name === item.name) ? 'Joined' : 'Join'}
                         </Text>
                     </Pressable>
                 </View>
                 
                 <View style={tailwind`flex-1`}>
-                    <TopTabCommunityPage communityPageData={communityPageData}/>
+                    <TopTabCommunityPage item={item}/>
                 </View>
             </Animated.ScrollView>
         </View>

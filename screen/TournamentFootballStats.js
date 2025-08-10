@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, Image, FlatList} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'native-base';
@@ -17,7 +17,7 @@ const TournamentFootballStats = ({route}) => {
     const [mostGoals, setMostGoals] = useState(null);
     const [mostYellowCards, setMostYellowCards] = useState(null);
     const [mostRedCards, setMostRedCards] = useState(null);
-    const axiosInstance = useAxiosInterceptor();
+    
     const [modalVisible, setModalVisible] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [modalTitle, setModalTitle] = useState('');
@@ -32,7 +32,7 @@ const TournamentFootballStats = ({route}) => {
                     tournament_id: tournament.id
                 }
 
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -50,7 +50,7 @@ const TournamentFootballStats = ({route}) => {
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -66,9 +66,9 @@ const TournamentFootballStats = ({route}) => {
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const data = {
-                    tournament_id: tournament.id
+                    tournament_public_id: tournament.public_id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'

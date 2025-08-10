@@ -1,18 +1,17 @@
 import React, {useEffect} from 'react';
 import {View, Image, Text} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { getThreadComment } from '../services/commentServices';
 
 function Comment({thread}) {
-    const axiosInstance = useAxiosInterceptor();
+    
     const dispatch = useDispatch();
     const comments = useSelector((state) => state.comments.comments);
-
     //Implementing redux
     const fetchThreadComments = async () => {
-        getThreadComment({dispatch: dispatch, axiosInstance: axiosInstance, threadId: thread.id})
+        await getThreadComment({dispatch: dispatch, threadPublicID: thread.public_id})
     };
 
     useEffect(() => {
@@ -36,7 +35,7 @@ function Comment({thread}) {
                             )}
                             <View style={tailwind`px-2 w-75`}>
                                 <Text style={tailwind`text-black font-bold text-4x2`}>{item.profile?.full_name}</Text>
-                                <Text style={tailwind`text-black font-bold`}>@{item.owner}</Text>
+                                <Text style={tailwind`text-black font-bold`}>@{item.profile.username}</Text>
                                 <Text style={tailwind`text-base text-black mt-4`}>{item.comment_text}</Text>
                                 <View style={tailwind`border-b border-white mt-2 w-100`}></View>
                             </View>

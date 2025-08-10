@@ -3,7 +3,7 @@ import React, {useState} from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { BASE_URL } from "../constants/ApiConstants";
 import { useNavigation } from "@react-navigation/native";
-import useAxiosInterceptor from "./axios_config";
+import axiosInstance from "./axios_config";
 import tailwind from "twrnc";
 
 const TournamentDescription = ({route}) => {
@@ -14,7 +14,7 @@ const TournamentDescription = ({route}) => {
     const [advanceCount, setAdvanceCount] = useState(null);
     const [tournamentStart, setTournamentStart] = useState(new Date())
     const navigation = useNavigation();
-    const axiosInstance = useAxiosInterceptor();
+    
 
 
     const createTournamentDescription = async () => {

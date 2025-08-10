@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useSelector,useDispatch} from 'react-redux';
 import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile, checkIsFollowing} from '../redux/actions/actions';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import TopTabProfile from '../navigation/TopTabProfile';
@@ -17,17 +17,19 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 function Profile({route}) {
-    const axiosInstance = useAxiosInterceptor();
+    const {profilePublicID} = route.params;
+    console.log("Profile Public ID: ", profilePublicID)
+
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
-    const profile = useSelector((state) => state.profile.profile)
     const navigation = useNavigation();
-    const [profileData, setProfileData] = useState([]);
     const following = useSelector((state) => state.user.following);
     const [showEditProfileButton,setShowEditProfileButton] = useState(false);
     const [moreTabVisible, setMoreTabVisible] = useState(false);
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
+    const [player, setPlayer] = useState(null);
+    const profile = useSelector(state => state.profile.profile)
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
@@ -41,7 +43,22 @@ function Profile({route}) {
     const [email, setEmail] = useState(null);
     const [country, setCountry] = useState(null);
 
-    const otherOwner  = route.params?.username;
+     useEffect(() => {
+      const fetchProfile = async () => {
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const userPublicID = await AsyncStorage.getItem("UserPublicID");
+        const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        dispatch(getProfile(response.data))
+      }
+      if(profilePublicID !== profile.public_id){
+        fetchProfile();
+      }
+    },[profilePublicID])
 
     useFocusEffect(
       React.useCallback(() => {
@@ -58,14 +75,14 @@ function Profile({route}) {
     const checkIsFollowingFunc = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/isFollowing`, {
+            const response = await axiosInstance.get(`${BASE_URL}/isFollowing/`, {
               params: {
-                following_owner: otherOwner
+                target_public_id: userPublicID
               },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
+              headers: {
+                  'Authorization': `Bearer ${authToken}`,
+                  'Content-Type': 'application/json'
+              }
             });
             dispatch(checkIsFollowing(response.data));
         } catch (err) {
@@ -76,7 +93,7 @@ function Profile({route}) {
     const handleReduxFollow = async () => {
       try {
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${otherOwner}`,{},{
+          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${userPublicID}`,{},{
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -98,7 +115,7 @@ function Profile({route}) {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
-          `${BASE_URL}/unFollow/${otherOwner}`,
+          `${BASE_URL}/unFollow/${userPublicID}`,
           {
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -147,13 +164,13 @@ function Profile({route}) {
 
   const fetchData = async () => {
     try {
-      const owner = await AsyncStorage.getItem('User')
-      if (!owner) {
+      const userPublicID = await AsyncStorage.getItem('UserPublicID')
+      if (!userPublicID) {
         console.log("User not found in AsyncStorage.");
         return;
       }
-      if(otherOwner === owner){
-        const response = await axios.get(`${AUTH_URL}/getProfile/${owner}`);
+      if(userPublicID === profilePublicID){
+        const response = await axios.get(`${AUTH_URL}/getProfile/${userPublicID}`);
         if (response.data === null) {
           setProfileData([]);
         } else {
@@ -162,7 +179,7 @@ function Profile({route}) {
 
           if(!response.data.avatar_url || response.data.avatar_url === '') {
 
-            const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+            const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
             setDisplayText(usernameInitial.toUpperCase());
             
           } else {
@@ -170,14 +187,14 @@ function Profile({route}) {
           }
         }
       } else {
-        const response = await axios.get(`${AUTH_URL}/getProfile/${otherOwner}`)
+        const response = await axios.get(`${AUTH_URL}/getProfile/${userPublicID}`)
        if( response.data == null ){
           setProfileData([])
         } else {
           setProfileData(response.data);
           dispatch(getProfile(response.data))
           if(!response.data.avatar_url || response.data.avatar_url === '') {
-            const usernameInitial = response.data.owner ? response.data.owner.charAt(0) : '';
+            const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
             setDisplayText(usernameInitial.toUpperCase());
           } else {
             setDisplayText('');
@@ -192,19 +209,19 @@ function Profile({route}) {
   
 
   const verifyUser = async () => {
-    const authUser = await AsyncStorage.getItem("User");
-    if(otherOwner === authUser) {
+    const authPublicID = await AsyncStorage.getItem("UserPublicID");
+    if(userPublicID === authPublicID) {
       setShowEditProfileButton(true);
-      setCurrentUser(authUser);
+      setCurrentUser(authPublicID);
     } else {
-      setCurrentUser(otherOwner);
+      setCurrentUser(userPublicID);
     }
   }
 
   useEffect( () => {
     const followerCount = async () => {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const currentUser = await AsyncStorage.getItem("User");
+        const authPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -219,7 +236,7 @@ function Profile({route}) {
     }
     const followingCount = async () => {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const currentUser = await AsyncStorage.getItem("User");
+      const currentUser = await AsyncStorage.getItem("UserPublicID");
       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -239,14 +256,14 @@ function Profile({route}) {
   const handleMessage = async () => {
     try {
           const authToken = await AsyncStorage.getItem("AccessToken");
-          const currentUser = await AsyncStorage.getItem("User");
+          const currentUser = await AsyncStorage.getItem("UserPublicID");
           const data = {
             following_owner:currentUser,
-            follower_owner:otherOwner
+            follower_owner:userPublicID
           }
           const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
             params: {
-              following_owner:otherOwner
+              following_owner:userPublicID
             },
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -258,7 +275,7 @@ function Profile({route}) {
           } else {
             Alert.alert(
               "No Mutual Connection Found",
-              `You are not followed by ${otherOwner}. You cannot send a message.`,
+              `You are not followed by ${userPublicID}. You cannot send a message.`,
               [{ text: "OK" }]
             )
           }
@@ -296,6 +313,26 @@ const addPlayerProfile = () => {
     return 'Follow'
   }
 }
+
+    useEffect(() => {
+        const fetchPlayerWithProfile = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken");
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                setPlayer(response.data || null);
+            } catch (err) {
+                console.error("Error fetching player:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchPlayerWithProfile()
+    })
 
 useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
@@ -462,7 +499,7 @@ useEffect(() => {
                   <View style={tailwind`items-center`}>
                     <View style={tailwind`mt-18`}>
                       <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
-                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.owner}</Text>
+                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.username}</Text>
                     </View>
                   </View>
                   <View style={tailwind`mt-2 items-center`}>
@@ -487,7 +524,7 @@ useEffect(() => {
                       </Pressable>
                   </View>
                   <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
-                    <TopTabProfile profileData={profile} />
+                    <TopTabProfile profile={profile} />
                   </View>
                 </View>
             </Animated.ScrollView>

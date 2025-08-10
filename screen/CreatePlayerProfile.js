@@ -6,7 +6,7 @@ import tailwind from 'twrnc';
 import CountryPicker from 'react-native-country-picker-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
 const filePath = require('../assets/position.json');
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -26,7 +26,7 @@ const CreatePlayerProfile = () => {
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game)
-    const axiosInstance = useAxiosInterceptor();
+    
     const navigation  = useNavigation();
 
     useEffect(() => {
@@ -49,14 +49,10 @@ const CreatePlayerProfile = () => {
     const handleAddPlayer = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const username = await AsyncStorage.getItem('User')
             const data = {
-                    name:username,
                     positions: position,
-                    sports: playerSport.name,
                     country: playerCountry.name,
-                    game_id: playerSport.id,
-                    profile_id: profile.id
+                    game_id: game.id
             }
             const response = await axiosInstance.post(`${BASE_URL}/newPlayer`, data, {
                 headers: {
@@ -65,7 +61,6 @@ const CreatePlayerProfile = () => {
                 },
             });
             setPlayerCountry('');
-            setPlayerSport('');
             setPosition('');
             navigation.goBack();
         } catch (err) {

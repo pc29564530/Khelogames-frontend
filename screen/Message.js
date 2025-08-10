@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { View, Text, Image, Pressable, TextInput, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import EmojiSelector from 'react-native-emoji-selector';
@@ -13,11 +13,10 @@ import {SelectMedia} from '../services/SelectMedia';
 
 function Message({ route }) {
   const navigation = useNavigation();
-  const axiosInstance = useAxiosInterceptor();
   const [receivedMessage, setReceivedMessage] = useState([]);
   const [newMessageContent, setNewMessageContent] = useState('');
   const [allMessage, setAllMessage] = useState([]);
-  const profileData = route.params?.profileData;
+  const receiverProfile = route.params.profileData;
   const [currentUser, setCurrentUser] = useState('');
   const [showEmojiSelect, setShowEmojiSelect] = useState(false);
   const [mediaType, setMediaType] = useState('');
@@ -90,18 +89,17 @@ function Message({ route }) {
   useEffect(() => {
     const fetchAllMessage = async () => {
       try {
-        const user = profileData.owner;
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const username = await AsyncStorage.getItem('User');
+        const userPublicID = await AsyncStorage.getItem('UserPublicID');
         
-        const response = await axiosInstance.get(`${BASE_URL}/getMessage/${user}`, null, {
+        const response = await axiosInstance.get(`${BASE_URL}/getMessage/${receiverProfile.public_id}`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'content-type': 'application/json'
           }
         });
 
-        setCurrentUser(username);
+        setCurrentUser(userPublicID);
 
         if (response.data === null || !response.data) {
             setReceivedMessage([]);
@@ -126,13 +124,12 @@ function Message({ route }) {
 
   const sendMessage = async () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        const user = await AsyncStorage.getItem('User');
+        const userPublicID = await AsyncStorage.getItem('UserPublicID');
 
         const newMessage = {
+            sender_public_id: userPublicID,
+            receiver_public_id: receiverProfile.public_id,
             content: newMessageContent,
-            sender_username: user,
-            receiver_username: profileData.owner,
-            sent_at: new Date().toISOString(),
             media_url: mediaURL,
             media_type: mediaType,
         }
@@ -164,16 +161,16 @@ function Message({ route }) {
               <View style={tailwind`flex-row items-center gap-4 p-6`}>
                   <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
                   <View style={tailwind`flex-row gap-4`}>
-                      <Image source={{uri: profileData.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
+                      <Image source={{uri: receiverProfile.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
                       <View>
-                          <Text style={tailwind`text-white`}>{profileData.full_name}</Text>
-                          <Text style={tailwind`text-white`}>@{profileData.owner}</Text>
+                          <Text style={tailwind`text-white`}>{receiverProfile.full_name}</Text>
+                          <Text style={tailwind`text-white`}>@{receiverProfile.username}</Text>
                       </View> 
                   </View>
               </View>
           )
       })
-    },[navigation,profileData]);
+    },[navigation,receiverProfile]);
 
   return (
     <View style={tailwind`flex-1 bg-white`}>
@@ -184,13 +181,13 @@ function Message({ route }) {
         {receivedMessage.map((item, index) => (
           <View key={index} style={[
             tailwind`flex-row items-end`,
-            item.sender_username !== currentUser
+            item.sender.public_id !== currentUser
               ? tailwind`justify-start`
               : tailwind`justify-end`,
           ]}>
             <View style={[
                     tailwind`p-2 border rounded-2xl`,
-                    item.sender_username !== currentUser
+                    item.sender.public_id !== currentUser
                     ? tailwind`bg-gray-300`
                     : tailwind`bg-green-200`,
                 ]}         

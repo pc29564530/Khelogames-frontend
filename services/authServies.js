@@ -9,7 +9,7 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         const item = response.data;
         await AsyncStorage.setItem("AccessToken", item.access_token);
         await AsyncStorage.setItem("Role", item.user.role);
-        await AsyncStorage.setItem("User", item.user.username);
+        await AsyncStorage.setItem("User", item.user);
         await AsyncStorage.setItem("RefreshToken", item.refresh_token);
         await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
         await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
@@ -22,14 +22,16 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
     }
 };
 
-export const logoutServies = async ({dispatch}) => {
+export const logoutServies = async ({dispatch, navigation}) => {
     try {
-        const username = await AsyncStorage.getItem('User');
-        await axios.delete(`${AUTH_URL}/removeSession/${username}`);
+        const userPublicID = await AsyncStorage.getItem('UserPublicID');
+        await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`);
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');
-        await AsyncStorage.removeItem('User');
+        await AsyncStorage.removeItem('UserPulbicID');
+        await AsyncStorage.removeItem("Role");
+        navigation.navigate("SignIn");
       } catch (err) {
         alert("Failed to logout");
         console.log('Failed to logout', err);

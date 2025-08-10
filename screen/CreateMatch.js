@@ -12,7 +12,7 @@ import {
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import DateTimePicker from 'react-native-modern-datepicker';
 const filePath = require('../assets/knockout.json')
@@ -26,8 +26,8 @@ const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateMatch = ({ route }) => {
     const {tournament, teams, handleCloseFixtureModal} = route.params;
-    const [team1, setTeam1] = useState(null);
-    const [team2, setTeam2] = useState(null);
+    const [homeTeamPublicID, setHomeTeamPublicID] = useState(null);
+    const [awayTeamPublicID, setAwayTeamPublicID] = useState(null);
     const [startTime, setStartTime] = useState(null);
     const [statusCode, setStatusCode]  = useState('not_started');
     const [endTime, setEndTime] = useState(null);
@@ -39,7 +39,7 @@ const CreateMatch = ({ route }) => {
     const [result, setResult] = useState(null);
     const [matchType, setMatchType] = useState('');
     const [stage, setStage] = useState('');
-    const axiosInstance = useAxiosInterceptor();
+    
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
@@ -60,9 +60,9 @@ const CreateMatch = ({ route }) => {
   
     const handleSelectTeam = (item) => {
       if (team1 === null) {
-        setTeam1(item.id);
+        setTeam1(item.public_id);
       } else {
-        setTeam2(item.id);
+        setTeam2(item.public_id);
       }
       setIsModalTeamVisible(false);
     };
@@ -70,9 +70,9 @@ const CreateMatch = ({ route }) => {
     const handleSetFixture = async () => {
       try {
         const fixture = {
-          tournament_id: tournament.id,
-          away_team_id: team1,
-          home_team_id: team2,
+          tournament_public_id: tournament.public_id,
+          away_team_public_id: awayTeamPublicID,
+          home_team_public_id: homeTeamPublicID,
           start_timestamp: modifyDateTime(startTime),
           end_timestamp: endTime?modifyDateTime(endTime):'',
           type: matchType.toLowerCase(),
@@ -118,13 +118,13 @@ const CreateMatch = ({ route }) => {
       <ScrollView style={tailwind` p-4`}>
         <View style={tailwind`mb-2`}>
           <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-            <Text style={tailwind`text-black text-lg`}>{team1 ? teams.find((item) => item.id === team1).name : "Select Team 1"}</Text>
+            <Text style={tailwind`text-black text-lg`}>{homeTeamPublicID ? teams.find((item) => item.public_id === homeTeamPublicID).name : "Select Team 1"}</Text>
             <AntDesign name="down" size={24} color="black" />
           </Pressable>
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-lg`}>{team2 ? teams.find((item) => item.id === team2).name : "Select Team 2"}</Text>
+                <Text style={tailwind`text-black text-lg`}>{awayTeamPublicID ? teams.find((item) => item.public_id === awayTeamPublicID).name : "Select Team 2"}</Text>
                 <AntDesign name="down" size={24} color="black" />
             </Pressable>
         </View>

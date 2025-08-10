@@ -6,7 +6,7 @@ import { AddCricketBatsman } from "./AddCricketBatsman";
 import { useSelector, useDispatch } from 'react-redux';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import CricketTeamSquad from './CricketTeamSquad';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { getCricketMatchSqud } from '../redux/actions/actions';
 
@@ -21,7 +21,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber)
     const cricketMatchSquad = useSelector(state => state.players.squads)
     const dispatch = useDispatch();
-    const axiosInstance = useAxiosInterceptor();
+    
 
 
     return (
@@ -76,7 +76,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                 >
                     <Pressable onPress={() => setIsBowlTeamPlayerModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddCricketBowler match={match} batTeam={batTeam}  homeTeam={match.home_team_id} awayTeam={match.away_team_id} game={game} dispatch={dispatch} bowling={bowling}/>
+                            <AddCricketBowler match={match} batTeam={batTeam}  homeTeam={match.homeTeam} awayTeam={match.awayTeam} game={game} dispatch={dispatch} bowling={bowling}/>
                         </View>
                     </Pressable>
                 </Modal>

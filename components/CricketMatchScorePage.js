@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Pressable, Text, View} from 'react-native';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
@@ -46,7 +46,7 @@ const CricketMatchScorePage = ({route}) => {
     const navigation = useNavigation();
 
     const {team1ID, team2ID, tournamentID, matchID} = route.params;
-    const axiosInstance = useAxiosInterceptor()
+    const axiosInstance = axiosInstance()
     useEffect(() => {
         const fetchScoreBoard = async () => {
             try {

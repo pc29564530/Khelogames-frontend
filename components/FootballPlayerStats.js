@@ -1,15 +1,15 @@
 import {useState, useEffect} from 'react';
 import {View, Text, ActivityIndicator} from 'react-native';
-import useAxiosInterceptor from '../screen/axios_config';
+import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FlatList } from 'native-base';
 
-const FootballPlayerStats = ({playerID}) => {
+const FootballPlayerStats = ({player}) => {
     const [playerStats, setPlayerStats] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const axiosInstance = useAxiosInterceptor();
+    
 
 
     useEffect(() => {
@@ -17,7 +17,7 @@ const FootballPlayerStats = ({playerID}) => {
             setIsLoading(true);
             try {
                 const authToken = await AsyncStorage.getItem('authToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getFootballPlayerStats/${playerID}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/getFootballPlayerStats/${player.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json'

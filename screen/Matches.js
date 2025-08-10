@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {setGames, setGame } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useAxiosInterceptor from './axios_config';
+import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
@@ -80,7 +80,7 @@ const Matches = () => {
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
-    const axiosInstance = useAxiosInterceptor();
+    
     const matches = useSelector((state) => state.matches.matches)
 
     useEffect(() => {
@@ -143,9 +143,9 @@ const Matches = () => {
 
     const checkSportForMatchPage = (item, game) => {
         if (game.name==='football'){
-            navigation.navigate("FootballMatchPage",{item: item.id} )
+            navigation.navigate("FootballMatchPage",{matchPublicID: item.public_id} )
         } else if(game.name === 'cricket') {
-            navigation.navigate("CricketMatchPage", {item: item.id})
+            navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id})
         }
     }
 
@@ -219,14 +219,14 @@ const Matches = () => {
                                                 {item.status !== "not_started" && (
                                                     <View>
                                                     <View style={tailwind``}>
-                                                        {item.scores.home_score  && checkSport(item, game) && (
+                                                        {item.scores.homeScore  && checkSport(item, game) && (
                                                             <View style={tailwind``}>
-                                                                {renderInningScore(item.homeScore)}
+                                                                {renderInningScore(item.scores.homeScore)}
                                                             </View>
                                                         )}
-                                                        {item.scores.away_score && (
+                                                        {item.scores.awayScore && (
                                                             <View style={tailwind``}>
-                                                                {renderInningScore(item.awayScore)}
+                                                                {renderInningScore(item.scores.awayScore)}
                                                             </View>
                                                         )}
                                                     </View>

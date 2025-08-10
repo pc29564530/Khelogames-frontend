@@ -87,10 +87,10 @@ export const addNewTournamentBySport = async ({axiosInstance, data, navigation})
     }
 }
 
-export const getTournamentByID = async ({axiosInstance, sport, id}) => {
+export const getTournamentByPublicID = async ({axiosInstance, sport, publicID}) => {
     try {
         const authToken = await AsyncStorage.getItem("AccessToken");
-        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournament/${id}`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${sport}/getTournament/${publicID}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -151,10 +151,7 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log("Game: ", game)
         if (game.name === "football") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding`, {
-                params: {
-                    tournament_id: tournament.id.toString(),
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballStanding/${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -162,28 +159,23 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
             })
             dispatch(setStandings(response.data || []));
         } else if (game.name === "cricket") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding`, {
-                params: {
-                    tournament_id: tournament.id.toString(),
-                },
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             })
             dispatch(setStandings(response.data || []));
-        }
-        
-        
+        }     
     } catch (err) {
         console.error("Unable to fetch the standings of tournament: ", err);
     }
 };
 
-export const getTeamsByTournamentID  = async ({tournamentID, game,  AsyncStorage, axiosInstance}) => {
+export const getTeamsByTournamentID  = async ({tournamentPublicID, game,  AsyncStorage, axiosInstance}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken')
-        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentTeam/${tournamentID}`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentTeam/${tournamentPublicID}`, {
             headers: {
                 'Authorization': `bearer ${authToken}`,
                 'Content-Type': 'application/json'

@@ -3,7 +3,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 import tailwind from 'twrnc';
 
-const AddFootballIncidentlayer = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedPlayer, setSelectedPlayer, teamID}) => {
+const AddFootballIncidentlayer = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedPlayer, setSelectedPlayer, teamPublicID}) => {
     
     return (
         <View>
@@ -12,13 +12,13 @@ const AddFootballIncidentlayer = ({matchData, awayPlayer, homePlayer, awayTeam, 
                     <Text style={tailwind`mb-2 text-xl font-bold`}>Player:</Text>
                     <Dropdown 
                         style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                        options={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                        options={teamPublicID === homeTeam.public_id ? homePlayer : awayPlayer}
                         onSelect={(index, item) => setSelectedPlayer(item)}
-                        data={teamID === homeTeam.id ? homePlayer : awayPlayer}
+                        data={teamPublicID === homeTeam.public_id ? homePlayer : awayPlayer}
                         renderRow={(item) => (
                             <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
                                 <Image
-                                    src={item.media_url}
+                                    src={{uri: item.media_url}}
                                     style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
                                     resizeMode="cover"
                                 />

@@ -1,90 +1,85 @@
-import {useEffect} from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
 import { AUTH_URL } from '../constants/ApiConstants';
-import { useDispatch } from 'react-redux';
-import { logout } from '../redux/actions/actions';
 
+let isRefreshing = false;
+let failedQueue = [];
 
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
 
-//create a new instance of the axios
+  failedQueue = [];
+};
+
 const axiosInstance = axios.create();
 
-
-function useAxiosInterceptor() {
-    const navigation = useNavigation();
-    const dispatch = useDispatch();
-  
-    useEffect(() => {
-
-      //request of axios
-      axiosInstance.interceptors.request.use(
-        async (config) => {
-          const accessToken = await AsyncStorage.getItem('AccessToken');
-          if (accessToken) {
-            config.headers['Authorization'] = `Bearer ${accessToken}`;
-          }
-          return config;
-        },
-        (error) => {
-          return Promise.reject(error);
-        }
-      );
-      
-      //response of axios
-      axiosInstance.interceptors.response.use(
-        (response) => {
-          return response;
-        },
-        async (error) => {
-          if (error.response && error.response.status === 401) {
-            try {
-              const refreshToken = await AsyncStorage.getItem('RefreshToken');
-              if (refreshToken) {
-                const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
-                  'refresh_token': refreshToken,
-                });
-                if (response.data.access_token) {
-                  // Renewal was successful, update the access token
-                  await AsyncStorage.setItem('AccessToken', response.data.access_token);
-                  error.config.headers['Authorization'] = `Bearer ${response.data.access_token}`;
-                  return axiosInstance(error.config);
-                } else {
-                  // Failed to renew token or received an invalid token
-                  await handleTokenExpiry();
-                }
-              } else {
-                // No refresh token is available
-                await handleTokenExpiry();
-              }
-            } catch (err) {
-              console.error("Error occurred while regenerating the access token: ", err);
-              await handleTokenExpiry();
-            }
-          }
-          return Promise.reject(error);
-        }
-      );
-    }, [navigation]);
-
-    const handleTokenExpiry = async () => {
-      try {
-        const username = await AsyncStorage.getItem('User');
-        if (username) {
-          await axios.delete(`${AUTH_URL}/removeSession/${username}`)
-        }
-        dispatch(logout())
-        await AsyncStorage.removeItem('AccessToken');
-        await AsyncStorage.removeItem('RefreshToken');
-        await AsyncStorage.removeItem('User');
-      } catch (error) {
-        console.error("Error during token expiry handling: ", error);
-      }
-      navigation.navigate('SignIn');
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem("AccessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  
-    return axiosInstance;
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+        .then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return axiosInstance(originalRequest);
+        })
+        .catch(err => Promise.reject(err));
+      }
+
+      isRefreshing = true;
+
+      try {
+        const refreshToken = await AsyncStorage.getItem("RefreshToken");
+
+        const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
+          refresh_token: refreshToken,
+        });
+        console.log("Renew Access: ", response.data)
+
+        const newAccessToken = response.data.AccessToken;
+
+        await AsyncStorage.setItem("AccessToken", newAccessToken);
+        await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.AccessTokenExpiresAt);
+
+        axiosInstance.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        processQueue(null, newAccessToken);
+
+        return axiosInstance(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
   }
-  
-  export default useAxiosInterceptor;
+);
+
+export default axiosInstance;
