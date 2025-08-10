@@ -170,7 +170,6 @@ export default function EditProfile() {
     const handleNewRole = async (item) => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken")
-            const authUser = await AsyncStorage.getItem("User")
             const data = {
                 role_id: item.id
             }
