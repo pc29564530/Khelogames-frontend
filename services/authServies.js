@@ -29,8 +29,9 @@ export const logoutServies = async ({dispatch, navigation}) => {
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
         await AsyncStorage.removeItem('RefreshToken');
-        await AsyncStorage.removeItem('User');
-        Navigation.navigate("SignIn");
+        await AsyncStorage.removeItem('UserPulbicID');
+        await AsyncStorage.removeItem("Role");
+        navigation.navigate("SignIn");
       } catch (err) {
         alert("Failed to logout");
         console.log('Failed to logout', err);

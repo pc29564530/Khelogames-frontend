@@ -118,17 +118,23 @@ const SignUp = () => {
 
             const response = await axios.post(`${AUTH_URL}/google/createEmailSignUp`, signupData);
             if (response.data.Success) {
-              const item = response.formData
+              const item = response.data
                 const newUser = response.data.User;
-                dispatch(setUser(newUser));
-                dispatch(setAuthenticated(!isAuthenticated));
-
-                await AsyncStorage.setItem("Role", item.User.role);
-                await AsyncStorage.setItem("UserPublicID", item.User.public_id);
-                await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
+                if(!item.Success){
+                    Alert.alert(response.data.message)
+                    return
+                }
+                
+                // Store tokens
                 await AsyncStorage.setItem("AccessToken", item.Session.AccessToken);
+                await AsyncStorage.setItem("Role", item.User?.role);
+                await AsyncStorage.setItem("UserPublicID", item?.User?.public_id);
+                await AsyncStorage.setItem("RefreshToken", item.Session.RefreshToken);
                 await AsyncStorage.setItem("AccessTokenExpiresAt", item.Session.AccessTokenExpiresAt);
                 await AsyncStorage.setItem("RefreshTokenExpiresAt", item.Session.RefreshTokenExpiresAt);
+
+                dispatch(setAuthenticated(true));
+                dispatch(setUser(item.User));
                 navigation.navigate("Home");
             } else {
                 showAlert('Error', response.data.message || 'Failed to create account');

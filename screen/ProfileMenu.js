@@ -169,7 +169,7 @@ function ProfileMenu() {
           )}
         </View>
         <View style={tailwind`mt-10 items-center`}>
-          <TouchableOpacity onPress={handleLogout} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
+          <TouchableOpacity onPress={() => handleLogout()} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
             <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
           </TouchableOpacity>
         </View>
