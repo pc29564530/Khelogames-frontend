@@ -1,7 +1,8 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialstate = {
-    profile:[]
+    profile:[],
+    authProfilePublicID: ""
 }
 
 const profileReducers = (state = initialstate, action) => {
@@ -10,6 +11,11 @@ const profileReducers = (state = initialstate, action) => {
             return {
                 ...state,
                 profile: action.payload
+            }
+        case actionTypes.SET_AUTH_PROFILE_PUBLIC_ID:
+            return {
+                ...state,
+                authProfilePublicID: action.payload
             }
         default:
             return state
