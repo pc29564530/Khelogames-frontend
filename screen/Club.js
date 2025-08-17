@@ -20,7 +20,7 @@ const Club = () => {
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
-    const teams = useSelector((state) => state.teams.teams);
+    const teams = useSelector((state) => state.teams.teamsBySports);
 
     useEffect(() => {
         const defaultSport = { id: 1, name: 'football', min_players: 11 };
@@ -62,7 +62,7 @@ const Club = () => {
                 if (!item || item === null) {
                     dispatch(getTeamsBySport([]));
                 } else {
-                    dispatch(getTeamsBySport(item.teams));
+                    dispatch(getTeamsBySport(item));
                 }
             } catch (err) {
                 console.error("Unable to fetch all team or club: ", err);
@@ -72,7 +72,7 @@ const Club = () => {
         if (game?.name) {
             getClubData();
         }
-    }, [axiosInstance, game, teams]);
+    }, [axiosInstance, game]);
 
     navigation.setOptions({
         headerTitle: 'Teams',

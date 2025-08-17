@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
-import {View, Text, Image, ScrollView, Pressable } from 'react-native';
+import {View, Text, Image, ScrollView, Pressable, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
@@ -13,10 +13,13 @@ function MessagePage() {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const [followingWithProfile, setFollowingWithProfile] = useState([]);
+    const [searchPlayer, setSearchPlayer] = useState('');
     const [displayText, setDisplayText] = useState('');
     const [communities, setCommunities] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [filteredCommunities, setFilteredCommunities] = useState([]);
     const following = useSelector((state) => state.user.following)
-    //change this method to all profile
+
     const fetchFollowing = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -41,13 +44,13 @@ function MessagePage() {
                     } else {
                         setDisplayText('');
                     }
-                    return {...item, profile: profileResponse.data}
+                    return {...itm, profile: profileResponse.data}
                 })
                 const followingData = await Promise.all(followingProfile);
                 setFollowingWithProfile(followingData);
+                setFilteredUsers(followingData); // Initialize filtered users
                 dispatch(getFollowingUser(followingData));
             }
-
         } catch (e) {
             console.error(e);
         }
@@ -65,8 +68,10 @@ function MessagePage() {
             });
             if(!response.data || response.data === null) {
                 setCommunities([]);
+                setFilteredCommunities([]);
             } else {
-                setCommunities(response.data)
+                setCommunities(response.data);
+                setFilteredCommunities(response.data); // Initialize filtered communities
             }
 
         } catch(err) {
@@ -86,7 +91,7 @@ function MessagePage() {
             const item = response.data;
             if(item === null || !item) {
                 setFollowingWithProfile([]);
-                // dispatch(getFollowingUser([]));
+                setFilteredUsers([]);
             } else {
                 const followingProfile = item.map(async (item, index) => {                  
                     const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
@@ -100,7 +105,7 @@ function MessagePage() {
                 })
                 const followingData = await Promise.all(followingProfile);
                 setFollowingWithProfile(followingData);
-                // dispatch(getFollowingUser(followingData));
+                setFilteredUsers(followingData); // Initialize filtered users
             }
 
         } catch(err) {
@@ -110,10 +115,8 @@ function MessagePage() {
     
     useFocusEffect(
         React.useCallback(() => {
-            // fetchFollowing();
-   
-        fetchCommunity();
-        fetchMessageReceiver();
+            fetchCommunity();
+            fetchMessageReceiver();
         },[])
     );
 
@@ -136,46 +139,167 @@ function MessagePage() {
                 </View>
             )
         })
-      },[navigation]);
-    return (
-        <ScrollView style={tailwind`bg-white`}>
-            <View style={tailwind`flex-1 bg-white pl-5 p-5`}>
-            <>
-                {communities.map((item,index)=>(
-                    <Pressable key={index} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleMessageCommunity({ item: item })}>
-                        <View style={tailwind`w-12 h-12 rounded-12 bg-red-400 items-center justify-center`}>
-                            <Text style={tailwind`text-white text-6x3`}>
-                                {item.dispayText}
-                            </Text>
-                        </View>
-                        <View  style={tailwind`text-black p-2 mb-1`}>
-                            <Text style={tailwind`text-black font-bold text-xl `}>{item.name}</Text>
-                            <Text style={tailwind`text-black`}>{item.discription}</Text>
-                        </View>
-                    </Pressable>
-                ))
+    },[navigation]);
 
-                }
-            </>
-            <>
-                {followingWithProfile?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleMessage({ item: item.profile })}>
-                            {!item.profile && !item.profile?.avatar_url ?(
-                                <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
-                                    <Text style={tailwind`text-red-500 text-6x3`}>
-                                        {displayText}
+    //  search function
+    const handleSearch = (text) => {
+        setSearchPlayer(text);
+        
+        if (text.trim() === '') {
+            // If search is empty, show all data
+            setFilteredUsers(followingWithProfile);
+            setFilteredCommunities(communities);
+            return;
+        }
+
+        const searchTerm = text.toLowerCase().trim();
+
+        // Filter users by name, username, or full name
+        const filteredUserResults = followingWithProfile.filter((item) => {
+            const profile = item.profile || {};
+            const fullName = profile.full_name || '';
+            const username = profile.owner || profile.username || '';
+            const name = profile.name || '';
+            
+            return (
+                fullName.toLowerCase().includes(searchTerm) ||
+                username.toLowerCase().includes(searchTerm) ||
+                name.toLowerCase().includes(searchTerm)
+            );
+        });
+
+        // Filter communities by name or description
+        const filteredCommunityResults = communities.filter((item) => {
+            const name = item.name || '';
+            const description = item.discription || item.description || '';
+            
+            return (
+                name.toLowerCase().includes(searchTerm) ||
+                description.toLowerCase().includes(searchTerm)
+            );
+        });
+
+        setFilteredUsers(filteredUserResults);
+        setFilteredCommunities(filteredCommunityResults);
+    }
+
+    // Get user initials for avatar placeholder
+    const getUserInitials = (profile) => {
+        if (profile?.full_name) {
+            return profile.full_name.charAt(0).toUpperCase();
+        } else if (profile?.username) {
+            return profile.username.charAt(0).toUpperCase();
+        } else if (profile?.owner) {
+            return profile.owner.charAt(0).toUpperCase();
+        }
+        return '?';
+    }
+
+    // Get community initials for avatar placeholder  
+    const getCommunityInitials = (community) => {
+        return community.name ? community.name.charAt(0).toUpperCase() : '?';
+    }
+
+    const renderNoResults = () => {
+        if (searchPlayer.trim() !== '' && filteredUsers.length === 0 && filteredCommunities.length === 0) {
+            return (
+                <View style={tailwind`items-center py-8`}>
+                    <Text style={tailwind`text-lg text-gray-500`}>No results found</Text>
+                    <Text style={tailwind`text-sm text-gray-400 mt-1`}>Try searching for something else</Text>
+                </View>
+            );
+        }
+        return null;
+    }
+
+    return (
+        <ScrollView style={tailwind`bg-white flex-1`}>
+            {/* Search Input */}
+            <View style={tailwind`bg-white p-4`}>
+                <View style={tailwind`flex-row items-center border border-gray-300 rounded-lg px-3 py-2`}>
+                    <AntDesign name="search1" size={18} color="#666" style={tailwind`mr-2`} />
+                    <TextInput 
+                        value={searchPlayer} 
+                        onChangeText={handleSearch}
+                        placeholder='Search' 
+                        style={tailwind`flex-1 text-base`}
+                        placeholderTextColor="#999"
+                    />
+                    {searchPlayer.length > 0 && (
+                        <Pressable onPress={() => handleSearch('')}>
+                            <AntDesign name="close" size={18} color="#666" />
+                        </Pressable>
+                    )}
+                </View>
+            </View>
+
+            <View style={tailwind`flex-1 bg-white px-4`}>
+                {renderNoResults()}
+                
+                {/* Communities Section */}
+                {filteredCommunities.length > 0 && (
+                    <View style={tailwind`mb-4`}>
+                        {searchPlayer.trim() !== '' && (
+                            <Text style={tailwind`text-lg font-semibold text-gray-700 mb-2`}>Communities</Text>
+                        )}
+                        {filteredCommunities.map((item, index) => (
+                            <Pressable 
+                                key={`community-${index}`} 
+                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`} 
+                                onPress={() => handleMessageCommunity({ item: item })}
+                            >
+                                <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center mr-3`}>
+                                    <Text style={tailwind`text-white text-lg font-semibold`}>
+                                        {getCommunityInitials(item)}
                                     </Text>
                                 </View>
-                            ) : (
-                                <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
-                            )}
-                            <View  style={tailwind`text-black p-2 mb-1`}>
-                                <Text style={tailwind`text-black font-bold text-xl `}>{item.profile?.full_name}</Text>
-                                <Text style={tailwind`text-black`}>@{item.profile?.owner}</Text>
-                            </View>
-                    </Pressable>
-                ))}
-            </>
+                                <View style={tailwind`flex-1`}>
+                                    <Text style={tailwind`text-black font-semibold text-base`}>{item.name}</Text>
+                                    <Text style={tailwind`text-gray-600 text-sm mt-1`} numberOfLines={1}>
+                                        {item.discription || item.description}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        ))}
+                    </View>
+                )}
+
+                {/* Users Section */}
+                {filteredUsers.length > 0 && (
+                    <View>
+                        {searchPlayer.trim() !== '' && filteredCommunities.length > 0 && (
+                            <Text style={tailwind`text-lg font-semibold text-gray-700 mb-2`}>Contacts</Text>
+                        )}
+                        {filteredUsers.map((item, i) => (
+                            <Pressable 
+                                key={`user-${i}`} 
+                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`} 
+                                onPress={() => handleMessage({ item: item.profile })}
+                            >
+                                {!item.profile?.avatar_url ? (
+                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-300 items-center justify-center mr-3`}>
+                                        <Text style={tailwind`text-gray-700 text-lg font-semibold`}>
+                                            {getUserInitials(item.profile)}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Image 
+                                        style={tailwind`w-12 h-12 rounded-full mr-3`} 
+                                        source={{uri: item.profile.avatar_url}}  
+                                    />
+                                )}
+                                <View style={tailwind`flex-1`}>
+                                    <Text style={tailwind`text-black font-semibold text-base`}>
+                                        {item.profile?.full_name || item.profile?.name || 'Unknown'}
+                                    </Text>
+                                    <Text style={tailwind`text-gray-600 text-sm mt-1`}>
+                                        @{item.profile?.owner || item.profile?.username || 'unknown'}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        ))}
+                    </View>
+                )}
             </View>
         </ScrollView>
     );

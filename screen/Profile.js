@@ -514,7 +514,7 @@ useEffect(() => {
                           {/* Player Button */}
                           <Pressable 
                             style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
-                            onPress={() => navigation.navigate("PlayerProfile", {profile})}
+                            onPress={() => navigation.navigate("PlayerProfile", {publicID: profile?.public_id, from: "profile"})}
                           >
                             <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
                           </Pressable>
@@ -523,7 +523,7 @@ useEffect(() => {
                         /* Only Player button (full width if own profile) */
                         <Pressable 
                           style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
-                          onPress={() => navigation.navigate("PlayerProfile", {profile})}
+                          onPress={() => navigation.navigate("PlayerProfile", {publicID, from: "profile"})}
                         >
                           <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
                         </Pressable>
