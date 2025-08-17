@@ -11,7 +11,7 @@
     import FootballPlayerStats from '../components/FootballPlayerStats';
 
     const PlayerProfile = ({ route }) => {
-        const profile = route.params.profile;
+        const {publicID, from} = route.params;
         const [loading, setLoading] = useState(false);
         const [player, setPlayer] = useState(null);
         const navigation = useNavigation();
@@ -26,16 +26,30 @@
                     setLoading(true);
                     const authToken = await AsyncStorage.getItem("AccessToken");
                     const userPublicID = await AsyncStorage.getItem("UserPublicID")
-                    const playerResponse = await axiosInstance.get(`${BASE_URL}/getPlayerByProfile/${profile.public_id}`, {
-                        headers:{
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json'
+                    if(from === "team" ){
+                        const playerResponse = await axiosInstance.get(`${BASE_URL}/getPlayer/${publicID}`, {
+                            headers:{
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        if (playerResponse.data){
+                            setPlayer(playerResponse.data)
+                        } else {
+                            setPlayer(null)
                         }
-                    })
-                    if (playerResponse.data){
-                        setPlayer(playerResponse.data)
                     } else {
-                        setPlayer(null)
+                        const playerResponse = await axiosInstance.get(`${BASE_URL}/getPlayerByProfile/${publicID}`, {
+                            headers:{
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        if (playerResponse.data){
+                            setPlayer(playerResponse.data)
+                        } else {
+                            setPlayer(null)
+                        }
                     }
                 } catch (err) {
                     console.error("Failed to get player profile: ", err)
@@ -56,7 +70,7 @@
         };
 
         navigation.setOptions({
-            title: player?.name || profile?.full_name || "Player Profile",
+            title: player?.name || "Player Profile",
             headerLeft: () => {
                 return (
                     <Pressable onPress={() => navigation.goBack()}>
