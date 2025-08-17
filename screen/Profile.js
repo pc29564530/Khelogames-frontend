@@ -71,13 +71,16 @@ function Profile({route}) {
       }, [])
     );
 
+    useFocusEffect(useCallback(() => {
+      if (profilePublicID !== authProfilePublicID){
+        checkIsFollowingFunc();
+      }
+    },[]))
+
     const checkIsFollowingFunc = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/isFollowing/`, {
-              params: {
-                target_public_id: profilePublicID
-              },
+            const response = await axiosInstance.get(`${BASE_URL}/isFollowing/${profilePublicID}`, {
               headers: {
                   'Authorization': `Bearer ${authToken}`,
                   'Content-Type': 'application/json'
@@ -214,8 +217,9 @@ function Profile({route}) {
 
   const verifyUser = async () => {
     const userPublicID = await AsyncStorage.getItem("UserPublicID");
-    if(profilePublicID === userPublicID) {
+    if(profilePublicID === authProfilePublicID) {
       setShowEditProfileButton(true);
+      setFoll
       setCurrentUser(authPublicID);
     } else {
       setCurrentUser(profilePublicID);
@@ -301,32 +305,13 @@ const addPlayerProfile = () => {
 }
 
 const isFollowingConditionCheck = () => {
+  console.log("Is Following: ", isFollowing)
   if(isFollowing?.is_following) {
     return 'Following'
   } else {
     return 'Follow'
   }
 }
-
-    // useEffect(() => {
-    //     const fetchPlayerWithProfile = async () => {
-    //         try {
-    //             const authToken = await AsyncStorage.getItem("AccessToken");
-    //             const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
-    //                 headers: {
-    //                     'Authorization': `Bearer ${authToken}`,
-    //                     'Content-Type': 'application/json'
-    //                 }
-    //             });
-    //             setPlayer(response.data || null);
-    //         } catch (err) {
-    //             console.error("Error fetching player:", err);
-    //         }
-    //     }
-    //     if(profile?.public_id) {
-    //         fetchPlayerWithProfile();
-    //     }
-    // }, [profile?.public_id])
 
 useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
@@ -503,42 +488,49 @@ useEffect(() => {
                   </View>
 
                   {/* Follow/Edit Profile Button */}
-                  <View style={tailwind`pl-2 pr-2`}>
-                    {showEditProfileButton ? (
-                      <Pressable 
-                        style={tailwind`bg-red-400 py-3 px-6 rounded-full items-center shadow-lg`} 
-                        onPress={() => handleEditProfile()}
-                      >
-                        <Text style={tailwind`text-white text-lg font-semibold`}>Edit Profile</Text>
-                      </Pressable>
-                    ) : (
-                      <View style={tailwind`flex-row items-center`}>
+                  <View style={tailwind`px-4`}>
+                    <View style={tailwind`flex-row items-center justify-center`}>
+                      {profilePublicID !== authProfilePublicID ? (
+                        <>
+                          {/* Follow Button */}
+                          <Pressable 
+                            style={[
+                              tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm mr-3`,
+                              isFollowing?.is_following 
+                                ? tailwind`bg-white border border-red-500` 
+                                : tailwind`bg-red-500`
+                            ]}
+                            onPress={handleFollowButton}
+                            disabled={loading}
+                          >
+                            <Text style={[
+                              tailwind`text-lg font-semibold`,
+                              isFollowing?.is_following ? tailwind`text-red-500` : tailwind`text-white`
+                            ]}>
+                              {loading ? 'Loading...' : isFollowingConditionCheck()}
+                            </Text>
+                          </Pressable>
+
+                          {/* Player Button */}
+                          <Pressable 
+                            style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
+                            onPress={() => navigation.navigate("PlayerProfile", {profile})}
+                          >
+                            <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
+                          </Pressable>
+                        </>
+                      ) : (
+                        /* Only Player button (full width if own profile) */
                         <Pressable 
-                          style={[
-                            tailwind`flex-1 py-3 px-6 rounded-full items-center shadow-lg border`,
-                            isFollowing?.is_following 
-                              ? tailwind`bg-white border-red-400` 
-                              : tailwind`bg-red-400 border-red-400`
-                          ]} 
-                          onPress={() => handleFollowButton()}
-                          disabled={loading}
+                          style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
+                          onPress={() => navigation.navigate("PlayerProfile", {profile})}
                         >
-                          <Text style={[
-                            tailwind`text-lg font-semibold`,
-                            isFollowing?.is_following ? tailwind`text-red-400` : tailwind`text-white`
-                          ]}>
-                            {loading ? 'Loading...' : isFollowingConditionCheck()}
-                          </Text>
+                          <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
                         </Pressable>
-                        <Pressable 
-                          style={tailwind`bg-gray-200 py-3 px-6 rounded-full items-center shadow-lg`} 
-                          onPress={() => navigation.navigate("PlayerProfile", {profile: profile})}
-                        >
-                          <Text style={tailwind`text-black text-lg font-semibold`}>Player</Text>
-                        </Pressable>
-                      </View>
-                    )}
+                      )}
+                    </View>
                   </View>
+
                   <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
                     <TopTabProfile profile={profile} />
                   </View>

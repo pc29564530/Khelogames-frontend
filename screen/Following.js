@@ -42,15 +42,15 @@ function Following() {
         },[])
     );
 
-    const handleProfile  = ({profilePublicID}) => {
-        navigation.navigate('Profile', {profilePublicID: profilePublicID})
+    const handleProfile  = (profilePublicID) => {
+        navigation.navigate('Profile', {profilePublicID})
     }
 
     return (
         <ScrollView style={tailwind`bg-white`}>
             <View style={tailwind`flex-1 bg-white pl-5`}>
                 {following?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile({profilePublicID: item.profile?.public_id})}>
+                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile(item.profile?.public_id)}>
                         {!item.profile && !item.profile.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-black text-6x3`}>
