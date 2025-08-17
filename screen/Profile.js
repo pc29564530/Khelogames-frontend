@@ -18,7 +18,6 @@ import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScro
 
 function Profile({route}) {
     const {profilePublicID} = route.params;
-    console.log("Profile Public ID: ", profilePublicID)
 
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
@@ -29,7 +28,9 @@ function Profile({route}) {
     const [currentUser, setCurrentUser] = useState('');
     const [displayText, setDisplayText] = useState('');
     const [player, setPlayer] = useState(null);
+    const [loading, setLoading] = useState(false);
     const profile = useSelector(state => state.profile.profile)
+    const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
     const [followerCount, setFollowerCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
@@ -39,14 +40,13 @@ function Profile({route}) {
     const [isModalUploadDocumentVisible, setIsModalUploadDocumentVisible] = useState(false);
     const [documentUploaded, setDocumentUploaded] = useState(null);
     const [isCountryPicker, setIsCountryPicker] = useState(false);
-
+    const [profileData, setProfileData] = useState([]);
     const [email, setEmail] = useState(null);
     const [country, setCountry] = useState(null);
 
      useEffect(() => {
       const fetchProfile = async () => {
         const authToken = await AsyncStorage.getItem("AccessToken");
-        const userPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -62,22 +62,21 @@ function Profile({route}) {
 
     useFocusEffect(
       React.useCallback(() => {
-        fetchFollowing();
-        verifyUser();
-        fetchData()
+        if(profilePublicID != profile.public_id){
+          fetchFollowing();
+          verifyUser();
+          fetchData();
+          checkIsFollowingFunc();
+        }
       }, [])
     );
-
-    useEffect(() => {
-      checkIsFollowingFunc()
-    }, [dispatch]);
 
     const checkIsFollowingFunc = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/isFollowing/`, {
               params: {
-                target_public_id: userPublicID
+                target_public_id: profilePublicID
               },
               headers: {
                   'Authorization': `Bearer ${authToken}`,
@@ -92,8 +91,9 @@ function Profile({route}) {
 
     const handleReduxFollow = async () => {
       try {
+          setLoading(true);
           const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${userPublicID}`,{},{
+          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${profilePublicID}`,{},{
               headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -104,15 +104,19 @@ function Profile({route}) {
             dispatch(setFollowUser([]));
           } else {
             dispatch(setFollowUser(response.data));
-            checkIsFollowingFunc()
+            await checkIsFollowingFunc();
+            await fetchFollowerCount(); // Update follower count
           }
       } catch (err) {
-          console.error(err);
+          console.error("Failed to follow user:", err);
+      } finally {
+          setLoading(false);
       }
-     
     };
+
     const handleReduxUnFollow = async () => {
       try {
+        setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.delete(
           `${BASE_URL}/unFollow/${userPublicID}`,
@@ -127,21 +131,24 @@ function Profile({route}) {
           dispatch(setUnFollowUser([]));
         } else {
           dispatch(setUnFollowUser(response.data));
-          checkIsFollowingFunc()
+          await checkIsFollowingFunc();
+          await fetchFollowerCount(); // Update follower count
         }
     } catch(e){
-      console.error('Unable to unfollow agian', e);
+      console.error('Unable to unfollow again:', e);
+    } finally {
+        setLoading(false);
     }
   };
 
   const handleFollowButton = async () => {
-    if(isFollowing.is_following) {
+    if(isFollowing?.is_following) {
        handleReduxUnFollow();
     } else {
        handleReduxFollow();
-    }
-    
-   }
+    } 
+  }
+
     const fetchFollowing = async () => {
       try {
         const authToken = await AsyncStorage.getItem('AccessToken');
@@ -164,13 +171,14 @@ function Profile({route}) {
 
   const fetchData = async () => {
     try {
-      const userPublicID = await AsyncStorage.getItem('UserPublicID')
+      const userPublicID = await AsyncStorage.getItem('UserPublicID');
       if (!userPublicID) {
         console.log("User not found in AsyncStorage.");
         return;
       }
-      if(userPublicID === profilePublicID){
-        const response = await axios.get(`${AUTH_URL}/getProfile/${userPublicID}`);
+      
+      if(authProfilePublicID !== profilePublicID){
+        const response = await axios.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`);
         if (response.data === null) {
           setProfileData([]);
         } else {
@@ -178,10 +186,8 @@ function Profile({route}) {
           setProfileData(response.data)
 
           if(!response.data.avatar_url || response.data.avatar_url === '') {
-
             const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
             setDisplayText(usernameInitial.toUpperCase());
-            
           } else {
             setDisplayText('');
           }
@@ -206,22 +212,19 @@ function Profile({route}) {
     }
   }
 
-  
-
   const verifyUser = async () => {
-    const authPublicID = await AsyncStorage.getItem("UserPublicID");
-    if(userPublicID === authPublicID) {
+    const userPublicID = await AsyncStorage.getItem("UserPublicID");
+    if(profilePublicID === userPublicID) {
       setShowEditProfileButton(true);
       setCurrentUser(authPublicID);
     } else {
-      setCurrentUser(userPublicID);
+      setCurrentUser(profilePublicID);
     }
   }
 
-  useEffect( () => {
-    const followerCount = async () => {
+  const fetchFollowerCount = async () => {
+    try {
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const authPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -230,13 +233,17 @@ function Profile({route}) {
         });
 
         const item = response.data;
-        if(item !== null && item.length > 0) {
+        if(item !== null && Array.isArray(item)) {
           setFollowerCount(item.length);
         }
+    } catch(err) {
+        console.error("Error fetching follower count:", err);
     }
-    const followingCount = async () => {
+  }
+
+  const fetchFollowingCount = async () => {
+    try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const currentUser = await AsyncStorage.getItem("UserPublicID");
       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -244,26 +251,27 @@ function Profile({route}) {
         }
       });
       const item = response.data;
-      if(item !== null && item.length > 0) {
+      if(item !== null && Array.isArray(item)) {
         setFollowingCount(item.length);
       }
+    } catch(err) {
+        console.error("Error fetching following count:", err);
+    }
   }
-    followerCount();
-    followingCount()
-  }, [])
+
+  useEffect(() => {
+    fetchFollowerCount();
+    fetchFollowingCount();
+  }, []);
 
   // handle message used to open the message box
   const handleMessage = async () => {
     try {
           const authToken = await AsyncStorage.getItem("AccessToken");
-          const currentUser = await AsyncStorage.getItem("UserPublicID");
-          const data = {
-            following_owner:currentUser,
-            follower_owner:userPublicID
-          }
+          const userPublicID = await AsyncStorage.getItem("UserPublicID");
           const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
             params: {
-              following_owner:userPublicID
+              following_owner: userPublicID
             },
             headers: {
               'Authorization': `Bearer ${authToken}`,
@@ -275,14 +283,13 @@ function Profile({route}) {
           } else {
             Alert.alert(
               "No Mutual Connection Found",
-              `You are not followed by ${userPublicID}. You cannot send a message.`,
+              `You are not followed by this user. You cannot send a message.`,
               [{ text: "OK" }]
             )
           }
     } catch (err) {
         console.error("Failed to connect the user: ", err)
     }
-    
   }
 
   const handleEditProfile = () => {
@@ -293,46 +300,33 @@ const addPlayerProfile = () => {
   navigation.navigate("CreatePlayerProfile");
 }
 
-  // navigation.setOptions({
-  //   headerTitle:'',
-  //   headerStyle:{
-  //     backgroundColor: 'black'
-  //   },
-  //   headerTintColor: 'white',
-  //   headerRight: ()=> (
-  //     <Pressable onPress={() => addPlayerProfile()} style={tailwind`items-center p-2 border rounded-md bg-red-500 mr-4`}>
-  //       <Text style={tailwind`text-white`}>Create Player</Text>
-  //     </Pressable>
-  //   )
-  // })
-
-  const isFollowingConditionCheck = () => {
-  if(isFollowing.is_following) {
+const isFollowingConditionCheck = () => {
+  if(isFollowing?.is_following) {
     return 'Following'
   } else {
     return 'Follow'
   }
 }
 
-    useEffect(() => {
-        const fetchPlayerWithProfile = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken");
-                const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                setPlayer(response.data || null);
-            } catch (err) {
-                console.error("Error fetching player:", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchPlayerWithProfile()
-    })
+    // useEffect(() => {
+    //     const fetchPlayerWithProfile = async () => {
+    //         try {
+    //             const authToken = await AsyncStorage.getItem("AccessToken");
+    //             const response = await axiosInstance.get(`${BASE_URL}/getPlayerWithProfile/${profile.public_id}`, {
+    //                 headers: {
+    //                     'Authorization': `Bearer ${authToken}`,
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             });
+    //             setPlayer(response.data || null);
+    //         } catch (err) {
+    //             console.error("Error fetching player:", err);
+    //         }
+    //     }
+    //     if(profile?.public_id) {
+    //         fetchPlayerWithProfile();
+    //     }
+    // }, [profile?.public_id])
 
 useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
@@ -430,15 +424,10 @@ useEffect(() => {
             if (res.didCancel) {
                 console.log('User cancelled photo picker');
             } else if (res.error) {
-                console.log('ImagePicker Error: ', response.error);
+                console.log('ImagePicker Error: ', res.error);
             } else {
-                const type = getMediaTypeFromURL(res.assets[0].uri);
-                if(type === 'image') {
-                    const base64File = await fileToBase64(res.assets[0].uri);
-                    setDocumentURL(base64File);
-                } else {
-                    console.log('unsupported media type: ', type);
-                }
+                // Handle document upload logic here
+                setDocumentUploaded(true);
             }
         } catch (e) {
             console.error("unable to load avatar image", e);
@@ -463,8 +452,7 @@ useEffect(() => {
           }
           })
           if(response.data){
-            setIsModalUploadDocumentVisible(false)
-            
+            setIsModalOrganizerVerified(false)
           }
         } catch (err) {
           console.error("Failed to verified the details and documents: ", err)
@@ -489,7 +477,7 @@ useEffect(() => {
                 </TouchableOpacity>
               </View>
             </Animated.View>
-            <Animated.Image source={profile?.avatar_url || ''} style={[tailwind`w-32 h-32 rounded-full absolute z-20 self-center bg-red-200 top-10`, animImage]}/>
+            <Animated.Image source={profile?.avatar_url ? {uri: profile.avatar_url} : null} style={[tailwind`w-32 h-32 rounded-full absolute z-20 self-center bg-red-200 top-10`, animImage]}/>
             <Animated.ScrollView
                 onScroll={handleScroll}
                 contentContainerStyle={{height:880}}
@@ -499,7 +487,7 @@ useEffect(() => {
                   <View style={tailwind`items-center`}>
                     <View style={tailwind`mt-18`}>
                       <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
-                      <Text style={tailwind`text-gray-400 text-base`}>@{profile.username}</Text>
+                      <Text style={tailwind`text-gray-400 text-base`}>@{profile?.username}</Text>
                     </View>
                   </View>
                   <View style={tailwind`mt-2 items-center`}>
@@ -513,21 +501,50 @@ useEffect(() => {
                       </Text>
                     </View>
                   </View>
-                  {/* <View style={tailwind` pl-2 pr-2 mb-2`}>
-                    <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => {setIsModalOrganizerVerified(true)}}>
-                        <Text style={tailwind`text-black text-xl font-bold`}>want to verified ?</Text>
-                    </Pressable>
-                  </View> */}
-                  <View style={tailwind` pl-2 pr-2`}>
-                      <Pressable style={tailwind`bg-white text-white py-2 px-3 rounded-md w-full  text-center justify-center items-center shadow-lg`} onPress={() => navigation.navigate("PlayerProfile", {profileID: profile?.id})}>
-                        <Text style={tailwind`text-black text-xl font-bold`}>My Player Profile</Text>
+
+                  {/* Follow/Edit Profile Button */}
+                  <View style={tailwind`pl-2 pr-2`}>
+                    {showEditProfileButton ? (
+                      <Pressable 
+                        style={tailwind`bg-red-400 py-3 px-6 rounded-full items-center shadow-lg`} 
+                        onPress={() => handleEditProfile()}
+                      >
+                        <Text style={tailwind`text-white text-lg font-semibold`}>Edit Profile</Text>
                       </Pressable>
+                    ) : (
+                      <View style={tailwind`flex-row items-center`}>
+                        <Pressable 
+                          style={[
+                            tailwind`flex-1 py-3 px-6 rounded-full items-center shadow-lg border`,
+                            isFollowing?.is_following 
+                              ? tailwind`bg-white border-red-400` 
+                              : tailwind`bg-red-400 border-red-400`
+                          ]} 
+                          onPress={() => handleFollowButton()}
+                          disabled={loading}
+                        >
+                          <Text style={[
+                            tailwind`text-lg font-semibold`,
+                            isFollowing?.is_following ? tailwind`text-red-400` : tailwind`text-white`
+                          ]}>
+                            {loading ? 'Loading...' : isFollowingConditionCheck()}
+                          </Text>
+                        </Pressable>
+                        <Pressable 
+                          style={tailwind`bg-gray-200 py-3 px-6 rounded-full items-center shadow-lg`} 
+                          onPress={() => navigation.navigate("PlayerProfile", {profile: profile})}
+                        >
+                          <Text style={tailwind`text-black text-lg font-semibold`}>Player</Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
                   <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
                     <TopTabProfile profile={profile} />
                   </View>
                 </View>
             </Animated.ScrollView>
+            
             {moreTabVisible && (
               <Modal
                 transparent
@@ -544,25 +561,38 @@ useEffect(() => {
                 >
                   <TouchableOpacity
                     style={tailwind`py-2 border-b border-gray-200`}
-                    onPress={() => {handleEditProfile()}}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      handleEditProfile();
+                    }}
                   >
                     <Text style={tailwind`text-black text-lg`}>Edit Profile</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={tailwind`py-2 border-b border-gray-200`}
-                    onPress={() => {}}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      handleFollowButton();
+                    }}
                   >
-                    <Text style={tailwind`text-black text-lg`}>Follow</Text>
+                    <Text style={tailwind`text-black text-lg`}>
+                      {isFollowing?.is_following ? 'Unfollow' : 'Follow'}
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={tailwind`py-2`}
-                    onPress={() => {}}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      // Add share functionality here
+                    }}
                   >
-                    <Text style={tailwind`text-black text-lg`}>Share Profile..</Text>
+                    <Text style={tailwind`text-black text-lg`}>Share Profile</Text>
                   </TouchableOpacity>
                 </View>
             </Modal>
             )}
+            
+            {/* Rest of your modals remain the same */}
             {isModalOrganizerVerified && (
               <Modal
                 transparent
@@ -629,7 +659,7 @@ useEffect(() => {
                         onChangeText={setEmail}
                         placeholder="Email"
                         placeholderTextColor="gray"
-                        keyboardType='email'
+                        keyboardType='email-address'
                       />
                     </KeyboardAvoidingView>
 
@@ -672,7 +702,7 @@ useEffect(() => {
                     withAlphaFilter
                     withCallingCode
                     withEmoji
-                    countryCode={country}
+                    countryCode={country?.cca2}
                     onSelect={(selectedCountry) => {
                       console.log("Selected Country: ", selectedCountry); // Debugging
                       if (selectedCountry) {

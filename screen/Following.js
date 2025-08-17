@@ -49,7 +49,7 @@ function Following() {
     return (
         <ScrollView style={tailwind`bg-white`}>
             <View style={tailwind`flex-1 bg-white pl-5`}>
-                {follower?.map((item, i) => (
+                {following?.map((item, i) => (
                     <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile({profilePublicID: item.profile?.public_id})}>
                         {!item.profile && !item.profile.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
