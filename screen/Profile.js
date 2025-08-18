@@ -269,31 +269,8 @@ function Profile({route}) {
   }, []);
 
   // handle message used to open the message box
-  const handleMessage = async () => {
-    try {
-          const authToken = await AsyncStorage.getItem("AccessToken");
-          const userPublicID = await AsyncStorage.getItem("UserPublicID");
-          const connectionEstablished  = await axiosInstance.get(`${BASE_URL}/checkConnection`, {
-            params: {
-              following_owner: userPublicID
-            },
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json',
-            }
-          })
-          if (connectionEstablished.data){
-            navigation.navigate("Message", {profileData: profileData})
-          } else {
-            Alert.alert(
-              "No Mutual Connection Found",
-              `You are not followed by this user. You cannot send a message.`,
-              [{ text: "OK" }]
-            )
-          }
-    } catch (err) {
-        console.error("Failed to connect the user: ", err)
-    }
+  const handleMessage = () => {
+    navigation.navigate("Message", {profileData: profile})
   }
 
   const handleEditProfile = () => {

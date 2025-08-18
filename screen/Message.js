@@ -10,11 +10,14 @@ import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { BASE_URL } from '../constants/ApiConstants';
 import {SelectMedia} from '../services/SelectMedia';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAuthProfilePublicID } from '../redux/actions/actions';
 
 function Message({ route }) {
   const navigation = useNavigation();
   const [receivedMessage, setReceivedMessage] = useState([]);
   const [newMessageContent, setNewMessageContent] = useState('');
+  const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
   const [allMessage, setAllMessage] = useState([]);
   const receiverProfile = route.params.profileData;
   const [currentUser, setCurrentUser] = useState('');
@@ -105,7 +108,7 @@ function Message({ route }) {
             setReceivedMessage([]);
         } else {
             const messageData = response.data.map((item, index) => {
-                const timestampStr = item.sent_at;
+                const timestampStr = item.created_at;
                 const timestamp = new Date(timestampStr);
                 const options = { weekday: 'long', hour: '2-digit', minute: '2-digit' };
                 const formattedTime = timestamp.toLocaleString('en-US', options);
@@ -181,13 +184,13 @@ function Message({ route }) {
         {receivedMessage.map((item, index) => (
           <View key={index} style={[
             tailwind`flex-row items-end`,
-            item.sender.public_id !== currentUser
+            item.sender?.public_id !== authProfilePublicID
               ? tailwind`justify-start`
               : tailwind`justify-end`,
           ]}>
             <View style={[
                     tailwind`p-2 border rounded-2xl`,
-                    item.sender.public_id !== currentUser
+                    item.sender?.public_id !== authProfilePublicID
                     ? tailwind`bg-gray-300`
                     : tailwind`bg-green-200`,
                 ]}         
@@ -216,7 +219,7 @@ function Message({ route }) {
           </View>
         ))}
       </ScrollView>
-        <View style={tailwind`flex-end flex-row items-center p-2 bg-black  justify-between`}>
+        <View style={tailwind`flex-end flex-row items-center p-2 bg-white  justify-between`}>
             <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="white"/>
             <TextInput
                 style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}

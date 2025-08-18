@@ -93,19 +93,7 @@ function MessagePage() {
                 setFollowingWithProfile([]);
                 setFilteredUsers([]);
             } else {
-                const followingProfile = item.map(async (item, index) => {                  
-                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${item}`);
-                    if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                        const usernameInitial = profileResponse.data.owner ? profileResponse.data.owner.charAt(0) : '';
-                        setDisplayText(usernameInitial.toUpperCase());
-                    } else {
-                        setDisplayText('');
-                    }
-                    return {...item, profile: profileResponse.data}
-                })
-                const followingData = await Promise.all(followingProfile);
-                setFollowingWithProfile(followingData);
-                setFilteredUsers(followingData); // Initialize filtered users
+                setFilteredUsers(item); // Initialize filtered users
             }
 
         } catch(err) {
@@ -274,26 +262,26 @@ function MessagePage() {
                             <Pressable 
                                 key={`user-${i}`} 
                                 style={tailwind`flex-row items-center py-3 border-b border-gray-100`} 
-                                onPress={() => handleMessage({ item: item.profile })}
+                                onPress={() => handleMessage({ item: item })}
                             >
                                 {!item.profile?.avatar_url ? (
                                     <View style={tailwind`w-12 h-12 rounded-full bg-gray-300 items-center justify-center mr-3`}>
                                         <Text style={tailwind`text-gray-700 text-lg font-semibold`}>
-                                            {getUserInitials(item.profile)}
+                                           {displayText}
                                         </Text>
                                     </View>
                                 ) : (
                                     <Image 
                                         style={tailwind`w-12 h-12 rounded-full mr-3`} 
-                                        source={{uri: item.profile.avatar_url}}  
+                                        source={{uri: item?.avatar_url}}  
                                     />
                                 )}
                                 <View style={tailwind`flex-1`}>
                                     <Text style={tailwind`text-black font-semibold text-base`}>
-                                        {item.profile?.full_name || item.profile?.name || 'Unknown'}
+                                        {item?.full_name || item?.name || 'Unknown'}
                                     </Text>
                                     <Text style={tailwind`text-gray-600 text-sm mt-1`}>
-                                        @{item.profile?.owner || item.profile?.username || 'unknown'}
+                                        @{item?.username || item?.username || 'unknown'}
                                     </Text>
                                 </View>
                             </Pressable>
