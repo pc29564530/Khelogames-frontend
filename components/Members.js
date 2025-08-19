@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, Text, Pressable, Image, Modal, ScrollView, TextInput, TouchableOpacity} from 'react-native';
-import { BASE_URL } from '../constants/ApiConstants';
+import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
@@ -41,12 +41,12 @@ const Members = ({teamData}) => {
             }
         }
         fetchPlayerProfile();
-    }, []);
+    }, [game.id]);
 
     useEffect(() => {
         const fetchMembers = async () => {
             try {
-                const authToken = await AsyncStorage.getItem('AcessToken');
+                const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${teamData.public_id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -68,7 +68,7 @@ const Members = ({teamData}) => {
         fetchMembers();
     }, []);
     const handleProfile = (item) => {
-        navigation.navigate('PlayerProfile', {profileID: item.profile_id});
+        navigation.navigate('PlayerProfile', {publicID: item.public_id, from: "team"});
     }
 
     useEffect(() => {
@@ -82,7 +82,7 @@ const Members = ({teamData}) => {
                 player_public_id: selectedItem.public_id,
                 join_date: new Date()
             }
-            const authToken = await AsyncStorage.getItem('AcessToken');
+            const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addTeamsMemberFunc`,data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -103,7 +103,7 @@ const Members = ({teamData}) => {
     const handleSearchPlayer = (text) => {
         if (Array.isArray(playerProfile) ){
             const filterData = playerProfile.filter((item) => 
-                item.player_name.toLowerCase().includes(text.toLowerCase())
+                item.name.toLowerCase().includes(text.toLowerCase())
             )
             const filterBySport = filterData.filter((item) => item.game_id === game.id ? item : [])
             setFiltered(filterBySport);
@@ -167,7 +167,7 @@ const Members = ({teamData}) => {
                                     </View>
                                 )}
                                 <View style={tailwind`ml-4`}>
-                                    <Text style={tailwind`text-black text-lg font-semibold`}>{item?.player_name}</Text>
+                                    <Text style={tailwind`text-black text-lg font-semibold`}>{item?.name}</Text>
                                     <View style={tailwind`flex-row items-center mt-1`}>
                                         <Text style={tailwind`text-gray-600 text-sm mr-2`}>{item?.position}</Text>
                                         <Text style={tailwind`text-gray-600 text-sm`}>{item.country}</Text>
@@ -200,7 +200,7 @@ const Members = ({teamData}) => {
                                     {filtered.length > 0 ? filtered.map((item, index) => (
                                         <View>
                                             <Pressable key={index} onPress={() =>  handleAddPlayer(item)}>
-                                                <Text style={tailwind`text-xl py-2`}>{item.player_name}</Text>
+                                                <Text style={tailwind`text-xl py-2`}>{item.name}</Text>
                                             </Pressable>
                                         </View>
                                     )) : (

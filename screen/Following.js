@@ -42,27 +42,27 @@ function Following() {
         },[])
     );
 
-    const handleProfile  = ({profilePublicID}) => {
-        navigation.navigate('Profile', {profilePublicID: profilePublicID})
+    const handleProfile  = (profilePublicID) => {
+        navigation.navigate('Profile', {profilePublicID})
     }
 
     return (
         <ScrollView style={tailwind`bg-white`}>
             <View style={tailwind`flex-1 bg-white pl-5`}>
-                {follower?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile({profilePublicID: item.profile?.public_id})}>
-                        {!item.profile && !item.profile.avatar_url ?(
+                {following?.map((item, i) => (
+                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile(item.profile?.public_id)}>
+                        {!item.profile && !item.profile?.avatar_url ?(
                             <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
                                 <Text style={tailwind`text-black text-6x3`}>
                                     {displayText}
                                 </Text>
                             </View>
                         ) : (
-                            <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile.avatar_url}}  />
+                            <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile?.avatar_url}}  />
                         )}
                         <View  style={tailwind`text-white p-2 mb-1`}>
-                            <Text style={tailwind`text-black font-bold text-xl `}>{item.profile.full_name}</Text>
-                            <Text style={tailwind`text-black`}>@{item.profile.username}</Text>
+                            <Text style={tailwind`text-black font-bold text-xl `}>{item.profile?.full_name}</Text>
+                            <Text style={tailwind`text-black`}>@{item.profile?.username}</Text>
                         </View>
                     </Pressable>
                 ))}

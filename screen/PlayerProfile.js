@@ -11,13 +11,54 @@
     import FootballPlayerStats from '../components/FootballPlayerStats';
 
     const PlayerProfile = ({ route }) => {
-        const player = route.params.player;
-        const [loading, setLoading] = useState(true);
+        const {publicID, from} = route.params;
+        const [loading, setLoading] = useState(false);
+        const [player, setPlayer] = useState(null);
         const navigation = useNavigation();
         const game = useSelector(state => state.sportReducers.game);
-        const profile = useSelector(state => state.profile.profile);
         const [isOwner, setIsOwner] = useState(false);
         const [headerContentType, setHeaderContentType] = useState("Matches");
+        const user = useSelector(state => state.user.user);
+        const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
+        useEffect(() => {
+            const fetchPlayer = async () => {
+                try {
+                    setLoading(true);
+                    const authToken = await AsyncStorage.getItem("AccessToken");
+                    const userPublicID = await AsyncStorage.getItem("UserPublicID")
+                    if(from === "team" ){
+                        const playerResponse = await axiosInstance.get(`${BASE_URL}/getPlayer/${publicID}`, {
+                            headers:{
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        if (playerResponse.data){
+                            setPlayer(playerResponse.data)
+                        } else {
+                            setPlayer(null)
+                        }
+                    } else {
+                        const playerResponse = await axiosInstance.get(`${BASE_URL}/getPlayerByProfile/${publicID}`, {
+                            headers:{
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        if (playerResponse.data){
+                            setPlayer(playerResponse.data)
+                        } else {
+                            setPlayer(null)
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to get player profile: ", err)
+                } finally {
+                    setLoading(false);
+                }
+            }
+            fetchPlayer()
+        }, []);
 
 
         const handleAddActivity = () => {
@@ -29,7 +70,7 @@
         };
 
         navigation.setOptions({
-            title: player?.player_name || profile?.full_name || "Player Profile",
+            title: player?.name || "Player Profile",
             headerLeft: () => {
                 return (
                     <Pressable onPress={() => navigation.goBack()}>
@@ -41,14 +82,13 @@
 
         useEffect(() => {
             const checkProfileOwner = async () => {
-                const currentOwner = await AsyncStorage.getItem('User');
                 //check for currentOwner temp fix change with user_public_id
-                if (currentOwner.id === profile.user_id) {
+                if (authProfilePublicID=== profile.public_id) {
                     setIsOwner(true);
                 }
             };
             checkProfileOwner();
-        }, [profile]);
+        }, []);
 
         const handleContentType = (contentType) => {
             if (contentType === "Matches") {
@@ -94,7 +134,8 @@
                                 </View>
                             )}
                             <View style={tailwind`ml-4`}>
-                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.player_name}</Text>
+                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.name}</Text>
+                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.positions}</Text>
                                 <Text style={tailwind`text-sm text-gray-500`}>{player?.country}</Text>
                             </View>
                         </View>
@@ -113,7 +154,7 @@
                     <View style={tailwind`mx-4 mt-16`}>
                         <View style={tailwind`bg-white rounded-2xl p-10 shadow-lg items-center justify-center`}>
                             <TouchableOpacity
-                                onPress={handleAddActivity}
+                                onPress={() => handleAddActivity()}
                                 activeOpacity={0.8}
                                 style={tailwind`bg-green-100 p-4 rounded-full mb-4`}>
                                 <AntDesign name="adduser" size={40} color="#22c55e" />

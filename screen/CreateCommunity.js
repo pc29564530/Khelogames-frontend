@@ -13,23 +13,23 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 function CreateCommunity () {
     const navigation = useNavigation();
-    const route= useRoute();
     
     const [communityName, setCommunityName] = useState('');
     const [description, setDescription] = useState('');
     const dispatch = useDispatch();
     const community = useSelector((state) => state.community.community);
-    const [communityType, setCommunityType] = useState(route.params?.communityType || 'Community Type');
 
     const handleCreateCommunity = async () => {
         try {
+            console.log("CommunityName: ", communityName)
+            console.log("Description: ", description)
             if(!communityName.trim()){
                 alert('Please fill fields before creating the community.');
                 return;
             }
-            const community = {communityName, description, communityType};
+            const community = {communityName, description};
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response  = await axiosInstance.post(`${BASE_URL}/communities`, community, {
+            const response  = await axiosInstance.post(`${BASE_URL}/createCommunity`, community, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -45,16 +45,6 @@ function CreateCommunity () {
         }
     }
 
-    const handleSelectCommunity = () => {
-        navigation.navigate("CommunityType");
-    }
-
-    useEffect(() => {
-        if(route.params?.communityType) {
-            setCommunityType(route.params?.communityType);
-        }
-    }, [route.params?.communityType])
-
     navigation.setOptions({
         headerTitle: '',
         headerStyle:{
@@ -68,10 +58,6 @@ function CreateCommunity () {
         ),
         headerRight:() => (
             <View style={tailwind`flex-row items-center mr-2 gap-18`}>
-                <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
-                    <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
-                    <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
-                </Pressable>
                 <Pressable style={tailwind`p-2`} onPress={handleCreateCommunity}>
                     <MaterialIcons name="send" size={24} color="white" />
                 </Pressable>

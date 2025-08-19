@@ -200,6 +200,13 @@ export const getProfile = (profile) => {
     }
 }
 
+export const setAuthProfilePublicID = (publicID) => {
+    return {
+        type: actionTypes.SET_AUTH_PROFILE_PUBLIC_ID,
+        payload: publicID
+    }
+}
+
 //matches score
 
 export const getFootballMatchScore = (matchScore) => {

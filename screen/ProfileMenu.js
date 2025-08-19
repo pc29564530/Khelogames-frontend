@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect
+ } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { getProfile, logout, setFollowUser, setUnFollowUser } from '../redux/actions/actions';
+import { getProfile, logout, setFollowUser, setUnFollowUser, setAuthProfilePublicID } from '../redux/actions/actions';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
@@ -36,7 +37,7 @@ function ProfileMenu() {
     roleStatus();
   }, []);
 
-  useEffect(() => {
+  useFocusEffect( useCallback(() => {
     const fetchProfileData = async () => {
       try {
         const authPublicID = await AsyncStorage.getItem("UserPublicID");
@@ -48,13 +49,14 @@ function ProfileMenu() {
           setDisplayText('');
         }
         dispatch(getProfile(response.data));
+        dispatch(setAuthProfilePublicID(response.data.public_id))
       } catch (err) {
         console.error('Unable to fetch the profile data: ', err);
       }
     };
 
     fetchProfileData();
-  }, []);
+  }, [dispatch]));
 
   useEffect(() => {
     const fetchCounts = async () => {

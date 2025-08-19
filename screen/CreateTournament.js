@@ -40,7 +40,7 @@ const CreateTournament = () => {
             const data = {
                     name: tournamentName,
                     country: category==='international'?'':country,
-                    status_code: "not_started",
+                    status: "not_started",
                     level: category,
                     start_timestamp: modifyDateTime(startOn),
                     game_id: game.id,
