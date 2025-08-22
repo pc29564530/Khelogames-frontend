@@ -47,21 +47,56 @@ export default function MainNavigation() {
     const dispatch = useDispatch();
     const[loading, setLoading] = useState(true)
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const user = useSelector((state) => state.user.user);
+
     useEffect(() => {
         
         const checkAuthStatus = async () => {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
-            if (authToken) {
-                dispatch(setAuthenticated(true));
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const refreshToken = await AsyncStorage.getItem('RefreshToken');
+                
+                if (authToken && refreshToken && user) {
+                    dispatch(setAuthenticated(true));
+                    dispatch(setUser(user));
+                } else {
+                    console.log('❌ No valid tokens found - setting authenticated to false');
+                    dispatch(setAuthenticated(false));
+                    
+                    // Clear any partial auth data
+                    await AsyncStorage.multiRemove([
+                        'AccessToken', 
+                        'RefreshToken', 
+                        'AccessTokenExpiresAt',
+                        'User'
+                    ]);
+                }
+            } catch (error) {
+                console.error('💥 Error checking auth status:', error);
+                dispatch(setAuthenticated(false));
                 dispatch(setUser(user))
+            } finally {
+                // Small delay to prevent flash
+                setTimeout(() => {
+                    setLoading(false);
+                    console.log('✅ Auth check completed, app loading finished');
+                }, 200);
             }
         };
-    
-        setLoading(false);
+
         checkAuthStatus();
-        dispatch(checkExpireTime())
-    }, []);
+        dispatch(checkExpireTime());
+    }, [dispatch]);
+
+    // Show loading while determining auth status
+    if (loading || isAuthenticated === null) {
+        console.log('⏳ Showing loading screen...');
+        return (
+            <View style={tailwind`flex-1 justify-center items-center bg-black`}>
+                <ActivityIndicator size="large" color="white"/>
+            </View>
+        );
+    }
 
     if(loading) {
         <View style={tailwind`flex-1 justify-evenly items-center`}>
