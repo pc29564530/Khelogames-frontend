@@ -320,23 +320,7 @@ const TournamentStanding = ({ route }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Header Section */}
-        <View style={tailwind`bg-white p-6 shadow-sm`}>
-          <View style={tailwind`flex-row justify-between items-center mb-4`}>
-            <View>
-              <Text style={tailwind`text-2xl font-bold text-gray-900`}>
-                {tournament.name}
-              </Text>
-              <Text style={tailwind`text-sm text-gray-500 mt-1`}>
-                {tournament.stage} • {game.name}
-              </Text>
-            </View>
-            <View style={tailwind`bg-blue-100 px-3 py-1 rounded-full`}>
-              <Text style={tailwind`text-blue-800 font-medium text-xs`}>
-                {standings?.length || 0} Groups
-              </Text>
-            </View>
-          </View>
-
+        <View style={tailwind`bg-white p-2`}>
           <Pressable
             onPress={() => setIsCreateStandingVisible(true)}
             style={tailwind`bg-blue-600 p-4 rounded-xl flex-row justify-center items-center shadow-lg`}
@@ -348,30 +332,26 @@ const TournamentStanding = ({ route }) => {
         </View>
 
         {/* Standings Section */}
-        <View style={tailwind`p-4`}>
-            {console.log("Standing: ", standings)}
+        <View style={tailwind`p-2`}>
+            {console.log("India 336")}
           {loading ? (
             <View style={tailwind`bg-white rounded-xl p-8 items-center shadow-sm`}>
               <ActivityIndicator size="large" color="#3B82F6" />
               <Text style={tailwind`text-gray-600 mt-4`}>Loading standings...</Text>
             </View>
           ) : standings?.length > 0 ? (
-            standings.map((group, index) => (
-              <View key={index} style={tailwind`mb-6`}>
-                <View style={tailwind`bg-white rounded-xl shadow-sm overflow-hidden`}>
-                  <View style={tailwind`bg-gradient-to-r from-blue-600 to-purple-600 p-4`}>
-                    <Text style={tailwind`text-white text-xl font-bold`}>
-                      {group.group_name}
-                    </Text>
-                    <Text style={tailwind`text-blue-100 text-sm mt-1`}>
-                      {group.team_row?.length || 0} teams
-                    </Text>
-                  </View>
-                  {console.log("standing Data: ", group.team_row)}
-                  <PointTable standingsData={group.team_row} game={game} />
-                </View>
-              </View>
-            ))
+            standings.filter(group => group.group_name)
+                .map((group, index) => (
+                    <View key={index} style={tailwind`mb-2 rounded-l shadow-lg bg-white p-2`}>
+                        <View style={tailwind``}>
+                            <Text style={tailwind`text-black text-lg font-bold`}>
+                                {group.group_name}
+                            </Text>
+                        </View>
+                        <PointTable standingsData={group.team_row} game={game} />
+                    </View>
+                ))
+
           ) : (
             <View style={tailwind`bg-white rounded-xl p-12 items-center shadow-sm`}>
               <Text style={tailwind`text-6xl mb-4`}>📊</Text>
