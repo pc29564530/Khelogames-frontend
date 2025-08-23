@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import TournamentCricketInfo from '../screen/TournamentCricketInfo';
 import TournamentMatches from '../screen/TournamentMatches';
 import TournamentCricketStats from '../screen/TournamentCricketStats';
-import TournamentTeam from '../screen/TournamentTeam';
+import TournamentParticipants from '../screen/TournamentParticipants';
 import TournamentStanding from '../screen/TournamentStanding';
 
 function TopTabCricket({tournament, currentRole, game}) {
@@ -28,7 +28,7 @@ function TopTabCricket({tournament, currentRole, game}) {
                 />
                 <TopTab.Screen 
                     name="Team"
-                    component={TournamentTeam}
+                    component={TournamentParticipants}
                     initialParams={{tournament:tournament, currentRole: currentRole}}
                 />
                 <TopTab.Screen 

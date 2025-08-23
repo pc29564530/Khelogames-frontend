@@ -2,10 +2,11 @@ import * as actionTypes from '../types/actionTypes';
 
 const initalState = {
     // mobileNumber: '',
-    isAuthenticated: false,
+    isAuthenticated: null,
     isMobileNumberVerified: false,
     expireTime:'',
-    user: null
+    user: null,
+    loading: true,
 };
 
 const authReducers = (state=initalState, action) => {
@@ -18,7 +19,8 @@ const authReducers = (state=initalState, action) => {
         case actionTypes.SET_AUTHENTICATED:
             return {
                 ...state,
-                isAuthenticated: action.payload
+                isAuthenticated: action.payload,
+                loading: false
             }
         case actionTypes.SET_MOBILE_NUMBER_VERIFIED:
             return {

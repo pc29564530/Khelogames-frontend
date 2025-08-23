@@ -2,7 +2,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import tailwind from 'twrnc';
 import TournamentFootballInfo from '../screen/TournamentFootballInfo';
 import TournamentFootballStats from '../screen/TournamentFootballStats';
-import TournamentTeam from '../screen/TournamentTeam';
+import TournamentParticipants from '../screen/TournamentParticipants';
 import TournamentStanding from '../screen/TournamentStanding';
 import TournamentMatches from '../screen/TournamentMatches';
 import { useSelector } from 'react-redux';
@@ -29,7 +29,7 @@ function TopTabFootball({tournament, currentRole}) {
                 /> 
                 <TopTab.Screen 
                     name="Team"
-                    component={TournamentTeam}
+                    component={TournamentParticipants}
                     initialParams={{tournament:tournament, currentRole:currentRole}}
                 />
                 <TopTab.Screen 
