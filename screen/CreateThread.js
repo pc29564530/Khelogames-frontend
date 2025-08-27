@@ -26,7 +26,7 @@ function CreateThread() {
     const [selectedCommunityPublicID, setSelectedCommunityPublicID] = useState(null);
     const [communityList, setCommunityList] = useState([]);
     const [isCommunityListModal, setIsCommunityListModal] = useState(false);
-    const [communityType, setCommunityType] = useState(route.params?.communityType || 'Select Community')
+    const [communityType, setCommunityType] = useState(communityType || 'Select Community')
     const threads = useSelector(state => state.threads.threads)
 
     const handleMediaSelection = async () => {
@@ -85,6 +85,7 @@ function CreateThread() {
     }
 
     const handleSelectCommunity = () => {
+      console.log("Not able to select ")
       setIsCommunityListModal(true);
       fetchCommunity()
     }
@@ -94,7 +95,7 @@ function CreateThread() {
         setCommunityType(item.name);
         setIsCommunityListModal(false);
     }
-
+    console.log("Is community Selected")
     navigation.setOptions({
       headerTitle:'',
       headerStyle:tailwind`bg-red-400 shadow-lg`,
@@ -106,7 +107,7 @@ function CreateThread() {
       ),
       headerRight:()=>(
         <View style={tailwind`flex-row items-center mr-2 gap-18`}>
-        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={() => handleSelectCommunity}>
+        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
           <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
           <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
         </Pressable>
@@ -133,7 +134,7 @@ function CreateThread() {
                     
                     {/* Content Input with fixed height */}
                     <TextInput
-                        style={tailwind`text-lg text-black-400 min-h-40 textAlignVertical-top`}
+                        style={tailwind`text-lg text-black-400 textAlignVertical-top`}
                         multiline={true}
                         value={content} 
                         onChangeText={setContent} 
