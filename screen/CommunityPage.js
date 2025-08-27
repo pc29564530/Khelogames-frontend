@@ -51,7 +51,7 @@ function CommunityPage({route}) {
     const fetchCommunityLength = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communityPublicID}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityMember/${communityPublicID}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -175,7 +175,6 @@ function CommunityPage({route}) {
                 <View style={tailwind`mt-20 items-center`}>
                     <View style={tailwind`items-center`}>
                         <Text style={tailwind`text-black font-bold text-2xl`}>{item.name}</Text>
-                        {/* <Text style={tailwind`text-white text-`}>{item.description}</Text> */}
                         <Text style={tailwind`text-black text-sm mt-1`}>Community - {memberCount} member</Text>
                     </View>
                 </View>
