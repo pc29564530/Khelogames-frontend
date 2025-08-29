@@ -7,19 +7,39 @@
     import AntDesign from 'react-native-vector-icons/AntDesign';
     import { BASE_URL } from '../constants/ApiConstants';
     import { useSelector } from 'react-redux';
+    import { sportsServices } from '../services/sportsServices';
+    import { useDispatch } from 'react-redux';
+    import { setGames } from '../redux/actions/actions';
     import { CricketPlayerStats } from '../components/PlayerStats';
     import FootballPlayerStats from '../components/FootballPlayerStats';
 
     const PlayerProfile = ({ route }) => {
+        const dispatch = useDispatch();
         const {publicID, from} = route.params;
         const [loading, setLoading] = useState(false);
         const [player, setPlayer] = useState(null);
         const navigation = useNavigation();
+        const games = useSelector(state => state.sportReducers.games);
         const game = useSelector(state => state.sportReducers.game);
         const [isOwner, setIsOwner] = useState(false);
+        const [playerSport, setPlayerSport] = useState(null);
         const [headerContentType, setHeaderContentType] = useState("Matches");
+
         const user = useSelector(state => state.user.user);
         const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
+
+        useEffect(() => {
+            const fetchData = async () => {
+                try {
+                    const data = await sportsServices({ axiosInstance });
+                    dispatch(setGames(data));
+                } catch (error) {
+                    console.error("Unable to fetch games data: ", error);
+                }
+            };
+            fetchData();
+        }, []);
+
         useEffect(() => {
             const fetchPlayer = async () => {
                 try {
@@ -35,6 +55,7 @@
                         })
                         if (playerResponse.data){
                             setPlayer(playerResponse.data)
+                            setPlayerSport(games.find(gameItem => gameItem.id = playerResponse?.data.game_id))
                         } else {
                             setPlayer(null)
                         }
@@ -47,6 +68,7 @@
                         })
                         if (playerResponse.data){
                             setPlayer(playerResponse.data)
+                            setPlayerSport(games.find(gameItem => gameItem.id = playerResponse?.data.game_id))
                         } else {
                             setPlayer(null)
                         }
@@ -83,7 +105,7 @@
         useEffect(() => {
             const checkProfileOwner = async () => {
                 //check for currentOwner temp fix change with user_public_id
-                if (authProfilePublicID=== profile.public_id) {
+                if (authProfilePublicID=== publicID) {
                     setIsOwner(true);
                 }
             };
@@ -135,7 +157,8 @@
                             )}
                             <View style={tailwind`ml-4`}>
                                 <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.name}</Text>
-                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.positions}</Text>
+                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{playerSport.name}</Text>
+                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.position}</Text>
                                 <Text style={tailwind`text-sm text-gray-500`}>{player?.country}</Text>
                             </View>
                         </View>

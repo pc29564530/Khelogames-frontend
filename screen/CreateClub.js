@@ -74,22 +74,27 @@ const CreateClub = () => {
     });
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
-            <View style={tailwind`items-center mb-2`}>
-                <Pressable
-                    onPress={handleMediaSelection}
-                    style={tailwind`w-24 h-24 rounded-full bg-white items-center justify-center shadow-lg`}
-                >
-                    {mediaUrl ? (
-                        <Image source={{ uri: mediaUrl }} style={tailwind`w-32 h-32 rounded-full`} />
-                    ) : (
-                        <FontAwesome name="camera" size={32} color="gray" />
-                    )}
-                </Pressable>
+            <ScrollView 
+                style={tailwind`flex-1 bg-white`}
+                contentContainerStyle={tailwind`p-2`}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={tailwind`items-center mb-2`}>
+                    <Pressable
+                        onPress={handleMediaSelection}
+                        style={tailwind`w-24 h-24 rounded-full bg-white items-center justify-center shadow-lg`}
+                    >
+                        {mediaUrl ? (
+                            <Image source={{ uri: mediaUrl }} style={tailwind`w-32 h-32 rounded-full`} />
+                        ) : (
+                            <FontAwesome name="camera" size={32} color="gray" />
+                        )}
+                    </Pressable>
                 <Text style={tailwind`text-sm text-gray-500 mt-2`}>Upload a team logo</Text>
-            </View>
+                </View>
 
-            <View style={tailwind`mb-2`}>
+                {/* Team Name */}
+                <View style={tailwind`mb-2`}>
                 <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Team Name</Text>
                 <TextInput
                     style={tailwind`border p-4 text-lg rounded-md bg-white shadow-sm`}
@@ -98,117 +103,118 @@ const CreateClub = () => {
                     placeholder="Enter team or club name"
                     placeholderTextColor="gray"
                 />
-            </View>
+                </View>
 
-            <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Gender</Text>
-                <View style={tailwind`flex-row justify-between`}>
-                    <Pressable
+                {/* Gender */}
+                <View style={tailwind`mb-4`}>
+                    <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Gender</Text>
+                    <View style={tailwind`flex-row justify-between`}>
+                        {/* Male button */}
+                        <Pressable
                         onPress={() => setGender('M')}
                         style={[
                             tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg`,
-                            gender === 'M'
-                                ? tailwind`bg-red-400 text-white`
-                                : tailwind`bg-white`,
+                            gender === 'M' ? tailwind`bg-red-400` : tailwind`bg-white`,
                         ]}
-                    >
-                        <Text
-                            style={[
+                        >
+                            <Text
+                                style={[
                                 tailwind`text-lg font-semibold`,
                                 gender === 'M' ? tailwind`text-white` : tailwind`text-gray-600`,
-                            ]}
-                        >
-                            Male
-                        </Text>
-                    </Pressable>
-                    <Pressable
+                                ]}
+                            >
+                                Male
+                            </Text>
+                        </Pressable>
+                        {/* Female button */}
+                        <Pressable
                         onPress={() => setGender('F')}
                         style={[
                             tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg`,
-                            gender === 'F'
-                                ? tailwind`bg-red-400 text-white`
-                                : tailwind`bg-white`,
+                            gender === 'F' ? tailwind`bg-red-400` : tailwind`bg-white`,
                         ]}
-                    >
-                        <Text
-                            style={[
+                        >
+                            <Text
+                                style={[
                                 tailwind`text-lg font-semibold`,
                                 gender === 'F' ? tailwind`text-white` : tailwind`text-gray-600`,
-                            ]}
-                        >
-                            Female
-                        </Text>
-                    </Pressable>
+                                ]}
+                            >
+                                Female
+                            </Text>
+                        </Pressable>
+                    </View>
                 </View>
-            </View>
 
-            <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Category</Text>
-                <View style={tailwind`flex-row justify-between`}>
-                    {['team', 'individual', 'double'].map((item) => (
+                {/* Category */}
+                <View style={tailwind`mb-4`}>
+                    <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>Category</Text>
+                    <View style={tailwind`flex-row justify-between`}>
+                        {['team', 'individual', 'double'].map((item) => (
                         <Pressable
                             key={item}
                             onPress={() => setCategory(item)}
                             style={[
-                                tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg rounded-lg`,
-                                category === item
-                                    ? tailwind`bg-red-400 text-white`
-                                    : tailwind`bg-white`,
+                            tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-lg`,
+                            category === item ? tailwind`bg-red-400` : tailwind`bg-white`,
                             ]}
                         >
                             <Text
-                                style={[
-                                    tailwind`text-lg font-semibold`,
-                                    category === item
-                                        ? tailwind`text-white`
-                                        : tailwind`text-gray-600`,
-                                ]}
+                            style={[
+                                tailwind`text-lg font-semibold`,
+                                category === item ? tailwind`text-white` : tailwind`text-gray-600`,
+                            ]}
                             >
-                                {item.charAt(0).toUpperCase() + item.slice(1)}
+                            {item.charAt(0).toUpperCase() + item.slice(1)}
                             </Text>
                         </Pressable>
-                    ))}
+                        ))}
+                    </View>
                 </View>
-            </View>
 
-            <View style={tailwind`mb-4`}>
-                <Pressable
-                    onPress={() => setIsCountryPicker(true)}
-                    style={tailwind`border p-4 rounded-lg bg-white shadow-md flex-row items-center justify-between`}
-                >
-                    <Text style={tailwind`text-lg text-gray-600`}>
+                {/* Country */}
+                <View style={tailwind`mb-4`}>
+                    <Pressable
+                        onPress={() => setIsCountryPicker(true)}
+                        style={tailwind`border p-4 rounded-lg bg-white shadow-md flex-row items-center justify-between`}
+                    >
+                        <Text style={tailwind`text-lg text-gray-600`}>
                         {country ? country : 'Select Country'}
-                    </Text>
-                    <FontAwesome name="chevron-down" size={18} color="gray" />
-                </Pressable>
-            </View>
-            <View style={tailwind`mb-4 p-1`}>
-                <Pressable
-                    onPress={handleSubmit}
-                    style={tailwind`bg-white py-2 pl-2 pr-2 rounded-lg shadow-lg`}
-                >
-                    <Text style={tailwind`text-lg font-bold text-gray-600 text-center`}>Create Team</Text>
-                </Pressable>
-            </View>
+                        </Text>
+                        <FontAwesome name="chevron-down" size={18} color="gray" />
+                    </Pressable>
+                </View>
 
-            {isCountryPicker && (
-                <CountryPicker
-                    withFilter
-                    withFlag
-                    withCountryNameButton
-                    withAlphaFilter
-                    withCallingCode
-                    withEmoji
-                    countryCode={country}
-                    onSelect={(selectedCountry) => {
+                {/* Submit */}
+                <View style={tailwind`mb-4`}>
+                    <Pressable
+                        onPress={handleSubmit}
+                        style={tailwind`bg-white py-2 rounded-lg shadow-lg`}
+                    >
+                        <Text style={tailwind`text-lg font-bold text-gray-600 text-center`}>
+                        Create Team
+                        </Text>
+                    </Pressable>
+                </View>
+
+                {isCountryPicker && (
+                    <CountryPicker
+                        withFilter
+                        withFlag
+                        withCountryNameButton
+                        withAlphaFilter
+                        withCallingCode
+                        withEmoji
+                        countryCode={country}
+                        onSelect={(selectedCountry) => {
                         setCountry(selectedCountry.name);
                         setIsCountryPicker(false);
-                    }}
-                    visible={isCountryPicker}
-                    onClose={() => setIsCountryPicker(false)}
-                />
-            )}
-        </View>
+                        }}
+                        visible={isCountryPicker}
+                        onClose={() => setIsCountryPicker(false)}
+                    />
+                )}
+            </ScrollView>
     );
 };
 
