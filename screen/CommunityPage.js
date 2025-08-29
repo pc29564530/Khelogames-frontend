@@ -91,8 +91,8 @@ export default function CommunityPage({ route }) {
     }
 
     const parentScrollY = useSharedValue(0);
-    const headerHeight = 100; // increased for better content spacing
-    const collapsedHeader = 50;
+    const headerHeight = 180; // increased for better content spacing
+    const collapsedHeader = 60;
     const offsetValue = 100;
 
     // Header background animation
@@ -121,7 +121,7 @@ export default function CommunityPage({ route }) {
         const opacity = interpolate(
             parentScrollY.value,
             [offsetValue * 0.7, offsetValue],
-            [0, -36],
+            [0, 1],
             Extrapolation.CLAMP,
         );
 
@@ -133,15 +133,14 @@ export default function CommunityPage({ route }) {
         const translateY = interpolate(
             parentScrollY.value,
             [0, offsetValue],
-            [0, -80],
+            [0, -headerHeight/2-10],
             Extrapolation.CLAMP,
         );
 
-        const xValue = sWidth / 2 - (2 * 16) - 20;
         const translateX = interpolate(
             parentScrollY.value,
             [0, offsetValue],
-            [0, -xValue],
+            [0, -sWidth / 2 + 66],
             Extrapolation.CLAMP,
         );
 
@@ -153,11 +152,9 @@ export default function CommunityPage({ route }) {
         );
 
         return {
-            transform: [{ translateY }, { translateX }, { scale }],
+            transform: [{ translateY }, { translateX }, { scale }]
         };
-        });
-
-
+    });
 
     // Content fade out animation (for member count, buttons, etc.)
     const contentFadeStyle = useAnimatedStyle(() => {
@@ -183,54 +180,71 @@ export default function CommunityPage({ route }) {
 
     // Tab container animation
     const tabContainerStyle = useAnimatedStyle(() => {
-        const paddingTop = interpolate(
+        const marginTop = interpolate(
             parentScrollY.value,
             [0, offsetValue],
             [headerHeight, collapsedHeader],
             Extrapolation.CLAMP,
         );
-        return { paddingTop };
+
+        return { marginTop };
     });
 
     return (
         <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             {/* Collapsing Header */}
             <Animated.View
-                style={[tailwind`flex-row items-center justify-between`,
-                    headerStyle
+                style={[
+                    headerStyle,
+                    { 
+                        position: "absolute", 
+                        top: 0, 
+                        left: 0, 
+                        right: 0, 
+                        zIndex: 10,
+                        overflow: "hidden",
+                    },
                 ]}
             >
-                <View style={tailwind`flex-row items-center px-2 py-2 h-16`}>
+                {/* Header Bar with Back Button and Collapsed Title */}
+                <View style={tailwind`flex-row px-2 py-2 h-16`}>
                     <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
                         <MaterialIcons name="arrow-back" size={24} color="black" />
                     </Pressable>
-                </View>
-                <View style={tailwind`flex-1 items-center justify-center px-6`}>
-                    <Animated.Image 
-                        source={{ uri: item?.imageUrl }} 
-                        style={[
-                            tailwind`w-28 h-28 rounded-full bg-yellow-400 mb-2`,
-                            animImage
-                        ]}
-                    />
-                    {/* Avatar */}
+                    
+                    {/* Collapsed Title - Only visible when scrolled */}
                     <Animated.View style={[tailwind`flex-1 items-center`, collapsedTitleStyle]}>
                         <Text style={tailwind`text-lg font-bold text-black`}>
                             {item?.name}
                         </Text>
                     </Animated.View>
+                </View>
+
+                {/* Expanded Content Area */}
+                <View style={tailwind`flex-1 items-center justify-center px-6 pt-18`}>
+                    {/* Avatar */}
+                    <Animated.Image 
+                        source={{ uri: item?.imageUrl }} 
+                        style={[
+                            tailwind`w-24 h-24 rounded-full bg-yellow-400 mb-4`,
+                            animImage
+                        ]}
+                    />
 
                     {/* Content that fades out on scroll */}
                     <Animated.View style={[tailwind`items-center w-full`, contentFadeStyle]}>
                         {/* Community Name and Member Count */}
-                        <View style={tailwind`items-center mb-4`}>
+                        <View style={tailwind`items-center mb-6`}>
                             <Text style={tailwind`text-2xl font-bold text-black mb-2`}>
                                 {item?.name}
+                            </Text>
+                            <Text style={tailwind`text-gray-600 text-sm`}>
+                                Community • {memberCount} {memberCount === 1 ? 'member' : 'members'}
                             </Text>
                         </View>
 
                         {/* Action Buttons */}
-                        <View style={tailwind`flex-row items-center justify-center w-full px-4 gap-3 mb-4`}>
+                        <View style={tailwind`flex-row items-center justify-center w-full px-4 gap-3`}>
                             {/* Announcements Button */}
                             <Pressable 
                                 style={tailwind`flex-row items-center bg-red-500 rounded-lg px-4 py-3 flex-1`} 
@@ -266,7 +280,7 @@ export default function CommunityPage({ route }) {
                     screenOptions={{
                         tabBarStyle: { 
                             backgroundColor: "white",
-                            elevation: 8,
+                            elevation: 4,
                             shadowOpacity: 0.1,
                         },
                         tabBarLabelStyle: {
