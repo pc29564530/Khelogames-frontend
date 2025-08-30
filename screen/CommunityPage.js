@@ -12,7 +12,8 @@ import Animated, {
   interpolate,
   Extrapolation,
   useAnimatedScrollHandler,
-  interpolateColor
+  interpolateColor,
+  useAnimatedProps
 } from "react-native-reanimated";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import PostByCommunity from "./PostByCommunity";
@@ -30,6 +31,9 @@ export default function CommunityPage({ route }) {
     const dispatch = useDispatch();
     const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity);
     const [memberCount, setMemberCount] = useState(1);
+
+    const AnimatedMaterialIcons = Animated.createAnimatedComponent(MaterialIcons);
+    const AnimatedAntDesign = Animated.createAnimatedComponent(AntDesign)
 
     useEffect(() => {
         fetchCommunityJoinedByUser();
@@ -91,9 +95,9 @@ export default function CommunityPage({ route }) {
     }
 
     const parentScrollY = useSharedValue(0);
-    const headerHeight = 180; // increased for better content spacing
+    const headerHeight = 280; // increased for better content spacing
     const collapsedHeader = 60;
-    const offsetValue = 100;
+    const offsetValue = 130;
 
     // Header background animation
     const headerStyle = useAnimatedStyle(() => {
@@ -119,13 +123,29 @@ export default function CommunityPage({ route }) {
     // Collapsed state title animation (shows in header bar)
     const collapsedTitleStyle = useAnimatedStyle(() => {
         const opacity = interpolate(
-            parentScrollY.value,
-            [offsetValue * 0.7, offsetValue],
-            [0, 1],
-            Extrapolation.CLAMP,
-        );
-
-        return { opacity };
+                  parentScrollY.value,
+                  [0, offsetValue],
+                  [0, 1],
+                  Extrapolation.CLAMP,
+                )
+                const translateX = interpolate(
+                  parentScrollY.value,
+                  [0, offsetValue],
+                  [0, 42],
+                  Extrapolation.CLAMP,
+                )
+                const translateY = interpolate(
+                  parentScrollY.value,
+                  [0, offsetValue],
+                  [0, 5],
+                  Extrapolation.CLAMP,
+                )
+                const color = interpolateColor(
+                    parentScrollY.value,
+                    [0, offsetValue],
+                    ['black', 'white']
+                )
+                return { opacity, transform: [{ translateX }, { translateY }] , color}
     });
 
     // Avatar animation for collapsed state
@@ -133,14 +153,14 @@ export default function CommunityPage({ route }) {
         const translateY = interpolate(
             parentScrollY.value,
             [0, offsetValue],
-            [0, -headerHeight/2-10],
+            [0, -headerHeight/2+104],
             Extrapolation.CLAMP,
         );
 
         const translateX = interpolate(
             parentScrollY.value,
             [0, offsetValue],
-            [0, -sWidth / 2 + 66],
+            [0, -sWidth / 2 + 56],
             Extrapolation.CLAMP,
         );
 
@@ -152,7 +172,7 @@ export default function CommunityPage({ route }) {
         );
 
         return {
-            transform: [{ translateY }, { translateX }, { scale }]
+            transform: [{ translateY }, { translateX }, { scale }],
         };
     });
 
@@ -178,6 +198,16 @@ export default function CommunityPage({ route }) {
         };
     });
 
+    const textColorSytle = useAnimatedStyle(() => {
+        return {
+              color: interpolateColor(
+                parentScrollY.value,
+                [0, offsetValue],
+                ['black', 'white']
+              ),
+        }
+    })
+
     // Tab container animation
     const tabContainerStyle = useAnimatedStyle(() => {
         const marginTop = interpolate(
@@ -190,6 +220,16 @@ export default function CommunityPage({ route }) {
         return { marginTop };
     });
 
+    const animatedIconProps = useAnimatedProps(() => {
+            return {
+              color: interpolateColor(
+                parentScrollY.value,
+                [0, offsetValue],
+                ['black', 'white']
+              ),
+            }
+          })
+
     return (
         <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             {/* Collapsing Header */}
@@ -201,27 +241,24 @@ export default function CommunityPage({ route }) {
                         top: 0, 
                         left: 0, 
                         right: 0, 
-                        zIndex: 10,
-                        overflow: "hidden",
+                        zIndex: 10
                     },
                 ]}
             >
                 {/* Header Bar with Back Button and Collapsed Title */}
-                <View style={tailwind`flex-row px-2 py-2 h-16`}>
+                <View style={tailwind`flex-row py-2 h-16`}>
                     <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
-                        <MaterialIcons name="arrow-back" size={24} color="black" />
+                        <AnimatedMaterialIcons name="arrow-back" size={24} animatedProps={animatedIconProps}/>
                     </Pressable>
-                    
-                    {/* Collapsed Title - Only visible when scrolled */}
-                    <Animated.View style={[tailwind`flex-1 items-center`, collapsedTitleStyle]}>
-                        <Text style={tailwind`text-lg font-bold text-black`}>
+                    <View style={[tailwind`font-bold text-black`]}>
+                        <Animated.Text style={[tailwind`text-lg font-bold text-black`, collapsedTitleStyle]}>
                             {item?.name}
-                        </Text>
-                    </Animated.View>
+                        </Animated.Text>
+                    </View>
                 </View>
 
                 {/* Expanded Content Area */}
-                <View style={tailwind`flex-1 items-center justify-center px-6 pt-18`}>
+                <View style={tailwind`flex-1 items-center justify-center px-6 pt-2 pb-2`}>
                     {/* Avatar */}
                     <Animated.Image 
                         source={{ uri: item?.imageUrl }} 
@@ -234,7 +271,7 @@ export default function CommunityPage({ route }) {
                     {/* Content that fades out on scroll */}
                     <Animated.View style={[tailwind`items-center w-full`, contentFadeStyle]}>
                         {/* Community Name and Member Count */}
-                        <View style={tailwind`items-center mb-6`}>
+                        <View style={tailwind`items-center mb-4`}>
                             <Text style={tailwind`text-2xl font-bold text-black mb-2`}>
                                 {item?.name}
                             </Text>
