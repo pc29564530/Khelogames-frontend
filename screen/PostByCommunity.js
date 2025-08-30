@@ -17,20 +17,11 @@ const PostByCommunity = ({item, parentScrollY, headerHeight, collapsedHeader}) =
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads);
 
-    const offsetValue = headerHeight - collapsedHeader;
-
-    // This is the key fix - properly sync scroll with parent
-    // const handleScroll = useAnimatedScrollHandler((event) => {
-    //     onScroll: (e) => {
-    //       parentScrollY.value = e.contentOffset.y;
-    //     }
-    // });
-
     const scrollHandler = useAnimatedScrollHandler({
-  onScroll: (event) => {
-    parentScrollY.value = event.contentOffset.y;
-  },
-});
+        onScroll: (event) => {
+            parentScrollY.value = event.contentOffset.y;
+        },
+    });
     
     const handleThreadComment = (item, threadPublicID) => {
         navigation.navigate('ThreadComment', {item: item, threadPublicID: threadPublicID});
@@ -92,7 +83,7 @@ const PostByCommunity = ({item, parentScrollY, headerHeight, collapsedHeader}) =
     }, []);
 
     const renderThreadItem = ({item}) => (
-        <View style={tailwind`bg-white mb-3 mx-4 rounded-xl shadow-sm overflow-hidden`}>
+        <View style={tailwind`bg-white mb-3 mx-2 rounded-xl shadow-sm overflow-hidden`}>
             {/* User Profile Section */}
             <Pressable 
                 style={tailwind`flex-row items-center p-4 border-b border-gray-100`} 
@@ -191,7 +182,7 @@ const PostByCommunity = ({item, parentScrollY, headerHeight, collapsedHeader}) =
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             contentContainerStyle={{
-              paddingTop: collapsedHeader, // push down so content starts below header
+              paddingTop: 10, // push down so content starts below header
               paddingBottom: 50,
             }}
             showsVerticalScrollIndicator={false}
