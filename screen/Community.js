@@ -95,20 +95,18 @@ function Community() {
                         {community?.map((item, i) => (
                             <View style={tailwind`flex-row bg-white mb-1 p-3 rounded-lg h-20 shadow-lg `} key={i}>
                                     <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>
-                                        <Text style={tailwind`text-red-500 text-6x3`}>NA</Text>
+                                        <Text style={tailwind`text-red-500 text-6x3`}>{item.name.charAt(0).toUpperCase()}</Text>
                                     </View>
                                     <View style={tailwind`w-3/5 pl-3`}>
                                         <Pressable onPress={() => handleCommunityPage(item, item.public_id)}>
                                             <Text style={tailwind`font-bold text-base text-black`}>{item.name}</Text>
-                                            <Text style={tailwind`text-black`}>{item.description}</Text>
-                                            <Text style={tailwind`text-base text-gray-400`}>{item.community_type !== 'Community Type' ? item.community_type: ''}</Text>
                                         </Pressable>
                                     </View>
                                     <Pressable
                                         style={tailwind`w-1/5 h-9 rounded-md shadow-lg ${joinedCommunity?.some(c => c.name === item.name) ? 'bg-red-400' : 'bg-white'} p-2 m-3 justify-center`}
                                         onPress={() => handleJoinCommunity(item.public_id)}
                                     >
-                                        <Text style={tailwind`text-black pl-2`}>
+                                        <Text style={tailwind`text-black`}>
                                             {joinedCommunity?.some(c => c.public_id === item.public_id) ? 'Joined' : 'Join'}
                                         </Text>
                                     </Pressable>

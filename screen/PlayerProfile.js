@@ -95,8 +95,8 @@
             title: player?.name || "Player Profile",
             headerLeft: () => {
                 return (
-                    <Pressable onPress={() => navigation.goBack()}>
-                        <AntDesign name="arrowleft" size={24} color="black"/>
+                    <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-2`}>
+                        <AntDesign name="arrowleft" size={24} color="white"/>
                     </Pressable>
                 )
             }

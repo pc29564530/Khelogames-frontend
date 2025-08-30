@@ -38,10 +38,6 @@ export default function CommunityPage({ route }) {
     useEffect(() => {
         fetchCommunityJoinedByUser();
     },[]);
-
-    useEffect(() => {
-        fetchCommunityLength();
-    }, []);
     
     const fetchCommunityJoinedByUser = async () => {
         try {
@@ -61,21 +57,6 @@ export default function CommunityPage({ route }) {
     
     const handleAnnouncement = (item) => {
         navigation.navigate('CommunityMessage', {item:item})
-    }
-
-    const fetchCommunityLength = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getUserByCommunity/${communityPublicID}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                }
-            });
-            setMemberCount(response.data.length);
-        } catch (err) {
-            console.error('Unable to get the length of the user', err);
-        }
     }
 
     const handleJoinCommunity = async (communityPublicID) => {
