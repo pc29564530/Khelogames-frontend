@@ -64,8 +64,8 @@ const Tournament = () => {
     
     useEffect(() => {
         const fetchTournament = async () => {
-            const tournament = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
-            dispatch(getTournamentBySportAction(tournament["tournament"]));
+            const tournamentData = await getTournamentBySport({axiosInstance: axiosInstance, sport: game});
+            dispatch(getTournamentBySportAction(tournamentData.tournament));
         }
         
         if(game?.name){
@@ -83,11 +83,11 @@ const Tournament = () => {
     }
 
     const filteredTournaments = useCallback(() => {
-        const filtered = tournaments["tournament"]?.filter(tournament => {
+        const filtered = tournaments?.filter(tournament => {
             return (tournament.game_id === game.id && (typeFilter === "all" || tournament.level === typeFilter) && (statusFilter === "all" || tournament.status_code === statusFilter));
         });
 
-        setFilterTournaments(filtered || tournaments["tournament"]);
+        setFilterTournaments(filtered || tournaments);
     }, [tournaments, game, typeFilter, statusFilter]);
 
      useEffect(() => {
