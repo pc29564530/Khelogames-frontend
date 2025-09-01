@@ -165,9 +165,6 @@ const Tournament = () => {
 
                     {/* Level + Season + Country */}
                     <View style={tailwind`flex-row flex-wrap mt-1`}>
-                    <Text style={tailwind`text-sm text-gray-600 mr-2`}>
-                        {item.level}
-                    </Text>
                     {item.season && (
                         <Text style={tailwind`text-sm text-gray-600 mr-2`}>
                         Season {item.season}
@@ -182,28 +179,23 @@ const Tournament = () => {
                 </View>
 
                     {/* Status Badge */}
-                    <View
-                        style={[
-                        tailwind`px-3 py-1 rounded-full ml-2`,
-                        statusColor,
-                        ]}
-                    >
-                        <Text style={tailwind`text-xs font-semibold capitalize`}>
-                        {item.status || "not_started"}
-                        </Text>
+                    <View style={tailwind`items-center`}>
+                        <View
+                            style={[
+                            tailwind`px-3 py-1 ml-2`,
+                            statusColor,
+                            ]}
+                        >
+                            <Text style={tailwind`text-xs font-semibold capitalize`}>
+                                {item.status || "not_started"}
+                            </Text>
+                        </View>
+                        <View>
+                            <Text style={tailwind`text-sm text-gray-500`}>
+                                {startDate}
+                            </Text>
+                        </View>
                     </View>
-                </View>
-
-                {/* Footer Row - Start Date */}
-                <View style={tailwind`mt-3 flex-row justify-between items-center`}>
-                <Text style={tailwind`text-sm text-gray-500`}>
-                    Starts: {startDate}
-                </Text>
-                {item.has_knockout && (
-                    <Text style={tailwind`text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full`}>
-                    Knockout
-                    </Text>
-                )}
                 </View>
             </Pressable>
         );
@@ -225,7 +217,7 @@ const Tournament = () => {
                 },
             ]}>
             {/* Sports selector */}
-                <View style={tailwind`flex-row mt-[1%] items-center`}>
+                <View style={tailwind`flex-row mt-[2%] items-center`}>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
