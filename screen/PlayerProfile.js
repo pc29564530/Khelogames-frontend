@@ -157,7 +157,6 @@
                             )}
                             <View style={tailwind`ml-4`}>
                                 <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.name}</Text>
-                                <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player.name}</Text>
                                 <Text style={tailwind`text-xl font-semibold text-gray-900`}>{player?.position}</Text>
                                 <Text style={tailwind`text-sm text-gray-500`}>{player?.country}</Text>
                             </View>

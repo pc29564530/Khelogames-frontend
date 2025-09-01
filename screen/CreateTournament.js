@@ -245,7 +245,7 @@ const CreateTournament = () => {
                     withFilter
                     withFlag
                     countryCode={country}
-                    onSelect={(country) => setCountry(country.cca2)}
+                    onSelect={(country) => setCountry(country.name)}
                     visible={isCountryPicker}
                     onClose={() => setIsCountryPicker(false)}
                 />
