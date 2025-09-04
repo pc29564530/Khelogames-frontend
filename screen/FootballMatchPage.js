@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import FootballMatchPageContent from '../navigation/FootballMatchPageContent';
 import { formattedTime, formattedDate, convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -13,10 +13,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getMatch } from '../redux/actions/actions';
 const filePath = require('../assets/status_code.json');
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import axios from 'axios';
 
 const FootballMatchPage = ({ route }) => {
     const dispatch = useDispatch();
-    const matchPublicID = route.params;                                                                         
+    const {matchPublicID} = route.params;                                                                     
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [menuVisible, setMenuVisible] = useState(false);
@@ -29,11 +30,11 @@ const FootballMatchPage = ({ route }) => {
 
     const {height:sHeight, width: sWidth} = Dimensions.get('screen')
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         const fetchMatchData = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID${matchPublicID}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const FootballMatchPage = ({ route }) => {
             }
         }
         fetchMatchData();
-    }, [matchPublicID, game.name, dispatch])
+    }, [matchPublicID, game.name, dispatch]))
 
     const handleUpdateResult = async (itm) => {
         setStatusVisible(false);
@@ -56,8 +57,8 @@ const FootballMatchPage = ({ route }) => {
         setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const data = { match_public_id: matchPublicID, status_code: itm };
-            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus`, data, {
+            const data = { status_code: itm };
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus/${matchPublicID}`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -92,19 +93,19 @@ const FootballMatchPage = ({ route }) => {
                     </Pressable>
                 </View>
                 <View style={[tailwind`items-center -top-4`]}>
-                    <Text style={tailwind`text-white text-xl font-semibold`}>{match.status_code.charAt(0).toUpperCase()+match.status_code.slice(1)}</Text>
+                    <Text style={tailwind`text-white text-xl font-semibold`}>{match.status_code}</Text>
                 </View>
                 <View style={[tailwind`items-center flex-row justify-evenly px-2 py-2 -top-4`]}>
                     <View style={tailwind`items-center`}>
-                        {match.homeTeam.media_url?(
+                        {match?.homeTeam?.media_url?(
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-md`}>{match.homeTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-white text-md`}>{match?.homeTeam?.name.charAt(0).toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-white`}>{match.homeTeam.name}</Text>
+                            <Text  style={tailwind`text-white`}>{match?.homeTeam?.name}</Text>
                         </View>
                     </View>
                     <View style={tailwind`items-center justify-center gap-1`}>
@@ -118,31 +119,31 @@ const FootballMatchPage = ({ route }) => {
                         {/* Penalty Shootout Score */}
                         {match?.homeScore?.penalty_shootout !== null &&
                             match?.awayScore?.penalty_shootout !== null && (
-                            <View style={tailwind`flex-row items-center mt-1`}>
-                                <View style={tailwind` px-2 py-0.5`}>
-                                <Text style={tailwind`text-white text-lg font-semibold`}>PEN</Text>
+                                <View style={tailwind`flex-row items-center mt-1`}>
+                                    <View style={tailwind` px-2 py-0.5`}>
+                                        <Text style={tailwind`text-white text-lg font-semibold`}>PEN</Text>
+                                    </View>
+                                    <Text style={tailwind`text-white text-lg text-base font-semibold`}>
+                                    {match?.homeScore?.penalty_shootout}
+                                    </Text>
+                                    <Text style={tailwind`text-white text-lg text-base font-semibold`}>-</Text>
+                                    <Text style={tailwind`text-white text-lg text-base font-semibold`}>
+                                    {match?.awayScore?.penalty_shootout}
+                                    </Text>
                                 </View>
-                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>
-                                {match?.homeScore?.penalty_shootout}
-                                </Text>
-                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>-</Text>
-                                <Text style={tailwind`text-white text-lg text-base font-semibold`}>
-                                {match?.awayScore?.penalty_shootout}
-                                </Text>
-                            </View>
-                            )}
-                        </View>
+                        )}
+                    </View>
 
                     <View style={tailwind`items-center`}>
                         {match.awayTeam?.media_url ? (
                             <Image/>
                         ):(
                             <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-md`}>{match.awayTeam.name.charAt(0).toUpperCase()}</Text>
+                                <Text style={tailwind`text-white text-md`}>{match?.awayTeam?.name.charAt(0).toUpperCase()}</Text>
                             </View>
                         )}
                         <View>
-                            <Text  style={tailwind`text-white`}>{match.awayTeam.name}</Text>
+                            <Text  style={tailwind`text-white`}>{match?.awayTeam?.name}</Text>
                         </View>
                     </View>
                 </View>
