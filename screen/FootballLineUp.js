@@ -6,6 +6,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { getTeamPlayers } from '../redux/actions/actions';
 const positions = require('../assets/position.json');
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
@@ -198,12 +199,15 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       {/* Squad selector */}
       <View style={tailwind`mb-2 gap-4 p-2`}>
         <Pressable
-          style={tailwind`rounded-md shadow-lg bg-white p-8 items-center`}
+          style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
           onPress={() => {
             setIsPlayerModalVisible(true);
           }}
         >
-          <Text style={tailwind`text-lg`}>Select Squad</Text>
+          <View style={tailwind`flex-row items-center`}>
+            <MaterialIcons name="add" size={24} color="gray" />
+            <Text style={tailwind`text-lg`}>Select Squad</Text>
+          </View>
         </Pressable>
       </View>
 
