@@ -47,10 +47,10 @@ const FootballMatchPage = ({ route }) => {
     const parentScrollY = useSharedValue(0);
     
     // Animation constants
-    const bgColor = '#ffffff';
-    const bgColor2 = "#ef4444"; // red-500
+    const bgColor = '#ffffff';   // white
+    const bgColor2 = '#f87171';  // red-400
     const headerHeight = 200;
-    const collapsedHeader = 80; // Increased for better visibility
+    const collapsedHeader = 60; // Increased for better visibility
     const offsetValue = 120; // Reduced for smoother transition
 
     // Header animation style
@@ -65,7 +65,7 @@ const FootballMatchPage = ({ route }) => {
         const backgroundColor = interpolateColor(
             parentScrollY.value,
             [0, offsetValue],
-            [bgColor2, bgColor2] // Keep consistent red color
+            [bgColor2, bgColor2]
         );
 
         const opacity = interpolate(
@@ -78,7 +78,6 @@ const FootballMatchPage = ({ route }) => {
         return {
             backgroundColor, 
             height,
-            opacity
         };
     });
 
@@ -90,10 +89,9 @@ const FootballMatchPage = ({ route }) => {
             [headerHeight, collapsedHeader],
             Extrapolation.CLAMP,
         );
-
         return { 
             marginTop,
-            flex: 1
+            flex: 1,
         };
     });
 
@@ -379,19 +377,22 @@ const FootballMatchPage = ({ route }) => {
                 <TopTab.Navigator
                     screenOptions={{
                         tabBarStyle: { 
-                            backgroundColor: "white",
+                            backgroundColor: '#f87171',
                             elevation: 4,
                             shadowOpacity: 0.1,
+                            zIndex:20, // used this more then top tab because not having proper touch
                         },
                         tabBarLabelStyle: {
                             fontSize: 14,
                             fontWeight: '600',
+                            textTransform: 'none',
+                            color: 'white',
                         },
                         tabBarIndicatorStyle: {
-                            backgroundColor: '#ef4444',
+                            backgroundColor: '#fff',
                         },
-                        tabBarActiveTintColor: '#ef4444',
-                        tabBarInactiveTintColor: '#6b7280',
+                        tabBarActiveTintColor: '#fff',
+                        tabBarInactiveTintColor: '#ffe4e6',
                     }}
                 >
                     <TopTab.Screen name="Details">

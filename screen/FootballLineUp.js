@@ -22,13 +22,17 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
   const game = useSelector((state) => state.sportReducers.game);
   const players = useSelector((state) => state.players.players);
-
+  const currentScrollY = useSharedValue(0);
   // scroll handler for header animation
-  const scrollHandler = useAnimatedScrollHandler({
-      onScroll: (event) => {
-          parentScrollY.value = event.contentOffset.y;
-      },
-  });
+  const handlerScroll = useAnimatedScrollHandler({
+    onScroll:(event) => {
+        if(parentScrollY.value === collapsedHeight){
+            parentScrollY.value = currentScrollY.value
+        } else {
+            parentScrollY.value = event.contentOffset.y
+        }
+      }
+  })
 
   // Content animation style
   const contentStyle = useAnimatedStyle(() => {
@@ -146,13 +150,13 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
   return (
     <Animated.ScrollView
-        onScroll={scrollHandler}
+        onScroll={handlerScroll}
         scrollEventThrottle={16}
         style={tailwind`flex-1 bg-gray-50`}
         contentContainerStyle={{
             paddingTop: 10,
             paddingHorizontal: 16,
-            paddingBottom: 50
+            paddingBottom: 100
         }}
         showsVerticalScrollIndicator={false}
     >

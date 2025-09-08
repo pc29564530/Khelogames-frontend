@@ -9,6 +9,7 @@ import axiosInstance from './axios_config';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Animated, {
     useSharedValue, 
@@ -19,18 +20,24 @@ import Animated, {
     runOnJS
 } from 'react-native-reanimated';
 
-const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeader}) => {
-    console.log("Match Data: ", item)
+const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
     const matchData = item;
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
 
-    // Local scroll handler that syncs with parent
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            parentScrollY.value = event.contentOffset.y;
-        },
-    });
+    // Shared value to track the current scroll position of the child scroll view.
+    // This is updated on every scroll event of the child.
+    // Used to sync with the parent scroll when the parent header is fully collapsed.
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeight){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
 
     // Content animation style
     const contentStyle = useAnimatedStyle(() => {
@@ -56,7 +63,7 @@ const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeader}) =
     return (
         <Animated.ScrollView 
             style={tailwind`flex-1 bg-gray-50`}
-            onScroll={scrollHandler}
+            onScroll={handlerScroll}
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{

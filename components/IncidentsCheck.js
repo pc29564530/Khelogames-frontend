@@ -18,13 +18,10 @@ const IncidentCheck = ({ incident, matchData }) => {
     return null;
   }
 
-  console.log("Incident Map: ", incident)
-
   return (
     <View style={tailwind``}>
-      {incident.map((item, index) => (
+      {incident.map((item) => (
         <View
-          key={index}
           style={[
             tailwind`p-4 border-b border-gray-200`,
             item.team_id === matchData.homeTeam.id ? tailwind`justify-start` : tailwind`justify-end`
@@ -44,11 +41,11 @@ const IncidentCheck = ({ incident, matchData }) => {
                   <View style={tailwind``}>
                     <View style={tailwind`flex-row`}>
                       <Text>In: </Text>
-                      <Text style={tailwind`text-lg`}>{item.player_in.name}</Text>
+                      <Text style={tailwind`text-lg`}>{item?.player_in?.name}</Text>
                     </View>
                     <View style={tailwind`flex-row`}>
                       <Text>Out: </Text>
-                      <Text style={tailwind`text-md`}>{item.player_out.name}</Text>
+                      <Text style={tailwind`text-md`}>{item?.player_out?.name}</Text>
                     </View>
                   </View>
                   <View style={tailwind`items-center p-2`}>
@@ -65,8 +62,8 @@ const IncidentCheck = ({ incident, matchData }) => {
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
                   {/* Handle Other Incident Types */}
                   <View style={tailwind`mx-4`}>
-                    <Text style={tailwind`text-lg`}>{item.player.name}</Text>
-                    <Text style={tailwind`text-md`}>{item.incident_type}</Text>
+                    <Text style={tailwind`text-lg`}>{item?.player?.name}</Text>
+                    <Text style={tailwind`text-md`}>{item?.incident_type}</Text>
                   </View>
                   {item.home_score && item.away_score && (
                     <View style={tailwind`flex-row`}>
@@ -111,7 +108,7 @@ const IncidentCheck = ({ incident, matchData }) => {
                     </View>
                   )}
                   <View style={tailwind`mx-4`}>
-                    <Text style={tailwind`text-lg`}>{item.player.name}</Text>
+                    <Text style={tailwind`text-lg`}>{item?.player?.name}</Text>
                     <Text style={tailwind`text-md`}>{item.description}</Text>
                   </View>
                   <View style={tailwind`h-10 w-0.2 bg-gray-400 mx-4`} />
