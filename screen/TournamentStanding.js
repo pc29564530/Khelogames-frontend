@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
-  Animated,
   Dimensions
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
@@ -24,11 +23,11 @@ import { fetchStandings, fetchGroups, addGroup, getTeamsByTournamentID, fetchAll
 import { useDispatch, useSelector } from 'react-redux';
 import { addTeamToGroup } from '../redux/actions/actions';
 import TournamentParticipants from './TournamentParticipants';
+import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Extrapolation, interpolate} from 'react-native-reanimated';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const TournamentStanding = ({ route }) => {
-  const { tournament, currentRole } = route.params;
+const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
   
   // State management
   const [loading, setLoading] = useState(false);
@@ -55,9 +54,18 @@ const TournamentStanding = ({ route }) => {
   
   const dispatch = useDispatch();
 
-  // Animation values
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(100);
+  const currentScrollY = useSharedValue(0);
+
+  const handlerScroll = useAnimatedScrollHandler({
+    onScroll:(event) => {
+        if(parentScrollY.value === collapsedHeight){
+            parentScrollY.value = currentScrollY.value
+        } else {
+            parentScrollY.value = event.contentOffset.y
+        }
+      }
+  })
+
 
   // Focus effect for data fetching
   useFocusEffect(
@@ -91,22 +99,6 @@ const TournamentStanding = ({ route }) => {
   useEffect(() => {
     fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game });
   }, [tournament, axiosInstance, dispatch]);
-
-  // Animation on mount
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   // Refresh handler
   const onRefresh = async () => {
@@ -261,7 +253,7 @@ const TournamentStanding = ({ route }) => {
     <Pressable
       onPress={() => handleTeamToggle(item.entity)}
       style={[
-        tailwind`p-4 border-b border-gray-100 flex-row justify-between items-center`,
+        tailwind`p-4border-b border-gray-100 flex-row justify-between items-center`,
         selectedTeams.some(t => t.id === item.entity.id) && tailwind`bg-blue-50`
       ]}
     >
@@ -306,13 +298,13 @@ const TournamentStanding = ({ route }) => {
   );
 
   return (
-    <Animated.View 
+    <View 
       style={[
         tailwind`flex-1 bg-gray-50`,
-        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
       ]}
     >
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={handlerScroll}
         style={tailwind`flex-1`}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -342,7 +334,7 @@ const TournamentStanding = ({ route }) => {
           ) : standings?.length > 0 ? (
             standings.filter(group => group.group_name)
                 .map((group, index) => (
-                    <View key={index} style={tailwind`mb-2 rounded-l shadow-lg bg-white p-2`}>
+                    <View key={index} style={tailwind`mb-2 h-400 rounded-l shadow-lg bg-white p-2`}>
                         <View style={tailwind``}>
                             <Text style={tailwind`text-black text-lg font-bold`}>
                                 {group.group_name}
@@ -364,7 +356,7 @@ const TournamentStanding = ({ route }) => {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Create Standing Modal */}
       {isModalCreateStandingVisible && (
@@ -603,7 +595,7 @@ const TournamentStanding = ({ route }) => {
           </View>
         </Modal>
       )}
-    </Animated.View>
+    </View>
   );
 };
 
