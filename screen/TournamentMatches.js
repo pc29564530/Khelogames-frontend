@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -8,16 +8,12 @@ import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
 import { useSelector } from 'react-redux';
 
-const TournamentMatches = ({ route, navigation }) => {
-    const { tournament, currentRole } = route.params;
+const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight, navigation }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const entities = useSelector(state => state.tournamentEntities.tournamentEntities)
+
     
-    const teams = useSelector((state) => state.teams.teams);
     const game = useSelector(state => state.sportReducers.game);
-    
-    const handleCloseFixtureModal = () => {
-        setIsModalVisible(false);
-    };
 
     const tournamentMatchBySport = () => {
         switch (game.name) {
@@ -28,6 +24,8 @@ const TournamentMatches = ({ route, navigation }) => {
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
+                        parentScrollY={parentScrollY}
+                        collapsedHeight={collapsedHeight}
                     />
                 );
             default:
@@ -37,24 +35,28 @@ const TournamentMatches = ({ route, navigation }) => {
                         AsyncStorage={AsyncStorage}
                         axiosInstance={axiosInstance}
                         BASE_URL={BASE_URL}
+                        parentScrollY={parentScrollY}
+                        collapsedHeight={collapsedHeight}
                     />
                 );
         }
     };
 
+    useEffect(() => {
+        console.log("TournamentMatches teams updated: ", entities);
+    }, [entities]);
+
     return (
         <View style={tailwind`flex-1 bg-gray-100`}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} nestedScrollEnabled={true}>
                 <View style={tailwind`bg-white p-4 py-4`}>
                     <Pressable
-                        onPress={() => navigation.navigate("CreateMatch", {tournament: tournament, teams: teams})}
+                        onPress={() => navigation.navigate("CreateMatch", {tournament:tournament, entities:entities})}
                         style={tailwind` bg-white rounded-lg shadow-lg p-2 items-center w-full`}
                     >
                         <Text style={tailwind`text-lg text-black mr-2`}>Create Match</Text>
                     </Pressable>
                 </View>
                 {tournamentMatchBySport()}
-            </ScrollView>
         </View>
     );
 };

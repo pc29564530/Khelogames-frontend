@@ -10,6 +10,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
+import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
@@ -25,12 +26,24 @@ export const renderInningScore = (scores) => {
   };
   
 
-const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
+const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
     const game = useSelector(state => state.sportReducers.game);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
+
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
+
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -46,7 +59,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                     'Content-Type': 'application/json'
                 }
             });
-
+            console.log("Matches: ", response.data)
             const item = response.data;
             dispatch(getCricketMatchScore(item || []))
         } catch (err) {
@@ -55,28 +68,40 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     };
 
     return (
-        <ScrollView>
+        <Animated.ScrollView
+            onScroll={handlerScroll}
+            contentContainerStyle={{marginTop:10}}
+        >
             <View style={tailwind`p-4`}>
-            {matches[0]?.knockout_stage &&
-            Object.entries(matches[0].knockout_stage).map(([stageName, knockoutMatches]) => (
-                <View key={stageName}>
-                    <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{knockoutMatches["round"]}</Text>
-                    {knockoutMatches["matches"].map((item, index) => {
-                        return <MatchesData item={item} ind={index} key={index}/>
-                    })}
-                </View>
-            ))}
-            {matches[0]?.group_stage &&
-            Object.entries(matches[0].group_stage).map(([stageName, groupMatches]) => (
-                <View key={stageName}>
-                    <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
-                    {groupMatches["matches"]?.map((item, index) => {
-                        return <MatchesData item={item} ind={index} key={index}/>
-                    })}
-                </View>
-            ))}
+                {matches[0]?.knockout_stage &&
+                Object.entries(matches[0].knockout_stage).map(([stageName, knockoutMatches]) => (
+                    <View key={stageName}>
+                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{knockoutMatches["round"]}</Text>
+                        {knockoutMatches["matches"].map((item, index) => {
+                            return <MatchesData item={item} ind={index} key={index}/>
+                        })}
+                    </View>
+                ))}
+                {matches[0]?.group_stage &&
+                Object.entries(matches[0].group_stage).map(([stageName, groupMatches]) => (
+                    <View key={stageName}>
+                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
+                        {groupMatches["matches"]?.map((item, index) => {
+                            return <MatchesData item={item} ind={index} key={index}/>
+                        })}
+                    </View>
+                ))}
+                {matches[0]?.league &&
+                Object.entries(matches[0].league).map(([stageName, groupMatches]) => (
+                    <View key={stageName}>
+                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
+                        {groupMatches["matches"]?.map((item, index) => {
+                            return <MatchesData item={item} ind={index} key={index}/>
+                        })}
+                    </View>
+                ))}
             </View>
-        </ScrollView>
+        </Animated.ScrollView>
     );
 }
 

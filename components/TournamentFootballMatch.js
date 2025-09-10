@@ -8,9 +8,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getFootballMatchScore, getMatch } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
+import Animated, {useAnimatedScrollHandler, interpolate, useSharedValue, useAnimatedStyle, Extrapolation} from 'react-native-reanimated';
 
 
-const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL}) => {
+const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
@@ -37,56 +38,85 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
         }
     };
 
+    const currentScrollY = useSharedValue(0);
+
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+          }
+      })
+
+      // Content animation style
+        const contentStyle = useAnimatedStyle(() => {
+            const opacity = interpolate(
+                parentScrollY.value,
+                [0, 50],
+                [1, 1],
+                Extrapolation.CLAMP
+            );
+
+            return {
+                opacity
+            };
+        });
+
     return (
-        <ScrollView>
-            <View style={tailwind`p-1 bg-white`}>
-                {matches?.length > 0 ? (
-                    matches.map((stage, index) => (
-                        <View key={index} style={tailwind`bg-white`}>
-                            {Object.keys(stage.group_stage).length > 0 && 
-                                Object.entries(stage.group_stage).map(([stageName, matchs]) => (
-                                    matchesData(matchs, stageName)
-                                ))
-                            }
-                            {Object.keys(stage.league_stage).length > 0 && 
-                                Object.entries(stage.league_stage).map(([stageName, matchs]) => (
-                                    matchesData(matchs, stageName)
-                                ))
-                            }
-                            {Object.keys(stage.knockout_stage).length > 0 &&
-                                Object.entries(stage.knockout_stage).map(([stageName, matchs]) => (
-                                    matches.length > 0 && (
-                                        <View key={stageName}>
-                                            {matchs.length>0 && (
-                                                <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
-                                            )}
-                                            {matchs.map((item, ind) => (
-                                                matchesData(item, ind)
-                                            ))}
-                                        </View>
-                                    )
-                                ))
-                            }
-                        </View>
-                    ))
-                ) : (
-                    <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
-                )}
-            </View>
-        </ScrollView>
+        <View style={tailwind`flex-1`}
+        >   
+            <Animated.ScrollView
+                onScroll={handlerScroll}
+            >
+                <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
+                    {matches?.length > 0 ? (
+                        matches.map((stage, index) => (
+                            <View key={index} style={tailwind`bg-white`}>
+                                {Object.keys(stage.group_stage).length > 0 && 
+                                    Object.entries(stage.group_stage).map(([stageName, matchs]) => (
+                                        matchesData(matchs, stageName, navigation)
+                                    ))
+                                }
+                                {Object.keys(stage.league_stage).length > 0 && 
+                                    Object.entries(stage.league_stage).map(([stageName, matchs]) => (
+                                        matchesData(matchs, stageName, navigation)
+                                    ))
+                                }
+                                {Object.keys(stage.knockout_stage).length > 0 &&
+                                    Object.entries(stage.knockout_stage).map(([stageName, matchs]) => (
+                                        matches.length > 0 && (
+                                            <View key={stageName}>
+                                                {matchs.length>0 && (
+                                                    <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
+                                                )}
+                                                {matchs.map((item, ind) => (
+                                                    matchesData(item, ind, navigation)
+                                                ))}
+                                            </View>
+                                        )
+                                    ))
+                                }
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
+                    )}
+                </Animated.View>
+            </Animated.ScrollView>
+        </View>
     );
 }
 
-const matchesData = (item, ind) => {
-    const navigation = useNavigation();
-    const dispatch = useDispatch();
+const matchesData = (item, ind, navigation) => {
     const handleFootballMatchPage = (item) => {
         navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id});
     }
     return (
         <Pressable
             key={ind}
-            style={tailwind`mb-2 p-3 bg-white rounded-2xl shadow`}
+            style={tailwind`mb-4 p-8 bg-white rounded-2xl shadow`}
             onPress={() => handleFootballMatchPage(item)}
         >
             <View style={tailwind`flex-row justify-between items-center`}>

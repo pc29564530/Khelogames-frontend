@@ -9,11 +9,11 @@ import { useSelector } from 'react-redux';
 import { ScrollView } from 'native-base';
 import TournamentPlayerStatsModal from '../components/modals/cricket/TournamentStats';
 import TournamentPlayerStatsRow from '../components/TournamentPlayerStatsRow';
+import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
 
-const TournamentCricketStats = ({route}) => {
+const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) => {
     const [selectedTab, setSelectedTab] = useState('batting');
-    const {tournament} = route.params 
     //in this we need to get the player score and the current team 
     const [mostRuns, setMostRuns] = useState(null);
     const [showAll, setShowAll] = useState(false);
@@ -34,6 +34,17 @@ const TournamentCricketStats = ({route}) => {
     const [fiveWicketsHaul, setFiveWicketsHaul] = useState(null);
     const [battingAverage, setBattingAverage] = useState(null);
     const [battingStrike, setBattingStrike] = useState(null);
+
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
 
     const game = useSelector(state => state.sportReducers.game);
     useEffect(() => {
@@ -288,7 +299,10 @@ const TournamentCricketStats = ({route}) => {
     }, []);
 
     return (
-        <ScrollView nestedScrollEnabled={true} style={tailwind`flex-1 px-2 mt-4`}>
+        <Animated.ScrollView 
+            onScroll={handlerScroll}
+            contentContainerStyle={{marginTop: 10}}
+        >
             {/* Tab Buttons */}
             <View style={tailwind`flex-row justify-around mb-4`}>
                 {['batting', 'bowling', 'fielding'].map(tab => (
@@ -645,7 +659,7 @@ const TournamentCricketStats = ({route}) => {
                     data={modalData}
                     type={modalType}
                 />)}
-        </ScrollView>
+        </Animated.ScrollView>
     );
 };
 

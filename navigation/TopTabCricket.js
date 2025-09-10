@@ -7,7 +7,7 @@ import TournamentCricketStats from '../screen/TournamentCricketStats';
 import TournamentParticipants from '../screen/TournamentParticipants';
 import TournamentStanding from '../screen/TournamentStanding';
 
-function TopTabCricket({tournament, currentRole, game}) {
+function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -21,30 +21,70 @@ function TopTabCricket({tournament, currentRole, game}) {
                         tabBarInactiveTintColor:'gray'
                     }}
             >   
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Details"
-                    component={TournamentCricketInfo}
-                    initialParams={{tournament:tournament}}
+                    component={(props) => (
+                        <TournamentCricketInfo
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Team"
-                    component={TournamentParticipants}
-                    initialParams={{tournament:tournament, currentRole: currentRole}}
+                    component={(props) => (
+                        <TournamentParticipants
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Stats"
-                    component={TournamentCricketStats}
-                    initialParams={{tournament: tournament}}
+                    component={(props) => (
+                        <TournamentCricketStats
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Matches"
-                    component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    component={(props) => (
+                        <TournamentMatches
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Standing"
-                    component={TournamentStanding}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    component={(props) => (
+                        <TournamentStanding
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
         </TopTab.Navigator>
     );
