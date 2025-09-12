@@ -11,8 +11,9 @@ import { findTournamentByID, getTournamentBySport } from '../services/tournament
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentByIdAction, getTournamentBySportAction } from '../redux/actions/actions';
 import { renderInningScore } from '../screen/Matches';
+import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
-const ClubCricketMatch = ({ teamData }) => {
+const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => {
     const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState([]);
@@ -23,6 +24,17 @@ const ClubCricketMatch = ({ teamData }) => {
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
     const game = useSelector((state) => state.sportReducers.game);
+
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            if(parentScrollY === collapsedHeader){
+                parentScrollY.value = currentScrollY;
+            } else {
+                parentScrollY.value = event.contentOffset.y;
+            }
+        }
+    })
 
     const handleTournamentPage = (item) => {
             dispatch(getTournamentByIdAction(item));
@@ -84,10 +96,22 @@ const ClubCricketMatch = ({ teamData }) => {
 
     return (
         <View style={tailwind`flex-1`}>
-            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled>
-                <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center w-35 gap-2`} onPress={handleDropDown}>
-                    <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
-                    <AntDesign name="down" size={10} color="black" />
+            <Animated.ScrollView
+                style={tailwind`flex-1 bg-gray-50`}
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingTop: 20,
+                    paddingBottom: 100,
+                }}
+            >
+                <Pressable
+                    style={tailwind`border rounded-xl flex-row items-center justify-center bg-gray-100 shadow-sm mb-4 mt-2`}
+                    onPress={() => handleDropDown()}
+                >
+                    <Text style={tailwind`text-lg font-semibold text-gray-800`}>Tournaments</Text>
+                    <AntDesign name="down" size={14} color="black" />
                 </Pressable>
                 {matches?.map((item, index) => (
                         <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
@@ -154,7 +178,7 @@ const ClubCricketMatch = ({ teamData }) => {
                             </View>
                     </Pressable>
                 ))}
-            </ScrollView>
+            </Animated.ScrollView>
             {isDropDownVisible && (
                 <Modal
                     animationType="slide"

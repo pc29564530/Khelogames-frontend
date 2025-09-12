@@ -42,29 +42,25 @@ const ClubPage = ({route}) => {
     }
 
 
-    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
+      const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
-    const scrollY = useSharedValue(0);
-
-    const handleScroll = useAnimatedScrollHandler((e) => {
-        scrollY.value = e.contentOffset.y;
-      })
+      const parentScrollY = useSharedValue(0);
     
       const bgColor = tailwind.color('bg-red-400')
       const bgColor2 = tailwind.color('bg-red-400')
-      const headerInitialHeight = 100;
-      const headerNextHeight = 50;
-      const offsetValue = 100;
+      const headerHeight = 220;
+      const collapsedHeader = 50;
+      const offsetValue = headerHeight-collapsedHeader;
       const animatedHeader = useAnimatedStyle(() => {
         const height = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
-          [headerInitialHeight, headerNextHeight],
+          [headerHeight, collapsedHeader],
           Extrapolation.CLAMP,
         )
     
         const backgroundColor = interpolateColor(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
           [bgColor, bgColor2]
         )
@@ -75,46 +71,45 @@ const ClubPage = ({route}) => {
 
       const nameAnimatedStyles = useAnimatedStyle(() => {
         const opacity = interpolate(
-          scrollY.value,
-          [0, 100, offsetValue],
-          [0, 1, 1],
+          parentScrollY.value,
+          [0, offsetValue],
+          [0, 1],
           Extrapolation.CLAMP,
         )
         const translateX = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
-          [0, 76],
+          [0, -60],
           Extrapolation.CLAMP,
         )
         const translateY = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
-          [0, -10],
+          [180, 12],
           Extrapolation.CLAMP,
         )
-        return { opacity, transform: [{ translateX }, { translateY }] }
+        return { transform: [{ translateX }, { translateY }] }
       })
       const animImage = useAnimatedStyle(() => {
-        const yValue = 75;
         const translateY = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
-          [0, -yValue],
+          [0, -72],
           Extrapolation.CLAMP,
         )
     
         const xValue = sWidth / 2 - (2 * 16) - 20;
         const translateX = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
           [0, -xValue],
           Extrapolation.CLAMP,
         )
     
         const scale = interpolate(
-          scrollY.value,
+          parentScrollY.value,
           [0, offsetValue],
-          [1, 0.3],
+          [1, 0.25],
           Extrapolation.CLAMP,
         )
         return {
@@ -122,33 +117,43 @@ const ClubPage = ({route}) => {
         }
       });
 
+      // Content container animation
+      const contentContainerStyle = useAnimatedStyle(() => {
+        const top = interpolate(
+          parentScrollY.value,
+          [0, offsetValue],
+          [headerHeight, collapsedHeader],
+          Extrapolation.CLAMP,
+        );
+      
+        return {
+          flex: 1,
+          marginTop: top,
+        };
+      });
+
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`safe-center shadow-lg bg-red-400`, animatedHeader]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start justify-center top-4 px-2`}>
-                    <MaterialIcons name="arrow-back" size={22} color="white" />
+            <Animated.View style={[animatedHeader, {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+            }]}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`absolute left-2 top-4`}>
+                  <MaterialIcons name="arrow-back" size={22} color="white" />
                 </TouchableOpacity>
-                <Animated.View style={[tailwind`items-start justify-center bg-red-400`, nameAnimatedStyles]}>
-                    <Text style={tailwind`text-xl text-white`}>{teamData.name}</Text>
-                </Animated.View>
+                <View style={tailwind`items-center`}>
+                  <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
+                  <Animated.View style={[tailwind`items-center justify-center bg-red-400`, nameAnimatedStyles]}>
+                      <Text style={tailwind`text-xl text-white`}>{teamData.name}</Text>
+                  </Animated.View>
+                </View>
             </Animated.View>
-            <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
-            <Animated.ScrollView 
-                onScroll={handleScroll}
-                contentContainerStyle={{height: 760}}
-                scrollEnabled={true}
-                style={tailwind`bg-red-400`}
-            >
-                <View style={tailwind`bg-white items-center justify-center pt-16 bg-red-400`}>
-                    <View >
-                        <Text style={tailwind`text-2xl text-white `}>{teamData.name}</Text>
-                        <Text style={tailwind`text-xl text-white `}>{teamData.game}</Text>
-                    </View>
-                </View>
-                <View style={tailwind`flex-1`}>
-                    <TopTabTeamPage teamData={teamData} game={game}/>
-                </View>
-            </Animated.ScrollView>                   
+            <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
+                <TopTabTeamPage teamData={teamData} game={game} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
+            </Animated.View>                 
         </View>
     );
 }
