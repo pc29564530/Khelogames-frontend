@@ -25,9 +25,9 @@ const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateMatch = ({ route }) => {
-    const {tournament, teams, handleCloseFixtureModal} = route.params;
-    const [homeTeamPublicID, setHomeTeamPublicID] = useState(null);
-    const [awayTeamPublicID, setAwayTeamPublicID] = useState(null);
+    const {tournament, entities} = route.params;
+    const [firstEntity, setFirstEntity] = useState(null);
+    const [secondEntity, setSecondEntity] = useState(null);
     const [startTime, setStartTime] = useState(null);
     const [statusCode, setStatusCode]  = useState('not_started');
     const [endTime, setEndTime] = useState(null);
@@ -44,7 +44,7 @@ const CreateMatch = ({ route }) => {
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
     const [isModalMatchFormat, setIsModalMatchFormat] = useState(false);
-    const [matchFormat, setMatchFormat] = useState();
+    const [matchFormat, setMatchFormat] = useState(null);
   
     const modifyDateTime = (newDateTime) => {
       if (!newDateTime) {
@@ -59,10 +59,10 @@ const CreateMatch = ({ route }) => {
     };
   
     const handleSelectTeam = (item) => {
-      if (team1 === null) {
-        setTeam1(item.public_id);
+      if (firstEntity === null) {
+        setFirstEntity(item);
       } else {
-        setTeam2(item.public_id);
+        setSecondEntity(item);
       }
       setIsModalTeamVisible(false);
     };
@@ -71,8 +71,8 @@ const CreateMatch = ({ route }) => {
       try {
         const fixture = {
           tournament_public_id: tournament.public_id,
-          away_team_public_id: awayTeamPublicID,
-          home_team_public_id: homeTeamPublicID,
+          away_team_public_id: secondEntity.public_id,
+          home_team_public_id: firstEntity.public_id,
           start_timestamp: modifyDateTime(startTime),
           end_timestamp: endTime?modifyDateTime(endTime):'',
           type: matchType.toLowerCase(),
@@ -118,13 +118,13 @@ const CreateMatch = ({ route }) => {
       <ScrollView style={tailwind` p-4`}>
         <View style={tailwind`mb-2`}>
           <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-            <Text style={tailwind`text-black text-lg`}>{homeTeamPublicID ? teams.find((item) => item.public_id === homeTeamPublicID).name : "Select Team 1"}</Text>
+            <Text style={tailwind`text-black text-lg`}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
             <AntDesign name="down" size={24} color="black" />
           </Pressable>
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-lg`}>{awayTeamPublicID ? teams.find((item) => item.public_id === awayTeamPublicID).name : "Select Team 2"}</Text>
+                <Text style={tailwind`text-black text-lg`}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
                 <AntDesign name="down" size={24} color="black" />
             </Pressable>
         </View>
@@ -265,17 +265,17 @@ const CreateMatch = ({ route }) => {
           <Pressable onPress={() => setIsModalTeamVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
             <View style={tailwind`bg-white rounded-md p-4`}>
               <ScrollView nestedScrollEnabled={true}>
-                {teams.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleSelectTeam(item)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
-                    {item.media_url !== "" ? (
+                {entities.map((item, index) => (
+                  <Pressable key={index} onPress={() => handleSelectTeam(item.entity)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
+                    {item.entity.media_url !== "" ? (
                       <Image source="" style={tailwind`rounded-full h-10 w-10 bg-orange-200`}/>
                     ):(
                       <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
-                        <Text style={tailwind` text-black text-xl`}>{item.short_name}</Text>
+                        <Text style={tailwind` text-black text-xl`}>{item.entity.short_name}</Text>
                       </View>
                     )}
                     <View style={tailwind`py-1`}>
-                        <Text style={tailwind`text-lg text-black`}>{item.name}</Text>
+                        <Text style={tailwind`text-lg text-black`}>{item.entity.name}</Text>
                     </View>
                   </Pressable> 
                 ))}

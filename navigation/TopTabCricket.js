@@ -12,13 +12,25 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
     return (
         <TopTab.Navigator
                     screenOptions={{
-                        tabBarLabelStyle:tailwind`text-gray-200 text-md w-18 `,
-                        tabBarStyle:tailwind`bg-red-400`,
-                        headerShown:true,
-                        tabBarScrollEnabled:false,
-                        tabBarIndicatorStyle: tailwind`bg-white`,
-                        tabBarActiveTintColor: 'white',
-                        tabBarInactiveTintColor:'gray'
+                        headerShown: false,
+                        tabBarStyle: { 
+                            backgroundColor: '#f87171',
+                            elevation: 4,
+                            shadowOpacity: 0.2,
+                            zIndex:20, // used this more then top tab because not having proper touch
+                        },
+                        tabBarLabelStyle: {
+                            width:100,
+                            fontSize: 14,
+                            fontWeight: '600',
+                            textTransform: 'none',
+                            color: 'white',
+                        },
+                        tabBarIndicatorStyle: {
+                            backgroundColor: '#fff',
+                        },
+                        tabBarActiveTintColor: '#fff',
+                        tabBarInactiveTintColor: '#ffe4e6',
                     }}
             >   
                 <TopTab.Screen
