@@ -6,9 +6,10 @@ import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTeams, getTeams, getTeamsBySport } from '../redux/actions/actions';
+import { setTeams, getTeams, getTeamsBySport, getTournamentEntities } from '../redux/actions/actions';
 import { getTeamsByTournamentID } from '../services/tournamentServices';
 import { Alert } from 'react-native';
+import { getTournamentEntities, addTournamentEntities } from '../redux/actions/actions';
 
 const TournamentTeam = ({ route }) => {
     const { tournament, currentRole } = route.params;
@@ -17,7 +18,7 @@ const TournamentTeam = ({ route }) => {
     const [teamDisplay, setTeamDisplay] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
-    const teams = useSelector((state) => state.teams.teams);
+    const tournamentEntities = useSelector((state) => state.tournamentEntities.tournamentEntities);
     const teamsBySport = useSelector((state) => state.teams.teamsBySports);
     const game = useSelector(state => state.sportReducers.game);
 
@@ -44,13 +45,13 @@ const TournamentTeam = ({ route }) => {
         const fetchTeams = async () => {
             try {
                 const tournamentTeams =  await getTeamsByTournamentID({tournamentPublicID: tournament.public_id, game:game, AsyncStorage: AsyncStorage, axiosInstance: axiosInstance})
-                dispatch(getTeams(tournamentTeams));
+                dispatch(getTournamentEntities(tournamentTeams));
             } catch (err) {
                 console.error("unable to fetch the tournament teams: ", err);
             }
         };
         fetchTeams();
-    }, []);
+    }, [tournament.public_id]);
 
 
     const handleTeam = (item) => {
@@ -71,7 +72,7 @@ const TournamentTeam = ({ route }) => {
                 }
             });
             const respItem = response.data || [];
-            dispatch(setTeams(respItem))
+            dispatch(addTournamentEntities(respItem))
             setIsModalVisible(false);
         } catch (error) {
             if (error.response) {

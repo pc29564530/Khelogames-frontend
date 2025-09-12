@@ -8,10 +8,10 @@ const convertSecondToTimestamp = (timeStamp) => {
     return dt;
 }
 
-export const getTournamentBySport = async ({axiosInstance, sport}) => {
+export const getTournamentBySport = async ({axiosInstance, game}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/${sport.name}/getTournamentsBySport/${sport.id}`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentsBySport/${game.id}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -115,8 +115,9 @@ export const fetchAllGroups = async ({axiosInstance, dispatch: dispatch}) => {
 };
 
 
-export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}) => {
+export const fetchStandings = async ({tournament, axiosInstance, dispatch, game, loading, setLoading}) => {
     try {
+        setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log("Game: ", game)
         if (game.name === "football") {
@@ -126,7 +127,11 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
                     'Content-Type': 'application/json'
                 }
             })
-            dispatch(setStandings(response.data || []));
+            if(response.data){
+                dispatch(setStandings(response.data))
+            } else {
+                dispatch(setStandings( []));
+            }
         } else if (game.name === "cricket") {
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding${tournament.public_id}`, {
                 headers: {
@@ -134,10 +139,17 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}
                     'Content-Type': 'application/json'
                 }
             })
-            dispatch(setStandings(response.data || []));
+            if(response.data){
+                dispatch(setStandings(response.data))
+            } else {
+                dispatch(setStandings( []));
+            }
         }     
     } catch (err) {
         console.error("Unable to fetch the standings of tournament: ", err);
+        dispatch(setStandings([]));
+    } finally {
+        setLoading(false);
     }
 };
 

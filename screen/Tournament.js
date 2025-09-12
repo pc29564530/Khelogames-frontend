@@ -66,7 +66,7 @@ const Tournament = () => {
 
   useEffect(() => {
     const fetchTournament = async () => {
-      const tournamentData = await getTournamentBySport({ axiosInstance, sport: game });
+      const tournamentData = await getTournamentBySport({ axiosInstance, game });
       dispatch(getTournamentBySportAction(tournamentData.tournament));
     };
 
@@ -80,7 +80,7 @@ const Tournament = () => {
       setSelectedSport(item);
       dispatch(setGame(item));
     },
-    [game]
+    [dispatch, game]
   );
 
     const scrollRight = () => {

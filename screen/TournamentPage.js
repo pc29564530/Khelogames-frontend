@@ -18,9 +18,9 @@ const TournamentPage = ({ route }) => {
       const parentScrollY = useSharedValue(0);
       const bgColor = '#ffffff';   // white
       const bgColor2 = '#f87171'; //red-400
-      const offsetValue = 120;
       const headerHeight = 160;
       const collapsedHeader = 50;
+      const offsetValue = headerHeight-collapsedHeader;
       const headerStyle = useAnimatedStyle(() => {
         const height = interpolate(
           parentScrollY.value,

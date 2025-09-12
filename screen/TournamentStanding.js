@@ -27,7 +27,7 @@ import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Ex
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
+const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeader }) => {
   
   // State management
   const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
 
   const handlerScroll = useAnimatedScrollHandler({
     onScroll:(event) => {
-        if(parentScrollY.value === collapsedHeight){
+        if(parentScrollY.value === collapsedHeader){
             parentScrollY.value = currentScrollY.value
         } else {
             parentScrollY.value = event.contentOffset.y
@@ -87,7 +87,6 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
                 }
                 }
             );
-            console.log("Teams: ", response.data)
             setTournamentParticipants(response.data || []);
         } catch (err) {
             console.error("Failed to get tournamentParticipants for adding to standing: ", err);
@@ -97,7 +96,7 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
   }, [selectedGroup])
 
   useEffect(() => {
-    fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game });
+    fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game, loading: loading, setLoading: setLoading });
   }, [tournament, axiosInstance, dispatch]);
 
   // Refresh handler
@@ -106,7 +105,7 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
     try {
       await Promise.all([
         fetchAllGroups({ axiosInstance: axiosInstance, dispatch: dispatch }),
-        fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game })
+        fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game, loading: loading, setLoading: setLoading })
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to refresh data. Please try again.');
@@ -296,6 +295,15 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
       )}
     </Pressable>
   );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="red" />
+        <Text style={{ marginTop: 10 }}>Loading Standings...</Text>
+      </View>
+    );
+  }
 
   return (
     <View 
