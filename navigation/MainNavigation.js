@@ -47,7 +47,6 @@ export default function MainNavigation() {
     const dispatch = useDispatch();
     const[loading, setLoading] = useState(true)
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-    const user = useSelector((state) => state.user.user);
 
     useEffect(() => {
         
@@ -55,6 +54,7 @@ export default function MainNavigation() {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const refreshToken = await AsyncStorage.getItem('RefreshToken');
+                const user = await AsyncStorage.getItem("User");
                 
                 if (authToken && refreshToken && user) {
                     dispatch(setAuthenticated(true));

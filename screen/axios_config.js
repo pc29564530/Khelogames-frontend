@@ -1,6 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_URL } from '../constants/ApiConstants';
+import { setAuthenticated } from '../redux/actions/actions';
+import store from '../redux/store';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -63,6 +65,11 @@ axiosInstance.interceptors.response.use(
 
         await AsyncStorage.setItem("AccessToken", newAccessToken);
         await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.AccessTokenExpiresAt);
+        const user = await AsyncStorage.getItem("User");
+        if(newAccessToken){
+          store.dispatch(setUser(user));
+          store.dispatch(setAuthenticated(true));
+        }
 
         axiosInstance.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
