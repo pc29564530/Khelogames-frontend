@@ -3,11 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_URL } from '../constants/ApiConstants';
 import { setAuthenticated } from '../redux/actions/actions';
 import store from '../redux/store';
+import { logout } from '../redux/actions/actions';
+
 
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error, token = null) => {
+const processQueue = async (error, token = null) => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -56,6 +58,11 @@ axiosInstance.interceptors.response.use(
       try {
         const refreshToken = await AsyncStorage.getItem("RefreshToken");
 
+        if(!refreshToken){
+          await logoutFunc();
+          return Promise.reject();
+        }
+
         const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
           refresh_token: refreshToken,
         });
@@ -79,6 +86,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (err) {
         processQueue(err, null);
+        await logoutFunc();
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -88,5 +96,15 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+const logoutFunc = async () => {
+  try {
+    await AsyncStorage.clear();
+    store.dispatch(logout());
+    store.dispatch(setAuthenticated(false));
+  } catch (err) {
+    console.error("Error during logout: ", err)
+  }
+}
 
 export default axiosInstance;
