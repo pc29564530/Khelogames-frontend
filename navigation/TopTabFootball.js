@@ -36,10 +36,10 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
             tabBarActiveTintColor: '#fff',
             tabBarInactiveTintColor: '#ffe4e6',
         }}
-            > 
-                <TopTab.Screen name="Details">
+            >   
+                <TopTab.Screen name="Matches">
                     {() => (
-                        <TournamentFootballInfo
+                        <TournamentMatches
                             tournament={tournament}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
@@ -62,17 +62,6 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
                 <TopTab.Screen name="Stats">
                     {() => (
                         <TournamentFootballStats
-                            tournament={tournament}
-                            currentRole={currentRole}
-                            parentScrollY={parentScrollY}
-                            headerHeight={headerHeight}
-                            collapsedHeader={collapsedHeader}
-                        />
-                    )}
-                </TopTab.Screen>
-                <TopTab.Screen name="Matches">
-                    {() => (
-                        <TournamentMatches
                             tournament={tournament}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}

@@ -34,9 +34,9 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                     }}
             >   
                 <TopTab.Screen
-                    name="Details"
+                    name="Matches"
                     component={(props) => (
-                        <TournamentCricketInfo
+                        <TournamentMatches
                             {...props}
                             tournament={tournament}
                             currentRole={currentRole}
@@ -63,19 +63,6 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                     name="Stats"
                     component={(props) => (
                         <TournamentCricketStats
-                            {...props}
-                            tournament={tournament}
-                            currentRole={currentRole}
-                            parentScrollY={parentScrollY}
-                            headerHeight={headerHeight}
-                            collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                />
-                <TopTab.Screen
-                    name="Matches"
-                    component={(props) => (
-                        <TournamentMatches
                             {...props}
                             tournament={tournament}
                             currentRole={currentRole}
