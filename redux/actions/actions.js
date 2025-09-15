@@ -32,10 +32,12 @@ export const setMobileNumberVerified = (isVerified) => ({
     payload: isVerified,
 });
 
-export const setUser = (user) => ({
-    type: actionTypes.SET_USER,
-    payload: user
-})
+export const setUser = (user) => {
+    return {
+        type: actionTypes.SET_USER,
+        payload: user
+    }
+}
 
 export const logout = () => {
     return {
@@ -552,4 +554,14 @@ export const getCricketMatchSquad = (players) => ({
 export const setCricketMatchSquad = (players) => ({
     type: actionTypes.GET_CRICKET_MATCH_SQUAD,
     payload: players
+})
+
+export const getTournamentEntities = (entities) => ({
+    type: actionTypes.GET_TOURNAMENT_ENTITIES,
+    payload: entities
+})
+
+export const addTournamentEntities = (entity) => ({
+    type: actionTypes.ADD_TOURNAMENT_ENTITIES,
+    payload: entity
 })
