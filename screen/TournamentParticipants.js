@@ -55,6 +55,13 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
   const [error, setError] = useState(null);
   const [groupID, setGroupID] = useState(null);
   const [seedNumber, setSeedNumber] = useState(null);
+  const [authUser, setAuthUser] = useState();
+
+  useEffect(async() => {
+    const currentAuthUser = await AsyncStorage.getItem("User");
+    const userData = JSON.parse(currentAuthUser);
+    setAuthUser(userData);
+  }, [])
 
   // Animation
   const fadeAnim = useSharedValue(0);
@@ -62,7 +69,6 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
   // Redux
   const dispatch = useDispatch();
   const game = useSelector((state) => state.sportReducers.game);
-  const user = useSelector((state) => state.user.user);
 
   // Memoized filtered entities
   const filteredEntities = useMemo(() => {
@@ -237,10 +243,10 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
       onScroll={handlerScroll}
       scrollEventThrottle={16}
       style={tailwind`flex-1`}
-      contentContainerStyle={{paddingBottom:6}}
+      contentContainerStyle={{paddingBottom:100}}
       showsVerticalScrollIndicator={false}
     >
-      {tournament.user_id === user?.id && (
+      {tournament.user_id === authUser?.id && (
         <View style={tailwind` px-4 py-4 flex-row gap-3 shadow-lg bg-white`}>
           <Pressable
             onPress={() => openModal('team')}
