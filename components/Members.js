@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   Switch,
+  Dimensions,
 } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
@@ -39,6 +40,10 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [selectedSquad, setSelectedSquad] = useState([]);
+  const [authUser, setAuthUser] = useState(null);
+
+  const { height: sHeight, width: sWidth } = Dimensions.get("window");
+  console.log("Height: ", sHeight)
 
   const currentScrollY = useSharedValue(0);
 
@@ -51,6 +56,20 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
       }
     },
   });  
+
+  useEffect(() => {
+        const fetchAuthUser = async () => {
+        try {
+            const currentAuthUserStr = await AsyncStorage.getItem("User");
+            if (currentAuthUserStr) {
+            setAuthUser(JSON.parse(currentAuthUserStr));
+            }
+        } catch (err) {
+            console.error("Failed to load auth user:", err);
+        }
+        };
+        fetchAuthUser();
+    }, []);
 
   useEffect(() => {
     const fetchPlayerProfile = async () => {
@@ -191,23 +210,30 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
   return (
     <View style={tailwind`flex-1 bg-white`}>
     <Animated.ScrollView
+        style={tailwind`flex-1 bg-gray-50`}
         onScroll={handlerScroll}
-        contentContainerStyle={tailwind`px-3 pb-10`}
-        showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-      >
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+            paddingTop: 20,
+            paddingBottom: 100,
+            minHeight: sHeight+100,
+        }}
+    >
       {/* Add player button */}
-      <View style={tailwind`items-center p-3`}>
-        <TouchableOpacity
-          onPress={() => setIsSelectPlayerModal(true)}
-          style={tailwind`flex-row items-center gap-2 rounded-xl w-[95%] shadow-md p-4 justify-center bg-red-500`}
-        >
-          <FontAwesome name="user-plus" size={20} color="white" />
-          <Text style={tailwind`text-lg font-semibold text-white`}>
-            Add Player
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {authUser && teamData.user_id === authUser.id && (
+            <View style={tailwind`items-center p-3`}>
+                <TouchableOpacity
+                onPress={() => setIsSelectPlayerModal(true)}
+                style={tailwind`flex-row items-center gap-2 rounded-xl w-[95%] shadow-md p-4 justify-center bg-red-500`}
+                >
+                <FontAwesome name="user-plus" size={20} color="white" />
+                <Text style={tailwind`text-lg font-semibold text-white`}>
+                    Add Player
+                </Text>
+                </TouchableOpacity>
+            </View>
+      )}
       {/* Players list */}
       <View
       >
@@ -217,7 +243,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         {players?.map((item, index) => (
           <Pressable
             key={index}
-            style={tailwind`flex-row items-center bg-white p-3 mb-2 rounded-xl shadow-sm h-200`}
+            style={tailwind`flex-row items-center bg-white p-3 mb-2 rounded-xl shadow-sm`}
             onPress={() => handleProfile(item)}
           >
             {/* Avatar */}

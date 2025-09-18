@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal, ScrollView } from 'react-native';
+import { View, Text, Pressable, Image, Modal, ScrollView, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
@@ -25,11 +25,13 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
     const game = useSelector((state) => state.sportReducers.game);
 
+    const { height: sHeight, width: sWidth } = Dimensions.get("window");
+
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
             if(parentScrollY === collapsedHeader){
-                parentScrollY.value = currentScrollY;
+                parentScrollY.value = currentScrollY.value;
             } else {
                 parentScrollY.value = event.contentOffset.y;
             }
@@ -104,6 +106,7 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
                 contentContainerStyle={{
                     paddingTop: 20,
                     paddingBottom: 100,
+                    minHeight: sHeight+100,
                 }}
             >
                 <Pressable
@@ -113,7 +116,7 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
                     <Text style={tailwind`text-lg font-semibold text-gray-800`}>Tournaments</Text>
                     <AntDesign name="down" size={14} color="black" />
                 </Pressable>
-                {matches?.map((item, index) => (
+                    {matches?.map((item, index) => (
                         <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
                         style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`}
                         >

@@ -15,6 +15,7 @@ import { getTournamentBySport } from '../services/tournamentServices';
 import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import { Dimensions } from 'react-native';
 
 const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHeader}) => {
     const [matches, setMatches] = useState([]);
@@ -26,12 +27,13 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
     const game = useSelector((state) => state.sportReducers.game);
+    const { height: sHeight, width: sWidth } = Dimensions.get("window");
 
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
             if(parentScrollY === collapsedHeader){
-                parentScrollY.value = currentScrollY;
+                parentScrollY.value = currentScrollY.value;
             } else {
                 parentScrollY.value = event.contentOffset.y;
             }
@@ -89,6 +91,7 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
                 contentContainerStyle={{
                     paddingTop: 20,
                     paddingBottom: 100,
+                    minHeight: sHeight + 100,
                 }}
             >
                 <Pressable
@@ -100,7 +103,7 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
                 </Pressable>
                 {matches?.length > 0 ? (
                     matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between h-100 `} onPress={() => handleMatchPage(item)}>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between `} onPress={() => handleMatchPage(item)}>
                             <View>
                                 <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
                                     <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>

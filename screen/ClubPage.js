@@ -26,6 +26,7 @@ const ClubPage = ({route}) => {
     const navigation = useNavigation();
     const {teamData, game} = route.params;
     const [subCategory, setSubCategory] = useState('');
+    const [nameWidth, setNameWidth] = useState(0);
 
     const  handleSubCategory = async (item) => {
         setSubCategory(item)
@@ -51,6 +52,13 @@ const ClubPage = ({route}) => {
       const headerHeight = 220;
       const collapsedHeader = 50;
       const offsetValue = headerHeight-collapsedHeader;
+      
+      // Calculate available space for text in collapsed state
+      const avatarCollapsedSize = 32;
+      const backButtonSpace = 38;
+      const rightPadding = 12;
+      const availableTextSpace = sWidth - backButtonSpace - avatarCollapsedSize - rightPadding
+      
       const animatedHeader = useAnimatedStyle(() => {
         const height = interpolate(
           parentScrollY.value,
@@ -73,23 +81,53 @@ const ClubPage = ({route}) => {
         const opacity = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, 1],
+          [1, 1],
           Extrapolation.CLAMP,
         )
+        
+        const fontSize = interpolate(
+          parentScrollY.value,
+          [0, offsetValue],
+          [20, 16],  // Less dramatic font size change
+          Extrapolation.CLAMP
+        );
+        
+        // Calculate safe translation to prevent overlap
+        // When collapsed, position text to the right of avatar with safe margin
+        const avatarCollapsedWidth = 32;
+        const safeMargin = 8; // margin between avatar and text
+        const leftOffset = backButtonSpace + avatarCollapsedWidth + safeMargin;
+        
         const translateX = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, -60],
+          [0, -(sWidth / 2) + leftOffset + (nameWidth > availableTextSpace ? availableTextSpace / 2 : nameWidth / 2)],
           Extrapolation.CLAMP,
         )
+        
         const translateY = interpolate(
           parentScrollY.value,
           [0, offsetValue],
           [180, 12],
           Extrapolation.CLAMP,
         )
-        return { transform: [{ translateX }, { translateY }] }
+        
+        // Add width constraint for collapsed state
+        const maxWidth = interpolate(
+          parentScrollY.value,
+          [0, offsetValue],
+          [sWidth - 32, availableTextSpace],
+          Extrapolation.CLAMP,
+        );
+        
+        return { 
+          transform: [{ translateX }, { translateY }],
+          fontSize,
+          opacity,
+          maxWidth
+        }
       })
+      
       const animImage = useAnimatedStyle(() => {
         const translateY = interpolate(
           parentScrollY.value,
@@ -145,9 +183,20 @@ const ClubPage = ({route}) => {
                   <MaterialIcons name="arrow-back" size={22} color="white" />
                 </TouchableOpacity>
                 <View style={tailwind`items-center`}>
-                  <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
-                  <Animated.View style={[tailwind`items-center justify-center bg-red-400`, nameAnimatedStyles]}>
-                      <Text style={tailwind`text-xl text-white`}>{teamData.name}</Text>
+                  <Animated.Image source="" 
+                  style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
+                  <Animated.View 
+                    onLayout={(e) => {
+                      setNameWidth(e.nativeEvent.layout.width)
+                    }}
+                  style={[tailwind`items-center justify-center bg-red-400`, nameAnimatedStyles]}>
+                      <Text 
+                        style={tailwind`text-xl text-white`}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {teamData.name}
+                      </Text>
                   </Animated.View>
                 </View>
             </Animated.View>
