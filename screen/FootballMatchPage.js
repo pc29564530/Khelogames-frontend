@@ -5,8 +5,7 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import FootballMatchPageContent from '../navigation/FootballMatchPageContent';
-import { formattedTime, formattedDate, convertToISOString } from '../utils/FormattedDateTime';
+import { formattedTime, formattedDate, convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
@@ -50,8 +49,8 @@ const FootballMatchPage = ({ route }) => {
     const bgColor = '#ffffff';   // white
     const bgColor2 = '#f87171';  // red-400
     const headerHeight = 200;
-    const collapsedHeader = 60; // Increased for better visibility
-    const offsetValue = 120; // Reduced for smoother transition
+    const collapsedHeader = 60;
+    const offsetValue = 120;
 
     // Header animation style
     const headerStyle = useAnimatedStyle(() => {
@@ -286,7 +285,7 @@ const FootballMatchPage = ({ route }) => {
                 ]}
             >
                 {/* Header Controls */}
-                <View style={tailwind`flex-row justify-between items-center px-2 py-2 mt-2`}>
+                <View style={tailwind`flex-row justify-between items-center px-4 py-3 mt-1`}>
                     <Pressable onPress={() => navigation.goBack()}>
                         <AntDesign name="arrowleft" size={26} color="white" />
                     </Pressable>
@@ -296,6 +295,7 @@ const FootballMatchPage = ({ route }) => {
                 </View>
 
                 {/* Match Status */}
+
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
                         {match?.status_code || 'Loading...'}
@@ -323,33 +323,38 @@ const FootballMatchPage = ({ route }) => {
                             {match?.homeTeam?.name || 'Home'}
                         </Animated.Text>
                     </Animated.View>
+                    {/* Score and Date and Time */}
+                    {match?.status_code === "not_started" ? (
+                        <Animated.View style={[tailwind`items-center justify-center `,scoreStyle]}>
+                            <Text style={tailwind`text-white items-center`}>{formatToDDMMYY(convertToISOString(match.start_timestamp))}</Text>
+                            <Text style={tailwind`text-white items-center`}>{formattedTime(convertToISOString(match.start_timestamp))}</Text>
+                        </Animated.View>
+                    ):(
+                        <Animated.View style={[tailwind`items-center justify-center flex-1`, scoreStyle]}>
+                            <View style={tailwind`flex-row items-center -mt-4 gap-2`}>
+                                <Text style={tailwind`text-white text-3xl font-bold`}>
+                                    {match?.homeScore?.goals || 0}
+                                </Text>
+                                <Text style={tailwind`text-white text-3xl font-bold`}>-</Text>
+                                <Text style={tailwind`text-white text-3xl font-bold`}>
+                                    {match?.awayScore?.goals || 0}
+                                </Text>
+                            </View>
 
-                    {/* Score */}
-                    <Animated.View style={[tailwind`items-center justify-center flex-1`, scoreStyle]}>
-                        <View style={tailwind`flex-row items-center -mt-4 gap-2`}>
-                            <Text style={tailwind`text-white text-3xl font-bold`}>
-                                {match?.homeScore?.goals || 0}
-                            </Text>
-                            <Text style={tailwind`text-white text-3xl font-bold`}>-</Text>
-                            <Text style={tailwind`text-white text-3xl font-bold`}>
-                                {match?.awayScore?.goals || 0}
-                            </Text>
-                        </View>
-
-                        {/* Penalty Shootout Score */}
-                        {match?.homeScore?.penalty_shootout !== null &&
-                            match?.awayScore?.penalty_shootout !== null && (
-                                <View style={tailwind`flex-row items-center mt-2`}>
-                                    <View style={tailwind`bg-white bg-opacity-20 px-2 py-1 rounded`}>
-                                        <Text style={tailwind`text-white text-sm font-semibold`}>PEN</Text>
+                            {/* Penalty Shootout Score */}
+                            {match?.homeScore?.penalty_shootout !== null &&
+                                match?.awayScore?.penalty_shootout !== null && (
+                                    <View style={tailwind`flex-row items-center mt-2`}>
+                                        <View style={tailwind`bg-white bg-opacity-20 px-2 py-1 rounded`}>
+                                            <Text style={tailwind`text-white text-sm font-semibold`}>PEN</Text>
+                                        </View>
+                                        <Text style={tailwind`text-white text-lg font-semibold ml-2`}>
+                                            {match?.homeScore?.penalty_shootout} - {match?.awayScore?.penalty_shootout}
+                                        </Text>
                                     </View>
-                                    <Text style={tailwind`text-white text-lg font-semibold ml-2`}>
-                                        {match?.homeScore?.penalty_shootout} - {match?.awayScore?.penalty_shootout}
-                                    </Text>
-                                </View>
-                        )}
-                    </Animated.View>
-
+                            )}
+                        </Animated.View>
+                    )}
                     {/* Away Team */}
                     <Animated.View style={[tailwind`items-center flex-1`, secondAvatarStyle]}>
                         {match?.awayTeam?.media_url ? (

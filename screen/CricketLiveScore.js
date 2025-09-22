@@ -22,11 +22,10 @@ import { addCricketScoreServices } from '../services/cricketMatchServices';
 import { renderInningScore } from './Matches';
 
 
-const CricketLive = ({route}) => {
+const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
     const inningData = useSelector(state => ({
         game: state.sportReducers.game,
-        match: state.cricketMatchScore.match,
         batTeam: state.cricketMatchScore.batTeam,
         batting: state.cricketPlayerScore.battingScore,
         bowling: state.cricketPlayerScore.bowlingScore,
@@ -38,16 +37,10 @@ const CricketLive = ({route}) => {
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
-
-      useEffect(() => {
-        console.log("Updated Game Data:", inningData);
-      }, [inningData]);
-
     const game = inningData.game;
-    const match = inningData.match;
     const batTeam = inningData.batTeam;
-    const batting = inningData.batting;
-    const bowling = inningData.bowling;
+    const batting = inningData.batting || [];
+    const bowling = inningData.bowling || [];
     const homePlayer = inningData.homePlayer;
     const awayPlayer = inningData.awayPlayer;
     const cricketToss = inningData.cricketToss;
@@ -272,7 +265,7 @@ const CricketLive = ({route}) => {
         }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(sport, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
+            await addCricketScoreServices(game, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
         } catch (err) {
             console.error("Failed to start next inning: ", err);
         }
@@ -321,19 +314,19 @@ const CricketLive = ({route}) => {
     const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
 
-    const bowlerToBeBowled = batTeam?.id === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
+    const bowlerToBeBowled = batTeam === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
-    const existingBowler = (batTeam?.id === homeTeamPublicID ? awayPlayer : homePlayer)?.filter((player) => 
+    const existingBowler = (batTeam === homeTeamPublicID ? awayPlayer : homePlayer)?.filter((player) => 
         bowling?.innings[currentInningNumber].some((bowler) => bowler.player.id === player.id)
     );
 
     const checkFollowOn = () => {
         if (match && match.awayScore?.length == 1 || match.homeScore.length == 1){
-            if (batTeam?.id === homeTeamPublicID) {
+            if (batTeam === homeTeamPublicID) {
                 const firstInningScore = match.awayScore.find((inning) => inning.inning_number === 1);
                 const secondInningScore = match.homeScore.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {

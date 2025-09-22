@@ -38,7 +38,6 @@ import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
-import CricketLiveScore from  '../screen/CricketLiveScore';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
 
 const Stack = createStackNavigator();
@@ -180,7 +179,7 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} 
                             options={{
-                                headerShown: true,
+                                headerShown: false,
                                 headerTitle: '',
                                 headerBackTitleVisible: false,
                                 headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
@@ -217,7 +216,6 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
-                        <Stack.Screen name="Live Match" component={CricketLiveScore} />
                     </>
                 ):(
                     <>

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, Switch } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, Switch, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
@@ -20,9 +20,27 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [currentSquad, setCurrentSquad] = useState([]);
   const [selectedSquad, setSelectedSquad] = useState([]);
+  const [authUser, setAuthUser] = useState(null);
 
   const game = useSelector((state) => state.sportReducers.game);
   const players = useSelector((state) => state.players.players);
+
+  const {height: sHeight, width: sWidth} = Dimensions.get("window");
+  //checking for auth user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem("User");
+        if (storedUser) {
+          setAuthUser(JSON.parse(storedUser)); // parse because it’s stored as string
+        }
+      } catch (err) {
+        console.error("Failed to load user:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+    
   const currentScrollY = useSharedValue(0);
   // scroll handler for header animation
   const handlerScroll = useAnimatedScrollHandler({
@@ -149,23 +167,61 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     setSelectedSquad((prevSquad) => [...prevSquad, itm]);
   };
 
+  const AddTeamPlayerButton = () => {
+    if(!authUser){
+      return null;
+    }
+    if(currentTeamPlayer === homeTeamPublicID && match.homeTeam.user_id === authUser.id ){
+      return (
+        <View style={tailwind`mb-2 gap-4 p-2`}>
+          <Pressable
+            style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
+            onPress={() => {
+              setIsPlayerModalVisible(true);
+            }}
+          >
+            <View style={tailwind`flex-row items-center`}>
+              <MaterialIcons name="add" size={24} color="gray" />
+              <Text style={tailwind`text-lg`}>Select Squad</Text>
+            </View>
+          </Pressable>
+        </View>
+      )
+    } else if(currentTeamPlayer === awayTeamPublicID && match.awayTeam.user_id === authUser.id ){
+      return (
+        <View style={tailwind`mb-2 gap-4 p-2`}>
+          <Pressable
+            style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
+            onPress={() => {
+              setIsPlayerModalVisible(true);
+            }}
+          >
+            <View style={tailwind`flex-row items-center`}>
+              <MaterialIcons name="add" size={24} color="gray" />
+              <Text style={tailwind`text-lg`}>Select Squad</Text>
+            </View>
+          </Pressable>
+        </View>
+      )
+    }
+    return null;
+  }
+
   return (
     <Animated.ScrollView
         onScroll={handlerScroll}
         scrollEventThrottle={16}
         style={tailwind`flex-1 bg-gray-50`}
         contentContainerStyle={{
-            paddingTop: 10,
-            paddingHorizontal: 16,
-            paddingBottom: 100
+            paddingTop: 0,
+            paddingBottom: 100,
+            minHeight: sHeight + 100
         }}
         showsVerticalScrollIndicator={false}
     >
-      <Animated.View style={[contentStyle]}>
+      <Animated.View style={[contentStyle, tailwind`bg-white shadow-lg w-full px-2 mb-2`]}>
       {/* Team switcher */}
-      <View
-        style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}
-      >
+      <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
         <Pressable
           onPress={() => {
             toggleTeam(homeTeamPublicID);
@@ -197,23 +253,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       </View>
 
       {/* Squad selector */}
-      <View style={tailwind`mb-2 gap-4 p-2`}>
-        <Pressable
-          style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
-          onPress={() => {
-            setIsPlayerModalVisible(true);
-          }}
-        >
-          <View style={tailwind`flex-row items-center`}>
-            <MaterialIcons name="add" size={24} color="gray" />
-            <Text style={tailwind`text-lg`}>Select Squad</Text>
-          </View>
-        </Pressable>
-      </View>
-
+      <AddTeamPlayerButton />
+      </Animated.View>
       {/* Current Lineup */}
       {currentLineUp.length > 0 && (
-        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
+        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4 mx-1`}>
           <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>
             Current Squad
           </Text>
@@ -377,7 +421,6 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           </View>
         </Modal>
       )}
-      </Animated.View>
     </Animated.ScrollView>
   );
 };
