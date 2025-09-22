@@ -14,6 +14,7 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
+import { StatusModal } from '../components/modals/StatusModal';
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -80,47 +81,6 @@ const TeamLogo = ({ team }) => {
             </View>
         )
     }
-};
-
-// Status Modal Component
-const StatusModal = ({ visible, onClose, onStatusSelect }) => {
-    const statuses = [
-        { code: "not_started", label: "Not Started" },
-        { code: "in_progress", label: "In Progress" },
-        { code: "break", label: "Break" },
-        { code: "finished", label: "Finished" }
-    ];
-
-    return (
-        <Modal
-            transparent={true}
-            animationType="fade"
-            visible={visible}
-            onRequestClose={onClose}
-        >
-            <TouchableOpacity 
-                onPress={onClose} 
-                style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-            >
-                <View style={tailwind`bg-white rounded-t-lg p-6`}>
-                    <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>
-                        Update Match Status
-                    </Text>
-                    {statuses.map((status) => (
-                        <Pressable
-                            key={status.code}
-                            onPress={() => onStatusSelect(status.code)}
-                            style={tailwind`py-3 border-b border-gray-200`}
-                        >
-                            <Text style={tailwind`text-lg text-gray-700`}>
-                                {status.label}
-                            </Text>
-                        </Pressable>
-                    ))}
-                </View>
-            </TouchableOpacity>
-        </Modal>
-    );
 };
 
 // Main Component
@@ -506,7 +466,7 @@ const CricketMatchPage = ({ route }) => {
                 ]}
             >
                 {/* Header Controls */}
-                <View style={tailwind`flex-row justify-between items-center px-2 py-2`}>
+                <View style={tailwind`flex-row justify-between items-center px-4 py-3`}>
                     <Pressable onPress={() => navigation.goBack()}>
                         <AntDesign name="arrowleft" size={26} color="white" />
                     </Pressable>
@@ -602,8 +562,14 @@ const CricketMatchPage = ({ route }) => {
                 </Animated.View>
             </Animated.View>
             <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
+
                 <CricketMatchPageContent match={match} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
             </Animated.View>
+            <StatusModal
+                visible={statusVisible}
+                onClose={() => setStatusVisible(false)}
+                onStatusSelect={handleUpdateResult}
+            />
 
             {menuVisible && (
                 <Modal
@@ -618,20 +584,8 @@ const CricketMatchPage = ({ route }) => {
                                 <TouchableOpacity onPress={() => setStatusVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Edit Match</Text>
                                 </TouchableOpacity>
-                                {/* <TouchableOpacity onPress={() => setInningVisible(true)}>
-                                    <Text style={tailwind`text-xl`}>Set Inning</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleEndInning()}>
-                                    <Text style={tailwind`text-xl`}>End Inning</Text>
-                                </TouchableOpacity> */}
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Delete Match</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => {}}>
-                                    <Text style={tailwind`text-xl`}>Share</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => {match.status_code !== "finished" && navigation.navigate('Live Match')}}>
-                                    <Text style={tailwind`text-xl`}>Edit Score</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

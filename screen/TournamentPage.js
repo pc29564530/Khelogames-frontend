@@ -66,7 +66,7 @@ const TournamentPage = ({ route }) => {
         const translateY = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [70, -3], // move up a bit
+          [50, -3], // move up a bit
           Extrapolation.CLAMP,
         );
 
@@ -94,7 +94,7 @@ const TournamentPage = ({ route }) => {
         const translateY = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [80, -56],
+          [60, -56],
           Extrapolation.CLAMP,
         );
 
@@ -142,7 +142,7 @@ const TournamentPage = ({ route }) => {
           >
             <Pressable
               onPress={() => navigation.goBack()}
-              style={tailwind`absolute left-2 top-4`}
+              style={tailwind`absolute left-2 top-3`}
             >
               <MaterialIcons name="arrow-back" size={22} color="white" />
             </Pressable>

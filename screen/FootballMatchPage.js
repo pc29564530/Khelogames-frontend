@@ -10,6 +10,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
 import { getMatch } from '../redux/actions/actions';
+import { StatusModal } from '../components/modals/StatusModal';
 const filePath = require('../assets/status_code.json');
 import Animated, { 
     Extrapolation, 
@@ -295,7 +296,6 @@ const FootballMatchPage = ({ route }) => {
                 </View>
 
                 {/* Match Status */}
-
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
                         {match?.status_code || 'Loading...'}
@@ -533,6 +533,11 @@ const FootballMatchPage = ({ route }) => {
                     </View>
                 </View>
             )}
+            <StatusModal
+                visible={statusVisible}
+                onClose={() => setStatusVisible(false)}
+                onSelect={(code) => updateStatus(code)}
+            />
         </View>
     );
 };
