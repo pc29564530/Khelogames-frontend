@@ -4,8 +4,8 @@ import tailwind from 'twrnc';
 import TournamentCricketInfo from '../screen/TournamentCricketInfo';
 import TournamentMatches from '../screen/TournamentMatches';
 import TournamentCricketStats from '../screen/TournamentCricketStats';
-import TournamentTeam from '../screen/TournamentTeam';
 import TournamentStanding from '../screen/TournamentStanding';
+import TournamentParticipants from '../../screen/TournamentParticipants';
 
 function TopTabCricket({tournament, game}) {
     const TopTab = createMaterialTopTabNavigator();
@@ -24,7 +24,7 @@ function TopTabCricket({tournament, game}) {
                 />
                 <TopTab.Screen 
                     name="Team"
-                    component={TournamentTeam}
+                    component={TournamentParticipants}
                     initialParams={{tournament:tournament, currentRole: currentRole, game: game}}
                 />
                 <TopTab.Screen 
