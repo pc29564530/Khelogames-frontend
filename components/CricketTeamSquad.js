@@ -25,9 +25,8 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
-    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(null);
+    const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
     const cricketMatchSquad= useSelector(state => state.players.squads)
-    const [isOnBench,setIsOnBench] = useState([]);
     const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
     const [authUser, setAuthUser] = useState(null);
     const [searchText, setSearchText] = useState('');
@@ -147,7 +146,6 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                 match_public_id: match.public_id,
                 team_public_id: homeTeamPublicID === currentTeamPlayer ? homeTeamPublicID : awayTeamPublicID,
                 player: selectedSquad,
-                on_bench: isOnBench
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketSquad`, data, {
@@ -207,12 +205,12 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             <View key={index} style={tailwind`flex-row items-center mb-4`}>
                                 {item?.player?.media_url ? (
                                     <Image
-                                        source={{ uri: itm.player.media_url }}
+                                        source={{ uri: item.player.media_url }}
                                         style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
                                     />
                                 ):(
                                     <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center`}>
-                                    <Text>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                                    <Text>{item.player.name.charAt(0).toUpperCase()}</Text>
                                     </View>
                                 )}
                                 <View style={tailwind`flex-1`}>
@@ -235,12 +233,12 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
 
     const togglePlayerSelection = (item) => {
         setSelectedSquad(prev => {
-            if(prev.some(p => p.public_id === item.public_id)) {
-                return prev.filter(p => p.public_id !== item.public_id);
+            if (prev.some(p => p.public_id === item.public_id)) {
+              return prev.filter(p => p.public_id !== item.public_id);
             } else {
-                return [...prev, item];
+              return [...prev, { ...item, on_bench: false }];
             }
-        })
+        });
     }
 
     const AddTeamPlayerButton = () => {
@@ -356,7 +354,6 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                           contentContainerStyle={tailwind`pb-20`}
                           renderItem={({ item }) => {
                             const isSelected = selectedSquad?.some((p) => p.public_id === item.public_id);
-                            const isBench = isOnBench.includes(item.id);
                   
                             return (
                               <View
@@ -392,17 +389,19 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                                 <View style={tailwind`items-center mr-3`}>
                                   <Text style={tailwind`text-xs text-gray-500`}>Bench</Text>
                                   <Switch
-                                    value={isBench}
-                                    onValueChange={(value) => {
-                                      if (value) {
-                                        setIsOnBench((prev) => [...prev, item.public_id]);
-                                      } else {
-                                        setIsOnBench((prev) => prev.filter((public_id) => public_id !== item.public_id));
-                                      }
-                                    }}
-                                    trackColor={{ false: "#ccc", true: "#34D399" }}
-                                    thumbColor={isOnBench.includes(item.id)? "#10B981" : "#f4f3f4"}
-                                  />
+                                        value={isSelected ? selectedSquad.find(p => p.public_id === item.public_id)?.on_bench : false}
+                                        onValueChange={(value) => {
+                                            if (!isSelected) return; // don’t allow bench toggle if not selected
+                                            setSelectedSquad(prev =>
+                                            prev.map(p =>
+                                                p.public_id === item.public_id ? { ...p, on_bench: value } : p
+                                            )
+                                            );
+                                        }}
+                                        disabled={!isSelected}  // Disable switch until player is selected
+                                        trackColor={{ false: "#ccc", true: "#34D399" }}
+                                        thumbColor={isSelected && selectedSquad.find(p => p.public_id === item.public_id)?.on_bench ? "#10B981" : "#f4f3f4"}
+                                    />
                                 </View>
                   
                                 {/* Selection Button */}
