@@ -17,7 +17,6 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
-    // const [tossData, setTossData] = useState({});
     const [teamID, setTeamId] = useState('');
     const [matchFormat, setMatchFormat] = useState();
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
@@ -37,26 +36,26 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
         }
     })
 
-  // Content animation style
-  const contentStyle = useAnimatedStyle(() => {
-      const opacity = interpolate(
-          parentScrollY.value,
-          [0, 50],
-          [1, 1],
-          Extrapolation.CLAMP
-      );
+    // Content animation style
+    const contentStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            parentScrollY.value,
+            [0, 50],
+            [1, 1],
+            Extrapolation.CLAMP
+        );
 
-      return {
-          opacity
-      };
-  });
+        return {
+            opacity
+        };
+    });
 
 
 
     const addToss = async () => {
         try {
             const data = {
-                match_id: match.id,
+                match_public_id: match.public_id,
                 toss_decision: tossOption,
                 toss_win: teamID
             }
@@ -156,13 +155,13 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     onRequestClose={() => setIsTossedModalVisible(false)}
                 >
                     <Pressable onPress={() => setIsTossedModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-t-lg p-6`}>
+                        <View style={tailwind`bg-white rounded-t-lg p-3`}>
                             <Text style={tailwind`text-xl font-bold text-gray-600 mb-4`}>Select Team for Toss</Text>
-                            <View style={tailwind`flex-row justify-evenly mb-4`}>
-                                <Pressable onPress={() => handleTeam(match.homeTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.id && tailwind`bg-red-400`]}>
+                            <View style={tailwind`flex-row justify-between mb-4 `}>
+                                <Pressable onPress={() => handleTeam(match.homeTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.public_id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{match.homeTeam.name}</Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(match.awayTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.id && tailwind`bg-red-400`]}>
+                                <Pressable onPress={() => handleTeam(match.awayTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.public_id && tailwind`bg-red-400`]}>
                                     <Text style={tailwind`text-lg text-center text-blue-900`}>{match.awayTeam.name}</Text>
                                 </Pressable>
                             </View>
