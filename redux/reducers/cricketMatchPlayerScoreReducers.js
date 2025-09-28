@@ -77,22 +77,35 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 }
             };
         case actionTypes.ADD_BATSMAN:
+            let inningKey = String(action.payload.inning_number);
+            let currentBatsmanInnings = state?.battingScore?.innings || {};
+            let inningBatsmen = currentBatsmanInnings[inningKey] || [];
+
             return {
                 ...state,
                 battingScore: {
                     ...state.battingScore,
-                    innings: [...state.battingScore.innings, action.payload],
+                    innings: {
+                        ...currentBatsmanInnings,
+                        [inningKey]: [...inningBatsmen, action.payload]
+                    }
                 }
-            }
+            };
         case actionTypes.ADD_BOWLER:
-            const bowlerScore = {
-                ...state.bowlingScore,
-                innings: [...state.bowlingScore.innings, action.payload],
-            }
+            let addBowlerInningKey = String(action.payload.inning_number);
+            let addBowlerInning = state?.battingScore?.innings || {};
+            let inningBowler = addBowlerInning[addBowlerInningKey] || [];
+
             return {
                 ...state,
-                bowlingScore: bowlerScore
-            }
+                bowlingScore: {
+                    ...state.bowlingScore,
+                    innings: {
+                        ...addBowlerInning,
+                        [addBowlerInningKey]: [...inningBowler, action.payload]
+                    }
+                }
+            };
         case actionTypes.GET_CRICKET_PLAYER_SCORE:
             return {
                 ...state,
