@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Pressable, ScrollView, Image} from 'react-native';
+import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
-import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
+import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation} from 'react-native-reanimated';
 
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
@@ -33,6 +33,8 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     const game = useSelector(state => state.sportReducers.game);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
 
+    const {height: sHeight, width: sWidth} = Dimensions.get("window")
+
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
@@ -42,7 +44,21 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                 parentScrollY.value = event.contentOffset.y
             }
         }
-    })
+    });
+
+    // Content animation style
+    const contentStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            parentScrollY.value,
+            [0, 50],
+            [1, 1],
+            Extrapolation.CLAMP
+        );
+
+        return {
+            opacity
+        };
+    });
 
     useFocusEffect(
         React.useCallback(() => {
@@ -69,44 +85,51 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 
     return (
         <Animated.ScrollView
-            onScroll={handlerScroll}
-            contentContainerStyle={{marginTop:10}}
-        >
-            <View style={tailwind`p-4`}>
-                {matches[0]?.knockout_stage &&
-                Object.entries(matches[0].knockout_stage).map(([stageName, knockoutMatches]) => (
-                    <View key={stageName}>
-                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{knockoutMatches["round"]}</Text>
-                        {knockoutMatches["matches"].map((item, index) => {
-                            return <MatchesData item={item} ind={index} key={index}/>
-                        })}
-                    </View>
-                ))}
-                {matches[0]?.group_stage &&
-                Object.entries(matches[0].group_stage).map(([stageName, groupMatches]) => (
-                    <View key={stageName}>
-                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
-                        {groupMatches["matches"]?.map((item, index) => {
-                            return <MatchesData item={item} ind={index} key={index}/>
-                        })}
-                    </View>
-                ))}
-                {matches[0]?.league &&
-                Object.entries(matches[0].league).map(([stageName, groupMatches]) => (
-                    <View key={stageName}>
-                        <Text style={tailwind`text-lg font-bold mt-4 mb-2`}>{groupMatches["round"]}</Text>
-                        {groupMatches["matches"]?.map((item, index) => {
-                            return <MatchesData item={item} ind={index} key={index}/>
-                        })}
-                    </View>
-                ))}
-            </View>
-        </Animated.ScrollView>
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                style={tailwind`flex-1`}
+                contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
+                showsVerticalScrollIndicator={false}
+            >
+                <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
+                    {matches?.length > 0 ? (
+                        matches.map((stage, index) => (
+                            <View key={index} style={tailwind`bg-white`}>
+                                {Object.keys(stage?.group_stage).length > 0 && 
+                                    Object.entries(stage.group_stage).map(([stageName, matchs]) => (
+                                        matchesData(matchs, stageName, navigation)
+                                    ))
+                                }
+                                {Object.keys(stage.league_stage).length > 0 && 
+                                    Object.entries(stage.league_stage).map(([stageName, matchs]) => (
+                                        matchesData(matchs, stageName, navigation)
+                                    ))
+                                }
+                                {Object.keys(stage?.knockout_stage).length > 0 &&
+                                    Object.entries(stage.knockout_stage).map(([stageName, matchs]) => (
+                                        matches.length > 0 && (
+                                            <View key={stageName}>
+                                                {matchs.length>0 && (
+                                                    <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
+                                                )}
+                                                {matchs.map((item, ind) => (
+                                                    matchesData(item, ind, navigation)
+                                                ))}
+                                            </View>
+                                        )
+                                    ))
+                                }
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
+                    )}
+                </Animated.View>
+            </Animated.ScrollView>
     );
 }
 
-const MatchesData = ({item, ind}) => {
-    const navigation = useNavigation()
+const matchesData = (item, ind, navigation) => {
     const handleCricketMatchPage = (item) => {
         navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id})
     }
