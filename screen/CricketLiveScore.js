@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -270,9 +270,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             console.error("Failed to start next inning: ", err);
         }
     }
-
-    const currentBowling = bowling?.innings[currentInningNumber].filter((item) => item.is_current_bowler === true );
-    const currentBatting = batting?.innings[currentInningNumber].filter((item) => (item.is_currently_batting === true));
+            
+    const currentBowling = bowling?.innings[currentInningNumber]?.filter((item) => item?.is_current_bowler === true );
+    const currentBatting = batting?.innings[currentInningNumber]?.filter((item) => (item?.is_currently_batting === true));
     const currentFielder = homeTeamPublicID !== batTeam
     ? homePlayer?.filter((player) => {
         const currentField = !bowling?.innings[currentInningNumber].some(
@@ -284,7 +284,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
       ) || []
     : awayPlayer?.filter((player) => 
         {
-            const currentField = !bowling?.innings[currentInningNumber].filter(
+            const currentField = !bowling?.innings[currentInningNumber]?.some(
                 (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
             )
             return currentField; 
@@ -314,29 +314,29 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
 
-    const bowlerToBeBowled = batTeam === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
+    const bowlerToBeBowled = batTeam === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber]?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
-    )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
+    )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber]?.some(
         (bowler) => bowler.bowling_status && bowler.player.id === player.id
     ));
 
     const existingBowler = (batTeam === homeTeamPublicID ? awayPlayer : homePlayer)?.filter((player) => 
-        bowling?.innings[currentInningNumber].some((bowler) => bowler.player.id === player.id)
+        bowling?.innings[currentInningNumber]?.some((bowler) => bowler.player.id === player.id)
     );
 
     const checkFollowOn = () => {
-        if (match && match.awayScore?.length == 1 || match.homeScore.length == 1){
+        if (match && match.awayScore?.length == 1 || match?.homeScore?.length == 1){
             if (batTeam === homeTeamPublicID) {
-                const firstInningScore = match.awayScore.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match.homeScore.find((inning) => inning.inning_number === 2);
+                const firstInningScore = match?.awayScore?.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match?.homeScore?.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {
                     <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
                         <Text style>Follow On</Text>
                     </Pressable>
                 }
             } else {
-                const firstInningScore = match.homeScore.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match.awayScore.find((inning) => inning.inning_number === 2);
+                const firstInningScore = match?.homeScore?.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match?.awayScore?.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {
                     <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
                         <Text style>Follow On</Text>

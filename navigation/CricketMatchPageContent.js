@@ -12,25 +12,29 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
     return (
         <TopTab.Navigator
             screenOptions={{
+                tabBarScrollEnabled: true,
                 tabBarStyle: { 
-                    backgroundColor: '#f87171',
-                    elevation: 4,
-                    shadowOpacity: 0.1,
-                    zIndex:20, // used this more then top tab because not having proper touch
+                backgroundColor: '#f87171',
+                elevation: 4,
+                shadowOpacity: 0.1,
+                zIndex:20,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '600',
-                    textTransform: 'none',
-                    color: 'white',
+                fontSize: 12,
+                fontWeight: '600',
+                textTransform: 'none',
+                color: 'white',
+                },
+                tabBarItemStyle: {
+                width: 86,
                 },
                 tabBarIndicatorStyle: {
-                    backgroundColor: '#fff',
+                backgroundColor: '#fff',
                 },
                 tabBarActiveTintColor: '#fff',
                 tabBarInactiveTintColor: '#ffe4e6',
             }}
-            >
+        >
                 <TopTab.Screen name="Details">
                         {() => (
                             <CricketMatchDetails
