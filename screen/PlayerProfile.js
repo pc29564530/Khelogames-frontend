@@ -18,7 +18,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector, useDispatch } from 'react-redux';
 import { sportsServices } from '../services/sportsServices';
 import { setGames } from '../redux/actions/actions';
-import { CricketPlayerStats } from '../components/PlayerStats';
+import CricketPlayerStats from '../components/PlayerStats';
 import FootballPlayerStats from '../components/FootballPlayerStats';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Animated, {
