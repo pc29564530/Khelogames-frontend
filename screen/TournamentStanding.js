@@ -27,7 +27,7 @@ import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Ex
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeader }) => {
+const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsedHeader }) => {
   
   // State management
   const [loading, setLoading] = useState(false);
@@ -51,6 +51,8 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
   const groups = useSelector((state) => state.tournamentsReducers.groups);
   const standings = useSelector((state) => state.tournamentsReducers.standings);
   const game = useSelector(state => state.sportReducers.game);
+
+  const { height: sHeight, width: sWidth } = Dimensions.get("window");
   
   const dispatch = useDispatch();
 
@@ -124,15 +126,14 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
 
   // Team toggle handler with validation
   const handleTeamToggle = (participant) => {
-    console.log("Participant : ", participant)
-    if (selectedTeams?.some(t => t.id === participant.id)) {
-      setSelectedTeams(selectedTeams?.filter(t => t?.id !== participant.id));
+    if (selectedTeams?.some(t => t.id === participant.entity.id)) {
+      setSelectedTeams(selectedTeams?.filter(t => t?.id !== participant.entity.id));
     } else {
       if (selectedTeams.length >= 20) {
         Alert.alert('Limit Reached', 'Maximum 20 teams can be selected at once.');
         return;
       }
-      setSelectedTeams([...selectedTeams, participant]);
+      setSelectedTeams([...selectedTeams, participant.entity]);
     }
   };
 
@@ -312,12 +313,18 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
       ]}
     >
       <Animated.ScrollView
+        style={tailwind`flex-1 bg-gray-50`}
         onScroll={handlerScroll}
-        style={tailwind`flex-1`}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+            paddingTop: 20,
+            paddingBottom: 100,
+            minHeight: sHeight + 100,
+        }}
       >
         {/* Header Section */}
         <View style={tailwind`bg-white p-2`}>
@@ -333,7 +340,6 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
 
         {/* Standings Section */}
         <View style={tailwind`p-2`}>
-            {console.log("India 336")}
           {loading ? (
             <View style={tailwind`bg-white rounded-xl p-8 items-center shadow-sm`}>
               <ActivityIndicator size="large" color="#3B82F6" />
@@ -342,7 +348,7 @@ const TournamentStanding = ({ tournament, currentRole, parentScrollY, headerHeig
           ) : standings?.length > 0 ? (
             standings.filter(group => group.group_name)
                 .map((group, index) => (
-                    <View key={index} style={tailwind`mb-2 h-400 rounded-l shadow-lg bg-white p-2`}>
+                    <View key={index} style={tailwind`mb-2 rounded-l shadow-lg bg-white p-2`}>
                         <View style={tailwind``}>
                             <Text style={tailwind`text-black text-lg font-bold`}>
                                 {group.group_name}

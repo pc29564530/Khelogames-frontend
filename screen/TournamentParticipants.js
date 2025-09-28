@@ -57,6 +57,8 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
   const [seedNumber, setSeedNumber] = useState(null);
   const [authUser, setAuthUser] = useState();
 
+  const {height: sHeight, width: sWidth} = Dimensions.get("window");
+
   useEffect(async() => {
     const currentAuthUser = await AsyncStorage.getItem("User");
     const userData = JSON.parse(currentAuthUser);
@@ -243,7 +245,7 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
       onScroll={handlerScroll}
       scrollEventThrottle={16}
       style={tailwind`flex-1`}
-      contentContainerStyle={{paddingBottom:100}}
+      contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
       showsVerticalScrollIndicator={false}
     >
       {tournament.user_id === authUser?.id && (

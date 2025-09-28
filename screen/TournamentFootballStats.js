@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, Image, FlatList} from 'react-native';
+import {View, Text, Pressable, Image, FlatList, Dimensions} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import axiosInstance from './axios_config';
@@ -23,6 +23,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
     const [modalTitle, setModalTitle] = useState('');
     const [modalType, setModalType] = useState('');
     const game = useSelector(state => state.sportReducers.game);
+    const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
     const currentScrollY = useSharedValue(0);
 
@@ -101,7 +102,10 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
         <View style={tailwind`flex-1 mb-4`}>
             <Animated.ScrollView 
                 onScroll={handlerScroll}
-                contentContainerStyle={{marginTop:10}}
+                scrollEventThrottle={16}
+                style={tailwind`flex-1`}
+                contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
+                showsVerticalScrollIndicator={false}
             >
                 <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
                     <View style={tailwind`flex-row justify-between items-center mb-3`}>

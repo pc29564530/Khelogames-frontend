@@ -1,5 +1,5 @@
 import React ,{useState, useEffect} from 'react';
-import {View, Text, Pressable, ScrollView, Image} from 'react-native';
+import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +17,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
     const game = useSelector(state => state.sportReducers.game);
     const match = useSelector((state) => state.matches.match);
+    const {height: sHeight, width: sWidth} = Dimensions.get("window");
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
@@ -69,6 +70,10 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
         >   
             <Animated.ScrollView
                 onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                style={tailwind`flex-1`}
+                contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
+                showsVerticalScrollIndicator={false}
             >
                 <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
                     {matches?.length > 0 ? (

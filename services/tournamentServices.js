@@ -133,7 +133,7 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game,
                 dispatch(setStandings( []));
             }
         } else if (game.name === "cricket") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding${tournament.public_id}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding/${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
