@@ -40,7 +40,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
-    
+
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
     const currentScrollY = useSharedValue(0);
@@ -116,7 +116,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_public_id: match.public_id, team_public_id: awayTeamPublicID!==currentScoreCard?awayTeamPublicID: homeTeamPublicID },
+                     params: { match_public_id: match.public_id.toString(), team_public_id: homeTeamPublicID!==currentScoreCard?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',

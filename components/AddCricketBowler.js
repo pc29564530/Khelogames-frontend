@@ -40,18 +40,17 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
    
     const handleAddNextBowler = async (item) => {
         try {
+            const prevBowlerPublicID = Array.isArray(currentBowler) && currentBowler.length > 0 ? currentBowler[0]?.bowler_public_id : null;
             const data = {
                 match_public_id: match.public_id,
                 team_public_id: batTeam !== awayTeam.public_id ? awayTeam.public_id : homeTeam.public_id,
-                bowler_public_id: item?.player.public_id,
-                prev_bowler_public_id: bowling?.innings?.length > 0 ? currentBowler[0]?.bowler_public_id : null,
+                bowler_public_id: item?.player?.public_id,
+                prev_bowler_public_id: prevBowlerPublicID,
                 ball: 0,
                 runs: 0,
                 wickets: 0,
                 wide: 0,
                 no_ball: 0,
-                bowling_status: true,
-                is_current_bowler: true,
                 inning_number: currentInningNumber,
             }
             const authToken = await AsyncStorage.getItem("AccessToken")
@@ -61,10 +60,10 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
                     'Content-Type': 'application/json',
                 },
             })
-            if(response?.data?.current_bowler){
-                dispatch(setBowlerScore(response.data.current_bowler));
-            }
-            dispatch(addBowler(response.data.next_bowler || {}));
+            // if(response?.data?.current_bowler){
+            //     dispatch(setBowlerScore(response.data.current_bowler));
+            // }
+            // dispatch(addBowler(response.data.next_bowler || {}));
 
         } catch (err) {
             console.log("Failed to add the bowler: ", err);
@@ -72,10 +71,47 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
     }
 
     return (
-        <View>
+        <View style={tailwind`p-1`}>
+            {/* Header */}
+            <View style={tailwind`items-center mb-4`}>
+                <View style={tailwind`w-40 h-1 bg-gray-300 rounded-full mb-2`} />
+                <Text style={tailwind`text-lg font-semibold text-gray-800`}>
+                Select Batsman
+                </Text>
+            </View>
+
+            {/* Player List */}
             {cricketMatchSquad.map((item, index) => (
-                <Pressable key={index} onPress={() => {handleAddNextBowler(item)}} style={tailwind``}>
-                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player.name}</Text>
+                <Pressable
+                    key={index}
+                    onPress={() => handleAddNextBowler(item)}
+                    style={tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2 bg-gray-100`}
+                    >
+                    {/* Avatar */}
+                    {item?.media_url ? (
+                        <Image
+                            source={{ uri: item.media_url }}
+                            style={tailwind`h-12 w-12 rounded-full`}
+                        />
+                    ) : (
+                        <View
+                        style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}
+                        >
+                            <Text style={tailwind`text-white font-bold text-lg`}>
+                                {item?.player?.name?.charAt(0).toUpperCase()}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Player Info */}
+                    <View style={tailwind`ml-3`}>
+                        <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                            {item?.player?.name}
+                        </Text>
+                        <Text style={tailwind`text-sm text-gray-600`}>
+                            {item?.player?.positions}
+                        </Text>
+                    </View>
                 </Pressable>
             ))}
         </View>

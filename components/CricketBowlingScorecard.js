@@ -34,7 +34,7 @@ const CricketBowlingScorecard = ({
             </View>
           <View style={tailwind`flex-row justify-between`}>
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>
-              {convertBallToOvers(item.ball)}
+              {convertBallToOvers(item.ball_number)}
             </Text>
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.runs}</Text>
             <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wickets}</Text>
