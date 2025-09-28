@@ -41,7 +41,7 @@ const fileToBase64 = async (filePath) => {
 };
 
 function CommunityMessage ({route}) {
-    const communityData = route.params.communityPageData;
+    const {item: communityData} = route.params.item;
     const [content, setContent] = useState('');
     const [mediaURL, setMediaURL] = useState('');
     const [mediaType, setMediaType] = useState('');
@@ -136,7 +136,7 @@ function CommunityMessage ({route}) {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken')
             const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${communityData.communities_name}`,null,{
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${communityData.name}`,null,{
                 headers:{
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -179,7 +179,7 @@ function CommunityMessage ({route}) {
     };
 
     navigation.setOptions({
-        headerTitle:communityData.communities_name,
+        headerTitle:communityData?.name,
         headerStyle:{
           backgroundColor: tailwind.color('bg-red-400')
         },
@@ -192,7 +192,7 @@ function CommunityMessage ({route}) {
         style={tailwind`flex-3/5 bg-white p-10`}
         contentContainerStyle={tailwind`gap-2`}
       >
-        {receivedMessage.map((item, index) => (
+        {receivedMessage?.map((item, index) => (
           <View key={index} style={[
             tailwind`flex-row items-end`,
             item.sender_username !== currentUser

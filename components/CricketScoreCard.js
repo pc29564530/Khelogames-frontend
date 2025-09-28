@@ -1,5 +1,5 @@
 import {useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from "twrnc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axiosInstance from "../screen/axios_config";
@@ -11,7 +11,7 @@ import CricketBowlingScorecard from "./CricketBowlingScorecard";
 import CricketWicketCard from "./CricketWicketCard";
 import { useDispatch, useSelector } from "react-redux";
 import { getCricketBattingScore, getCricketBowlingScore, getCricketMatchInningScore, getCricketWicketFallen, setBatTeam, getAwayPlayer, getHomePlayer } from "../redux/actions/actions";
-
+import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from "react-native-reanimated";
 
 const convertBallToOvers = (item) => {
     const overs = Math.floor(item / 6);
@@ -19,11 +19,10 @@ const convertBallToOvers = (item) => {
     return `${overs}.${remainingBall}`;
 };
 
-const CricketScoreCard = () => {
+const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     
     const dispatch = useDispatch();
     const game = useSelector(state => state.sportReducers.game);
-    const match = useSelector((state) => state.cricketMatchScore.match);
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
@@ -41,6 +40,34 @@ const CricketScoreCard = () => {
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
+
+    const {height: sHeight, width: sWidth} = Dimensions.get("window");
+
+    const currentScrollY = useSharedValue(0);
+    // scroll handler for header animation
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
+
+    // Content animation style
+    const contentStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            parentScrollY.value,
+            [0, 50],
+            [1, 1],
+            Extrapolation.CLAMP
+        );
+
+        return {
+            opacity
+        };
+    });
 
     useEffect(() => {
         if (cricketToss) {
@@ -89,7 +116,7 @@ const CricketScoreCard = () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                    params: { match_public_id: match.public_id, team_public_id: awayTeamPublicID!==currentScoreCard?awayTeamPublicID: homeTeamPublicID },
+                     params: { match_public_id: match.public_id.toString(), team_public_id: homeTeamPublicID!==currentScoreCard?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -197,9 +224,6 @@ const CricketScoreCard = () => {
         fetchTeamWickets()
     }, [currentScoreCard, match.id]);
 
-    console.log("Batting: ", batting)
-    console.log("Bowling: ", bowling)
-
     if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -210,15 +234,49 @@ const CricketScoreCard = () => {
     } else {
         return (
             <View style={tailwind`flex-1 bg-white`}>
-                <ScrollView style={tailwind`bg-white`}>
-                    <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
-                        <Pressable onPress={() => {setCurrentScoreCard(homeTeamPublicID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, homeTeamPublicID === currentScoreCard ? tailwind`bg-red-400`: tailwind`bg-white`]}>
-                            <Text style={tailwind`text-lg font-bold`}>{match.homeTeam.name}</Text>
-                        </Pressable>
-                        <Pressable onPress={() => {setCurrentScoreCard(awayTeamPublicID); setSelectedInning(batting?.innings && Object.keys(batting?.innings)[0])}} style={[tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`, awayTeamPublicID===currentScoreCard?tailwind`bg-red-400`:tailwind`bg-white`]}>
-                            <Text style={tailwind`text-lg font-bold`}>{match.awayTeam.name}</Text>
-                        </Pressable>
-                    </View>
+                <Animated.ScrollView 
+                    onScroll={handlerScroll}
+                    scrollEventThrottle={16}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingTop: 0,
+                        paddingBottom: 100,
+                        minHeight: sHeight + 100
+                    }}
+                >   
+                    <Animated.View style={[tailwind`bg-white shadow-lg w-full px-2`, contentStyle]}>
+                        {/* Team switcher */}
+                        <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2 `}>
+                            <Pressable
+                            onPress={() => {
+                                setCurrentScoreCard(homeTeamPublicID);
+                            }}
+                            style={[
+                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                homeTeamPublicID === currentScoreCard
+                                ? tailwind`bg-red-400`
+                                : tailwind`bg-white`,
+                            ]}
+                            >
+                            <Text style={tailwind`text-lg font-bold`}>
+                                {match?.homeTeam?.name}
+                            </Text>
+                            </Pressable>
+                            <Pressable
+                            onPress={() => setCurrentScoreCard(awayTeamPublicID)}
+                            style={[
+                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                awayTeamPublicID === currentScoreCard
+                                ? tailwind`bg-red-400`
+                                : tailwind`bg-white`,
+                            ]}
+                            >
+                            <Text style={tailwind`text-lg font-bold`}>
+                                {match?.awayTeam?.name}
+                            </Text>
+                            </Pressable>
+                        </View>
+                    </Animated.View>
                     {match.match_format === "Test" ? (
                         <>
                             {batting?.innings && Object.keys(batting?.innings).length > 0 ? (
@@ -284,7 +342,7 @@ const CricketScoreCard = () => {
                         </>
                     )}
                     
-                </ScrollView>
+                </Animated.ScrollView>
                 {isYetToBatModalVisible && (
                         <Modal
                         transparent={true}

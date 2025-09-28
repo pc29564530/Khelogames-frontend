@@ -14,7 +14,7 @@ import TopTabProfile from '../navigation/TopTabProfile';
 import { launchImageLibrary } from 'react-native-image-picker';
 import CountryPicker from 'react-native-country-picker-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, useAnimatedProps } from 'react-native-reanimated';
 
 function Profile({route}) {
     const {profilePublicID} = route.params;
@@ -294,6 +294,9 @@ useEffect(() => {
   console.log("isFollowing state changed: ", isFollowing);
 }, [isFollowing]);
 
+    const AnimatedMaterialIcons = Animated.createAnimatedComponent(MaterialIcons);
+    const AnimatedAntDesign = Animated.createAnimatedComponent(AntDesign)
+
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
     const scrollY = useSharedValue(0);
@@ -307,6 +310,18 @@ useEffect(() => {
       const headerInitialHeight = 100;
       const headerNextHeight = 50;
       const offsetValue = 100;
+      
+      const animatedIconProps = useAnimatedProps(() => {
+        return {
+          color: interpolateColor(
+            scrollY.value,
+            [0, offsetValue],
+            ['black', 'white']
+          ),
+        }
+      })
+
+
       const animatedHeader = useAnimatedStyle(() => {
         const height = interpolate(
           scrollY.value,
@@ -425,17 +440,17 @@ useEffect(() => {
       <View style={tailwind`flex-1`}>
             <Animated.View style={[tailwind`flex-row items-center justify-between`, animatedHeader]}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start top-0 px-2`}>
-                <MaterialIcons name="arrow-back" size={22} color="black" />
+                  <AnimatedMaterialIcons name="arrow-back" size={22} animatedProps={animatedIconProps} />
               </TouchableOpacity>              
               <Animated.View style={[tailwind`flex-1 justify-center`, nameAnimatedStyles]}>
                 <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
               </Animated.View>
               <View style={tailwind`flex-row items-end top-0 right-0 px-2  rounded-lg`}>
                 <TouchableOpacity onPress={handleMessage} style={tailwind`mx-2`}>
-                  <AntDesign name="message1" size={22} color="black" />
+                    <AnimatedAntDesign name="message1" size={22} animatedProps={animatedIconProps} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind`mx-2`}>
-                  <MaterialIcons name="more-vert" size={22} color="black" />
+                    <AnimatedMaterialIcons name="more-vert" size={22} animatedProps={animatedIconProps}/>
                 </TouchableOpacity>
               </View>
             </Animated.View>
@@ -500,7 +515,7 @@ useEffect(() => {
                         /* Only Player button (full width if own profile) */
                         <Pressable 
                           style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
-                          onPress={() => navigation.navigate("PlayerProfile", {publicID, from: "profile"})}
+                          onPress={() => navigation.navigate("PlayerProfile", {publicID: authProfilePublicID, from: "profile"})}
                         >
                           <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
                         </Pressable>

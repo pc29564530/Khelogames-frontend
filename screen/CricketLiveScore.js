@@ -1,5 +1,5 @@
-import {useState, useEffect} from 'react';
-import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
+import {useState, useEffect, useCallback} from 'react';
+import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -9,8 +9,8 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import { UpdateCricketScoreCard } from '../components/UpdateCricketScoreCard';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { setEndInning, setBatsmanScore, setBowlerScore, addBowler, getHomePlayer, getAwayPlayer, getCricketBattingScore, getCricketBowlingScore, getCurrentBatsmanScore, getcurrentBowlingScore, getCurrentBowlerScore } from '../redux/actions/actions';
-import { useNavigation } from '@react-navigation/native';
+import { setEndInning, setBatsmanScore, setBowlerScore, addBowler, getHomePlayer, getAwayPlayer, getCricketBattingScore, getCricketBowlingScore, getCurrentBatsmanScore, getcurrentBowlerScore, getCurrentBowlerScore } from '../redux/actions/actions';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { CricketLiveMatchModal } from '../Modals/CricketLiveMatch';
 import { AddCricketBatsman } from '../components/AddCricketBatsman';
@@ -18,15 +18,16 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
- import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber } from '../redux/actions/actions';
+ import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, getCurrentBatsman, getCurrentBowler } from '../redux/actions/actions';
 import { renderInningScore } from './Matches';
+import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from 'react-native-reanimated';
+import { current } from '@reduxjs/toolkit';
+import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
 
-
-const CricketLive = ({route}) => {
+const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
     const inningData = useSelector(state => ({
         game: state.sportReducers.game,
-        match: state.cricketMatchScore.match,
         batTeam: state.cricketMatchScore.batTeam,
         batting: state.cricketPlayerScore.battingScore,
         bowling: state.cricketPlayerScore.bowlingScore,
@@ -38,16 +39,13 @@ const CricketLive = ({route}) => {
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
-
-      useEffect(() => {
-        console.log("Updated Game Data:", inningData);
-      }, [inningData]);
+    const currentBatsman = useSelector(state => selectCurrentBatsmen(state, currentInningNumber));
+    const currentBowler = useSelector(state => selectCurrentBowler(state, currentInningNumber));
 
     const game = inningData.game;
-    const match = inningData.match;
     const batTeam = inningData.batTeam;
-    const batting = inningData.batting;
-    const bowling = inningData.bowling;
+    const batting = inningData.batting || [];
+    const bowling = inningData.bowling || [];
     const homePlayer = inningData.homePlayer;
     const awayPlayer = inningData.awayPlayer;
     const cricketToss = inningData.cricketToss;
@@ -59,7 +57,6 @@ const CricketLive = ({route}) => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const [wicketType, setWicketType] = useState("");
-    const [currentBattingBatsman, setCurrentBattingBatsman] = useState([]);
     const [addCurrentScoreEvent, setAddCurrentScoreEvent] = useState([]);
     const [inningVisible, setInningVisible] = useState(false);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
@@ -83,6 +80,32 @@ const CricketLive = ({route}) => {
     const awayTeamPublicID = match?.awayTeam?.public_id;
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
+    const {height: sHeight, width: sWidth} = Dimensions.get("window");
+    
+    const currentScrollY = useSharedValue(0);
+    // scroll handler for header animation
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
+
+    // Content animation style
+    const contentStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            parentScrollY.value,
+            [0, 50],
+            [1, 1],
+            Extrapolation.CLAMP
+        );
+        return {
+            opacity
+        };
+    });
 
     const MAX_INNINGS = {
         T20: 2,
@@ -272,18 +295,16 @@ const CricketLive = ({route}) => {
         }        
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(sport, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
+            await addCricketScoreServices(game, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
         } catch (err) {
             console.error("Failed to start next inning: ", err);
         }
     }
 
-    const currentBowling = bowling?.innings[currentInningNumber].filter((item) => item.is_current_bowler === true );
-    const currentBatting = batting?.innings[currentInningNumber].filter((item) => (item.is_currently_batting === true));
     const currentFielder = homeTeamPublicID !== batTeam
     ? homePlayer?.filter((player) => {
         const currentField = !bowling?.innings[currentInningNumber].some(
-            (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
+            (bowler) => bowler?.is_current_bowler === true && bowler?.player.id === player.id
         )
         return currentField;
     }
@@ -291,8 +312,8 @@ const CricketLive = ({route}) => {
       ) || []
     : awayPlayer?.filter((player) => 
         {
-            const currentField = !bowling?.innings[currentInningNumber].filter(
-                (bowler) => bowler.is_current_bowler === true && bowler.player.id === player.id
+            const currentField = !bowling?.innings[currentInningNumber]?.some(
+                (bowler) => bowler?.is_current_bowler === true && bowler?.player.id === player.id
             )
             return currentField; 
         } 
@@ -301,11 +322,11 @@ const CricketLive = ({route}) => {
     const handleSelectBowler = () => {
         if (selectedBowlerType === "existingBowler"){
             return (
-                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowling}/>
+                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowler}/>
             )
         } else {
             return (
-                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowling} bowling={bowling}/>
+                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowler} bowling={bowling}/>
             )
         }
     }
@@ -321,29 +342,34 @@ const CricketLive = ({route}) => {
     const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
 
-    const bowlerToBeBowled = batTeam?.id === homeTeamPublicID ? awayPlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
-        (bowler) => bowler.bowling_status && bowler.player.id === player.id
-    )) : homePlayer?.filter((player) => !bowling?.innings[currentInningNumber].some(
-        (bowler) => bowler.bowling_status && bowler.player.id === player.id
-    ));
+    const innings = bowling?.innings?.[currentInningNumber] ?? [];
+    const players = batTeam === homeTeamPublicID ? (awayPlayer ?? []) : (homePlayer ?? []);
 
-    const existingBowler = (batTeam?.id === homeTeamPublicID ? awayPlayer : homePlayer)?.filter((player) => 
-        bowling?.innings[currentInningNumber].some((bowler) => bowler.player.id === player.id)
+    const bowlerToBeBowled = players.filter(
+    (player) =>
+        !innings.some(
+        (bowler) => bowler?.bowling_status && bowler?.player?.id === player?.id
+        )
     );
 
+    const existingBowler = players.filter((player) =>
+    innings.some((bowler) => bowler?.player?.id === player?.id)
+    );
+
+
     const checkFollowOn = () => {
-        if (match && match.awayScore?.length == 1 || match.homeScore.length == 1){
-            if (batTeam?.id === homeTeamPublicID) {
-                const firstInningScore = match.awayScore.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match.homeScore.find((inning) => inning.inning_number === 2);
+        if (match && match.awayScore?.length == 1 || match?.homeScore?.length == 1){
+            if (batTeam === homeTeamPublicID) {
+                const firstInningScore = match?.awayScore?.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match?.homeScore?.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {
                     <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
                         <Text style>Follow On</Text>
                     </Pressable>
                 }
             } else {
-                const firstInningScore = match.homeScore.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match.awayScore.find((inning) => inning.inning_number === 2);
+                const firstInningScore = match?.homeScore?.find((inning) => inning.inning_number === 1);
+                const secondInningScore = match?.awayScore?.find((inning) => inning.inning_number === 2);
                 if (secondInningScore < firstInningScore - 200) {
                     <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
                         <Text style>Follow On</Text>
@@ -367,7 +393,16 @@ const CricketLive = ({route}) => {
         );
     } else {
         return (
-            <ScrollView>
+            <Animated.ScrollView 
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingTop: 0,
+                    paddingBottom: 100,
+                    minHeight: sHeight + 100
+                }}
+            >
                 <View>
                     <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                         <View style={tailwind`flex-row items-start justify-between ml-2 mr-2 p-2`}>
@@ -387,41 +422,59 @@ const CricketLive = ({route}) => {
                         </View>
                     </View>
                 </View>
-                {currentBatting?.length > 0 && (currentBowling.length > 0) ? (
+                {currentBatsman?.length > 0 && (currentBowler?.length > 0) ? (
                     <>
-                        <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
-                        <View style={tailwind`flex-row justify-between px-6 py-2`}>
-                            <Text style={tailwind`text-md text-gray-700`}>Batting</Text>
-                            <View style={tailwind`flex-row justify-between gap-4`}>
-                                <Text style={tailwind`text-md text-gray-700`}>R</Text>
-                                <Text style={tailwind`text-md text-gray-700`}>B</Text>
-                                <Text style={tailwind`text-md text-gray-700`}>4s</Text>
-                                <Text style={tailwind`text-md text-gray-700`}>6s</Text>
-                                <Text style={tailwind`text-md text-gray-700`}>S/R</Text>
+                    <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
+                        {/* Header */}
+                        <View style={tailwind`flex-row justify-between px-4 py-2 border-b border-gray-200`}>
+                            <View style={tailwind`flex-2`}>
+                                <Text style={tailwind`text-md text-gray-700`}>Batting</Text>
+                            </View>
+                            <View style={tailwind`flex-row flex-3 justify-evenly`}>
+                            <Text style={tailwind`text-md text-gray-700 text-center`}>R</Text>
+                            <Text style={tailwind`text-md text-gray-700 text-center`}>B</Text>
+                            <Text style={tailwind`text-md text-gray-700 text-center`}>4s</Text>
+                            <Text style={tailwind`text-md text-gray-700 text-center`}>6s</Text>
+                            <Text style={tailwind`text-md text-gray-700 text-center`}>S/R</Text>
                             </View>
                         </View>
-                    {currentBatting?.length > 0 && currentBatting?.map((item, index) => (
-                        <View key={index} style={tailwind`flex-row justify-between mb-2 px-6 py-1 ${item.is_striker ? 'bg-red-100': 'bg-white'}`}>
-                            <View style={tailwind`flex-row`}>
-                                <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
-                                {item.is_striker && <Text style={tailwind`text-md text-gray-800`}>*</Text>}
+
+                        {/* Batsmen Data */}
+                        {currentBatsman?.length > 0 && currentBatsman.map((item, index) => (
+                            <View 
+                            key={index} 
+                            style={tailwind`flex-row justify-between px-4 py-2 ${item.is_striker ? 'bg-red-100' : 'bg-white'} items-center`}
+                            >
+                            {/* Player Name */}
+                            <View style={tailwind`flex-2 flex-row`}>
+                                <Text style={tailwind`text-md text-gray-800 flex-shrink`}>{item?.player?.name}</Text>
+                                {item.is_striker && <Text style={tailwind`text-md text-red-500 font-bold ml-1`}>*</Text>}
                             </View>
-                            <View style={tailwind`flex-row justify-between gap-4`}>
-                                <Text style={tailwind`text-md text-gray-800`}>{item.runs_scored}</Text>
-                                <Text style={tailwind`text-md text-gray-800`}>{item.balls_faced}</Text>
-                                <Text style={tailwind`text-md text-gray-800`}>{item.fours}</Text>
-                                <Text style={tailwind`text-md text-gray-800`}>{item.sixes}</Text>
-                                <Text style={tailwind`text-md text-gray-800`}>{ item.balls_faced > 0 ? ((item.runs_scored/item.balls_faced)*100.0).toFixed(1) : (0).toFixed(1)}</Text>
+
+                            {/* Stats */}
+                            <View style={tailwind`flex-row flex-3 justify-evenly`}>
+                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.runs_scored}</Text>
+                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.balls_faced}</Text>
+                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.fours}</Text>
+                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.sixes}</Text>
+                                <Text style={tailwind`text-md text-gray-800 text-center`}>
+                                {item.balls_faced > 0 ? ((item.runs_scored / item.balls_faced) * 100).toFixed(1) : '0.0'}
+                                </Text>
                             </View>
+                            </View>
+                        ))}
+
+                        {/* Add Next Batsman Button */}
+                        <View style={tailwind`p-4`}>
+                            <Pressable 
+                            onPress={() => { setIsModalBattingVisible(true) }} 
+                            style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}
+                            >
+                            <Text style={tailwind`text-gray-800 text-center font-semibold`}>Add Next Batsman</Text>
+                            </Pressable>
                         </View>
-                    ))}
-                    {/* Add Next Batsman Button */}
-                    <View style={tailwind`p-4`}>
-                        <Pressable onPress={() => { setIsModalBattingVisible(true) }} style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}>
-                            <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Batsman</Text>
-                        </Pressable>
                     </View>
-               </View>
+
                <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                     <View style={tailwind`flex-row justify-between px-4 py-2`}>
                         <Text style={tailwind`flex-1 text-md text-gray-800`}>Bowling</Text>
@@ -433,14 +486,14 @@ const CricketLive = ({route}) => {
                             <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>NB</Text>
                         </View>
                     </View>
-                    {currentBowling && currentBowling.map((item, index) => (
+                    {currentBowler && currentBowler.map((item, index) => (
                         <View key={index} style={tailwind`flex-row justify-between px-4 py-2 border-t border-gray-200`}>
                             <View style={tailwind`flex-row`}>
                                 <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
                             </View>
                             <View style={tailwind`flex-row flex-[3] justify-between`}>
                                 <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>
-                                    {convertBallToOvers(item.ball)}
+                                    {convertBallToOvers(item.ball_number)}
                                 </Text>
                                 <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.runs}</Text>
                                 <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wickets}</Text>
@@ -459,7 +512,7 @@ const CricketLive = ({route}) => {
                         </Pressable>
                     </View>
                </View>
-               <UpdateCricketScoreCard currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} batting={batting} bowling={bowling} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper}/>
+               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInning={currentInning}/>
             </>
             ) : (
                 <View style={tailwind`p-1`}>
@@ -699,7 +752,7 @@ const CricketLive = ({route}) => {
                     </TouchableOpacity>
                 </Modal>
             )}
-            </ScrollView>
+            </Animated.ScrollView>
         );
         }
     }

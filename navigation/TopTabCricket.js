@@ -4,47 +4,86 @@ import tailwind from 'twrnc';
 import TournamentCricketInfo from '../screen/TournamentCricketInfo';
 import TournamentMatches from '../screen/TournamentMatches';
 import TournamentCricketStats from '../screen/TournamentCricketStats';
-import TournamentTeam from '../screen/TournamentTeam';
+import TournamentParticipants from '../screen/TournamentParticipants';
 import TournamentStanding from '../screen/TournamentStanding';
 
-function TopTabCricket({tournament, currentRole, game}) {
+function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
                     screenOptions={{
-                        tabBarLabelStyle:tailwind`text-gray-200 text-md w-18 `,
-                        tabBarStyle:tailwind`bg-red-400`,
-                        headerShown:true,
-                        tabBarScrollEnabled:false,
-                        tabBarIndicatorStyle: tailwind`bg-white`,
-                        tabBarActiveTintColor: 'white',
-                        tabBarInactiveTintColor:'gray'
+                        headerShown: false,
+                        tabBarStyle: { 
+                            backgroundColor: '#f87171',
+                            elevation: 4,
+                            shadowOpacity: 0.2,
+                            zIndex:20, // used this more then top tab because not having proper touch
+                        },
+                        tabBarLabelStyle: {
+                            width:100,
+                            fontSize: 14,
+                            fontWeight: '600',
+                            textTransform: 'none',
+                            color: 'white',
+                        },
+                        tabBarIndicatorStyle: {
+                            backgroundColor: '#fff',
+                        },
+                        tabBarActiveTintColor: '#fff',
+                        tabBarInactiveTintColor: '#ffe4e6',
                     }}
             >   
-                <TopTab.Screen 
-                    name="Details"
-                    component={TournamentCricketInfo}
-                    initialParams={{tournament:tournament}}
-                />
-                <TopTab.Screen 
-                    name="Team"
-                    component={TournamentTeam}
-                    initialParams={{tournament:tournament, currentRole: currentRole}}
-                />
-                <TopTab.Screen 
-                    name="Stats"
-                    component={TournamentCricketStats}
-                    initialParams={{tournament: tournament}}
-                />
-                <TopTab.Screen 
+                <TopTab.Screen
                     name="Matches"
-                    component={TournamentMatches}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    component={(props) => (
+                        <TournamentMatches
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
-                <TopTab.Screen 
+                <TopTab.Screen
+                    name="Team"
+                    component={(props) => (
+                        <TournamentParticipants
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
+                />
+                <TopTab.Screen
+                    name="Stats"
+                    component={(props) => (
+                        <TournamentCricketStats
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
+                />
+                <TopTab.Screen
                     name="Standing"
-                    component={TournamentStanding}
-                    initialParams={{tournament:tournament, currentRole:currentRole}}
+                    component={(props) => (
+                        <TournamentStanding
+                            {...props}
+                            tournament={tournament}
+                            currentRole={currentRole}
+                            parentScrollY={parentScrollY}
+                            headerHeight={headerHeight}
+                            collapsedHeader={collapsedHeader}
+                            />
+                        )}
                 />
         </TopTab.Navigator>
     );

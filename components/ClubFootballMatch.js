@@ -13,8 +13,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentBySportAction, getTournamentByIdAction, getMatch } from '../redux/actions/actions';
 import { getTournamentBySport } from '../services/tournamentServices';
 import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import { Dimensions } from 'react-native';
 
-const ClubFootballMatch = ({teamData}) => {
+const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHeader}) => {
     const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     
@@ -23,7 +26,19 @@ const ClubFootballMatch = ({teamData}) => {
     const dispatch = useDispatch();
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
-    const sport = useSelector((state) => state.sportReducers.sport);
+    const game = useSelector((state) => state.sportReducers.game);
+    const { height: sHeight, width: sWidth } = Dimensions.get("window");
+
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            if(parentScrollY === collapsedHeader){
+                parentScrollY.value = currentScrollY.value;
+            } else {
+                parentScrollY.value = event.contentOffset.y;
+            }
+        }
+    })
 
     useEffect(() => {
         fetchClubMatch();
@@ -58,14 +73,6 @@ const ClubFootballMatch = ({teamData}) => {
     };
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        const tournamentPublicID = tournamentItem.tournament_id;
-        const tournamentStatus = ["live", "previous", "upcoming"];
-        const tournamentBySport = await getTournamentBySport({ axiosInstance, sport });
-        dispatch(getTournamentBySportAction(tournamentBySport));
-        const foundTournament = findTournamentByID({ tournamentBySport, tournamentId, tournamentStatus });
-        if (foundTournament !== null) {
-            dispatch(getTournamentByIdAction(foundTournament));
-        }
         navigation.navigate("TournamentPage", { tournament, currentRole });
     }
 
@@ -76,26 +83,55 @@ const ClubFootballMatch = ({teamData}) => {
 
     return (
         <View style={tailwind`flex-1`}>
-            <ScrollView style={tailwind``} contentContainerStyle={{flexGrow:1}}>
-                <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center inline inline-block w-35 gap-2`} onPress={() => handleDropDown()}>
-                    <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
-                    <AntDesign name="down"  size={10} color="black" />
+            <Animated.ScrollView
+                style={tailwind`flex-1 bg-gray-50`}
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingTop: 20,
+                    paddingBottom: 100,
+                    minHeight: sHeight + 100,
+                }}
+            >
+                <Pressable
+                    style={tailwind`border rounded-xl flex-row items-center justify-center bg-gray-100 shadow-sm mb-4 mt-2`}
+                    onPress={() => handleDropDown()}
+                >
+                    <Text style={tailwind`text-lg font-semibold text-gray-800`}>Tournaments</Text>
+                    <AntDesign name="down" size={14} color="black" />
                 </Pressable>
                 {matches?.length > 0 ? (
                     matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between`} onPress={() => handleMatchPage(item)}>
+                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between `} onPress={() => handleMatchPage(item)}>
                             <View>
-                            <View style={tailwind`flex-row items-center justify-between `}>
+                                <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
+                                    <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>
+                                    <AntDesign name="right" size={12} color="black" />
+                                </Pressable>
+                                <View style={tailwind`flex-row items-center justify-between `}>
                                     <View style={tailwind`flex-row`}>
                                         <View style={tailwind``}>
-                                            <Image 
-                                                source={{ uri: item.awayTeam?.media_url }} 
-                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                            />
-                                            <Image 
-                                                source={{ uri: item.homeTeam?.media_url }} 
-                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                            />
+                                            {item.awayTeam.media_url ? (
+                                                <Image 
+                                                    source={{ uri: item.awayTeam?.media_url }} 
+                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                                />
+                                            ):(
+                                                <View style={tailwind`w-6 h-6 bg-violet-200 rounded-full justify-center items-center mb-2`}>
+                                                    <Text>{item.awayTeam.name.charAt(0).toUpperCase()}</Text>
+                                                </View>
+                                            )}
+                                            {item.homeTeam.media_url ? (
+                                                <Image 
+                                                    source={{ uri: item.homeTeam?.media_url }} 
+                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                                />
+                                            ):(
+                                                <View style={tailwind`w-6 h-6 bg-violet-200 rounded-full items-center justify-center mb-2`}>
+                                                    <Text>{item.homeTeam.name.charAt(0).toUpperCase()}</Text>
+                                                </View>
+                                            )}
                                         </View>
                                         <View style={tailwind``}>
                                             <Text style={tailwind`ml-2 text-lg text-gray-800`}>
@@ -168,27 +204,41 @@ const ClubFootballMatch = ({teamData}) => {
                         visible={isDropDownVisible}
                         onRequestClose = {() => setIsDropDownVisible(!isDropDownVisible)}
                     >
-                        <Pressable style={tailwind`flex-1 justify-end bg-gray-900 bg-opacity-50 w-full`} onPress={() => setIsDropDownVisible(false)}>
-                            <View style={tailwind`bg-white rounded-md p-4`}>
-                                {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
-                                    const tournamentItem = matches.find((item) => item.tournament.public_id === tournamentPublicID );
-                                    return (
-                                        <Pressable
-                                            key={index}
-                                            style={tailwind`bg-white p-2`}
-                                            onPress={() => {
-                                                handleTournamentNavigate(tournamentItem)
-                                            }}
-                                        >
-                                            <Text>{tournamentItem?.tournament?.name}</Text>
-                                        </Pressable>
-                                    )
-                                })}
+                        <Pressable
+                            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                            onPress={() => setIsDropDownVisible(false)}
+                        >
+                            <View style={tailwind`bg-white rounded-t-2xl p-4 shadow-lg`}>
+                                <View style={tailwind`w-12 h-1.5 bg-gray-300 self-center rounded-full mb-3`} />
+                                <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>
+                                    Select Tournament
+                                </Text>
+                                <ScrollView showsVerticalScrollIndicator={false}>
+                                    {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
+                                        const tournamentItem = matches.find(
+                                            (item) => item.tournament.public_id === tournamentPublicID
+                                        );
+                                        return (
+                                            <Pressable
+                                                key={index}
+                                                style={tailwind`flex-row items-center bg-gray-50 p-3 mb-3 rounded-xl shadow-sm active:bg-gray-100`}
+                                                onPress={() => handleTournamentNavigate(tournamentItem)}
+                                            >
+                                                <View style={tailwind`w-10 h-10 rounded-full bg-yellow-100 items-center justify-center mr-3`}>
+                                                    <FontAwesome name="trophy" size={20} color="gold" />
+                                                </View>
+                                                <Text style={tailwind`text-base font-medium text-gray-700`}>
+                                                    {tournamentItem?.tournament?.name}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </ScrollView>
                             </View>
                         </Pressable>
                     </Modal>
                 )}
-            </ScrollView>
+            </Animated.ScrollView>
         </View>
     );
 }

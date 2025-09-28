@@ -5,12 +5,24 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
 import { useSelector } from 'react-redux';
+import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
-const TournamentCricketInfo = ({route}) => {
-    const tournament = route.params.tournament;
+const TournamentCricketInfo = ({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) => {
     const [organizationData, setOrganizationData] = useState(null);
     
     const game = useSelector(state => state.sportReducers.game);
+
+    const currentScrollY = useSharedValue(0);
+
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll:(event) => {
+            if(parentScrollY.value === collapsedHeader){
+                parentScrollY.value = currentScrollY.value
+            } else {
+                parentScrollY.value = event.contentOffset.y
+            }
+        }
+    })
 
     useEffect(() => {
         const fetchTournamentOrganization = async () => {

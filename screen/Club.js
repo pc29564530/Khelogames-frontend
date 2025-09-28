@@ -77,21 +77,29 @@ const Club = () => {
     navigation.setOptions({
         headerTitle: 'Teams',
         headerStyle: {
-            backgroundColor: tailwind.color('bg-red-400'),
+          backgroundColor: tailwind.color('red-400'),
+        },
+        headerTintColor: 'white',
+        headerTitleStyle: {
+          color: 'white',
         },
         headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
-            </Pressable>
+          <Pressable onPress={() => navigation.goBack()}>
+            <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
+          </Pressable>
         ),
         headerRight: () => (
-            <View>
-                <Pressable style={tailwind`relative p-2 items-center justify-center mr-1`} onPress={() => handleAddClub()}>
-                    <MaterialIcons name="add" size={24} color="black" />
-                </Pressable>
-            </View>
+          <View>
+            <Pressable
+              style={tailwind`relative p-2 items-center justify-center mr-1`}
+              onPress={handleAddClub}
+            >
+              <MaterialIcons name="add" size={24} color="white" /> 
+            </Pressable>
+          </View>
         )
-    });
+      });
+      
 
     const handleAddClub = () => {
         navigation.navigate('CreateClub');
