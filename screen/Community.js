@@ -41,7 +41,7 @@ function Community() {
 
             const authToken = await AsyncStorage.getItem('AccessToken');
             
-            const response = await axiosInstance.get(`${BASE_URL}/get_all_communities`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getAllCommunities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',

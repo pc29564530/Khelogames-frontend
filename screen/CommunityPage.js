@@ -296,6 +296,7 @@ export default function CommunityPage({ route }) {
             <Animated.View style={[tabContainerStyle, { flex: 1 }]}>
                 <TopTab.Navigator
                     screenOptions={{
+                        tabBarStyle:tailwind`bg-red-400`,
                         tabBarStyle: { 
                             backgroundColor: "white",
                             elevation: 4,
