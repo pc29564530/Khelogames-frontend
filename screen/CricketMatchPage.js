@@ -49,7 +49,6 @@ const getLeadTrailStatus = ({match}) => {
 // Team Score Component
 const TeamScore = ({ team, score, isInning1 }) => {
     if (!score || !isInning1) return <Text style={tailwind`text-lg text-white`}>-</Text>;
-    
     return (
         <View style={tailwind`flex-row items-center`}>
             <Text style={tailwind`text-lg text-white`}>
@@ -277,6 +276,7 @@ const CricketMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
+                console.log("Match: ", response.data)
                 dispatch(getMatch(response.data || null));
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
@@ -287,7 +287,7 @@ const CricketMatchPage = ({ route }) => {
         };
 
         fetchMatch();
-    }, [matchPublicID, game.name, dispatch]);
+    }, [matchPublicID, dispatch]);
 
     useEffect(() => {
         if (!match || !cricketToss) return;
@@ -364,8 +364,8 @@ const CricketMatchPage = ({ route }) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.put(
-                `${BASE_URL}/${game.name}/updateMatchStatus`,
-                { id: match.id, status_code: statusCode },
+                `${BASE_URL}/${game.name}/updateMatchStatus/${match.public_id}`,
+                { status_code: statusCode },
                 {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -518,7 +518,7 @@ const CricketMatchPage = ({ route }) => {
                                         key={index}
                                         team={match.homeTeam} 
                                         score={item} 
-                                        isInning1={item.inning_number === "2" ? "2" : "1"} 
+                                        isInning1={item?.inning_number === "2" ? "2" : "1"} 
                                     />
                                 ))}
                             </Animated.View>

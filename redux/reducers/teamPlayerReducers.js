@@ -1,4 +1,3 @@
-import { startMapper } from 'react-native-reanimated';
 import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
