@@ -8,160 +8,122 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+const trophyPath = require('../assets/trophy.png')
 
 const TournamentPage = ({ route }) => {
-      const { tournament, currentRole } = route.params;
-      const game = useSelector(state => state.sportReducers.game);
-      const navigation = useNavigation();
-      const { height: sHeight, width: sWidth } = Dimensions.get('screen');
+    const { tournament, currentRole } = route.params;
+    const game = useSelector(state => state.sportReducers.game);
+    const navigation = useNavigation();
+    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
-      const parentScrollY = useSharedValue(0);
-      const bgColor = '#ffffff';   // white
-      const bgColor2 = '#f87171'; //red-400
-      const headerHeight = 160;
-      const collapsedHeader = 50;
-      const offsetValue = headerHeight-collapsedHeader;
-      const headerStyle = useAnimatedStyle(() => {
-        const height = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [headerHeight, collapsedHeader],
-          Extrapolation.CLAMP,
-        )
-    
-        const backgroundColor = interpolateColor(
-          parentScrollY.value,
-          [0, offsetValue],
-          [bgColor2, bgColor2]
-        )
-        return {
-          backgroundColor, height
-        }
-      })
-
-      // Content container animation
-      const contentContainerStyle = useAnimatedStyle(() => {
-        const top = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [headerHeight, collapsedHeader],
-          Extrapolation.CLAMP,
-        );
-      
-        return {
-          flex: 1,
-          marginTop: top,
-        };
-      });
-
-      // Trophy animation
-      const trophyStyle = useAnimatedStyle(() => {
-        const scale = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [1, 0.5], // big → small
-          Extrapolation.CLAMP,
-        );
-
-        const translateY = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [50, -3], // move up a bit
-          Extrapolation.CLAMP,
-        );
-
-        const translateX = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [0, -260],
-          Extrapolation.CLAMP,
-        );
-
-        return {
-          transform: [{ scale }, { translateX }, { translateY }],
-        };
-      });
-
-      // Text animation
-      const titleStyle = useAnimatedStyle(() => {
-        const scale = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [1, 0.8],
-          Extrapolation.CLAMP,
-        );
-
-        const translateY = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [60, -56],
-          Extrapolation.CLAMP,
-        );
-
-        const translateX = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [0, -100], 
-          Extrapolation.CLAMP,
-        );
-
-        return {
-          transform: [{ scale }, { translateX }, { translateY }],
-        };
-      });
-
-      const checkSport = (game) => {
-        console.log("Game: ", game)
+    const checkSport = (game) => {
         switch (game.name) {
             case "badminton":
                 return <TopTabBadminton />;
             case "cricket":
-                return <TopTabCricket tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
+                return <TopTabCricket tournament={tournament} currentRole={currentRole}/>;
             case "hockey":
                 return <TopTabHockey />;
             case "tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
+                return <TopTabFootball tournament={tournament} currentRole={currentRole}/>;
         }
     }
 
+
+    const scrollY = useSharedValue(0);
+
+    const handleScroll = useAnimatedScrollHandler((e) => {
+        scrollY.value = e.contentOffset.y;
+      })
+    
+      const bgColor = 'white'
+      const bgColor2 = 'white'
+      const offsetValue = 100;
+      const headerInitialHeight = 100;
+      const headerNextHeight = 50;
+      const animatedHeader = useAnimatedStyle(() => {
+        const height = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [headerInitialHeight, headerNextHeight],
+          Extrapolation.CLAMP,
+        )
+    
+        const backgroundColor = interpolateColor(
+          scrollY.value,
+          [0, offsetValue],
+          [bgColor, bgColor2]
+        )
+        return {
+          backgroundColor, height
+        }
+      })
+      const nameAnimatedStyles = useAnimatedStyle(() => {
+        const opacity = interpolate(
+          scrollY.value,
+          [0, 100, offsetValue],
+          [0, 1, 1],
+          Extrapolation.CLAMP,
+        )
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0,46],
+          Extrapolation.CLAMP,
+        )
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, 16],
+          Extrapolation.CLAMP,
+        )
+        return { opacity, transform: [{ translateX }, { translateY }] }
+      })
+      const animImage = useAnimatedStyle(() => {
+        const yValue = 75;
+        const translateY = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -yValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const xValue = sWidth / 2 - (2 * 16) - 20;
+        const translateX = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [0, -xValue],
+          Extrapolation.CLAMP,
+        )
+    
+        const scale = interpolate(
+          scrollY.value,
+          [0, offsetValue],
+          [1, 0.3],
+          Extrapolation.CLAMP,
+        )
+        return {
+          transform: [{ translateY }, { translateX }, { scale }]
+        }
+      })
+
+
     return (
         <View style={tailwind`flex-1`}>
-          <Animated.View
-            style={[
-              headerStyle,
-              {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10,
-              },
-            ]}
-          >
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={tailwind`absolute left-2 top-3`}
-            >
-              <MaterialIcons name="arrow-back" size={22} color="white" />
-            </Pressable>
-
-            {/* Trophy + Title animated separately */}
-            <View style={tailwind`items-center`}>
-              <Animated.View style={trophyStyle}>
-                <FontAwesome name="trophy" size={56} color="gold" />
-              </Animated.View>
-              <Animated.View style={titleStyle}>
-                <Text style={tailwind`text-xl text-white`}>
-                  {tournament.name}
-                </Text>
-              </Animated.View>
+            <View style={tailwind`bg-red-400`}>
+              <Pressable onPress={() => navigation.goBack()} style={tailwind`p-1 pt-4`}>
+                    <MaterialIcons name="arrow-back" size={22} color="white" />
+                </Pressable>
+                <View style={tailwind`items-center -top-6`}>
+                  <FontAwesome name="trophy" size={52} color="gold"/>
+                    <Text style={tailwind`text-xl text-white`}>{tournament.name}</Text>
+                </View>
             </View>
-          </Animated.View>
-          <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
-            {checkSport(game)}
-          </Animated.View>
+            <View style={tailwind`flex-1`}>
+                {checkSport(game)}
+            </View>
         </View>
     );
 }

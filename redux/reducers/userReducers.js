@@ -1,7 +1,7 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
-    user: null,
+    user: [],
     following: [],
     follower: [],
     isFollowing: false,
@@ -9,7 +9,7 @@ const initialState = {
 
 const userReducers = (state=initialState, action) => {
     switch (action.type) {
-        case actionTypes.SET_USER:
+        case actionTypes.USER_PROFILE:
             return {
                 ...state,
                 user: action.payload

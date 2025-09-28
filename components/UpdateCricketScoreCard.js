@@ -9,7 +9,10 @@ import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBa
 import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 
-export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
+export const UpdateCricketScoreCard  = ({ currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, batting, bowling, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper }) => {
+    
+    const match = useSelector(state => state.cricketMatchScore.match);
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const handleCurrentScoreEvent = (item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
         setAddCurrentScoreEvent((prevEvent) => {
@@ -24,32 +27,34 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
             setIsWicketModalVisible(true);
         }
     }
-    
 
     const handleScorecard = async (temp) => {
-        const batting = currentBatsman?.find((item) => (item.is_currently_batting === true && item.is_striker === true));
-        
+        const currentBowler = bowling?.innings.find((item) => item.is_current_bowler === true );
+        const currentBatsman = batting?.innings.find((item) => (item.is_currently_batting === true && item.is_striker === true));
         if(addCurrentScoreEvent.length === 0){
             try {
+            
                 const data = {
-                    match_public_id: match?.public_id,
+                    match_public_id: match.public_id,
                     batsman_team_public_id: batTeam,
-                    batsman_public_id: batting?.player?.public_id,
-                    bowler_public_id: currentBowler[0]?.player?.public_id,
+                    batsman_public_id: currentBatsman?.player?.public_id,
+                    bowler_public_id: currentBowler?.player?.public_id,
                     runs_scored: temp,
-                    inning_number: Number(currentInning.slice(-1))
+                    inning: currentInning
                 }
+
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
-                });
-                dispatch(setBatsmanScore(response.data.striker_batsman || {}));
-                dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
+                })
                 dispatch(setBowlerScore(response.data.bowler || {}));
                 dispatch(setInningScore(response.data.inning_score ));
+                dispatch(setBatsmanScore(response.data.striker_batsman || {}));
+                dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
+                
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }
@@ -57,11 +62,11 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
             try {
                 const data = {
                     match_public_id: match.public_id,
-                    bowler_public_id: currentBowler[0]?.player?.public_id,
+                    bowler_public_id: currentBowler.player.public_id,
                     batting_team_public_id: batTeam,
-                    batsman_public_id: batting.player.public_id,
+                    batsman_public_id: currentBatsman.player.public_id,
                     runs_scored: temp,
-                    inning: Number(currentInning.slice(-1))
+                    inning: currentInning
                 }
                 
                 const authToken = await AsyncStorage.getItem("AccessToken")
@@ -75,18 +80,19 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
                 dispatch(setBatsmanScore(response.data.striker_batsman || {}));
                 dispatch(setBatsmanScore(response.data.non_striker_batsman || {}));
                 dispatch(setBowlerScore(response.data.bowler || {}));
+
             } catch (err) {
                 console.error("Failed to add the runs and balls: ", err)
             }
         } else if(addCurrentScoreEvent[0] === "wide") {
             try {
                 const data = {
-                    match_public_id: match?.public_id,
-                    batsman_public_id: batting?.player?.public_id,
+                    match_public_id: match.public_id,
+                    batsman_public_id: currentBatsman.player.public_id,
                     batting_team_public_id: batTeam,
-                    bowler_public_id: currentBowler[0]?.player?.public_id,
+                    bowler_public_id: currentBowler.player.public_id,
                     runs_scored: temp,
-                    inning_number: Number(currentInning.slice(-1))
+                    inning: currentInning
                 }
 
                 const authToken = await AsyncStorage.getItem("AccessToken")
@@ -111,14 +117,14 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
                     match_public_id: match.public_id,
                     batting_team_public_id: batTeam,
                     bowling_team_public_id: match.homeTeam.public_id === batTeam?match.awayTeam.public_id: match.homeTeam.public_id,
-                    Batsman_public_id: batting?.player.public_id,
-                    bowler_public_id: currentBowler[0]?.player?.public_id,
+                    Batsman_public_id: currentBatsman?.player.public_id,
+                    bowler_public_id: currentBowler?.player.public_id,
                     wicket_type: wicketType,
                     fielder_public_id: wicketType === "Stamp" ? currentWicketKeeper?.public_id : null,
                     runs_scored: temp,
                     bowl_type: addCurrentScoreEvent.length == 2 ? addCurrentScoreEvent[1] : null,
                     toggle_striker: isBatsmanStrikeChange,
-                    inning: Number(currentInning.slice(-1))
+                    inning: currentInning
                 }
 
                 if (wicketType === 'Run Out' || wicketType === "Catch") {

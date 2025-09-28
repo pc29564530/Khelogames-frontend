@@ -18,7 +18,7 @@ const StatRow = ({ label, value = "N/A" }) => (
 
 const CricketPlayerBowlingStats = ({playerPublicID}) => {
   const [contentTab, setContentTab] = useState('test');
-  const [playerBowlingStats, setPlayerBowlingStats] = useState([]);
+  const [playerBowlingStats, setPlayerBowlingStats] = useState(null);
 
   useEffect(() => {
         const fetchPlayerBowlingStats = async () => {
@@ -51,16 +51,6 @@ const CricketPlayerBowlingStats = ({playerPublicID}) => {
             }
         </View>
       );
-
-      if(playerBowlingStats.length === 0){
-        return (
-          <View style={tailwind`flex-1`}>
-            <View style={tailwind`rounded-lg shadow-md items-center justify-center bg-white p-4`}>
-                <Text style={tailwind`text-lg`}>No Stats Yet</Text>
-            </View>
-          </View>
-        )
-      }
 
   return (
     <View style={tailwind``}>

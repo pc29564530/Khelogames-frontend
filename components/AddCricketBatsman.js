@@ -69,47 +69,10 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch}) => {
     }
 
     return (
-       <View style={tailwind`p-1`}>
-            {/* Header */}
-            <View style={tailwind`items-center mb-4`}>
-                <View style={tailwind`w-40 h-1 bg-gray-300 rounded-full mb-2`} />
-                <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                Select Batsman
-                </Text>
-            </View>
-
-            {/* Player List */}
+        <View>
             {cricketMatchSquad.map((item, index) => (
-                <Pressable
-                    key={index}
-                    onPress={() => handleAddNextBatsman(item)}
-                    style={tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2 bg-gray-100`}
-                    >
-                    {/* Avatar */}
-                    {item?.media_url ? (
-                        <Image
-                            source={{ uri: item.media_url }}
-                            style={tailwind`h-12 w-12 rounded-full`}
-                        />
-                    ) : (
-                        <View
-                        style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}
-                        >
-                            <Text style={tailwind`text-white font-bold text-lg`}>
-                                {item?.player?.name?.charAt(0).toUpperCase()}
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Player Info */}
-                    <View style={tailwind`ml-3`}>
-                        <Text style={tailwind`text-base font-semibold text-gray-900`}>
-                            {item?.player?.name}
-                        </Text>
-                        <Text style={tailwind`text-sm text-gray-600`}>
-                            {item?.player?.positions}
-                        </Text>
-                    </View>
+                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
+                    <Text style={tailwind`text-xl py-2 text-black`}>{item?.player.name}</Text>
                 </Pressable>
             ))}
         </View>

@@ -38,6 +38,7 @@ import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
+import CricketLiveScore from  '../screen/CricketLiveScore';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
 
 const Stack = createStackNavigator();
@@ -46,56 +47,21 @@ export default function MainNavigation() {
     const dispatch = useDispatch();
     const[loading, setLoading] = useState(true)
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-
     useEffect(() => {
         
         const checkAuthStatus = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const refreshToken = await AsyncStorage.getItem('RefreshToken');
-                const user = await AsyncStorage.getItem("User");
-                
-                if (authToken && refreshToken && user) {
-                    dispatch(setAuthenticated(true));
-                    dispatch(setUser(user));
-                } else {
-                    console.log('❌ No valid tokens found - setting authenticated to false');
-                    dispatch(setAuthenticated(false));
-                    
-                    // Clear any partial auth data
-                    await AsyncStorage.multiRemove([
-                        'AccessToken', 
-                        'RefreshToken', 
-                        'AccessTokenExpiresAt',
-                        'User'
-                    ]);
-                }
-            } catch (error) {
-                console.error('💥 Error checking auth status:', error);
-                dispatch(setAuthenticated(false));
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
+            if (authToken) {
+                dispatch(setAuthenticated(true));
                 dispatch(setUser(user))
-            } finally {
-                // Small delay to prevent flash
-                setTimeout(() => {
-                    setLoading(false);
-                    console.log('✅ Auth check completed, app loading finished');
-                }, 200);
             }
         };
-
+    
+        setLoading(false);
         checkAuthStatus();
-        dispatch(checkExpireTime());
-    }, [dispatch]);
-
-    // Show loading while determining auth status
-    if (loading || isAuthenticated === null) {
-        console.log('⏳ Showing loading screen...');
-        return (
-            <View style={tailwind`flex-1 justify-center items-center bg-black`}>
-                <ActivityIndicator size="large" color="white"/>
-            </View>
-        );
-    }
+        dispatch(checkExpireTime())
+    }, []);
 
     if(loading) {
         <View style={tailwind`flex-1 justify-evenly items-center`}>
@@ -179,7 +145,7 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} 
                             options={{
-                                headerShown: false,
+                                headerShown: true,
                                 headerTitle: '',
                                 headerBackTitleVisible: false,
                                 headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
@@ -216,6 +182,7 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
+                        <Stack.Screen name="Live Match" component={CricketLiveScore} />
                     </>
                 ):(
                     <>

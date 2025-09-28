@@ -14,16 +14,6 @@ import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
-import { StatusModal } from '../components/modals/StatusModal';
-import Animated, { 
-    Extrapolation, 
-    interpolate, 
-    interpolateColor, 
-    useAnimatedScrollHandler, 
-    useAnimatedStyle, 
-    useSharedValue,
-} from 'react-native-reanimated';
-import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 
 // get lead and trail status
 const getLeadTrailStatus = ({match}) => {
@@ -49,12 +39,13 @@ const getLeadTrailStatus = ({match}) => {
 // Team Score Component
 const TeamScore = ({ team, score, isInning1 }) => {
     if (!score || !isInning1) return <Text style={tailwind`text-lg text-white`}>-</Text>;
+    
     return (
         <View style={tailwind`flex-row items-center`}>
             <Text style={tailwind`text-lg text-white`}>
                 {score.score}/{score.wickets}
             </Text>
-            <Text style={tailwind`text-lg text-white`}>
+            <Text style={tailwind`text-lg text-white ml-2`}>
                 ({convertBallToOvers(score.overs)})
             </Text>
         </View>
@@ -63,23 +54,152 @@ const TeamScore = ({ team, score, isInning1 }) => {
 
 // Team Logo Component
 const TeamLogo = ({ team }) => {
-    if (team?.media_url){
-        return (
-            <Image
-                source={{ uri: team.media_url }}
-                style={tailwind`w-12 h-12 rounded-full`}
-                resizeMode="cover"
-            />
-        )
-    } else {
-        return (
-            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                <Text style={tailwind`text-white text-lg font-bold`}>
-                    {team?.name?.charAt(0)?.toUpperCase()}
-                </Text>
+    return (
+        <Image 
+            source={{ uri: team?.media_url }} 
+            style={tailwind`w-12 h-12 bg-gray-200 rounded-full`} 
+        />
+    );
+};
+
+// Match Header Component
+const MatchHeader = ({ match, cricketToss, onBackPress, onMenuPress }) => {
+    const getInningDescription = () => {
+        if (!match?.status_code || match?.status_code === "not_started") return null;
+        
+        const isAwayBatting = match.awayTeam.id === cricketToss?.tossWonTeam?.id && 
+                            cricketToss?.tossDecision === "Batting" && 
+                            match.awayScore?.is_inning_completed;
+
+        if (match.status_code === "finished") {
+            return (
+                <View style={tailwind`items-center -top-4`}>
+                    <Text style={tailwind`text-white text-sm`}>
+                        {isAwayBatting 
+                            ? `${match.awayTeam.name} beat ${match.homeTeam.name} by ${match?.awayScore[0]?.score - match?.homeScore[0]?.score} runs`
+                            : `${match?.homeTeam?.name} beat ${match?.awayTeam?.name} by ${10 - match?.homeScore[0]?.wickets} wickets`}
+                    </Text>
+                </View>
+            );
+        }
+        if(match.match_format === "TEST") {
+            if ((match.status_code === "in_progress" || match.status_code === "break") && match.awayScore.length >= 1 && match.homeScore.length >= 1) {
+                return (
+                    <View style={tailwind`items-center -top-4`}>
+                        <Text style={tailwind`text-white text-sm`}>
+                            {getLeadTrailStatus(match)}
+                        </Text>
+                    </View>
+                );
+            }
+        } else {
+            if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
+                return (
+                    <View style={tailwind`items-center -top-4`}>
+                        <Text style={tailwind`text-white text-sm`}>
+                            {isAwayBatting
+                                ? `${match.homeTeam.name} require ${match.awayScore[0]?.score + 1 - match?.homeScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.homeScore[0]?.overs)}`
+                                : `${match.awayTeam.name} require ${match.homeScore[0]?.score + 1 - match?.awayScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.awayScore[0]?.overs)}`}
+                        </Text>
+                    </View>
+                );
+            }
+        }
+
+        return null;
+    };
+
+    return (
+        <View style={tailwind`bg-red-400 p-4`}>
+            <View style={tailwind`flex-row justify-between items-center mb-4`}>
+                <Pressable onPress={onBackPress}>
+                    <MaterialIcon name="arrow-back" size={24} color="white" />
+                </Pressable>
+                <Pressable onPress={onMenuPress}>
+                    <MaterialIcon name="more-vert" size={24} color="white" />
+                </Pressable>
             </View>
-        )
-    }
+
+            <View style={tailwind`flex-row justify-between items-center`}>
+                <View style={tailwind`items-center`}>
+                    <TeamLogo team={match?.homeTeam} />
+                    <Text style={tailwind`text-white`}>{match?.homeTeam?.name}</Text>
+                </View>
+
+                <View style={tailwind`flex-row gap-2 justify-evenly items-center`}>
+                    <View>
+                        {match?.homeScore?.length > 0 && match.homeScore.map((item, index) => (
+                            <TeamScore 
+                                key={index}
+                                team={match.homeTeam} 
+                                score={item} 
+                                isInning1={item.innin_number === "1" ? "1" : "2"} 
+                            />
+                        ))}
+                    </View>
+                    <View style={tailwind`h-10 w-0.4 bg-white`} />
+                    <View>
+                        {match?.awayScore?.length > 0 && match.awayScore.map((item, index) => (
+                            <TeamScore 
+                                key={index}
+                                team={match.awayTeam} 
+                                score={item} 
+                                isInning1={item.inning_number === "2" ? "2" : "1"} 
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                <View style={tailwind`items-center`}>
+                    <TeamLogo team={match?.awayTeam} />
+                    <Text style={tailwind`text-white`}>{match?.awayTeam?.name}</Text>
+                </View>
+            </View>
+
+            {getInningDescription()}
+        </View>
+    );
+};
+
+// Status Modal Component
+const StatusModal = ({ visible, onClose, onStatusSelect }) => {
+    const statuses = [
+        { code: "not_started", label: "Not Started" },
+        { code: "in_progress", label: "In Progress" },
+        { code: "break", label: "Break" },
+        { code: "finished", label: "Finished" }
+    ];
+
+    return (
+        <Modal
+            transparent={true}
+            animationType="fade"
+            visible={visible}
+            onRequestClose={onClose}
+        >
+            <TouchableOpacity 
+                onPress={onClose} 
+                style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+            >
+                <View style={tailwind`bg-white rounded-t-lg p-6`}>
+                    <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>
+                        Update Match Status
+                    </Text>
+                    {statuses.map((status) => (
+                        <Pressable
+                            key={status.code}
+                            onPress={() => onStatusSelect(status.code)}
+                            style={tailwind`py-3 border-b border-gray-200`}
+                        >
+                            <Text style={tailwind`text-lg text-gray-700`}>
+                                {status.label}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
 };
 
 // Main Component
@@ -88,7 +208,7 @@ const CricketMatchPage = ({ route }) => {
     const navigation = useNavigation();
     
     
-    const {matchPublicID} = route.params;
+    const matchPublicID = route.params;
     const match = useSelector((state) => state.cricketMatchScore.match);
     const homePlayer = useSelector(state => state.teams.homePlayer);
     const awayPlayer = useSelector(state => state.teams.awayPlayer);
@@ -107,159 +227,6 @@ const CricketMatchPage = ({ route }) => {
     const [teamInning, setTeamInning] = useState();
     const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
 
-    const {height: sHeight, width: sWidth} = Dimensions.get('screen');
-
-    // Shared scroll value for all child components
-    const parentScrollY = useSharedValue(0);
-    
-    // Animation constants
-    const bgColor = '#ffffff';   // white
-    const bgColor2 = '#f87171';  // red-400
-    const headerHeight = 200;
-    const collapsedHeader = 60; // Increased for better visibility
-    const offsetValue = 120; // Reduced for smoother transition
-
-    // Header animation style
-    const headerStyle = useAnimatedStyle(() => {
-        const height = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [headerHeight, collapsedHeader],
-            Extrapolation.CLAMP,
-        );
-
-        const backgroundColor = interpolateColor(
-            parentScrollY.value,
-            [0, offsetValue],
-            [bgColor2, bgColor2]
-        );
-
-        const opacity = interpolate(
-            parentScrollY.value,
-            [0, offsetValue * 0.5, offsetValue],
-            [1, 0.8, 0.6],
-            Extrapolation.CLAMP,
-        );
-
-        return {
-            backgroundColor, 
-            height,
-        };
-    });
-
-    // Content container animation
-    const contentContainerStyle = useAnimatedStyle(() => {
-        const marginTop = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [headerHeight, collapsedHeader],
-            Extrapolation.CLAMP,
-        );
-        return { 
-            marginTop,
-            flex: 1,
-        };
-    });
-
-    //Content firstTeam animation
-    const firstAvatarStyle = useAnimatedStyle(() => {
-        const translateY = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0,-90],
-            Extrapolation.CLAMP
-        );
-        const translateX = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0,40],
-            Extrapolation.CLAMP
-        )
-        const scale = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [1, 0.8],
-            Extrapolation.CLAMP,
-        );
-        return {
-            transform:[{translateY}, {translateX}, {scale}]
-        }
-    })
-
-        //Content firstTeam animation
-    const secondAvatarStyle = useAnimatedStyle(() => {
-        const translateY = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0,-90],
-            Extrapolation.CLAMP
-        );
-        const translateX = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0,-40],
-            Extrapolation.CLAMP
-        )
-        const scale = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [1, 0.8],
-            Extrapolation.CLAMP,
-        );
-        return {
-            transform:[{translateY}, {translateX}, {scale}]
-        }
-    })
-
-    // Score visibility animation
-    const scoreStyle = useAnimatedStyle(() => {
-        const translateY = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0,-100],
-            Extrapolation.CLAMP
-        );
-        const opacity = interpolate(
-            parentScrollY.value,
-            [0, offsetValue * 0.7],
-            [1, 0],
-            Extrapolation.CLAMP,
-        );
-
-        const scale = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [1, 0.8],
-            Extrapolation.CLAMP,
-        );
-
-        return {
-            transform: [ {translateY}, {scale}]
-        };
-    });
-
-    const fadeStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            parentScrollY.value,
-            [0, offsetValue * 0.7],
-            [1, 0],
-            Extrapolation.CLAMP,
-        );
-
-        const scale = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [1, 0.8],
-            Extrapolation.CLAMP,
-        );
-
-        return {
-            opacity,
-            transform: [{ scale }]
-        };
-    });
-
-
     useEffect(() => {
         if (match) {
             setLoading(false);
@@ -276,7 +243,6 @@ const CricketMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("Match: ", response.data)
                 dispatch(getMatch(response.data || null));
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
@@ -287,7 +253,7 @@ const CricketMatchPage = ({ route }) => {
         };
 
         fetchMatch();
-    }, [matchPublicID, dispatch]);
+    }, [matchPublicID, game.name, dispatch]);
 
     useEffect(() => {
         if (!match || !cricketToss) return;
@@ -364,8 +330,8 @@ const CricketMatchPage = ({ route }) => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.put(
-                `${BASE_URL}/${game.name}/updateMatchStatus/${match.public_id}`,
-                { status_code: statusCode },
+                `${BASE_URL}/${game.name}/updateMatchStatus`,
+                { id: match.id, status_code: statusCode },
                 {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -380,51 +346,6 @@ const CricketMatchPage = ({ route }) => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const getInningDescription = () => {
-        if (!match?.status_code || match?.status_code === "not_started") return null;
-        
-        const isAwayBatting = match.awayTeam.id === cricketToss?.tossWonTeam?.id && 
-                            cricketToss?.tossDecision === "Batting" && 
-                            match.awayScore?.is_inning_completed;
-    
-        if (match.status_code === "finished") {
-            return (
-                <View style={tailwind`items-center -top-4`}>
-                    <Text style={tailwind`text-white text-sm`}>
-                        {isAwayBatting 
-                            ? `${match.awayTeam.name} beat ${match.homeTeam.name} by ${match?.awayScore[0]?.score - match?.homeScore[0]?.score} runs`
-                            : `${match?.homeTeam?.name} beat ${match?.awayTeam?.name} by ${10 - match?.homeScore[0]?.wickets} wickets`}
-                    </Text>
-                </View>
-            );
-        }
-        if(match.match_format === "TEST") {
-            if ((match.status_code === "in_progress" || match.status_code === "break") && match.awayScore.length >= 1 && match.homeScore.length >= 1) {
-                return (
-                    <View style={tailwind`items-center -top-4`}>
-                        <Text style={tailwind`text-white text-sm`}>
-                            {getLeadTrailStatus(match)}
-                        </Text>
-                    </View>
-                );
-            }
-        } else {
-            if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
-                return (
-                    <View style={tailwind`items-center -top-4`}>
-                        <Text style={tailwind`text-white text-sm`}>
-                            {isAwayBatting
-                                ? `${match.homeTeam.name} require ${match.awayScore[0]?.score + 1 - match?.homeScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.homeScore[0]?.overs)}`
-                                : `${match.awayTeam.name} require ${match.homeScore[0]?.score + 1 - match?.awayScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.awayScore[0]?.overs)}`}
-                        </Text>
-                    </View>
-                );
-            }
-        }
-    
-        return null;
     };
 
     if (loading) {
@@ -452,126 +373,24 @@ const CricketMatchPage = ({ route }) => {
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
-            {/* Animated Header */}
-            <Animated.View
-                style={[
-                    headerStyle,
-                    { 
-                        position: "absolute", 
-                        top: 0, 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 10,
-                    },
-                ]}
-            >
-                {/* Header Controls */}
-                <View style={tailwind`flex-row justify-between items-center px-4 py-3`}>
-                    <Pressable onPress={() => navigation.goBack()}>
-                        <AntDesign name="arrowleft" size={26} color="white" />
-                    </Pressable>
-                    <Pressable onPress={() => {setMenuVisible(true)}}>
-                        <MaterialIcon name="more-vert" size={24} color="white" />
-                    </Pressable>
-                </View>
+            <MatchHeader
+                match={match}
+                cricketToss={cricketToss}
+                onBackPress={() => navigation.goBack()}
+                onMenuPress={() => setMenuVisible(true)}
+            />
 
-                {/* Match Status */}
-                <Animated.View style={[tailwind`items-center`, fadeStyle]}>
-                    <Text style={tailwind`text-white text-lg font-semibold`}>
-                        {match?.status_code || 'Loading...'}
-                    </Text>
-                </Animated.View>
+            <View style={tailwind`flex-1`}>
+                <CricketMatchPageContent />
+            </View>
 
-                {/* Team Information and Score */}
-                <Animated.View style={[tailwind`flex-row justify-between items-center px-2 py-2 mt-2`]}>
-                    {/* Home Team */}
-                    <Animated.View style={[tailwind`items-center flex-1`,firstAvatarStyle]}>
-                        {match?.homeTeam?.media_url ? (
-                            <Image
-                                source={{ uri: match.homeTeam.media_url }}
-                                style={tailwind`w-12 h-12 rounded-full`}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-sm font-bold`}>
-                                    {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
-                                </Text>
-                            </View>
-                        )}
-                        <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
-                            {match?.homeTeam?.name || 'Home'}
-                        </Animated.Text>
-                    </Animated.View>
-
-                    {match.status_code === 'not_started' ? (
-                        <Animated.View style={[tailwind`items-center justify-center `,scoreStyle]}>
-                            <Text style={tailwind`text-white items-center`}>{formatToDDMMYY(convertToISOString(match.start_timestamp))}</Text>
-                            <Text style={tailwind`text-white items-center`}>{formattedTime(convertToISOString(match.start_timestamp))}</Text>
-                        </Animated.View>
-                    ): (
-                        <>
-                            {/* first score style */}
-                            <Animated.View style={[tailwind`items-center justify-center`, scoreStyle]}>
-                                {match?.homeScore?.length > 0 && match.homeScore.map((item, index) => (
-                                    <TeamScore 
-                                        key={index}
-                                        team={match.homeTeam} 
-                                        score={item} 
-                                        isInning1={item?.inning_number === "2" ? "2" : "1"} 
-                                    />
-                                ))}
-                            </Animated.View>
-
-                            {/* second score style */}
-                            <Animated.View style={[tailwind`items-center justify-center`, scoreStyle]}>
-                                {match?.awayScore?.length > 0 && match.awayScore.map((item, index) => (
-                                    <TeamScore 
-                                        key={index}
-                                        team={match.awayTeam} 
-                                        score={item} 
-                                        isInning1={item.inning_number === "2" ? "2" : "1"} 
-                                    />
-                                ))}
-                            </Animated.View>
-                        </>
-                    )}
-
-                    {/* Away Team */}
-                    <Animated.View style={[tailwind`items-center flex-1`, secondAvatarStyle]}>
-                        {match?.awayTeam?.media_url ? (
-                            <Image
-                                source={{ uri: match.awayTeam.media_url }}
-                                style={tailwind`w-12 h-12 rounded-full`}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-sm font-bold`}>
-                                    {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'A'}
-                                </Text>
-                            </View>
-                        )}
-                        <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
-                            {match?.awayTeam?.name || 'Away'}
-                        </Animated.Text>
-                    </Animated.View>
-                </Animated.View>
-                <Animated.View style={[tailwind``, fadeStyle]}>
-                        {getInningDescription()}
-                </Animated.View>
-            </Animated.View>
-            <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
-
-                <CricketMatchPageContent match={match} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
-            </Animated.View>
             <StatusModal
                 visible={statusVisible}
                 onClose={() => setStatusVisible(false)}
                 onStatusSelect={handleUpdateResult}
             />
 
-            {menuVisible && (
+{menuVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
@@ -584,8 +403,20 @@ const CricketMatchPage = ({ route }) => {
                                 <TouchableOpacity onPress={() => setStatusVisible(true)}>
                                     <Text style={tailwind`text-xl`}>Edit Match</Text>
                                 </TouchableOpacity>
+                                {/* <TouchableOpacity onPress={() => setInningVisible(true)}>
+                                    <Text style={tailwind`text-xl`}>Set Inning</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                    <Text style={tailwind`text-xl`}>End Inning</Text>
+                                </TouchableOpacity> */}
                                 <TouchableOpacity onPress={() => {}}>
                                     <Text style={tailwind`text-xl`}>Delete Match</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {}}>
+                                    <Text style={tailwind`text-xl`}>Share</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {match.status_code !== "finished" && navigation.navigate('Live Match')}}>
+                                    <Text style={tailwind`text-xl`}>Edit Score</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

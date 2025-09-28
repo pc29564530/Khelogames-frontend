@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Pressable, Image, Modal, ScrollView } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
@@ -11,9 +11,8 @@ import { findTournamentByID, getTournamentBySport } from '../services/tournament
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentByIdAction, getTournamentBySportAction } from '../redux/actions/actions';
 import { renderInningScore } from '../screen/Matches';
-import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
-const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => {
+const ClubCricketMatch = ({ teamData }) => {
     const [matches, setMatches] = useState([]);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
     const [tournamentName, setTournamentName] = useState([]);
@@ -24,19 +23,6 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
     const game = useSelector((state) => state.sportReducers.game);
-
-    const { height: sHeight, width: sWidth } = Dimensions.get("window");
-
-    const currentScrollY = useSharedValue(0);
-    const handlerScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            if(parentScrollY === collapsedHeader){
-                parentScrollY.value = currentScrollY.value;
-            } else {
-                parentScrollY.value = event.contentOffset.y;
-            }
-        }
-    })
 
     const handleTournamentPage = (item) => {
             dispatch(getTournamentByIdAction(item));
@@ -98,25 +84,12 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
 
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.ScrollView
-                style={tailwind`flex-1 bg-gray-50`}
-                onScroll={handlerScroll}
-                scrollEventThrottle={16}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingTop: 20,
-                    paddingBottom: 100,
-                    minHeight: sHeight+100,
-                }}
-            >
-                <Pressable
-                    style={tailwind`border rounded-xl flex-row items-center justify-center bg-gray-100 shadow-sm mb-4 mt-2`}
-                    onPress={() => handleDropDown()}
-                >
-                    <Text style={tailwind`text-lg font-semibold text-gray-800`}>Tournaments</Text>
-                    <AntDesign name="down" size={14} color="black" />
+            <ScrollView contentContainerStyle={{flexGrow:1}} nestedScrollEnabled>
+                <Pressable style={tailwind`border rounded-lg flex-row items-center justify-center w-35 gap-2`} onPress={handleDropDown}>
+                    <Text style={tailwind`text-lg text-black p-2`}>Tournament</Text>
+                    <AntDesign name="down" size={10} color="black" />
                 </Pressable>
-                    {matches?.map((item, index) => (
+                {matches?.map((item, index) => (
                         <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
                         style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`}
                         >
@@ -181,7 +154,7 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
                             </View>
                     </Pressable>
                 ))}
-            </Animated.ScrollView>
+            </ScrollView>
             {isDropDownVisible && (
                 <Modal
                     animationType="slide"
