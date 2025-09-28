@@ -86,7 +86,7 @@ function SignIn() {
             await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
-            await AsyncStorage.setItem("User", JSON.stringify(item.User));
+
             dispatch(setAuthenticated(true));
             dispatch(setUser(item.User));
             
@@ -133,7 +133,6 @@ function SignIn() {
             await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
             await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
-            await AsyncStorage.setItem("User", JSON.stringify(item.User));
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
             navigation.navigate("Home")

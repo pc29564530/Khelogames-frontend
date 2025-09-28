@@ -23,7 +23,6 @@ import matchesReducers from "./matchesReducers";
 import teamPlayerReducers from "./teamPlayerReducers";
 import cricketTossReducers from "./cricketMatchTossReducers";
 import cricketMatchInningReducer from "./cricketMatchInning";
-import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 
 const rootReducer = combineReducers({
     signup: signUpReducers,
@@ -49,8 +48,7 @@ const rootReducer = combineReducers({
     teams: teamsReducers,
     players: teamPlayerReducers,
     cricketToss: cricketTossReducers,
-    cricketMatchInning: cricketMatchInningReducer,
-    tournamentEntities: tournamentEntitiesReducers,
+    cricketMatchInning: cricketMatchInningReducer
 });
 
 export default rootReducer;

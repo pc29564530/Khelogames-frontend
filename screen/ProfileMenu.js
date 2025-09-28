@@ -42,6 +42,12 @@ function ProfileMenu() {
       try {
         const authPublicID = await AsyncStorage.getItem("UserPublicID");
         const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
+        if (!response.data.avatar_url || response.data.avatar_url === '') {
+          const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
+          setDisplayText(usernameInitial.toUpperCase());
+        } else {
+          setDisplayText('');
+        }
         dispatch(getProfile(response.data));
         dispatch(setAuthProfilePublicID(response.data.public_id))
       } catch (err) {
@@ -115,10 +121,10 @@ function ProfileMenu() {
     <View style={tailwind`flex-1`}>
       <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
         {profile?.avatar_url ? (
-          <Image style={tailwind`w-28 h-28 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
+          <Image style={tailwind`w-32 h-32 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
         ) : (
-          <View style={tailwind`w-28 h-28 rounded-full bg-white items-center justify-center`}>
-            <Text style={tailwind`text-red-500 text-4xl`}>{profile.full_name.charAt(0).toUpperCase()}</Text>
+          <View style={tailwind`w-32 h-32 rounded-full bg-white items-center justify-center`}>
+            <Text style={tailwind`text-red-500 text-4xl`}>NA</Text>
           </View>
         )}
         <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name}</Text>
@@ -156,15 +162,9 @@ function ProfileMenu() {
           {showMyCommunity && (
             <ScrollView style={tailwind`mt-5`}>
               {myCommunityData.map((item, index) => (
-                <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2 gap-2`}>
-                  {item?.media_url ? (
-                    <Image source="" style={tailwind`h-12 w-12 bg-red-400 rounded-lg`} />
-                  ):(
-                    <View style={tailwind`h-10 w-10 bg-red-400 rounded-full items-center justify-center`}>
-                      <Text style={tailwind`text-lg text-white`}>{item.name.charAt(0).toUpperCase()}</Text>
-                    </View>
-                  )}
-                  <Text style={tailwind`text-xl text-black`}>{item.name}</Text>
+                <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2`}>
+                  <Image source="" style={tailwind`h-12 w-12 bg-red-500 rounded-md mr-4`} />
+                  <Text style={tailwind`text-2xl text-black`}>{item.name}</Text>
                 </Pressable>
               ))}
             </ScrollView>

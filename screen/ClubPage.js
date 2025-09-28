@@ -26,7 +26,6 @@ const ClubPage = ({route}) => {
     const navigation = useNavigation();
     const {teamData, game} = route.params;
     const [subCategory, setSubCategory] = useState('');
-    const [nameWidth, setNameWidth] = useState(0);
 
     const  handleSubCategory = async (item) => {
         setSubCategory(item)
@@ -43,32 +42,29 @@ const ClubPage = ({route}) => {
     }
 
 
-      const { height: sHeight, width: sWidth } = Dimensions.get('screen');
+    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
-      const parentScrollY = useSharedValue(0);
+    const scrollY = useSharedValue(0);
+
+    const handleScroll = useAnimatedScrollHandler((e) => {
+        scrollY.value = e.contentOffset.y;
+      })
     
       const bgColor = tailwind.color('bg-red-400')
       const bgColor2 = tailwind.color('bg-red-400')
-      const headerHeight = 220;
-      const collapsedHeader = 50;
-      const offsetValue = headerHeight-collapsedHeader;
-      
-      // Calculate available space for text in collapsed state
-      const avatarCollapsedSize = 32;
-      const backButtonSpace = 38;
-      const rightPadding = 12;
-      const availableTextSpace = sWidth - backButtonSpace - avatarCollapsedSize - rightPadding
-      
+      const headerInitialHeight = 100;
+      const headerNextHeight = 50;
+      const offsetValue = 100;
       const animatedHeader = useAnimatedStyle(() => {
         const height = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
-          [headerHeight, collapsedHeader],
+          [headerInitialHeight, headerNextHeight],
           Extrapolation.CLAMP,
         )
     
         const backgroundColor = interpolateColor(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
           [bgColor, bgColor2]
         )
@@ -79,75 +75,46 @@ const ClubPage = ({route}) => {
 
       const nameAnimatedStyles = useAnimatedStyle(() => {
         const opacity = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [1, 1],
+          scrollY.value,
+          [0, 100, offsetValue],
+          [0, 1, 1],
           Extrapolation.CLAMP,
         )
-        
-        const fontSize = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [20, 16],  // Less dramatic font size change
-          Extrapolation.CLAMP
-        );
-        
-        // Calculate safe translation to prevent overlap
-        // When collapsed, position text to the right of avatar with safe margin
-        const avatarCollapsedWidth = 32;
-        const safeMargin = 8; // margin between avatar and text
-        const leftOffset = backButtonSpace + avatarCollapsedWidth + safeMargin;
-        
         const translateX = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
-          [0, -(sWidth / 2) + leftOffset + (nameWidth > availableTextSpace ? availableTextSpace / 2 : nameWidth / 2)],
+          [0, 76],
           Extrapolation.CLAMP,
         )
-        
         const translateY = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
-          [180, 12],
+          [0, -10],
           Extrapolation.CLAMP,
         )
-        
-        // Add width constraint for collapsed state
-        const maxWidth = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [sWidth - 32, availableTextSpace],
-          Extrapolation.CLAMP,
-        );
-        
-        return { 
-          transform: [{ translateX }, { translateY }],
-          fontSize,
-          opacity,
-          maxWidth
-        }
+        return { opacity, transform: [{ translateX }, { translateY }] }
       })
-      
       const animImage = useAnimatedStyle(() => {
+        const yValue = 75;
         const translateY = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
-          [0, -72],
+          [0, -yValue],
           Extrapolation.CLAMP,
         )
     
         const xValue = sWidth / 2 - (2 * 16) - 20;
         const translateX = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
           [0, -xValue],
           Extrapolation.CLAMP,
         )
     
         const scale = interpolate(
-          parentScrollY.value,
+          scrollY.value,
           [0, offsetValue],
-          [1, 0.25],
+          [1, 0.3],
           Extrapolation.CLAMP,
         )
         return {
@@ -155,54 +122,33 @@ const ClubPage = ({route}) => {
         }
       });
 
-      // Content container animation
-      const contentContainerStyle = useAnimatedStyle(() => {
-        const top = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [headerHeight, collapsedHeader],
-          Extrapolation.CLAMP,
-        );
-      
-        return {
-          flex: 1,
-          marginTop: top,
-        };
-      });
-
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.View style={[animatedHeader, {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 10,
-            }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`absolute left-2 top-4`}>
-                  <MaterialIcons name="arrow-back" size={22} color="white" />
+            <Animated.View style={[tailwind`safe-center shadow-lg bg-red-400`, animatedHeader]}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start justify-center top-4 px-2`}>
+                    <MaterialIcons name="arrow-back" size={22} color="white" />
                 </TouchableOpacity>
-                <View style={tailwind`items-center`}>
-                  <Animated.Image source="" 
-                  style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
-                  <Animated.View 
-                    onLayout={(e) => {
-                      setNameWidth(e.nativeEvent.layout.width)
-                    }}
-                  style={[tailwind`items-center justify-center bg-red-400`, nameAnimatedStyles]}>
-                      <Text 
-                        style={tailwind`text-xl text-white`}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {teamData.name}
-                      </Text>
-                  </Animated.View>
-                </View>
+                <Animated.View style={[tailwind`items-start justify-center bg-red-400`, nameAnimatedStyles]}>
+                    <Text style={tailwind`text-xl text-white`}>{teamData.name}</Text>
+                </Animated.View>
             </Animated.View>
-            <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
-                <TopTabTeamPage teamData={teamData} game={game} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
-            </Animated.View>                 
+            <Animated.Image source="" style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
+            <Animated.ScrollView 
+                onScroll={handleScroll}
+                contentContainerStyle={{height: 760}}
+                scrollEnabled={true}
+                style={tailwind`bg-red-400`}
+            >
+                <View style={tailwind`bg-white items-center justify-center pt-16 bg-red-400`}>
+                    <View >
+                        <Text style={tailwind`text-2xl text-white `}>{teamData.name}</Text>
+                        <Text style={tailwind`text-xl text-white `}>{teamData.game}</Text>
+                    </View>
+                </View>
+                <View style={tailwind`flex-1`}>
+                    <TopTabTeamPage teamData={teamData} game={game}/>
+                </View>
+            </Animated.ScrollView>                   
         </View>
     );
 }

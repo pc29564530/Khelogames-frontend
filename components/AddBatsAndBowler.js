@@ -9,10 +9,8 @@ import CricketTeamSquad from './CricketTeamSquad';
 import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { getCricketMatchSqud } from '../redux/actions/actions';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
-    const [currentAuthUser, setCurrentAuthUser] = useState(null);
     const [isBowlTeamPlayerModalVisible, setIsBowlTeamPlayerModalVisible] = useState(false);
     const [isBatTeamPlayerModalVisible, setIsBatTeamPlayerModalVisible] = useState(false);
     const game = useSelector((state) => state.sportReducers.game);
@@ -23,21 +21,9 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber)
     const cricketMatchSquad = useSelector(state => state.players.squads)
     const dispatch = useDispatch();
-
-    const currentBatTeamUser = batTeam === match.homeTeam.public_id ? match.homeTeam.user_id : match.awayTeam.user_id;
-
-    useEffect(() => {
-        const fetchCurrentAuthUser = async () => {
-            try {
-                const authUser = await AsyncStorage.getItem("User");
-                setCurrentAuthUser(JSON.parse(authUser));
-            } catch (err) {
-                console.error("Failed to set current auth user: ", err);
-            }
-        }
-        fetchCurrentAuthUser()
-    }, []);
     
+
+
     return (
         <View style={tailwind``}>
             <View style={tailwind` mb-4 bg-white p-4`}>
@@ -62,11 +48,11 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                     <AntDesign name="down" size={24} />
                 </Pressable>
             </View>
-            <View style={tailwind`mb-2 bg-white p-2`}>
-                <Pressable onPress={() => updateInning()}style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
+            {/* <View style={tailwind`mb-2 bg-white p-2`}>
+                <Pressable onPress={() => updateInning}style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}>
                     <Text style={tailwind`text-lg`}>Start Inning</Text>
                 </Pressable>
-            </View>
+            </View> */}
             {isBatTeamPlayerModalVisible && (
                 <Modal
                     transparent={true}

@@ -1,89 +1,41 @@
 import React, {useState} from 'react';
-import {Dimensions, Pressable, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import tailwind from 'twrnc';
 import CricketPlayerBattingStats from './CricketPlayerBattingStats';
 import CricketPlayerBowlingStats from './CricketPlayerBowlingStats';
-import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
    
-export const CricketPlayerStats = ({player, parentScrollY, headerHeight, collapsedHeader}) => {
+export const CricketPlayerStats = ({player}) => {
     const [activeTab, setActiveTab] = useState("batting");
-    const [loading, setLoading] = useState(false);
-    const {height: sHeight, width: sWidth} = Dimensions.get("window");
-    const currentScrollY = useSharedValue(0);
-    
-    const handlerScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            if(parentScrollY === collapsedHeader){
-                parentScrollY.value = currentScrollY;
-            } else {
-                parentScrollY.value = event.contentOffset.y;
-            }
-        }
-    });
-
     return (
-        <Animated.ScrollView 
-            style={tailwind`bg-white`}
-            onScroll={handlerScroll}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-                paddingTop: 20,
-                paddingBottom: 100,
-                minHeight: sHeight
-            }}
-        >
-            {/* Simple Tab Buttons */}
-            <View style={tailwind`flex-row mx-4 mb-6`}>
+        <View style={tailwind`p-2`}>
+            <View style={tailwind`flex-row items-center justify-evenly mb-2`}>
                 <Pressable
                     onPress={() => setActiveTab("batting")}
-                    style={[
-                        tailwind`flex-1 py-3 mr-2 rounded-lg`,
-                        activeTab === "batting" 
-                            ? tailwind`bg-red-400` 
-                            : tailwind`bg-white border border-red-400`
-                    ]}
+                    style={tailwind.style(
+                    'rounded-lg items-center border p-2',
+                    activeTab === "batting"
+                        ? 'bg-green-500 border-green-500'
+                        : 'bg-gray-100 border-gray-300'
+                    )}
                 >
-                    <Text style={[
-                        tailwind`text-center font-medium`,
-                        activeTab === "batting" 
-                            ? tailwind`text-white` 
-                            : tailwind`text-red-400`
-                    ]}>
-                        Batting
-                    </Text>
-                </Pressable>
-
+                        <Text style={tailwind`text-lg text-white font-semibold`}>Batting</Text>
+                    </Pressable>
                 <Pressable
                     onPress={() => setActiveTab("bowling")}
-                    style={[
-                        tailwind`flex-1 py-3 ml-2 rounded-lg`,
-                        activeTab === "bowling" 
-                            ? tailwind`bg-red-400` 
-                            : tailwind`bg-white border border-red-400`
-                    ]}
+                    style={tailwind.style(
+                    'rounded-lg items-center border p-2',
+                    activeTab === "bowling"
+                        ? 'bg-green-500 border-green-500'
+                        : 'bg-gray-100 border-gray-300'
+                    )}
                 >
-                    <Text style={[
-                        tailwind`text-center font-medium`,
-                        activeTab === "bowling" 
-                            ? tailwind`text-white` 
-                            : tailwind`text-red-400`
-                    ]}>
-                        Bowling
-                    </Text>
-                </Pressable>
+                        <Text style={tailwind`text-lg text-white font-semibold`}>Bowling</Text>
+                    </Pressable>
             </View>
-
-            {/* Content */}
-            <View style={tailwind`px-4`}>
-                {activeTab === "batting" && (
-                    <CricketPlayerBattingStats playerPublicID={player.public_id} />
-                )}
-                {activeTab === "bowling" && (
-                    <CricketPlayerBowlingStats playerPublicID={player.public_id} />
-                )}
+            <View>
+                {activeTab === "batting" && <CricketPlayerBattingStats  playerPublicID={player.public_id} />}
+                {activeTab === "bowling" && <CricketPlayerBowlingStats playerPublicID = {player.public_id}/>}
             </View>
-        </Animated.ScrollView>
+        </View>
     );
 }
-
-export default CricketPlayerStats;

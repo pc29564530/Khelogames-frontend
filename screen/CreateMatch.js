@@ -19,15 +19,15 @@ const filePath = require('../assets/knockout.json')
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 const matchFormatPath = require('../assets/match_format.json');
-import { Alert } from 'react-native';
+
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
 
 const CreateMatch = ({ route }) => {
-    const {tournament, entities} = route.params;
-    const [firstEntity, setFirstEntity] = useState(null);
-    const [secondEntity, setSecondEntity] = useState(null);
+    const {tournament, teams, handleCloseFixtureModal} = route.params;
+    const [homeTeamPublicID, setHomeTeamPublicID] = useState(null);
+    const [awayTeamPublicID, setAwayTeamPublicID] = useState(null);
     const [startTime, setStartTime] = useState(null);
     const [statusCode, setStatusCode]  = useState('not_started');
     const [endTime, setEndTime] = useState(null);
@@ -44,7 +44,7 @@ const CreateMatch = ({ route }) => {
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
     const [isModalMatchFormat, setIsModalMatchFormat] = useState(false);
-    const [matchFormat, setMatchFormat] = useState(null);
+    const [matchFormat, setMatchFormat] = useState();
   
     const modifyDateTime = (newDateTime) => {
       if (!newDateTime) {
@@ -59,33 +59,20 @@ const CreateMatch = ({ route }) => {
     };
   
     const handleSelectTeam = (item) => {
-      if (firstEntity === null) {
-        setFirstEntity(item);
+      if (team1 === null) {
+        setTeam1(item.public_id);
       } else {
-        setSecondEntity(item);
+        setTeam2(item.public_id);
       }
       setIsModalTeamVisible(false);
     };
   
     const handleSetFixture = async () => {
       try {
-        if (!firstEntity || !secondEntity) {
-          Alert.alert("Validation Error", "Please select both teams.");
-          return;
-        }
-        if (!startTime) {
-          Alert.alert("Validation Error", "Please select start time.");
-          return;
-        }
-        if (!matchType || !stage) {
-          Alert.alert("Validation Error", "Please select match type and stage.");
-          return;
-        }
-        
         const fixture = {
           tournament_public_id: tournament.public_id,
-          away_team_public_id: secondEntity.public_id,
-          home_team_public_id: firstEntity.public_id,
+          away_team_public_id: awayTeamPublicID,
+          home_team_public_id: homeTeamPublicID,
           start_timestamp: modifyDateTime(startTime),
           end_timestamp: endTime?modifyDateTime(endTime):'',
           type: matchType.toLowerCase(),
@@ -95,7 +82,6 @@ const CreateMatch = ({ route }) => {
           knockout_level_id:  knockoutLevel,
           match_format: matchFormat
         };
-        
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture,{
           headers: {
@@ -105,39 +91,23 @@ const CreateMatch = ({ route }) => {
         });
         } catch (error) {
           console.error("Failed to create match: ", err);
-        } finally {
-          navigation.goBack();
         }
     };
 
     navigation.setOptions({
-      headerTitle: "Create Match",
-      headerTitleAlign: "center",
-      headerStyle: {
-        backgroundColor: tailwind.color('red-400'),
-        height: 60,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 6,
-        elevation: 5,
-      },
-      headerTitleStyle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: tailwind.color('bg-white'), // dark gray
-      },
-      headerLeft: () => (
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={tailwind`p-3 ml-2`}
-        >
-          <AntDesign name="arrowleft" size={22} color={tailwind.color('bg-white')} />
-        </Pressable>
+        headerTitle:'',
+      headerStyle:tailwind`bg-red-400 shadow-lg`,
+      headerTintColor:'white',
+      headerLeft: ()=> (
+        <View style={tailwind`flex-row items-center gap-30 p-2`}>
+            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
+            
+            <View style={tailwind`items-center`}>
+                <Text style={tailwind`text-xl text-white`}>Create Match</Text>
+            </View>
+        </View>
       ),
-    });
-    
-    
+    })
 
     useEffect(() => {
       console.log("stage: ", stage)
@@ -146,26 +116,15 @@ const CreateMatch = ({ route }) => {
   return (
     <SafeAreaView style={tailwind`flex-1 bg-gray-100`}>
       <ScrollView style={tailwind` p-4`}>
-      {tournament.stage !== 'knockout' &&
-        (!firstEntity?.group_id ||
-        !secondEntity?.group_id ||
-        firstEntity.group_id !== secondEntity.group_id) && (
-          <View style={tailwind`flex-row items-center bg-yellow-100 border border-yellow-400 rounded-lg p-3 my-2`}>
-            <AntDesign name="exclamationcircle" size={18} color="orange" style={tailwind`mr-2`} />
-            <Text style={tailwind`text-yellow-800 font-semibold`}>
-              Add both teams to the groups before match creation or added ignore.
-            </Text>
-          </View>
-      )}
         <View style={tailwind`mb-2`}>
           <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-            <Text style={tailwind`text-black text-lg`}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
+            <Text style={tailwind`text-black text-lg`}>{homeTeamPublicID ? teams.find((item) => item.public_id === homeTeamPublicID).name : "Select Team 1"}</Text>
             <AntDesign name="down" size={24} color="black" />
           </Pressable>
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-lg`}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
+                <Text style={tailwind`text-black text-lg`}>{awayTeamPublicID ? teams.find((item) => item.public_id === awayTeamPublicID).name : "Select Team 2"}</Text>
                 <AntDesign name="down" size={24} color="black" />
             </Pressable>
         </View>
@@ -306,17 +265,17 @@ const CreateMatch = ({ route }) => {
           <Pressable onPress={() => setIsModalTeamVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
             <View style={tailwind`bg-white rounded-md p-4`}>
               <ScrollView nestedScrollEnabled={true}>
-                {entities.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleSelectTeam(item.entity)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
-                    {item.entity.media_url !== "" ? (
+                {teams.map((item, index) => (
+                  <Pressable key={index} onPress={() => handleSelectTeam(item)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
+                    {item.media_url !== "" ? (
                       <Image source="" style={tailwind`rounded-full h-10 w-10 bg-orange-200`}/>
                     ):(
                       <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
-                        <Text style={tailwind` text-black text-xl`}>{item.entity.short_name}</Text>
+                        <Text style={tailwind` text-black text-xl`}>{item.short_name}</Text>
                       </View>
                     )}
                     <View style={tailwind`py-1`}>
-                        <Text style={tailwind`text-lg text-black`}>{item.entity.name}</Text>
+                        <Text style={tailwind`text-lg text-black`}>{item.name}</Text>
                     </View>
                   </Pressable> 
                 ))}

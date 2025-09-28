@@ -1,94 +1,86 @@
-import { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import axiosInstance from "../screen/axios_config";
-import { BASE_URL } from "../constants/ApiConstants";
-import tailwind from "twrnc";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
+import {useState, useEffect} from 'react';
+import {View, Text, ActivityIndicator} from 'react-native';
+import axiosInstance from '../screen/axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
+import tailwind from 'twrnc';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FlatList } from 'native-base';
 
-const FootballPlayerStats = ({ player, parentScrollY, headerHeight, collapsedHeader }) => {
-  const [playerStats, setPlayerStats] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const currentScrollY = useSharedValue(0);
-  const handlerScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-        if(parentScrollY === collapsedHeader){
-            parentScrollY.value = currentScrollY;
-        } else {
-            parentScrollY.value = event.contentOffset.y;
+const FootballPlayerStats = ({player}) => {
+    const [playerStats, setPlayerStats] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    
+
+
+    useEffect(() => {
+        const fetchPlayerStats = async () => {
+            setIsLoading(true);
+            try {
+                const authToken = await AsyncStorage.getItem('authToken');
+                const response = await axiosInstance.get(`${BASE_URL}/getFootballPlayerStats/${player.public_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                setPlayerStats(response.data);
+            } catch(err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
         }
+        fetchPlayerStats()
+    }, []);
+
+    if (isLoading){
+        return (
+            <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#1D4ED8" />
+            </View>
+        )
     }
-    })
 
-  useEffect(() => {
-    const fetchPlayerStats = async () => {
-      setIsLoading(true);
-      try {
-        const authToken = await AsyncStorage.getItem("AccessToken"); // ✅ fixed key
-        const response = await axiosInstance.get(
-          `${BASE_URL}/getFootballPlayerStats/${player.public_id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        setPlayerStats(response.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPlayerStats();
-  }, []);
+    const playerStatsData = [
+        { label: 'Matches', value: playerStats?.matches },
+        { label: 'Minutes', value: playerStats?.minutes_played },
+        { label: 'Goals', value: playerStats?.goals_scored },
+        { label: 'Goals Conceded', value: playerStats?.goals_conceded },
+        { label: 'Assists', value: playerStats?.assists },
+        { label: 'Clean Sheets', value: playerStats?.clean_sheet },
+        { label: 'Yellow Cards', value: playerStats?.yellow_cards },
+        { label: 'Red Cards', value: playerStats?.red_cards },
+    ]
 
-  if (isLoading) {
+    if (!playerStats){
+        return (
+            <View style={tailwind`p-10 bg-white rounded-lg shadow-md items-center`}>
+                <Text style={tailwind`text-xl text-gray-800`}>No Activing Yet</Text>
+            </View>
+        )
+    }
+
     return (
-      <View style={tailwind`flex-1 justify-center items-center`}>
-        <ActivityIndicator size="large" color="#1D4ED8" />
-      </View>
+        <View style={tailwind`p-4 bg-white rounded-lg shadow-md`}>
+            <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>Player Statistics</Text>
+                <FlatList 
+                    data={playerStatsData}
+                    numColumns={2}
+                    keyExtractor={(item) => {item.id}}
+                    renderItem={(item) => (
+                    <View
+                        style={tailwind`bg-gray-100 p-4 flex-1 rounded-lg shadow-sm item-center m-2 `}
+                    >   
+                            <Text style={tailwind`text-sm text-black`}>{item.item.label}</Text>
+                            <Text style={tailwind`text-lg font-semibold text-gray-900`}>
+                                {item.item.value !== undefined ? item.item.value : 'N/A'}
+                            </Text>
+                    </View>
+                    )}
+                />
+        </View>
     );
-  }
 
-  const playerStatsData = [
-    { id: "matches", label: "Matches", value: playerStats?.matches },
-    { id: "minutes", label: "Minutes", value: playerStats?.minutes_played },
-    { id: "goals", label: "Goals", value: playerStats?.goals_scored },
-    { id: "conceded", label: "Goals Conceded", value: playerStats?.goals_conceded },
-    { id: "assists", label: "Assists", value: playerStats?.assists },
-    { id: "clean", label: "Clean Sheets", value: playerStats?.clean_sheet },
-    { id: "yellow", label: "Yellow Cards", value: playerStats?.yellow_cards },
-    { id: "red", label: "Red Cards", value: playerStats?.red_cards },
-  ];
-
-  return (
-    <View style={tailwind`flex-1`}>
-      <Text style={tailwind`text-xl font-bold text-gray-800 m-4`}>
-        Player Statistics
-      </Text>
-
-      <Animated.FlatList
-        onScroll={handlerScroll}
-        data={playerStatsData}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tailwind`pb-20`}
-        renderItem={({ item }) => (
-          <View
-            style={tailwind`bg-gray-100 p-4 flex-1 rounded-lg shadow-sm m-2 h-100`}
-          >
-            <Text style={tailwind`text-sm text-gray-700`}>{item.label}</Text>
-            <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-              {item.value !== undefined ? item.value : 0}
-            </Text>
-          </View>
-        )}
-      />
-    </View>
-  );
-};
+}
 
 export default FootballPlayerStats;

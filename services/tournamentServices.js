@@ -8,10 +8,10 @@ const convertSecondToTimestamp = (timeStamp) => {
     return dt;
 }
 
-export const getTournamentBySport = async ({axiosInstance, game}) => {
+export const getTournamentBySport = async ({axiosInstance, sport}) => {
     try {
         const authToken = await AsyncStorage.getItem('AcessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentsBySport/${game.id}`, {
+        const response = await axiosInstance.get(`${BASE_URL}/${sport.name}/getTournamentsBySport/${sport.id}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
@@ -21,7 +21,38 @@ export const getTournamentBySport = async ({axiosInstance, game}) => {
         if (!item || item === null) {
             return [];
         } else {
-            return item
+            
+            // const dataWithDisplayText = item?.tournament.map((it, index) => {
+            //      it.start_timestamp = convertSecondToTimestamp(it.start_timestamp);
+            //     let currentStatus;
+            //     if(it.status_code === 'not_started'){
+            //         currentStatus = "upcoming";
+            //     } else if(it.status_code === 'finished') {
+            //         currentStatus = "ended";
+            //     } else {
+            //         currentStatus = "live";
+            //     }
+
+            //     //set the display text
+            //     let displayText = '';
+            //     const usernameInitial = it.tournament_name ? it.tournament_name.charAt(0) : '';
+            //     displayText = usernameInitial.toUpperCase();
+            //     return {...it, displayText: displayText, currentStatus:currentStatus}
+            // });
+            // const tournamentWithDisplayText = await Promise.all(dataWithDisplayText)
+            // const categarizedTournament = {live:[], upcoming:[], previous:[]};
+            // tournamentWithDisplayText.forEach((item) => {
+            //     let category;
+            //     if(item.currentStatus === "live"){
+            //         category = "live";
+            //     } else if(item.currentStatus === "ended") {
+            //         category = "previous";
+            //     } else {
+            //         category = "upcoming"
+            //     }
+            //     categarizedTournament[category].push(item);
+            // })
+            return { tournament: item};
         }
     } catch (err) {
         console.error("unable to fetch tournament ", err)
@@ -115,9 +146,8 @@ export const fetchAllGroups = async ({axiosInstance, dispatch: dispatch}) => {
 };
 
 
-export const fetchStandings = async ({tournament, axiosInstance, dispatch, game, loading, setLoading}) => {
+export const fetchStandings = async ({tournament, axiosInstance, dispatch, game}) => {
     try {
-        setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
         console.log("Game: ", game)
         if (game.name === "football") {
@@ -127,29 +157,18 @@ export const fetchStandings = async ({tournament, axiosInstance, dispatch, game,
                     'Content-Type': 'application/json'
                 }
             })
-            if(response.data){
-                dispatch(setStandings(response.data))
-            } else {
-                dispatch(setStandings( []));
-            }
+            dispatch(setStandings(response.data || []));
         } else if (game.name === "cricket") {
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding/${tournament.public_id}`, {
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketStanding${tournament.public_id}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 }
             })
-            if(response.data){
-                dispatch(setStandings(response.data))
-            } else {
-                dispatch(setStandings( []));
-            }
+            dispatch(setStandings(response.data || []));
         }     
     } catch (err) {
         console.error("Unable to fetch the standings of tournament: ", err);
-        dispatch(setStandings([]));
-    } finally {
-        setLoading(false);
     }
 };
 

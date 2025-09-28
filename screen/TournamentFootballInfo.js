@@ -5,24 +5,12 @@ import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
 import { useSelector } from 'react-redux';
-import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
-const TournamentFootballInfo = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeader }) => {
+const TournamentFootballInfo = ({ route }) => {
+    const tournament = route.params.tournament;
     const [organizationData, setOrganizationData] = useState(null);
     
     const game = useSelector(state => state.sportReducers.game);
-
-    const currentScrollY = useSharedValue(0);
-
-  const handlerScroll = useAnimatedScrollHandler({
-    onScroll:(event) => {
-        if(parentScrollY.value === collapsedHeader){
-            parentScrollY.value = currentScrollY.value
-        } else {
-            parentScrollY.value = event.contentOffset.y
-        }
-      }
-  })
 
     useEffect(() => {
         const fetchTournamentOrganization = async () => {
@@ -38,25 +26,21 @@ const TournamentFootballInfo = ({ tournament, currentRole, parentScrollY, header
                     },
                 })
                 const item = response.data || [];
-                if(item.length>0){
-                    const timestampStr = item.tournament_start;
-                    const timestampDate = new Date(timestampStr);
-                    const options = { weekday: 'long', month: 'long', day: '2-digit' };
-                    const date = timestampDate.toLocaleDateString('en-US', options)
-                    item.tournament_start = date;
-                    setOrganizationData(item);
-                }
+                const timestampStr = item.tournament_start;
+                const timestampDate = new Date(timestampStr);
+                const options = { weekday: 'long', month: 'long', day: '2-digit' };
+                const date = timestampDate.toLocaleDateString('en-US', options)
+                item.tournament_start = date;
+                setOrganizationData(item);
             } catch (err) {
                 console.error("Unable to fetch tournament info: ", err);
             }
         }
-        //fetchTournamentOrganization();
+        fetchTournamentOrganization();
     }, []);
 
     return (
-        <Animated.ScrollView 
-            onScroll={handlerScroll}
-        >
+        <View style={tailwind`flex-1 mt-4 bg-white p-4 rounded-lg`}>
             <View style={tailwind`mb-4`}>
                 <Text style={tailwind`text-lg font-bold`}>Tournament Information</Text>
                 <View style={tailwind`mt-2 border-b border-gray-300`}></View>
@@ -85,7 +69,7 @@ const TournamentFootballInfo = ({ tournament, currentRole, parentScrollY, header
                     </View>
                 </View>
             )}
-        </Animated.ScrollView>
+        </View>
     );
 }
 

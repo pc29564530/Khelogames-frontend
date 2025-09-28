@@ -31,8 +31,7 @@ const tournamentsReducers = (state=initialState, action) => {
                 groups: action.payload
             }
         case actionTypes.ADD_TEAM_GROUP:
-            const safeGroup = Array.isArray(state.groups) ? state.groups : [];
-            const updatedGroups = safeGroup.map((grp) => {
+            const updatedGroups = state.groups.map((grp) => {
                 if (grp.id === action.payload.groupId && grp.tournament_id === action.payload.tournamentId) {
                     return {
                         ...grp,
@@ -53,8 +52,7 @@ const tournamentsReducers = (state=initialState, action) => {
         case actionTypes.ADD_TOURNAMENT:
             return {
                 ...state,
-                tournaments: [...state.tournaments, action.payload],
-                tournament: action.payload
+                tournaments: [...state.tournaments, action.payload]
             }
         default:
             return state

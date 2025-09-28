@@ -17,7 +17,7 @@ const StatRow = ({ label, value = "N/A" }) => (
 
 const CricketPlayerBattingStats = ({playerPublicID}) => {
   const [contentTab, setContentTab] = useState('test');
-  const [playerBattingStats, setPlayerBattingStats] = useState([]);
+  const [playerBattingStats, setPlayerBattingStats] = useState(null);
   
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const CricketPlayerBattingStats = ({playerPublicID}) => {
                     'Content-Type': 'application/json',
                 },
             })
-            setPlayerBattingStats(response.data || []);
+            setPlayerBattingStats(response.data || null);
         } catch (err) {
             console.error("unable to fetch player stats: ", err);
         }
@@ -53,16 +53,6 @@ const CricketPlayerBattingStats = ({playerPublicID}) => {
         }
     </View>
   );
-
-  if(playerBattingStats.length === 0){
-    return (
-      <View style={tailwind`flex-1`}>
-        <View style={tailwind`rounded-lg shadow-md items-center justify-center bg-white p-4`}>
-            <Text style={tailwind`text-lg`}>No Stats Yet</Text>
-        </View>
-      </View>
-    )
-  }
 
   return (
     <View style={tailwind``}>

@@ -36,54 +36,50 @@ const CreateTournament = () => {
     const game = useSelector((state) => state.sportReducers.game);
     
     const handleCreateTournament = async () => {
-  try {
-    const data = {
-      name: tournamentName,
-      country: category === 'international' ? '' : country,
-      status: "not_started",
-      level: category,
-      start_timestamp: modifyDateTime(startOn),
-      game_id: game.id,
-      group_count: parseInt(groupCount, 10),
-      max_group_team: parseInt(maxTeamGroup, 10),
-      stage: stage?.toLowerCase(),
-      has_knockout: isKnockout,
+        try {
+            const data = {
+                    name: tournamentName,
+                    country: category==='international'?'':country,
+                    status: "not_started",
+                    level: category,
+                    start_timestamp: modifyDateTime(startOn),
+                    game_id: game.id,
+                    group_count: parseInt(groupCount, 10),
+                    max_group_team: parseInt(maxTeamGroup, 10),
+                    stage: stage.toLowerCase(),
+                    has_knockout: isKnockout
+                }
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournament`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const item = response.data;
+            dispatch(addTournament(item));
+            // const organizerData = {
+            //     organizer_name: user,
+            //     tournament_id: item.tournament_id,
+            // };
+
+            // try {
+            //     await axiosInstance.post(`${BASE_URL}/createOrganizer`, organizerData, {
+            //         headers: {
+            //             'Authorization': `Bearer ${authToken}`,
+            //             'Content-Type': 'application/json',
+            //         },
+            //     });
+            // } catch (err) {
+            //     console.log("Unable to add the organizer to the tournament: ", err);
+            // }
+            navigation.navigate("TournamentPage", { tournament: item, currentRole: 'user' });
+
+        } catch (err) {
+            console.log("Unable to create a new tournament ", err);
+        }
     };
-
-    const authToken = await AsyncStorage.getItem('AccessToken');
-    const response = await axiosInstance.post(
-      `${BASE_URL}/${game.name}/createTournament`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("✅ Tournament Created Response:", response.data);
-
-    const tournament = response.data
-
-    console.log("API Response structure:", {
-    data: response.data,
-    type: typeof response.data,
-    isArray: Array.isArray(response.data)
-});
-
-    if (tournament) {
-      dispatch(addTournament(tournament));
-        navigation.popToTop()
-      navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
-    } else {
-      console.log("❌ No tournament found in response", response.data);
-    }
-  } catch (err) {
-    console.log("❌ Unable to create a new tournament", err);
-  }
-};
-
 
     navigation.setOptions({
       headerTitle:'',
@@ -245,7 +241,7 @@ const CreateTournament = () => {
                     withFilter
                     withFlag
                     countryCode={country}
-                    onSelect={(country) => setCountry(country.name)}
+                    onSelect={(country) => setCountry(country.cca2)}
                     visible={isCountryPicker}
                     onClose={() => setIsCountryPicker(false)}
                 />
