@@ -12,6 +12,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import {SelectMedia} from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuthProfilePublicID } from '../redux/actions/actions';
+import { useWebSocket } from '../context/WebSocketContext';
 
 function Message({ route }) {
     const navigation = useNavigation();
@@ -27,8 +28,9 @@ function Message({ route }) {
     const [uploadImage, setUploadImage] = useState(false);
     const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.user.user)
+    const wsRef = useWebSocket();
     
-    const wsRef = useRef(null);
+    // const wsRef = useRef(null);
     const isMountedRef = useRef(true);
 
     const handleMediaSelection = async () => {
@@ -39,56 +41,26 @@ function Message({ route }) {
     }
       
     useEffect(() => {
-      const setupWebSocket = async () => {
+      if(!wsRef.current) {
+        return
+      }
+
+      wsRef.current.onmessage = (event) => {
+        const rawData = event?.data;
         try {
-          const authToken = await AsyncStorage.getItem('AccessToken');
-          wsRef.current = new WebSocket('ws://192.168.1.3:8080/api/ws', '', {
-            headers: {
-              'Authorization': `Bearer ${authToken}`
+          if (rawData === null || !rawData) {
+            console.error("raw data is undefined");
+          } else {
+            const message = JSON.parse(rawData);
+            if (isMountedRef.current) {
+              setReceivedMessage((prevMessages) => [...prevMessages, message]);
             }
-          });
-
-          wsRef.current.onopen = () => {
-            console.log("WebSocket connection open");
-            console.log("WebSocket Ready: ", wsRef.current.readyState);
-          }
-
-          wsRef.current.onmessage = (event) => {
-            const rawData = event?.data;
-            try {
-              if (rawData === null || !rawData) {
-                console.error("raw data is undefined");
-              } else {
-                const message = JSON.parse(rawData);
-                if (isMountedRef.current) {
-                  setReceivedMessage((prevMessages) => [...prevMessages, message]);
-                }
-              }
-            } catch (e) {
-              console.error('error parsing json: ', e);
-            }
-          }
-
-          wsRef.current.onerror = (error) => {
-            console.log("Error: ", error);
-          }
-
-          wsRef.current.onclose = (event) => {
-            console.log("WebSocket connection closed: ", event.reason);
           }
         } catch (e) {
-          console.error('unable to setup the websocket', err)
+          console.error('error parsing json: ', e);
         }
       }
 
-      setupWebSocket();
-
-      return () => {
-        isMountedRef.current = false;
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.close();
-        }
-      };
     }, []);
 
     //Recieved Message Functionality
@@ -110,18 +82,6 @@ function Message({ route }) {
           if (response.data === null || !response.data) {
               setReceivedMessage([]);
           } else {
-              // const messageData = response.data.map((item, index) => {
-              //     const timestampStr = item.created_at;
-              //     const timestamp = new Date(timestampStr);
-              //     const options = { hour: '2-digit', minute: '2-digit' };
-              //     const formattedTime = timestamp.toLocaleString('en-US', options);
-              //     if(item.sender_public_id === authProfilePublicID) {
-              //       item.sent_at = formattedTime; 
-              //     } else {
-
-              //     }
-              //     return item;
-              // });
             setAllMessage(response.data);
             setReceivedMessage(response.data);
           }
@@ -138,7 +98,7 @@ function Message({ route }) {
     const sendMessage = async () => {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           const userPublicID = await AsyncStorage.getItem('UserPublicID');
-          const newMessage = {
+          const data = {
               sender_public_id: userPublicID,
               receiver_public_id: receiverProfile.public_id,
               content: newMessageContent,
@@ -146,12 +106,16 @@ function Message({ route }) {
               media_type: mediaType,
               sent_at: new Date().toISOString(),
           }
-          console.log("Date: ", new Date().toISOString())
 
           if(uploadImage){
-              newMessage.media_url = mediaURL;
-              newMessage.media_type= mediaType;
+              data.media_url = mediaURL;
+              data.media_type= mediaType;
               setUploadImage(false);
+          }
+
+          const newMessage = {
+              "type": "CREATE_MESSAGE",
+              "payload": data
           }
 
           wsRef.current.send(JSON.stringify(newMessage));
