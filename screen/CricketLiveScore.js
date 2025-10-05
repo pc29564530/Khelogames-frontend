@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,8 +36,8 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         cricketToss: state.cricketToss.cricketToss
       }), shallowEqual);
 
-    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
-    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning, shallowEqual);
+    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber, shallowEqual);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const currentBatsman = useSelector(state => selectCurrentBatsmen(state, currentInningNumber));
     const currentBowler = useSelector(state => selectCurrentBowler(state, currentInningNumber));
@@ -81,7 +81,6 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
-    
     const currentScrollY = useSharedValue(0);
     // scroll handler for header animation
     const handlerScroll = useAnimatedScrollHandler({
@@ -126,13 +125,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }, [batTeam]);
 
     useEffect(() => {
-        if (cricketToss) {
+        if (cricketToss && currentInningNumber === 1) {
             if (cricketToss.tossDecision === "Batting") {
                 setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             } else {
                 setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
             }
+        } else if(currentInningNumber === 2 && (match.match_format === "ODI" || match.match_format === "T20")) {
+             const firstInningBattingTeam = cricketToss.tossDecision === "Batting" 
+            ? (cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID)
+            : (cricketToss.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
+            const secondInningBattingTeam = firstInningBattingTeam === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID;
+            setCurrentLiveScore(secondInningBattingTeam);
         }
+        // added the test inning update here 
     }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
@@ -170,7 +176,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'applicaiton/json'
+                        'Content-Type': 'application/json'
                     }
                 })
                 if(response.data){
@@ -203,7 +209,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 const matchEndResponse = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchResult`, data, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'applicaiton/json'
+                        'Content-Type': 'application/json'
                     }
                 });
             } catch(err) {
@@ -246,6 +252,12 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             fetchAwayPlayers();
         }, [match.id]);
 
+        useEffect(() => {
+            if(inningStatus === "completed"){
+                setInningVisible(true);
+            }
+        }, [inningStatus]);
+
         const getNextInning = () => {
             if (inningStatus === "completed" && currentInningNumber === 1){
                 return 2;
@@ -263,34 +275,35 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }
 
     const handleNextInning = async (teamPublicID) => {
-        if (!isCurrentInningEnded) {
-            Alert.alert(
-                "⚠ Inning Not Ended",
-                "You need to end the current inning before proceeding.",
-                [
-                    { text: "OK", style: "cancel" }
-                ]
-            );
-        }
+        // if (!isCurrentInningEnded) {
+        //     Alert.alert(
+        //         "⚠ Inning Not Ended",
+        //         "You need to end the current inning before proceeding.",
+        //         [
+        //             { text: "OK", style: "cancel" }
+        //         ]
+        //     );
+        // }
         //get match 
-        switch (inningStatus) {
-            case "not_started":
-                setNextInning(1);
-                //dispatch(setCurrentInning("inning1"))
-                break;
-            case "first_inning_completed":
+        switch (currentInningNumber) {
+            case 1:
                 setNextInning(2);
+                dispatch(setCurrentInningNumber(2));
                 //dispatch(setCurrentInning("inning2"))
                 break;
-            case "second_inning_completed":
+            case 2:
                 setNextInning(3);
+                dispatch(setCurrentInningNumber(3));
                //dispatch(setCurrentInning("inning3"))
                 break;
-            case  "third_inning_completed":
+            case 3:
                 setNextInning(4)
+                dispatch(setCurrentInningNumber(4));
                 //dispatch(setCurrentInning("inning4"))
                 break;
             default:
+                setNextInning(1);
+                dispatch(setCurrentInningNumber(1));
                 break;
         }        
         try {
@@ -357,32 +370,26 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     );
 
 
-    const checkFollowOn = () => {
-        if (match && match.awayScore?.length == 1 || match?.homeScore?.length == 1){
-            if (batTeam === homeTeamPublicID) {
-                const firstInningScore = match?.awayScore?.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match?.homeScore?.find((inning) => inning.inning_number === 2);
-                if (secondInningScore < firstInningScore - 200) {
-                    <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
-                        <Text style>Follow On</Text>
-                    </Pressable>
-                }
-            } else {
-                const firstInningScore = match?.homeScore?.find((inning) => inning.inning_number === 1);
-                const secondInningScore = match?.awayScore?.find((inning) => inning.inning_number === 2);
-                if (secondInningScore < firstInningScore - 200) {
-                    <Pressable onPress={() => setFollowOn(true)} style = {[followOn ?tailwind`bg-red-400` : tailwind`bg-white`]}>
-                        <Text style>Follow On</Text>
-                    </Pressable>
+    const checkFollowOn = useCallback(() => {
+        if (match?.match_format === "Test" && currentInningNumber === 2) {
+            const firstInningScore = match?.homeScore?.find((inning) => inning.inning_number === 1);
+            const secondInningScore = match?.awayScore?.find((inning) => inning.inning_number === 1);
+            
+            // Follow-on rule: If the team batting second scores less than 200 runs 
+            // and is more than 200 runs behind the first innings total
+            if (firstInningScore && secondInningScore) {
+                const difference = firstInningScore.score - secondInningScore.score;
+                if (secondInningScore.score < 200 && difference > 200) {
+                    return true; // Follow-on is applicable
                 }
             }
         }
-    };
-    useEffect(() => {
-        if (match.match_format === "Test") {
-            checkFollowOn();
-        }
-    }, [match]);
+        return false;
+    }, [match, currentInningNumber]);
+    // Check if follow-on is applicable
+    const isFollowOnApplicable = useMemo(() => {
+        return checkFollowOn();
+    }, [checkFollowOn]);
 
     if (isLoading) {
         return (
@@ -422,7 +429,21 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </View>
                     </View>
                 </View>
-                {currentBatsman?.length > 0 && (currentBowler?.length > 0) ? (
+                {inningStatus === "completed" ? (
+                    <InningActionModal 
+                        match={match}
+                        currentInning={currentInning}
+                        inningStatus={inningStatus}
+                        handleNextInning={handleNextInning}
+                        batTeam={batTeam}
+                        currentInningNumber={currentInningNumber}
+                        MAX_INNINGS={MAX_INNINGS}
+                        getNextInning={getNextInning}
+                        isFollowOnApplicable={isFollowOnApplicable}
+                        followOn={followOn}
+                        setFollowOn={setFollowOn}
+                    />
+                ): currentBatsman?.length > 0 && (currentBowler?.length > 0) ? (
                     <>
                     <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                         {/* Header */}
@@ -475,7 +496,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </View>
                     </View>
 
-               <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
+                    <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
                     <View style={tailwind`flex-row justify-between px-4 py-2`}>
                         <Text style={tailwind`flex-1 text-md text-gray-800`}>Bowling</Text>
                         <View style={tailwind`flex-row flex-[3] justify-between`}>
@@ -515,9 +536,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInning={currentInning}/>
             </>
             ) : (
-                <View style={tailwind`p-1`}>
-                    <AddBatsmanAndBowler match={match}/>
-                </View>
+                    <View style={tailwind`p-1`}>
+                        <AddBatsmanAndBowler match={match}/>
+                    </View>
             )}
             {/* Add Batsman */}
             {isModalBattingVisible && (
@@ -638,99 +659,6 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     </Pressable>
                 </Modal>
                 )}
-            {inningVisible && (
-                <Modal  
-                    transparent={true}
-                    animationType="fade"
-                    visible={inningVisible}
-                    onRequestClose={() => setInningVisible(false)}
-                >
-                    <Pressable onPress={() => setInningVisible(false)} style={tailwind`flex-1 bg-black bg-opacity-50`}>
-                        <View style={tailwind` justify-center items-center`}>
-                        <View style={tailwind`bg-white rounded-lg shadow-lg h-160 w-90`}>
-                        <View style={tailwind`p-2`}>
-                            <Text style={tailwind`text-lg font-bold`}>Match Inning Setup</Text>
-                        </View>
-                        <View style={tailwind` bg-gray-100 p-2 rounded-md`}>
-                            <View style={tailwind``}>
-                                <Text style={tailwind`text-md text-black`}>{match.homeTeam.name} vs {match.awayTeam.name}</Text>
-                                <Text style={tailwind`text-md text-black`}>{match.match_format}</Text>
-                            </View>
-                            <View style={tailwind``}>
-                                <Text style={tailwind`text-md text-black`}>{formattedDate(match.start_timestamp)}</Text>
-                            </View>
-                        </View>
-                        <View style={tailwind`mb-4 p-4`}>
-                            <Text style={tailwind`text-lg text-gray-800 mb-4`}>Current Inning</Text>
-                            {/* Current Inning Card */}
-                            <View style={tailwind`rounded-2xl bg-white border border-gray-200 ml-2 mr-2`}>
-                                <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
-                                    <Text style={tailwind`text-lg text-gray-800`}>
-                                        {batTeam === match.homeTeam.public_id ? match.homeTeam.name : match.awayTeam.name} Batting
-                                    </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>Inning {currentInningNumber}</Text>
-                                </View>
-                                {batTeam === match.homeTeam.id ? (
-                                    renderInningScore(match.homeScore)
-                                ) : (
-                                    renderInningScore(match.awayScore)
-                                )}
-                            </View>
-                        </View>
-                        {/* End Inning Button */}
-                        <View style={tailwind`p-4`}>
-                            <Pressable
-                                style={tailwind`rounded-lg bg-red-400 px-6 py-3 shadow-md`}
-                                onPress={() => setIsCurrentInningEnded(true)}
-                            >
-                            <Text style={tailwind`text-white text-base font-semibold text-center`}>End Current Inning</Text>
-                            </Pressable>
-                        </View>
-
-                        {/* Next Inning UI */}
-                        {currentInning < MAX_INNINGS[match.match_format] && !isCurrentInningEnded && (
-                            <View style={tailwind`p-4`}>
-                                <Text style={tailwind`text-md text-gray-800 mb-4`}>Next Inning Setup</Text>
-                                <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-6`}>
-                                    <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
-                                    <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                                        {batTeam === match.homeTeam.public_id ? match.awayTeam.name : match.homeTeam.name}
-                                    </Text>
-                                    <Text style={tailwind`text-md font-medium text-gray-500`}>{getNextInning()}</Text>
-                                    </View>
-                                    
-                                        {match.match_format === "Test" ? (
-                                            <View style={tailwind`px-4 pb-4 pt-2`}>
-                                                 <Text>{getLeadTrailStatus(match)}</Text>
-                                            </View>
-                                        ) : (
-                                            <View style={tailwind`px-4 pb-4 pt-2`}>
-                                                <Text style={tailwind`text-lg font-semibold `}>
-                                                    🎯 Target: {match.homeTeam.public_id === batTeam  ? match?.awayScore[currentInningNumber-1] + 1 || {} : match?.homeScore[currentInningNumber-1] + 1 || {}} runs
-                                                </Text>
-                                            </View>
-                                        )}
-                                    
-                                </View>
-                                {/* Buttons */}
-                                <View style={tailwind`flex-row justify-between`}>
-                                    <Pressable
-                                    style={tailwind`rounded-lg bg-red-400 px-6 py-3 mr-2`}
-                                    onPress={() => setInningVisible(false)}
-                                    >
-                                    <Text style={tailwind`text-white font-medium text-center`}>Cancel</Text>
-                                    </Pressable>
-                                    <Pressable style={tailwind`rounded-lg bg-red-400 px-6 py-3 ml-2`} onPress={() => handleNextInning(homeTeamPublicID === batTeam ? awayTeamPublicID : homeTeamPublicID)}>
-                                        <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                        )}         
-                        </View>
-                    </View>
-                    </Pressable>
-                </Modal>
-            )}
            {menuVisible && (
                 <Modal
                     transparent={true}
@@ -758,3 +686,172 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }
 
 export default CricketLive;
+
+const InningActionModal = ({
+  match,
+  currentInning,
+  inningStatus,
+  handleNextInning,
+  batTeam,
+  currentInningNumber,
+  MAX_INNINGS,
+  getNextInning,
+  setInningVisible,
+  isFollowOnApplicable,
+  followOn,
+  setFollowOn
+}) => {
+
+  const battingTeamName = batTeam === match.homeTeam.public_id ? match.homeTeam.name : match.awayTeam.name;
+  const bowlingTeamName = batTeam === match.homeTeam.public_id ? match.awayTeam.name : match.homeTeam.name;
+
+  const currentScore = batTeam === match.homeTeam.public_id
+    ? match.homeScore
+    : match.awayScore;
+
+    // console.log("Match Line no 733: ", match)
+    // console.log("match.homeScore: ", match.homeScore[currentInningNumber-1])
+
+  const targetScore = match.match_format !== "Test"
+    ? (batTeam !== match.homeTeam.public_id
+        ? match.awayScore[currentInningNumber - 1].score + 1
+        : match.homeScore[currentInningNumber - 1].score + 1)
+    : null;
+
+  const handleNextBattingTeam = () => {
+    if(batTeam === match.homteTeam.public_id){
+        dispatch(setBatTeam(match.awayTeam.public_id));
+    } else {
+        dispatch(setBatTeam(match.homeTeam.public_id));
+    }
+  }
+
+  console.log("Bat Team: ", batTeam)
+
+  return (
+    <View style={tailwind`flex-1 items-center`}>
+      <View style={tailwind`bg-white rounded-lg shadow-lg w-90`}>
+        {/* Header */}
+        <View style={tailwind`p-2`}>
+          <Text style={tailwind`text-lg font-bold`}>Match Inning Setup</Text>
+        </View>
+
+        {/* Match Info */}
+        <View style={tailwind`bg-gray-100 p-2 rounded-md`}>
+          <Text style={tailwind`text-md text-black`}>{match.homeTeam.name} vs {match.awayTeam.name}</Text>
+          <Text style={tailwind`text-md text-black`}>{match.match_format}</Text>
+          <Text style={tailwind`text-md text-black`}>{formattedDate(match.start_timestamp)}</Text>
+        </View>
+
+        {/* Current Inning */}
+        <View style={tailwind`mb-4 p-4`}>
+          <Text style={tailwind`text-lg text-gray-800 mb-2`}>Current Inning</Text>
+          <View style={tailwind`rounded-2xl bg-white border border-gray-200`}>
+            <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
+              <Text style={tailwind`text-lg text-gray-800`}>{battingTeamName} Batting</Text>
+              <Text style={tailwind`text-md font-medium text-gray-500`}>Inning {currentInningNumber}</Text>
+            </View>
+            {renderInningScore(currentScore)}
+          </View>
+        </View>
+
+        {/* Next Inning Setup */}
+        {console.log("Line no 769: ", inningStatus)}
+        {inningStatus === "completed" && currentInningNumber < MAX_INNINGS[match.match_format] && (
+          <View style={tailwind`p-4`}>
+            <Text style={tailwind`text-md text-gray-800 mb-2`}>
+              {followOn ? 'Follow-on Inning Setup' : 'Next Inning Setup'}
+            </Text>
+            <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-4`}>
+              <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
+                <View style={tailwind`flex-1`}>
+                  <Text style={tailwind`text-lg font-semibold text-gray-800`}>
+                    {followOn ? battingTeamName : bowlingTeamName}
+                  </Text>
+                  <Text style={tailwind`text-sm text-gray-600`}>
+                    {followOn ? 'Continues Batting (Follow-on)' : 'Will Bat Next'}
+                  </Text>
+                </View>
+                <Text style={tailwind`text-md font-medium text-gray-500`}>
+                  {followOn ? 'Follow-on Inning' : `Inning ${getNextInning()}`}
+                </Text>
+              </View>
+
+              {match.match_format === "Test" ? (
+                <View style={tailwind`px-4 pb-4 pt-2`}>
+                  <Text>{getLeadTrailStatus(match)}</Text>
+                  
+                  {/* Follow-on Option for Test matches */}
+                  {isFollowOnApplicable && (
+                    <View style={tailwind`mt-3 p-3 bg-yellow-100 rounded-lg border border-yellow-300`}>
+                      <Text style={tailwind`text-sm font-semibold text-yellow-800 mb-2`}>
+                        Follow-on Available
+                      </Text>
+                      <Text style={tailwind`text-xs text-yellow-700 mb-3`}>
+                        The batting team scored less than 200 runs and is more than 200 runs behind. 
+                        You can enforce the follow-on.
+                      </Text>
+                      <Pressable 
+                        onPress={() => setFollowOn(!followOn)}
+                        style={[
+                          tailwind`p-2 rounded-lg border`,
+                          followOn ? tailwind`bg-red-500 border-red-600` : tailwind`bg-gray-200 border-gray-300`
+                        ]}
+                      >
+                        <Text style={[
+                          tailwind`text-center font-semibold`,
+                          followOn ? tailwind`text-white` : tailwind`text-gray-700`
+                        ]}>
+                          {followOn ? 'Follow-on Enforced' : 'Enforce Follow-on'}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View style={tailwind`px-4 pb-4 pt-2`}>
+                  <Text style={tailwind`text-lg font-semibold`}>
+                    🎯 Target: {targetScore || 0} runs
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={tailwind`flex-row justify-between`}>
+              <Pressable
+                style={tailwind`rounded-lg bg-gray-300 px-6 py-3 mr-2`}
+                onPress={() => setInningVisible(false)}
+              >
+                <Text style={tailwind`text-black font-medium text-center`}>Cancel</Text>
+              </Pressable>
+
+              {/* {match.match_format !== "Test" ? (
+                <Pressable onPress={() => handleNextInning()} style={tailwind`rounded-lg bg-red-500 px-6 py-3 ml-2`}>
+                    <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
+                </Pressable>
+              ):( */}
+                    <Pressable
+                        style={tailwind`rounded-lg bg-red-500 px-6 py-3 ml-2`}
+                        onPress={() => {
+                        // If follow-on is enforced, the same team continues batting
+                        // Otherwise, the opposite team bats
+                        const nextBattingTeam = followOn 
+                            ? batTeam  // Same team continues (follow-on)
+                            : (batTeam === match.homeTeam.public_id ? match.awayTeam.public_id : match.homeTeam.public_id); // Opposite team
+                        
+                        handleNextInning(nextBattingTeam);
+                        }}
+                    >
+                        <Text style={tailwind`text-white font-medium text-center`}>
+                        {followOn ? 'Start Follow-on Inning' : 'Start Next Inning'}
+                        </Text>
+                    </Pressable>
+              {/* )} */}
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+};

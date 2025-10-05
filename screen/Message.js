@@ -53,7 +53,7 @@ function Message({ route }) {
           } else {
             const message = JSON.parse(rawData);
             if (isMountedRef.current) {
-              setReceivedMessage((prevMessages) => [...prevMessages, message]);
+              setReceivedMessage((prevMessages) => [...prevMessages, message.payload]);
             }
           }
         } catch (e) {

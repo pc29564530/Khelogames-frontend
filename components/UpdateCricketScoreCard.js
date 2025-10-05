@@ -1,69 +1,118 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useRef, memo, useCallback} from 'react'
 import {View, Text, Pressable} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import axiosInstance from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen } from '../redux/actions/actions';
+import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen, setInningStatus } from '../redux/actions/actions';
 import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 import { useWebSocket } from '../context/WebSocketContext';
 
-export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
+export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
     const wsRef = useWebSocket();
+    const [isWebSocketReady, setIsWebSocketReady] = useState(false);
+    const isMountedRef = useRef(true);
+    const lastPayloadRef = useRef(null);
+    const dispatchRef = useRef(dispatch);
+    
+    // Update dispatch ref when dispatch changes
+    useEffect(() => {
+        dispatchRef.current = dispatch;
+    }, [dispatch]);
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event?.data;
+        try {
+            if (rawData === null || !rawData) {
+                console.error("raw data is undefined");
+                return;
+            }
+            
+            const message = JSON.parse(rawData);
+            
+            // Prevent duplicate processing - check by message type and key data
+            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
+            if (lastPayloadRef.current === messageKey) {
+                console.log("Duplicate message ignored:", messageKey);
+                return;
+            }
+            lastPayloadRef.current = messageKey;
+            
+            console.log("Score Line no Empos...: ", message.payload)
+
+            if(message.type === "UPDATE_SCORE") {
+                console.log("Lineno 34: ", message.payload)
+                
+                // Batch all dispatches to prevent multiple re-renders
+                const dispatches = [];
+                
+                if(message.payload.event_type === "normal"){
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                } else if(message.payload.event_type === "wide") {
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                } else if(message.payload.event_type === "no_ball") {
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                } else if(message.payload.event_type === "wicket") {
+                    if(message.payload.out_batsman) dispatches.push(setBatsmanScore(message.payload.out_batsman));
+                    if(message.payload.not_out_batsman) dispatches.push(setBatsmanScore(message.payload.not_out_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.wickets) dispatches.push(addCricketWicketFallen(message.payload.wickets));
+                }
+                
+                // Execute all dispatches at once
+                dispatches.forEach(dispatchAction => dispatchRef.current(dispatchAction));
+            }
+
+            console.log("message : ", message.type)
+            console.log("message payload status: ", message.payload.inning_status)
+            
+            if(message.type === "INNING_STATUS"){
+                const payload = message.payload;
+                console.log("Inning Status Line no 70: ", payload.inning_status)
+                if(payload.inning_status === "completed") {
+                    console.log("Line no 80:", payload.inning_status)
+                    dispatchRef.current(setInningStatus(payload.inning_status));
+                    
+                    // Also update batsman and bowler data from INNING_STATUS message
+                    if(payload.striker) {
+                        dispatchRef.current(setBatsmanScore(payload.striker));
+                    }
+                    if(payload.non_striker) {
+                        dispatchRef.current(setBatsmanScore(payload.non_striker));
+                    }
+                    if(payload.bowler) {
+                        dispatchRef.current(setBowlerScore(payload.bowler));
+                    }
+                    if(payload.inning_score) {
+                        dispatchRef.current(setInningScore(payload.inning_score));
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('error parsing json: ', e);
+        }
+    }, []); // Remove dispatch dependency to prevent infinite loop
 
     useEffect(() => {
         if(!wsRef.current) {
             return
         }
 
-        wsRef.current.onmessage = (event) => {
-            const rawData = event?.data;
-            try {
-                if (rawData === null || !rawData) {
-                    console.error("raw data is undefined");
-                } else {
-                    const message = JSON.parse(rawData);
-                    if (isMountedRef.current) {
-                        setReceivedMessage((prevMessages) => [...prevMessages, message]);
-                    }
-                    
-                    if(message.type === "UPDATE_SCORE") {
-                        if(message.status === "success") {
-                            if(message.payload.event_type === "normal"){
-                                dispatch(setBatsmanScore(message.payload.striker_batsman || {}));
-                                dispatch(setBatsmanScore(message.data.non_striker_batsman || {}));
-                                dispatch(setBowlerScore(message.data.bowler || {}));
-                                dispatch(setInningScore(message.data.inning_score ));
-                            } else if(message.payload.event_type === "wide") {
-                                dispatch(setBatsmanScore(message.payload.striker_batsman || {}));
-                                dispatch(setBatsmanScore(message.payload.non_striker_batsman || {}));
-                                dispatch(setBowlerScore(message.payload.bowler || {}));
-                                dispatch(setInningScore(message.payload.inning_score ));
-                            } else if(message.payload.event_type === "no_ball") {
-                                dispatch(setBatsmanScore(message.payload.striker_batsman || {}));
-                                dispatch(setBatsmanScore(message.payload.non_striker_batsman || {}));
-                                dispatch(setBowlerScore(message.payload.bowler || {}));
-                                dispatch(setInningScore(message.payload.inning_score ));
-                            } else if(message.payload.event_type === "wicket") {
-                                dispatch(setBatsmanScore(message.payload.out_batsman))
-                                dispatch(setBatsmanScore(message.payload.not_out_batsman))
-                                dispatch(setBowlerScore(message.payload.bowler))
-                                dispatch(setInningScore(message.payload.inning_score))
-                                dispatch(addCricketWicketFallen(message.payload.wickets))
-                            } 
-                        } else {
-                            console.error("Score update failed:", message.message);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('error parsing json: ', e);
-            }
-        }
-    }, []);
+        wsRef.current.onmessage = handleWebSocketMessage;
+    }, [handleWebSocketMessage]);
 
-    const handleCurrentScoreEvent = (item) => {
+    const handleCurrentScoreEvent = useCallback((item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
         setAddCurrentScoreEvent((prevEvent) => {
             if(!prevEvent.includes(eventItem)){
@@ -76,10 +125,10 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
         if (eventItem === "wicket" ){
             setIsWicketModalVisible(true);
         }
-    }
+    }, [setAddCurrentScoreEvent, setIsWicketModalVisible]);
     
 
-    const handleScorecard = async (temp) => {
+    const handleScorecard = useCallback(async (temp) => {
         const batting = currentBatsman?.find((item) => (item.is_currently_batting === true && item.is_striker === true));
 
         if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN){
@@ -102,12 +151,6 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
                         }
                     }
                     wsRef.current.send(JSON.stringify(newMessage));
-                    // const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
-                    //     headers: {
-                    //         'Authorization': `bearer ${authToken}`,
-                    //         'Content-Type': 'application/json',
-                    //     },
-                    // });
                 } catch (err) {
                     console.error("Failed to add the runs and balls: ", err)
                 }
@@ -188,9 +231,9 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
                 }
             }
         }
-    }
+    }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInning, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange]);
 
-    const handleWicketType = (item) => {
+    const handleWicketType = useCallback((item) => {
         if(item === "Run Out"){
             setWicketType(item);
             setIsFielder(true);
@@ -200,7 +243,7 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
         } else {
             setWicketType(item);
         }
-    }
+    }, [setWicketType, setIsFielder]);
 
     return (
         <View>
@@ -243,6 +286,8 @@ export const UpdateCricketScoreCard  = ({match, currentScoreEvent, isWicketModal
             </View>
         </View>
     );
-}
+});
+
+UpdateCricketScoreCard.displayName = 'UpdateCricketScoreCard';
 
 export default UpdateCricketScoreCard;
