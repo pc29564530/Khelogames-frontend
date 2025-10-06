@@ -285,44 +285,45 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         //     );
         // }
         //get match 
-        switch (currentInningNumber) {
-            case 1:
-                setNextInning(2);
-                dispatch(setCurrentInningNumber(2));
-                //dispatch(setCurrentInning("inning2"))
-                break;
-            case 2:
-                setNextInning(3);
-                dispatch(setCurrentInningNumber(3));
-               //dispatch(setCurrentInning("inning3"))
-                break;
-            case 3:
-                setNextInning(4)
-                dispatch(setCurrentInningNumber(4));
-                //dispatch(setCurrentInning("inning4"))
-                break;
-            default:
-                setNextInning(1);
-                dispatch(setCurrentInningNumber(1));
-                break;
-        }        
+        // console.log("Team ID: ", teamPublicID)
+        // switch (currentInningNumber) {
+        //     case 1:
+        //         setNextInning(2);
+        //         dispatch(setCurrentInningNumber(2));
+        //         //dispatch(setCurrentInning("inning2"))
+        //         break;
+        //     case 2:
+        //         setNextInning(3);
+        //         dispatch(setCurrentInningNumber(3));
+        //        //dispatch(setCurrentInning("inning3"))
+        //         break;
+        //     case 3:
+        //         setNextInning(4)
+        //         dispatch(setCurrentInningNumber(4));
+        //         //dispatch(setCurrentInning("inning4"))
+        //         break;
+        //     default:
+        //         setNextInning(1);
+        //         dispatch(setCurrentInningNumber(1));
+        //         break;
+        // }        
         try {
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            await addCricketScoreServices(game, dispatch, match.public_id, teamPublicID, nextInning, followOn, authToken, axiosInstance)
+            const matchPublicID = match.public_id;
+            await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
         } catch (err) {
             console.error("Failed to start next inning: ", err);
+            dispatch(setCurrentInningNumber(currentInningNumber-1))
         }
     }
 
     const currentFielder = homeTeamPublicID !== batTeam
     ? homePlayer?.filter((player) => {
-        const currentField = !bowling?.innings[currentInningNumber].some(
+        const currentField = !bowling?.innings[currentInningNumber]?.some(
             (bowler) => bowler?.is_current_bowler === true && bowler?.player.id === player.id
         )
         return currentField;
     }
-            
-      ) || []
+    ) || []
     : awayPlayer?.filter((player) => 
         {
             const currentField = !bowling?.innings[currentInningNumber]?.some(
@@ -368,7 +369,6 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const existingBowler = players.filter((player) =>
     innings.some((bowler) => bowler?.player?.id === player?.id)
     );
-
 
     const checkFollowOn = useCallback(() => {
         if (match?.match_format === "Test" && currentInningNumber === 2) {
@@ -709,13 +709,10 @@ const InningActionModal = ({
     ? match.homeScore
     : match.awayScore;
 
-    // console.log("Match Line no 733: ", match)
-    // console.log("match.homeScore: ", match.homeScore[currentInningNumber-1])
-
-  const targetScore = match.match_format !== "Test"
+  const targetScore = match.match_format !== "Test" && (match?.homeScore?.length > 0 || match?.awayScore?.length > 0)
     ? (batTeam !== match.homeTeam.public_id
-        ? match.awayScore[currentInningNumber - 1].score + 1
-        : match.homeScore[currentInningNumber - 1].score + 1)
+        ? match?.awayScore[currentInningNumber - 1]?.score + 1
+        : match?.homeScore[currentInningNumber - 1]?.score + 1)
     : null;
 
   const handleNextBattingTeam = () => {
@@ -725,8 +722,6 @@ const InningActionModal = ({
         dispatch(setBatTeam(match.homeTeam.public_id));
     }
   }
-
-  console.log("Bat Team: ", batTeam)
 
   return (
     <View style={tailwind`flex-1 items-center`}>
@@ -756,7 +751,6 @@ const InningActionModal = ({
         </View>
 
         {/* Next Inning Setup */}
-        {console.log("Line no 769: ", inningStatus)}
         {inningStatus === "completed" && currentInningNumber < MAX_INNINGS[match.match_format] && (
           <View style={tailwind`p-4`}>
             <Text style={tailwind`text-md text-gray-800 mb-2`}>
