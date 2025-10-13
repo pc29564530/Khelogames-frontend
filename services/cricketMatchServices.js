@@ -1,30 +1,35 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
-import { addCricketMatchScore, setCurrentInning, setCurrentInningNumber } from "../redux/actions/actions";
+import axiosInstance from "../screen/axios_config";
+import { setCurrentInning, setCurrentInningNumber, setBatTeam, setInningStatus, setInningScore } from "../redux/actions/actions";
 
-export const addCricketScoreServices = async ({sport, dispatch, matchPublicID, teamPublicID, inning, authToken, axiosInstance}) => {
+export const addCricketScoreServices = async ({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn}) => {
     try {
         const data = {
             match_public_id:matchPublicID, 
             team_public_id: teamPublicID,
-            inning: inning,
+            inning_number: currentInningNumber + 1,
             score: 0,
             wickets: 0,
             overs: 0,
             extras: 0,
             follow_on: followOn
         }
-        const response = await axiosInstance.post(`${BASE_URL}/${sport}/addCricketScore`,data, {
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketScore`,data, {
             headers: {
                 'Authorization':`bearer ${authToken}`,
                 'Content-Type':'application/json'
             }
         });
-        dispatch(setCurrentInningNumber(inning))
-        dispatch(setCurrentInning(inning));
-        dispatch(inningStatus("is_progress"))
-        dispatch(setBatTeam(response.data.team_public_id))
-        dispatch(addCricketMatchScore(response.data || []));
+        const item = response.data
+        console.log("Bat Team Line no 26 services: ", item.team)
+        console.log("Inning Current : ", item.inning)
+        dispatch(setCurrentInningNumber(item.inning.inning_number))
+        dispatch(setCurrentInning(`inning${item.inning.inning_number}`));
+        dispatch(setInningStatus("not_started"));
+        dispatch(setBatTeam(item.team.public_id));
+        dispatch(setInningScore(item.inning || []));
     } catch (err) {
         console.log("unable to add the cricket score of home team and away team ", err);
     }

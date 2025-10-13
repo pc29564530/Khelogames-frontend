@@ -276,7 +276,6 @@ const CricketMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("Match: ", response.data)
                 dispatch(getMatch(response.data || null));
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
@@ -290,7 +289,7 @@ const CricketMatchPage = ({ route }) => {
     }, [matchPublicID, dispatch]);
 
     useEffect(() => {
-        if (!match || !cricketToss) return;
+        if (!match || !cricketToss || batTeam) return;
 
         const tossWonTeamPublicId = cricketToss.tossWonTeam?.public_id;
         const isBatting = cricketToss.tossDecision === "Batting";
@@ -299,7 +298,7 @@ const CricketMatchPage = ({ route }) => {
             : (tossWonTeamPublicId !== match.homeTeam.public_id ? match.awayTeam.public_id : match.awayTeam.public_id);
 
         dispatch(setBatTeam(batTeamId));
-    }, [match, cricketToss]);
+    }, [match, cricketToss, batTeam]);
 
     useEffect(() => {
         const fetchPlayers = async () => {
@@ -328,9 +327,11 @@ const CricketMatchPage = ({ route }) => {
             dispatch(setCurrentInning("inning1"));
             dispatch(setInningStatus("in_progress"));
             dispatch(setCurrentInningNumber(1));
-            dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
+            if (!batTeam) {
+                dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
+            }
         }
-    }, [cricketToss, match]);
+    }, [cricketToss, match, batTeam]);
 
     const handleInningComplete = async () => {
         try {
