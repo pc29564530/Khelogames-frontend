@@ -22,12 +22,12 @@ export const addCricketScoreServices = async ({game, dispatch, matchPublicID, te
                 'Content-Type':'application/json'
             }
         });
+        console.log("Lien no 25: ", response.data)
         const item = response.data
         console.log("Bat Team Line no 26 services: ", item.team)
-        console.log("Inning Current : ", item.inning)
+        console.log("Inning Current : ", item)
         dispatch(setCurrentInningNumber(item.inning.inning_number))
-        dispatch(setCurrentInning(`inning${item.inning.inning_number}`));
-        dispatch(setInningStatus("not_started"));
+        dispatch(setInningStatus("not_started",item.inning.inning_number));
         dispatch(setBatTeam(item.team.public_id));
         dispatch(setInningScore(item.inning || []));
     } catch (err) {

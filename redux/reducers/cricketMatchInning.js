@@ -11,16 +11,32 @@ const initialState = {
 
 const cricketMatchInningReducer = (state = initialState, action) => {
     switch (action.type) {
-        case actionTypes.SET_CURRENT_INNING:
+        case actionTypes.SET_CURRENT_INNING_NUMBER:
+            // console.log("State: ", state.currentInningNumber);
+            // console.log("Action: ", action.pdayload)
+            const inningNumber = action.payload
             return {
                 ...state,
-                currentInning: action.payload
-            };
+                currentInningNumber: inningNumber,
+                currentInning: `inning${inningNumber}`
+            }
 
         case actionTypes.SET_INNING_STATUS:
+            const status = action.payload.status;
+            const nextInningNumber = action.payload.inningNumber
+            console.log("Inning Lien no 31: ", action.payload)
+            if(nextInningNumber < state.currentInningNumber) {
+                console.warn("Ignoring outdated status for inning", nextInningNumber)
+            }
+            if (state.inningStatus === "completed" && status === "in_progress") {
+                console.warn("Ignoring in_progress because inning already completed");
+                return state;
+            }
             return {
                 ...state,
-                inningStatus: action.payload
+                inningStatus: status,
+                currentInningNumber: nextInningNumber
+
             };
 
         case actionTypes.SET_BATTING_TEAM:
@@ -35,29 +51,28 @@ const cricketMatchInningReducer = (state = initialState, action) => {
                 matchFormat: action.payload
             };
 
-        case actionTypes.SET_INNING_COMPLETED: {
-            const newCompletedInnings = [...state.completedInnings, action.payload];
-            const nextInningNumber = state.currentInningNumber + 1;
+        // case actionTypes.SET_INNING_COMPLETED: {
+        //     const newCompletedInnings = [...state.completedInnings, action.payload];
+        //     const nextInningNumber = state.currentInningNumber + 1;
 
-            let nextInning = `inning${nextInningNumber}`;
-            let inningStatus = 'in_progress';
+        //     let nextInning = `inning${nextInningNumber}`;
+        //     let inningStatus = 'not_started';
 
-            const maxInnings = state.matchFormat === "TEST" ? 4 : 2;
+        //     const maxInnings = state.matchFormat === "TEST" ? 4 : 2;
 
-            if (nextInningNumber > maxInnings) {
-                inningStatus = 'completed';
-                nextInning = null;
-            }
+        //     if (nextInningNumber > maxInnings) {
+        //         inningStatus = 'completed';
+        //         nextInning = null;
+        //     }
 
-            return {
-                ...state,
-                completedInnings: newCompletedInnings,
-                currentInningNumber: nextInningNumber,
-                currentInning: nextInning,
-                inningStatus
-            };
-        }
-
+        //     return {
+        //         ...state,
+        //         completedInnings: newCompletedInnings,
+        //         currentInningNumber: nextInningNumber,
+        //         currentInning: nextInning,
+        //         inningStatus
+        //     };
+        // }
         default:
             return state;
     }

@@ -24,6 +24,7 @@ import Animated, {
     useSharedValue,
 } from 'react-native-reanimated';
 import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
+import { current } from '@reduxjs/toolkit';
 
 // get lead and trail status
 const getLeadTrailStatus = ({match}) => {
@@ -48,14 +49,14 @@ const getLeadTrailStatus = ({match}) => {
 
 // Team Score Component
 const TeamScore = ({ team, score, isInning1 }) => {
-    if (!score || !isInning1) return <Text style={tailwind`text-lg text-white`}>-</Text>;
+    if (!score || !isInning1) return <Text style={tailwind`text-md text-white`}>-</Text>;
     return (
-        <View style={tailwind`flex-row items-center`}>
-            <Text style={tailwind`text-lg text-white`}>
+        <View style={tailwind`items-center justify-center`}>
+            <Text style={tailwind`text-md text-white font-bold`}>
                 {score.score}/{score.wickets}
             </Text>
-            <Text style={tailwind`text-lg text-white`}>
-                ({convertBallToOvers(score.overs)})
+            <Text style={tailwind`text-md text-white font-bold`}>
+                {convertBallToOvers(score.overs)}
             </Text>
         </View>
     );
@@ -321,15 +322,14 @@ const CricketMatchPage = ({ route }) => {
         }
     }, [match?.homeTeam?.public_id, match?.awayTeam?.public_id]);
 
+
     useEffect(() => {
-        if (cricketToss && match) {
+        // Only set initial state when match is first loaded AND status is truly not started
+        if (cricketToss && match && match.status_code === 'not_started' && !batTeam) {
             const isHomeBatting = cricketToss.tossWonTeam.public_id === match.homeTeam.public_id && cricketToss.tossDecision === "Batting";
-            dispatch(setCurrentInning("inning1"));
-            dispatch(setInningStatus("in_progress"));
+            dispatch(setInningStatus("not_started", 1));
             dispatch(setCurrentInningNumber(1));
-            if (!batTeam) {
-                dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
-            }
+            dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
         }
     }, [cricketToss, match, batTeam]);
 
@@ -347,7 +347,7 @@ const CricketMatchPage = ({ route }) => {
                 },
             });
             
-            dispatch(setInningStatus("completed"));
+            dispatch(setInningStatus("completed", 1));
             
             if (match.match_type === "TEST" && currentInningNumber === 1) {
                 dispatch(setCurrentInningNumber(2));
@@ -411,14 +411,26 @@ const CricketMatchPage = ({ route }) => {
                     </View>
                 );
             }
+        } else if(match.match_format === "ODI") {
+            if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
+                return (
+                    <View style={tailwind`items-center -top-4`}>
+                        <Text style={tailwind`text-white text-sm`}>
+                            {isAwayBatting
+                                ? `${match.homeTeam.name} require ${match.awayScore[0]?.score + 1 - match?.homeScore[0]?.score} runs in ${convertBallToOvers(300 - match?.homeScore[0]?.overs)}`
+                                : `${match.awayTeam.name} require ${match.homeScore[0]?.score + 1 - match?.awayScore[0]?.score} runs in ${convertBallToOvers(300 - match?.awayScore[0]?.overs)}`}
+                        </Text>
+                    </View>
+                );
+            }
         } else {
             if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
                 return (
                     <View style={tailwind`items-center -top-4`}>
                         <Text style={tailwind`text-white text-sm`}>
                             {isAwayBatting
-                                ? `${match.homeTeam.name} require ${match.awayScore[0]?.score + 1 - match?.homeScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.homeScore[0]?.overs)}`
-                                : `${match.awayTeam.name} require ${match.homeScore[0]?.score + 1 - match?.awayScore[0]?.score} runs in ${convertBallToOvers(50.0 - match?.awayScore[0]?.overs)}`}
+                                ? `${match.homeTeam.name} require ${match.awayScore[0]?.score + 1 - match?.homeScore[0]?.score} runs in ${convertBallToOvers(120 - match?.homeScore[0]?.overs)}`
+                                : `${match.awayTeam.name} require ${match.homeScore[0]?.score + 1 - match?.awayScore[0]?.score} runs in ${convertBallToOvers(120 - match?.awayScore[0]?.overs)}`}
                         </Text>
                     </View>
                 );
@@ -484,7 +496,7 @@ const CricketMatchPage = ({ route }) => {
                 </Animated.View>
 
                 {/* Team Information and Score */}
-                <Animated.View style={[tailwind`flex-row justify-between items-center px-2 py-2 mt-2`]}>
+                <Animated.View style={[tailwind`flex-row justify-between items-center px-2 py-2 mt-2 mb-2`]}>
                     {/* Home Team */}
                     <Animated.View style={[tailwind`items-center flex-1`,firstAvatarStyle]}>
                         {match?.homeTeam?.media_url ? (
@@ -504,34 +516,35 @@ const CricketMatchPage = ({ route }) => {
                             {match?.homeTeam?.name || 'Home'}
                         </Animated.Text>
                     </Animated.View>
-
-                    {match.status_code === 'not_started' ? (
-                        <Animated.View style={[tailwind`items-center justify-center `,scoreStyle]}>
+                    {match?.status_code === 'not_started' ? (
+                        <Animated.View style={[tailwind`items-center justify-center`,scoreStyle]}>
                             <Text style={tailwind`text-white items-center`}>{formatToDDMMYY(convertToISOString(match.start_timestamp))}</Text>
                             <Text style={tailwind`text-white items-center`}>{formattedTime(convertToISOString(match.start_timestamp))}</Text>
                         </Animated.View>
                     ): (
                         <>
                             {/* first score style */}
-                            <Animated.View style={[tailwind`items-center justify-center`, scoreStyle]}>
+                            <Animated.View style={[tailwind`items-center justify-center px-2 py-2`, scoreStyle]}>
                                 {match?.homeScore?.length > 0 && match.homeScore.map((item, index) => (
                                     <TeamScore 
                                         key={index}
                                         team={match.homeTeam} 
                                         score={item} 
-                                        isInning1={item?.inning_number === "2" ? "2" : "1"} 
+                                        isInning1={currentInningNumber} 
                                     />
                                 ))}
                             </Animated.View>
-
+                            <Animated.View style={[tailwind`items-center justify-center px-2 py-2`, scoreStyle]}>
+                                <View  style={tailwind`h-10 w-0.5 bg-white`}/>
+                            </Animated.View>
                             {/* second score style */}
-                            <Animated.View style={[tailwind`items-center justify-center`, scoreStyle]}>
+                            <Animated.View style={[tailwind`items-center justify-center px-2 py-2`, scoreStyle]}>
                                 {match?.awayScore?.length > 0 && match.awayScore.map((item, index) => (
                                     <TeamScore 
                                         key={index}
                                         team={match.awayTeam} 
                                         score={item} 
-                                        isInning1={item.inning_number === "2" ? "2" : "1"} 
+                                        isInning1={currentInningNumber} 
                                     />
                                 ))}
                             </Animated.View>

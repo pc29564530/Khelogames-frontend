@@ -1,4 +1,7 @@
 import { combineReducers } from "redux";
+import { persistReducer } from "redux-persist";
+import * as actionTypes from '../types/actionTypes';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import authReducers from "./authReducers";
 import createUserReducers from "./createUserReducers";
 import signUpReducers from "./signUpReducers";
@@ -25,7 +28,7 @@ import cricketTossReducers from "./cricketMatchTossReducers";
 import cricketMatchInningReducer from "./cricketMatchInning";
 import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
     signup: signUpReducers,
     auth: authReducers,
     newuser: createUserReducers,
@@ -41,7 +44,6 @@ const rootReducer = combineReducers({
     playerScore: footballMatchPlayerScoreReducers,
     cricketPlayerScore: cricketMatchPlayerScore,
     cricketMatchScore: cricketMatchScore,
-
     tournamentsReducers: tournamentsReducers,
     sportReducers: sportReducers,
     matches: matchesReducers,
@@ -53,4 +55,20 @@ const rootReducer = combineReducers({
     tournamentEntities: tournamentEntitiesReducers,
 });
 
-export default rootReducer;
+const persistConfig = {
+  key: "root",
+  storage: AsyncStorage,
+  whitelist: [
+    "matchScore",
+    "playerScore",
+    "cricketMatchInning",
+    "cricketPlayerScore",
+    "cricketMatchScore",
+  ],
+};
+
+const rootReducer = (state, action) => {
+    return appReducer(state, action)
+}
+
+export default persistReducer(persistConfig, rootReducer);

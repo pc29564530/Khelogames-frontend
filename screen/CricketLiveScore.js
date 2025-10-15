@@ -26,29 +26,20 @@ import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cri
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
-    const inningData = useSelector(state => ({
-        game: state.sportReducers.game,
-        batTeam: state.cricketMatchScore.batTeam,
-        batting: state.cricketPlayerScore.battingScore,
-        bowling: state.cricketPlayerScore.bowlingScore,
-        homePlayer: state.teams.homePlayer,
-        awayPlayer: state.teams.awayPlayer,
-        cricketToss: state.cricketToss.cricketToss
-      }), shallowEqual);
-
-    const currentInning = useSelector(state => state.cricketMatchInning.currentInning, shallowEqual);
-    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber, shallowEqual);
+    const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
+    const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const currentBatsman = useSelector(state => selectCurrentBatsmen(state, currentInningNumber));
     const currentBowler = useSelector(state => selectCurrentBowler(state, currentInningNumber));
 
-    const game = inningData.game;
-    const batTeam = inningData.batTeam;
-    const batting = inningData.batting || [];
-    const bowling = inningData.bowling || [];
-    const homePlayer = inningData.homePlayer;
-    const awayPlayer = inningData.awayPlayer;
-    const cricketToss = inningData.cricketToss;
+    const game = useSelector(state => state.sportReducers.game);
+    const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
+    const batting = useSelector(state => state.cricketPlayerScore.battingScore);
+    const bowling = useSelector(state => state.cricketPlayerScore.bowlingScore);
+    const homePlayer = useSelector(state => state.teams.homePlayer);
+    const awayPlayer = useSelector(state => state.teams.awayPlayer);
+    const cricketToss = useSelector(state => state.cricketToss.cricketToss);
+
     const [isModalBattingVisible, setIsModalBattingVisible] = useState(false);
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [followOn, setFollowOn] = useState(false);
@@ -82,7 +73,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const dispatch = useDispatch();
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
     const currentScrollY = useSharedValue(0);
+    // console.log("Current Inning Number; ", currentInningNumber)
+    // console.log("Current Inning: ", currentInning)
+    // console.log("CurrentBatsman: ", currentBatsman)
     // scroll handler for header animation
+    // console.log("Bats Team: ", batTeam)
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
             if(parentScrollY.value === collapsedHeader){
@@ -144,25 +139,25 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const toggleMenu = () => setMenuVisible(!menuVisible);
 
     const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;    
-    navigation.setOptions({
-        headerTitle:'',
-        headerLeft:()=>(
-            <Pressable onPress={()=>navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
-            </Pressable>
-        ),
-        headerStyle:tailwind`bg-red-400`,
-        headerRight : () => (
-            <View style={tailwind`flex-row`}>
-                <Pressable style={tailwind`border-b-1  `} onPress={() => {setInningVisible(true)}}>
-                    <Text style={tailwind`text-white text-lg`}>Actions</Text>
-                </Pressable>
-                <Pressable style={tailwind``} onPress={toggleMenu}>
-                    <MaterialIcon name="more-vert" size={24} color="white" />
-                </Pressable>
-            </View>      
-        )
-    });
+    // navigation.setOptions({
+    //     headerTitle:'',
+    //     headerLeft:()=>(
+    //         <Pressable onPress={()=>navigation.goBack()}>
+    //             <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
+    //         </Pressable>
+    //     ),
+    //     headerStyle:tailwind`bg-red-400`,
+    //     headerRight : () => (
+    //         <View style={tailwind`flex-row`}>
+    //             <Pressable style={tailwind`border-b-1  `} onPress={() => {setInningVisible(true)}}>
+    //                 <Text style={tailwind`text-white text-lg`}>Actions</Text>
+    //             </Pressable>
+    //             <Pressable style={tailwind``} onPress={toggleMenu}>
+    //                 <MaterialIcon name="more-vert" size={24} color="white" />
+    //             </Pressable>
+    //         </View>      
+    //     )
+    // });
 
         const handleEndInning = async () => {
             try {
@@ -185,7 +180,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 dispatch(setEndInning(response?.data.inning));
                 dispatch(setBatsmanScore(response.data.batsman));
                 dispatch(setBowlerScore(response.data.bowler));
-                dispatch(setInningStatus("completed"));
+                dispatch(setInningStatus("completed", currentInningNumber));
             } catch (err) {
                 console.error("Failed to end inning: ", err);
             }
@@ -429,6 +424,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </View>
                     </View>
                 </View>
+                {console.log('⚡ Modal check →', { inningStatus, currentInningNumber })}
                 {inningStatus === "completed" ? (
                     <InningActionModal 
                         match={match}
@@ -837,7 +833,7 @@ const InningActionModal = ({
                         handleNextInning(nextBattingTeam);
                         }}
                     >
-                        <Text style={tailwind`text-white font-medium text-center`}>
+                        <Text xstyle={tailwind`text-white font-medium text-center`}>
                         {followOn ? 'Start Follow-on Inning' : 'Start Next Inning'}
                         </Text>
                     </Pressable>

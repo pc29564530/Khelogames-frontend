@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import {Pressable, Text, View} from 'react-native';
@@ -7,14 +7,16 @@ import axiosInstance from "../screen/axios_config";
 import { addBowler, setBowlerScore } from "../redux/actions/actions";
 import { useSelector  } from "react-redux";
 import { getCricketMatchSquad } from "../redux/actions/actions";
+import { useWebSocket } from '../context/WebSocketContext';
 
 
 export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, dispatch, bowling,  currentBowler}) => {
-    
+    const wsRef = useWebSocket();
+    const lastPayloadRef = useRef(null);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const cricketMatchSquad = useSelector(state => state.players.squads);
-
+    console.log("Bat Team line no 19: ", batTeam)
     const fetchBowlingSquad = async () => {
         try {
             const authToken = await AsyncStorage.getItem('authToken');
@@ -39,12 +41,15 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
     }, []);
    
     const handleAddNextBowler = async (item) => {
+        const bowlerPublicID = item.player.public_id
+        console.log("Bowler Item: ", item.player.public_id)
+        console.log("Current InningNumver: ", currentInningNumber)
         try {
             const prevBowlerPublicID = Array.isArray(currentBowler) && currentBowler.length > 0 ? currentBowler[0]?.bowler_public_id : null;
             const data = {
                 match_public_id: match.public_id,
-                team_public_id: batTeam !== awayTeam.public_id ? awayTeam.public_id : homeTeam.public_id,
-                bowler_public_id: item?.player?.public_id,
+                team_public_id: batTeam !== match.awayTeam.public_id ? match.awayTeam.public_id : match.homeTeam.public_id,
+                bowler_public_id: bowlerPublicID,
                 prev_bowler_public_id: prevBowlerPublicID,
                 ball: 0,
                 runs: 0,
@@ -60,14 +65,51 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
                     'Content-Type': 'application/json',
                 },
             })
-            // if(response?.data?.current_bowler){
-            //     dispatch(setBowlerScore(response.data.current_bowler));
-            // }
-            // dispatch(addBowler(response.data.next_bowler || {}));
+            const item = response.data;
+            if(item){
+                dispatch(addBowler(response.data.next_bowler))
+            } else {
+                dispatch(addBowler([]))
+            }
 
         } catch (err) {
             console.log("Failed to add the bowler: ", err);
         }
+
+            const handleAddBatsmanWebSocket = useCallback((event) => {
+                 const rawData = event?.data;
+                 try {
+                    if (rawData === null || !rawData) {
+                        console.error("raw data is undefined");
+                        return;
+                    }
+        
+                    const message = JSON.parse(rawData);
+                    
+                    // Prevent duplicate processing - check by message type and key data
+                    const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
+                    if (lastPayloadRef.current === messageKey) {
+                        console.log("Duplicate message ignored:", messageKey);
+                        return;
+                    }
+                    lastPayloadRef.current = messageKey;
+        
+                    if(message.type === "ADD_BATSMAN"){
+                        dispatch(addBatsman(message.payload))
+                    }
+        
+                 } catch(err) {
+                    console.error("Failed to parse websocket message: ", err);
+                 }
+            })
+        
+            useEffect(() => {
+                if(!wsRef.current) {
+                    return
+                }
+        
+                wsRef.current.onmessage = handleAddBatsmanWebSocket;
+            }, [handleAddBatsmanWebSocket]);
     }
 
     return (

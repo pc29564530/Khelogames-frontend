@@ -5,12 +5,13 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import axiosInstance from '../screen/axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen, setInningStatus } from '../redux/actions/actions';
+import { setInningScore, setBatsmanScore, setBowlerScore, getMatch, getCricketBattingStriker, addCricketWicketFallen, setInningStatus, setCurrentInningNumber } from '../redux/actions/actions';
 import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 import { useWebSocket } from '../context/WebSocketContext';
 
 export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
     const wsRef = useWebSocket();
+    const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const [isWebSocketReady, setIsWebSocketReady] = useState(false);
     const isMountedRef = useRef(true);
     const lastPayloadRef = useRef(null);
@@ -30,6 +31,10 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
             }
             
             const message = JSON.parse(rawData);
+            if (!message.payload.inning_score) {
+                    console.warn("Skipping UPDATE_SCORE without inning_score:", message.payload);
+                    return;
+            }
             
             // Prevent duplicate processing - check by message type and key data
             const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
@@ -38,11 +43,11 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 return;
             }
             lastPayloadRef.current = messageKey;
-            
+            console.log("Message Type: ", message.type)
             console.log("Score Line no Empos...: ", message.payload)
 
             if(message.type === "UPDATE_SCORE") {
-                console.log("Lineno 34: ", message.payload)
+                // console.log("Lineno 34: ", message.payload)
                 
                 // Batch all dispatches to prevent multiple re-renders
                 const dispatches = [];
@@ -52,37 +57,54 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== inningStatus){
+                        console.log("Inning Number normal: ", message.payload.inning_score.inning_number)
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
+                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
                 } else if(message.payload.event_type === "wide") {
                     if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
                     if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
                 } else if(message.payload.event_type === "no_ball") {
                     if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
                     if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
                 } else if(message.payload.event_type === "wicket") {
                     if(message.payload.out_batsman) dispatches.push(setBatsmanScore(message.payload.out_batsman));
                     if(message.payload.not_out_batsman) dispatches.push(setBatsmanScore(message.payload.not_out_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
                     if(message.payload.wickets) dispatches.push(addCricketWicketFallen(message.payload.wickets));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
                 }
                 
                 // Execute all dispatches at once
                 dispatches.forEach(dispatchAction => dispatchRef.current(dispatchAction));
             }
 
-            console.log("message : ", message.type)
-            console.log("message payload status: ", message.payload.inning_status)
+            // console.log("message : ", message.type)
+            // console.log("message payload status: ", message.payload.inning_status)
             
             if(message.type === "INNING_STATUS"){
                 const payload = message.payload;
-                console.log("Inning Status Line no 70: ", payload.inning_status)
-                if(payload.inning_status === "completed") {
-                    console.log("Line no 80:", payload.inning_status)
-                    dispatchRef.current(setInningStatus(payload.inning_status));
+                console.log("Inning Status Line no 70: ", payload)
+                // if(message.payload.inning_status === "completed") {
+                    // console.log("Line no 80:", payload.inning_status)
+                    dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number));
                     
                     // Also update batsman and bowler data from INNING_STATUS message
                     if(payload.striker) {
@@ -96,8 +118,10 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     }
                     if(payload.inning_score) {
                         dispatchRef.current(setInningScore(payload.inning_score));
+                        dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number))
+                        dispatchRef.current(setCurrentInningNumber(payload.inning_score.inning_number))
                     }
-                }
+                // }
             }
         } catch (e) {
             console.error('error parsing json: ', e);
@@ -129,9 +153,11 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
     
 
     const handleScorecard = useCallback(async (temp) => {
+        console.log("Item 132: ", temp)
         const batting = currentBatsman?.find((item) => (item.is_currently_batting === true && item.is_striker === true));
-
+        // console.log("Line no 136 ", wsRef.current.readyState)
         if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN){
+            console.log("Line no 136 ", wsRef.current.readyState)
             if(addCurrentScoreEvent.length === 0){
                 try {
                     const data = {
@@ -142,6 +168,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                         runs_scored: temp,
                         inning_number: Number(currentInning.slice(-1))
                     }
+                    console.log("Update Score: ", data)
                     const authToken = await AsyncStorage.getItem("AccessToken")
                     const newMessage = {
                         "type": "UPDATE_SCORE",
