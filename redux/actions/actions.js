@@ -495,6 +495,7 @@ export const setCricketMatchToss = (toss) => {
 }
 
 export const setBatTeam = (batTeam) => {
+    console.log("Action Batsman Team: ", batTeam)
     return {
         type: actionTypes.SET_BAT_TEAM,
         payload: batTeam
@@ -521,15 +522,17 @@ export const getAwayPlayer = (player) => {
 // export const SET_BATTING_TEAM = 'SET_BATTING_TEAM';
 // export const SET_INNING_COMPLETED = 'SET_INNING_COMPLETED';
 
-export const setCurrentInning = (inning) => ({
-    type: actionTypes.SET_CURRENT_INNING,
-    payload: inning
-});
-
-export const setInningStatus = (status) => ({
-    type: actionTypes.SET_INNING_STATUS,
-    payload: status
-});
+export const setInningStatus = (status, inningNumber) => {
+    // console.log("Line no 530 Inning Status: ", status)
+    // console.log("Log Line no 532: ", inningNumber)
+    return {
+        type: actionTypes.SET_INNING_STATUS,
+        payload: {
+            status,
+            inningNumber
+        }
+    }
+};
 
 // export const setBattingTeam = (teamId) => ({
 //     type: actionTypes.SET_BATTING_TEAM,
@@ -541,10 +544,13 @@ export const setInningCompleted = (inningData) => ({
     payload: inningData
 });
 
-export const setCurrentInningNumber = (inningNumber) => ({
-    type: actionTypes.SET_CURRENT_INNING_NUMBER,
-    payload: inningNumber
-})
+export const setCurrentInningNumber = (inningNumber) => {
+    //console.log("Line no 548 Inning Number: ", inningNumber)
+    return {
+        type: actionTypes.SET_CURRENT_INNING_NUMBER,
+        payload: inningNumber
+    }
+}
 
 export const getCricketMatchSquad = (players) => ({
     type: actionTypes.GET_CRICKET_MATCH_SQUAD,

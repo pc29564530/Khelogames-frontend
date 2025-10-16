@@ -27,16 +27,19 @@ const CricketBattingScorecard = ({ batting }) => {
                         </View>
                         {item.batting_status && !item.is_currently_batting &&  (
                             <View style={tailwind`flex-row space-between`}>
-                                {item.wicket_type==="Run Out" ? (
-                                    <>
-                                       <Text style={tailwind`text-sm`}>Run Out</Text>
-                                    </>
-                                ): (
-                                    <>
-                                        <Text style={tailwind`text-sm`}>b {item.bowler_name}</Text>
-                                        <Text style={tailwind`text-sm`} >{item.wicket_type}</Text>
-                                    </>
-                                ) }
+                                {item.wicket_type ? (
+                                <View style={tailwind`flex-row space-between`}>
+                                    {item.wicket_type === "Run Out" ? (
+                                        <Text style={tailwind`text-sm text-gray-500`}>Run Out</Text>
+                                    ) : (
+                                        <>
+                                            <Text style={tailwind`text-sm text-gray-500`}>{item.wicket_type} b {item.bowler_name}</Text>
+                                        </>
+                                    )}
+                                </View>
+                            ) : (
+                                <Text style={tailwind`text-sm text-gray-300 font-semibold`}>Not Out</Text>
+                            ) }
                                 
                             </View>
                         )}

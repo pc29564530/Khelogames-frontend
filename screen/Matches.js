@@ -23,7 +23,7 @@ export const renderInningScore = (scores) => {
         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
           {score.score}/{score.wickets}
         </Text>
-        {score.is_inning_completed === false && (
+        {score.overs !== undefined && (
             <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(score.overs)})</Text>
         )}
       </View>

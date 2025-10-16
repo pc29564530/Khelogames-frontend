@@ -118,7 +118,7 @@ function ProfileMenu() {
           <Image style={tailwind`w-28 h-28 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
         ) : (
           <View style={tailwind`w-28 h-28 rounded-full bg-white items-center justify-center`}>
-            <Text style={tailwind`text-red-500 text-4xl`}>{profile.full_name.charAt(0).toUpperCase()}</Text>
+            <Text style={tailwind`text-red-500 text-4xl`}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
           </View>
         )}
         <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name}</Text>

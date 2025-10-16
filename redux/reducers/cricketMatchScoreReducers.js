@@ -10,6 +10,8 @@ const initialstate = {
 const cricketMatchScoreReducers = (state = initialstate, action) => {
     switch (action.type) {
         case actionTypes.SET_BAT_TEAM:
+            console.log("State BatTeam: ", state.batTeam)
+            console.log("Action BatTeam : ", action.payload)
             return {
                 ...state,
                 batTeam: action.payload
@@ -19,7 +21,6 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                 ...state,
                 cricketMatchScore: action.payload
             };
-
         case actionTypes.ADD_CRICKET_SCORE:
             return {
                 ...state,
@@ -37,24 +38,36 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                 match: action.payload || null,
             };
         case actionTypes.UPDATE_INNING_SCORE:
+            let newHomeScore = state.match.homeScore;
+            let newAwayScore = state.match.awayScore;
+            console.log("New Home Score: ", action.payload)
+
+            if (action.payload.team_id === state.match.homeTeam.id) {
+                const existingIndex = state.match.homeScore.findIndex(inning => inning && inning.inning_number === action.payload.inning_number);
+                if (existingIndex !== -1) {
+                    newHomeScore = state.match.homeScore.map((inning, index) =>
+                        index === existingIndex ? {...inning, ...action.payload} : inning
+                    );
+                } else {
+                    newHomeScore = [...state.match.homeScore, action.payload];
+                }
+            } else if (action.payload.team_id === state.match.awayTeam.id) {
+                const existingIndex = state.match.awayScore.findIndex(inning => inning && inning.inning_number === action.payload.inning_number);
+                if (existingIndex !== -1) {
+                    newAwayScore = state.match.awayScore.map((inning, index) =>
+                        index === existingIndex ? {...inning, ...action.payload} : inning
+                    );
+                } else {
+                    newAwayScore = [...state.match.awayScore, action.payload];
+                }
+            }
+
             return {
                 ...state,
                 match: {
                     ...state.match,
-                    homeScore: action.payload.team_id === state.match.homeTeam.id ? state.match.homeScore.map((inning) => {
-                        if (!inning) return inning;
-                        return inning.inning_number===action.payload.inning_number ?
-                                {...inning, ...action.payload}
-                                : inning
-                    })
-                    : state.match.homeScore,
-                    awayScore: action.payload.team_id === state.match.awayTeam.id ? state.match.awayScore.map((inning) => {
-                        if (!inning) return inning;                      
-                        return inning.inning_number===action.payload.inning_number ?
-                                {...inning, ...action.payload}
-                                : inning
-                    })
-                    : state.match.awayScore,
+                    homeScore: newHomeScore,
+                    awayScore: newAwayScore,
                 }
             };
         case actionTypes.SET_END_INNING:

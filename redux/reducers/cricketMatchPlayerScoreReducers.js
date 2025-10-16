@@ -12,6 +12,25 @@ const initialstate = {
 
 const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
     switch (action.type) {
+        case actionTypes.INITIALIZE_NEW_INNING:
+            const newInningNumber = action.payload.inning_number;
+            return {
+                ...state,
+                battingScore: {
+                    ...state.battingScore,
+                    innings:{
+                        ...(state.battingScore?.innings || {}),
+                        [newInningNumber]:[]
+                    }
+                },
+                bowlingScore: {
+                    ...state.bowlingScore,
+                    innings:{
+                        ...(state.bowlingScore?.innings || {}),
+                        [newInningNumber]:[]
+                    }
+                }
+            }
         case actionTypes.UPDATE_BATSMAN_SCORE:
             let inningKeyBatsman = String(action.payload.inning_number);
             let currentBattingInning = state?.battingScore?.innings;
@@ -45,12 +64,12 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 }
             }
         case actionTypes.UPDATE_BOWLER_SCORE:
-            console.log("Action: ", action.payload)
-            console.log("State: ", state)
+            // console.log("Action: ", action.payload)
+            // console.log("State: ", state)
             let inningKeyBowler = String(action.payload.inning_number);
             let currentBowlerInnings = state?.bowlingScore?.innings;
             let bowlerInning = currentBowlerInnings[inningKeyBowler] || [];
-            console.log("Bowler Inning: ", bowlerInning)
+            // console.log("Bowler Inning: ", bowlerInning)
             const updateBowlerInning = bowlerInning.map(bowler => {
                 if(bowler.player.id === action.payload.bowler_id) {
                     return {
@@ -142,6 +161,7 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
 }
 
 export const selectCurrentBatsmen = (state, inningNumber) => {
+    console.log("Lien no 164: ", state.cricketPlayerScore)
     if (!state?.cricketPlayerScore || !state.cricketPlayerScore.battingScore) {
         return [];
     }
