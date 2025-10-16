@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,20 +18,24 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
- import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, getCurrentBatsman, getCurrentBowler } from '../redux/actions/actions';
+ import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, setCurrentBatsman, setCurrentBowler } from '../redux/actions/actions';
 import { renderInningScore } from './Matches';
 import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import { current } from '@reduxjs/toolkit';
 import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
+import { useWebSocket } from '../context/WebSocketContext';
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
+    const wsRef = useWebSocket();
+    const lastPayloadRef = useRef(null);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const currentBatsman = useSelector(state => selectCurrentBatsmen(state, currentInningNumber));
     const currentBowler = useSelector(state => selectCurrentBowler(state, currentInningNumber));
-
+    console.log("> current batsman: ", currentBatsman)
+    console.log("> current bowler: ", currentBowler)
     const game = useSelector(state => state.sportReducers.game);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const batting = useSelector(state => state.cricketPlayerScore.battingScore);
@@ -69,15 +73,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
+    const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;    
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
     const currentScrollY = useSharedValue(0);
-    // console.log("Current Inning Number; ", currentInningNumber)
-    // console.log("Current Inning: ", currentInning)
-    // console.log("CurrentBatsman: ", currentBatsman)
-    // scroll handler for header animation
-    // console.log("Bats Team: ", batTeam)
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
             if(parentScrollY.value === collapsedHeader){
@@ -121,15 +121,15 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
 
     useEffect(() => {
         if (cricketToss && currentInningNumber === 1) {
-            if (cricketToss.tossDecision === "Batting") {
-                setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
+            if (cricketToss?.tossDecision === "Batting") {
+                setCurrentLiveScore(cricketToss?.tossWonTeam?.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             } else {
-                setCurrentLiveScore(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
+                setCurrentLiveScore(cricketToss?.tossWonTeam?.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
             }
         } else if(currentInningNumber === 2 && (match.match_format === "ODI" || match.match_format === "T20")) {
-             const firstInningBattingTeam = cricketToss.tossDecision === "Batting" 
-            ? (cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID)
-            : (cricketToss.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
+             const firstInningBattingTeam = cricketToss?.tossDecision === "Batting" 
+            ? (cricketToss?.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID)
+            : (cricketToss?.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
             const secondInningBattingTeam = firstInningBattingTeam === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID;
             setCurrentLiveScore(secondInningBattingTeam);
         }
@@ -137,8 +137,6 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
-
-    const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;    
     // navigation.setOptions({
     //     headerTitle:'',
     //     headerLeft:()=>(
@@ -158,6 +156,70 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     //         </View>      
     //     )
     // });
+
+    const fetchCurrentBatsman = async () => {
+        try {
+            const authToken = AsyncStorage.getItem("AccessToken");
+            const data = {
+                match_public_id: match.public_id,
+                team_public_id: batTeam,
+                inning_number: currentInningNumber
+            }
+            console.log("Batsman Data: ", data)
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCurrentBatsman` , {
+                params: {
+                    match_public_id: match.public_id,
+                    team_public_id: batTeam,
+                    inning_number: currentInningNumber
+                },
+                headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                },
+            })
+            const item = response.data.batsman;
+            console.log("Current Batsman: ", item)
+            if(item){
+                dispatch(setCurrentBatsman(item))
+            } else {
+                dispatch(setCurrentBatsman([]))
+            }
+
+        } catch (err) {
+            console.error("Failed to fetch current batsman: ", err);
+        }
+    }
+    // dispatch(setInningStatus("not_started", currentInningNumber))
+
+    const fetchCurrentBowler = async () => {
+        try {
+            const authToken = AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCurrentBowler`, {
+                params:{
+                    match_public_id: match.public_id,
+                    team_public_id: bowlTeamPublicID,
+                    inning_number: currentInningNumber
+                },
+                headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                },
+            })
+            const item = response.data.bowler;
+            if(item){
+                dispatch(setCurrentBowler(item))
+            } else {
+                dispatch(setCurrentBowler([]))
+            }
+        } catch (err) {
+            console.error("Failed to fetch current batsman: ", err);
+        }
+    }
+
+    useFocusEffect(useCallback(() => {
+        fetchCurrentBatsman();
+        fetchCurrentBowler();
+    }, []))
 
         const handleEndInning = async () => {
             try {
@@ -385,6 +447,82 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const isFollowOnApplicable = useMemo(() => {
         return checkFollowOn();
     }, [checkFollowOn]);
+
+    useEffect(() => {
+        const checkAddedBatsmanAndBowler =  async () => {
+            try{
+                if(inningStatus === "not_started"){
+                    if(currentBatsman?.length >= 2 && currentBowler?.length >= 1){
+                        const data = {
+                            match_public_id: match.public_id,
+                            team_public_id: batTeam,
+                            inning_number: currentInningNumber
+                        }
+                        const authToken = await AsyncStorage.getItem("AccessToken");
+                        const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketInning`,data, {
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        const item = response.data;
+                        if(item){
+                            dispatch(setInningStatus(item.inning_status, item.inning_number));
+                        }
+                    }
+                }
+            } catch(err){
+                console.log("Failed to update inning status: ", err)
+            }
+        }
+        checkAddedBatsmanAndBowler();
+    }, [inningStatus,
+        currentBatsman?.length,
+        currentBowler?.length,
+        currentInningNumber,
+        batTeam,
+        match?.public_id,
+        game?.name,
+    ])
+
+    const handleUpdateInningStatus = useCallback((event) => {
+        if (!event || !event.data) {
+            console.warn("Received empty/undefined WebSocket event", event);
+            return;
+        }
+        try {
+            const rawData = event.data;
+            if (rawData === null || !rawData) {
+                console.error("raw data is undefined");
+                return;
+            }
+
+            let message = JSON.parse(rawData);
+            
+            // Prevent duplicate processing - check by message type and key data
+            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
+            if (lastPayloadRef.current === messageKey) {
+                console.log("Duplicate message ignored:", messageKey);
+                return;
+            }
+            lastPayloadRef.current = messageKey;
+            console.log("Lien no 508: ", message)
+            if(message.type === "INNING_STATUS"){
+                console.log("Line no 510: ", message)
+                dispatch(setInningStatus(message.payload.inning_status, message.payload.inning_number))
+            }
+
+        } catch(err) {
+        console.error("Failed to parse websocket message: ", err);
+        }
+    })
+    
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleUpdateInningStatus;
+    }, [handleUpdateInningStatus]);
 
     if (isLoading) {
         return (
