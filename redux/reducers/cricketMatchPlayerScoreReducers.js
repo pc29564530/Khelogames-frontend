@@ -12,6 +12,16 @@ const initialstate = {
 
 const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
     switch (action.type) {
+        case actionTypes.SET_CURRENT_BATSMAN:
+            return {
+                ...state,
+                currentBatsman: action.payload
+            }
+        case actionTypes.SET_CURRENT_BOWLER:
+            return {
+                ...state,
+                currentBowler: action.payload
+            }
         case actionTypes.INITIALIZE_NEW_INNING:
             const newInningNumber = action.payload.inning_number;
             return {
@@ -35,24 +45,16 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
             let inningKeyBatsman = String(action.payload.inning_number);
             let currentBattingInning = state?.battingScore?.innings;
             let batsmanInning = currentBattingInning[inningKeyBatsman] || [];
-
             // Create updated inning array
             const updatedBatsmanInning = batsmanInning.map(batter => {
-                if (batter.player.id === action.payload.batsman_id) {
+                if (batter.player.id === action.payload.player.id) {
                     return {
                         ...batter,
-                        runs_scored: action.payload.runs_scored,
-                        balls_faced: action.payload.balls_faced,
-                        fours: action.payload.fours,
-                        sixes: action.payload.sixes,
-                        batting_status: action.payload.batting_status,
-                        is_striker: action.payload.is_striker,
-                        is_currently_batting: action.payload.is_currently_batting
+                        ...action.payload
                     };
                 }
                 return batter;
             });
-
             return {
                 ...state,
                 battingScore: {
@@ -70,21 +72,16 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
             let currentBowlerInnings = state?.bowlingScore?.innings;
             let bowlerInning = currentBowlerInnings[inningKeyBowler] || [];
             // console.log("Bowler Inning: ", bowlerInning)
+ 
             const updateBowlerInning = bowlerInning.map(bowler => {
-                if(bowler.player.id === action.payload.bowler_id) {
+                if(bowler.player.id === action.payload.player.id) {
                     return {
                        ...bowler,
-                        ball_number: action.payload.ball_number,
-                        runs: action.payload.runs,
-                        wickets: action.payload.wickets,
-                        wide: action.payload.wide,
-                        no_ball: action.payload.no_ball,
-                        bowling_status: action.payload.bowling_status,
-                        is_current_bowler: action.payload.is_current_bowler 
+                        ...action.payload
                     }
                 }
+                return bowler;
             })
-
             return {
                 ...state,
                 bowlingScore: {
@@ -161,8 +158,11 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
 }
 
 export const selectCurrentBatsmen = (state, inningNumber) => {
-    console.log("Lien no 164: ", state.cricketPlayerScore)
-    if (!state?.cricketPlayerScore || !state.cricketPlayerScore.battingScore) {
+    
+    if (state.cricketPlayerScore?.currentBatsman?.length > 0) {
+        return state.cricketPlayerScore.currentBatsman;
+    }
+    if (!state.cricketPlayerScore || !state.cricketPlayerScore.battingScore) {
         return [];
     }
     const innings = state.cricketPlayerScore.battingScore.innings;  // Full path: Now safe
@@ -173,9 +173,14 @@ export const selectCurrentBatsmen = (state, inningNumber) => {
     }
     const current = innings[inningKey].filter(b => b.is_currently_batting);
     return current;
+    return innings[inningKey].filter(b => b.is_currently_batting);
 };
 
 export const selectCurrentBowler = (state, inningNumber) => {
+    if (state.cricketPlayerScore?.currentBowler?.length > 0) {
+        return state.cricketPlayerScore.currentBowler;
+    }
+
     if (!state?.cricketPlayerScore || !state.cricketPlayerScore.bowlingScore) {
         return null;
     }

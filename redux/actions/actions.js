@@ -571,3 +571,17 @@ export const addTournamentEntities = (entity) => ({
     type: actionTypes.ADD_TOURNAMENT_ENTITIES,
     payload: entity
 })
+
+export const setCurrentBatsman = (batsman) => {
+    return {
+        type: actionTypes.SET_CURRENT_BATSMAN,
+        payload: batsman
+    }
+}
+
+export const setCurrentBowler = (bowler) => {
+    return {
+        type: actionTypes.SET_CURRENT_BOWLER,
+        payload: bowler
+    }
+}
