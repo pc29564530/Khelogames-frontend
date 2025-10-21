@@ -9,7 +9,7 @@ import AddFootballPeriods from './AddFootballPeriods';
 
 const incidentsTypes = ["goal", "penalty", "foul", "shot_on_target", "penalty_miss", "yellow_card", "red_card", "substitution", "penalty_shootout", "period", "corner_kick", ];
 
-const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, homeSquad, awaySquad}) => {
+const AddFootballModalIncident = ({match, awayPlayer, homePlayer, awayTeam, homeTeam, homeSquad, awaySquad}) => {
     const scrollViewRef = useRef(null);
     const [selectedIncident, setSelectedIncident] = useState("");
     const [substitutionModalVisible, setSubstitutionModalVisible] = useState(false);
@@ -53,36 +53,30 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
             <View style={tailwind`mt-6`}>
                 <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Select Incident Type</Text>
                 <View style={tailwind`flex-row items-center`}>
-                    <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    ref={scrollViewRef}
-                    contentContainerStyle={tailwind`gap-3 px-2`}
-                    >
-                    {incidentsTypes.map((item, index) => {
-                        const isSelected = selectedIncident === item;
-                        return (
-                        <Pressable
-                            key={index}
-                            onPress={() => handleIncident(item)}
-                            style={[
-                            tailwind`px-5 py-2 rounded-full border shadow-sm`,
-                            isSelected
-                                ? tailwind`bg-orange-500 border-orange-600`
-                                : tailwind`bg-white border-gray-300`,
-                            ]}
-                        >
-                            <Text style={[
-                            tailwind`text-sm font-semibold capitalize`,
-                            isSelected ? tailwind`text-white` : tailwind`text-gray-800`
-                            ]}>
-                            {item.replace(/_/g, ' ')}
-                            </Text>
-                        </Pressable>
-                        );
-                    })}
-                    </ScrollView>
-
+                    <View style={tailwind`flex-row flex-wrap gap-3`}>
+                        {incidentsTypes.map((item, index) => {
+                            const isSelected = selectedIncident === item;
+                            return (
+                            <Pressable
+                                key={index}
+                                onPress={() => handleIncident(item)}
+                                style={[
+                                tailwind`px-5 py-2 rounded-full border shadow-sm`,
+                                isSelected
+                                    ? tailwind`bg-orange-500 border-orange-600`
+                                    : tailwind`bg-white border-gray-300`,
+                                ]}
+                            >
+                                <Text style={[
+                                tailwind`text-sm font-semibold capitalize`,
+                                isSelected ? tailwind`text-white` : tailwind`text-gray-800`
+                                ]}>
+                                {item.replace(/_/g, ' ')}
+                                </Text>
+                            </Pressable>
+                            );
+                        })}
+                    </View>
                     <Pressable onPress={scrollRight} style={tailwind`ml-2 p-2`}>
                         <MaterialIcons name="keyboard-arrow-right" size={32} color="gray" />
                     </Pressable>
@@ -98,11 +92,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setCommanModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballIncident matchData={matchData} 
+                            <AddFootballIncident match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}
@@ -120,11 +114,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setSubstitutionModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballSubstitution matchData={matchData} 
+                            <AddFootballSubstitution match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}
@@ -142,11 +136,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setPenaltyModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballIncident matchData={matchData} 
+                            <AddFootballIncident match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}
@@ -164,11 +158,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setMissedPenaltyVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballIncident matchData={matchData} 
+                            <AddFootballIncident match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}
@@ -186,11 +180,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setShootoutModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballShootout matchData={matchData} 
+                            <AddFootballShootout match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}
@@ -208,11 +202,11 @@ const AddFootballModalIncident = ({matchData, awayPlayer, homePlayer, awayTeam, 
                 >
                     <Pressable onPress={() => setPeriodsModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                         <View style={tailwind`bg-white rounded-md p-4`}>
-                            <AddFootballPeriods matchData={matchData} 
+                            <AddFootballPeriods match={match} 
                                 awayPlayer={awayPlayer} 
                                 homePlayer={homePlayer} 
-                                awayTeam={matchData.awayTeam} 
-                                homeTeam={matchData.homeTeam}
+                                awayTeam={match.awayTeam} 
+                                homeTeam={match.homeTeam}
                                 selectedIncident={selectedIncident}
                                 homeSquad={homeSquad}
                                 awaySquad={awaySquad}

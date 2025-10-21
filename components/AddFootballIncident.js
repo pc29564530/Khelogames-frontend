@@ -1,25 +1,26 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState, useEffect} from 'react';
 import {View, Text, TextInput, Pressable, Modal, Image, ScrollView} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 import { useSelector } from 'react-redux';
+import { useWebSocket } from '../context/WebSocketContext';
 
-const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
+const AddFootballIncident = ({match, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState("first_half");
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [teamPublicID, setTeamPublicID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
     const game = useSelector((state) => state.sportReducers.game);
-
+    const wsRef = useWebSocket();
     const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
 
     const handleAddIncident = async () => {
         try {
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
-                "match_public_id":matchData.public_id,
+                "match_public_id":match.public_id,
                 "team_public_id":teamPublicID,
                 "periods":selectedHalf,
                 "incident_type":selectedIncident,
@@ -33,6 +34,7 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                     'Content-Type': 'application/json',
                 },
             })
+            const item = response.data;
         } catch (err) {
             console.error("unable to add the incident: ", err);
         }
@@ -41,6 +43,26 @@ const AddFootballIncident = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const formatIncidentType = (type) => {
         return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if(rawData === null || !rawData){
+            console.error("raw data is undefined");
+            return;
+        }
+
+        const message = JSON.parse(rawData);
+        if(message.type === "ADD_FOOTBALL_INCIDENTS") {
+            dispatch(message.payload)
+        }
+    }, [])
+
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleWebSocketMessage
+    }, [handleWebSocketMessage])
 
     return (
         <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>

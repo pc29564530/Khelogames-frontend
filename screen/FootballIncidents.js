@@ -9,6 +9,8 @@ import AddFootballModalIncident from '../components/AddFootballModalIncidents';
 import IncidentCheck from '../components/IncidentsCheck';
 import Animated, { useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation, useSharedValue } from 'react-native-reanimated';
 import { useFocusEffect } from '@react-navigation/native';
+import { getFootballIncidents } from '../redux/actions/actions';
+import { useSelector, useDispatch } from 'react-redux';
 
 // change the code so that when no incident is done it does not show the header
 
@@ -20,8 +22,7 @@ const PERIOD_ORDER = [
     "half_time",
     "first_half"
 ];
-  
-  
+   
 const PERIOD_LABELS = {
 first_half: { label: "FIRST HALF", style: "bg-green-100 text-green-800" },
 half_time: { label: "HALF TIME", style: "bg-gray-100 text-gray-800" },
@@ -173,8 +174,10 @@ const PenaltyShootOutIncident = ({key, item, match}) => {
 }
 
 const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight }) => {
+    const match = item;
+    const dispatch = useDispatch()
+    const incidents = useSelector(state => state.footballIncidents.incidents)
     const [incidentModalVisible, setIncidentModalVisible] = useState(false);
-    const [incidents, setIncidents] = useState([]);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
     const [homeSquad, setHomeSquad] = useState([]);
@@ -182,7 +185,6 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
     const [penaltyH, setPenaltyH] = useState([]);
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
-    const match = item
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
@@ -265,11 +267,15 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                 });
                 setAwayPlayer(awayResponse.data || []);
 
-                const incidentsResponse = await axiosInstance.get(`${BASE_URL}/football/getFootballIncidents`, {
-                    params: { match_public_id: match.public_id },
+                const incidentsResponse = await axiosInstance.get(`${BASE_URL}/football/getFootballIncidents/${match.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
-                setIncidents(incidentsResponse.data[1].incidents || []);
+                const item = incidentsResponse.data[1].incidents;
+                if(item){
+                    dispatch(getFootballIncidents(item));
+                } else {
+                    dispatch(getFootballIncidents([]));
+                }
             } catch (err) {
                 console.error("Unable to fetch data: ", err);
             } finally {
@@ -280,15 +286,17 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
         fetchPlayersAndIncidents();
     }, []);
 
-    useEffect(() => {
-        setLoading(true)
-        setIncidents(dummyIncidents); // use dummy data
-        setLoading(false);
-      }, []);
+    // useEffect(() => {
+    //     setLoading(true)
+    //     setIncidents(dummyIncidents); // use dummy data
+    //     setLoading(false);
+    //   }, []);
       
-
     const groupIncidents = useMemo(() => {
-        const sorted = [...incidents].sort((a,b) => {
+        if(!incidents){
+            return [];
+        }
+        const sorted = [...incidents]?.sort((a,b) => {
             if(a.periods === b.periods) {
                 return b.incident_time - a.incident_time;
             }
@@ -313,74 +321,97 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
         }));
     });
 
+    const handleIncidentModal = () => {
+        setIncidentModalVisible(true);
+    }
+
     return (
         <View style={tailwind`flex-1`}>
-            <Animated.FlatList 
-                data = {groupIncidents}
-                keyExtractor={(item, index) => item.period + index}
-                renderItem={({item}) => {
-                    if(item.period === "penalty_shootout"){
-                        return (
-                            <Animated.View style={[tailwind`mb-4`, contentStyle]}>
-                              <View style={tailwind`items-center mb-4`}>
-                                <View style={tailwind`bg-yellow-100 px-3 py-3 rounded-full`}>
-                                  <Text style={tailwind`text-yellow-800 font-bold text-md`}>
-                                    {PERIOD_LABELS[item.period].label}
-                                  </Text>
-                                </View>
-                              </View>
-                      
-                              <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
-                                {item.data.map((incident, index) => (
-                                  <PenaltyShootOutIncident key={index} item={incident} match={match} />
-                                ))}
-                              </View>
-                            </Animated.View>
-                          );
-                    }
-                                      
-                     // Normal incidents (first_half, second_half, etc.)
-                    return (
-                            <Animated.View style={[tailwind`mb-4`, contentStyle]}>
-                            <View style={tailwind`items-center mb-4`}>
-                                <View style={tailwind`${PERIOD_LABELS[item.period].style} px-2 py-3 rounded-full`}>
-                                <Text style={tailwind`font-bold text-md`}>
-                                    {PERIOD_LABELS[item.period].label}
-                                </Text>
-                                </View>
-                            </View>
-
-                            <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
-                                {item.data.map((incident, index) => (
-                                <IncidentCheck key={index} incident={[incident]} matchData={match} />
-                                ))}
-                            </View>
-                            </Animated.View>
-                    );
-                }}
-                style={tailwind`flex-1 bg-gray-50`}
-                onScroll={handlerScroll}
-                scrollEventThrottle={16}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingTop: 20,
-                    paddingBottom: 100,
-                    paddingHorizontal: 16
-                }}
-                ListHeaderComponent={
+            {groupIncidents.length === 0 ? (
+                <View style={tailwind`px-2 py-2`}>
                     <Pressable 
-                        onPress={() => setIncidentModalVisible(true)} 
-                        style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2 items-center mb-4`}
-                    >
-                        <View style={tailwind`flex-row`}>
-                        <MaterialIcons name="add" size={24} color="#ef4444" />
-                        <Text style={tailwind`text-gray-700 text-lg font-semibold ml-2`}>
-                            Add Incident
-                        </Text>
-                        </View>
-                    </Pressable>
-                }
-            />
+                            onPress={() => handleIncidentModal()} 
+                            style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2 items-center mb-4`}
+                        >
+                            <View style={tailwind`flex-row`}>
+                            <MaterialIcons name="add" size={24} color="#ef4444" />
+                            <Text style={tailwind`text-gray-700 text-lg font-semibold ml-2`}>
+                                Add Incident
+                            </Text>
+                            </View>
+                        </Pressable>
+                    <View style={tailwind`items-center`}>
+                        <Text style={tailwind`text-gray-500 text-md`}>No incidents yet</Text>
+                    </View>
+                </View>
+            ):(
+                <Animated.FlatList 
+                    data = {groupIncidents}
+                    keyExtractor={(item, index) => item.period + index}
+                    renderItem={({item}) => {
+                        if(item.period === "penalty_shootout"){
+                            return (
+                                <Animated.View style={[tailwind`mb-4`, contentStyle]}>
+                                <View style={tailwind`items-center mb-4`}>
+                                    <View style={tailwind`bg-yellow-100 px-3 py-3 rounded-full`}>
+                                    <Text style={tailwind`text-yellow-800 font-bold text-md`}>
+                                        {PERIOD_LABELS[item.period].label}
+                                    </Text>
+                                    </View>
+                                </View>
+                        
+                                <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
+                                    {item.data.map((incident, index) => (
+                                    <PenaltyShootOutIncident key={index} item={incident} match={match} />
+                                    ))}
+                                </View>
+                                </Animated.View>
+                            );
+                        }
+                                        
+                        // Normal incidents (first_half, second_half, etc.)
+                        return (
+                                <Animated.View style={[tailwind`mb-4`, contentStyle]}>
+                                <View style={tailwind`items-center mb-4`}>
+                                    <View style={tailwind`${PERIOD_LABELS[item.period].style} px-2 py-3 rounded-full`}>
+                                    <Text style={tailwind`font-bold text-md`}>
+                                        {PERIOD_LABELS[item.period].label}
+                                    </Text>
+                                    </View>
+                                </View>
+
+                                <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
+                                    {item.data.map((incident, index) => (
+                                    <IncidentCheck key={index} incident={[incident]} matchData={match} />
+                                    ))}
+                                </View>
+                                </Animated.View>
+                        );
+                    }}
+                    style={tailwind`flex-1 bg-gray-50`}
+                    onScroll={handlerScroll}
+                    scrollEventThrottle={16}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingTop: 20,
+                        paddingBottom: 100,
+                        paddingHorizontal: 16
+                    }}
+                    ListHeaderComponent={
+                        <Pressable 
+                            onPress={() => setIncidentModalVisible(true)} 
+                            style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2 items-center mb-4`}
+                        >
+                            <View style={tailwind`flex-row`}>
+                            <MaterialIcons name="add" size={24} color="#ef4444" />
+                            <Text style={tailwind`text-gray-700 text-lg font-semibold ml-2`}>
+                                Add Incident
+                            </Text>
+                            </View>
+                        </Pressable>
+                    }
+                />
+            )}
             {incidentModalVisible && (
                 <Modal
                     transparent={true}

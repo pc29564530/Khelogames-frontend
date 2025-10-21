@@ -585,3 +585,24 @@ export const setCurrentBowler = (bowler) => {
         payload: bowler
     }
 }
+
+export const addFootballIncidents = (incident) => {
+    return {
+        type: actionTypes.ADD_FOOTBALL_INCIDENTS,
+        payload: incident
+    }
+}
+
+export const resetFootballIncidents = (incident) => {
+    return {
+        type: actionTypes.RESET_FOOTBALL_INCIDENTS,
+        payload: incident
+    }
+}
+
+export const getFootballIncidents = (incident) => {
+    return {
+        type: actionTypes.GET_FOOTBALL_INCIDENTS,
+        payload: incident
+    }
+}
