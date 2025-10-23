@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
+import { useDispatch } from 'react-redux';
+import { addFootballIncidents } from '../redux/actions/actions';
 
 const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayerIn, setSelectedPlayerIn] = useState(null);
@@ -14,6 +16,7 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
     const [selectedMinute, setSelectedMinute] = useState('45');
     const [description, setDescription] = useState(null);
     const [teamPublicID, setTeamPublicID] = useState(null);
+    const dispatch = useDispatch();
     
 
     const minutes = Array.from({length:90}, (_,i)=> i+1);
@@ -37,6 +40,12 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
                     'Content-Type': 'application/json',
                 },
             });
+            const item = response.data;
+            if(item){
+                dispatch(addFootballIncidents(item))
+            } else {
+                dispatch(addFootballIncidents([]));
+            }
         } catch (err) {
             console.error("unable to add the substitution: ", err);
         }
@@ -45,6 +54,26 @@ const AddFootballSubstitution = ({matchData, awayPlayer, homePlayer, awayTeam, h
     const formatIncidentType = (type) => {
         return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if(rawData === null || !rawData){
+            console.error("raw data is undefined");
+            return;
+        }
+
+        const message = JSON.parse(rawData);
+        if(message.type === "ADD_FOOTBALL_SUB_INCIDENT") {
+            dispatch(message.payload)
+        }
+    }, [])
+
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleWebSocketMessage
+    }, [handleWebSocketMessage])
 
     return (
         <ScrollView style={tailwind``}>

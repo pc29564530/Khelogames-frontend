@@ -606,3 +606,17 @@ export const getFootballIncidents = (incident) => {
         payload: incident
     }
 }
+
+export const setFootballScore = (score) => {
+    return {
+        type: actionTypes.SET_FOOTBALL_SCORE,
+        payload: score
+    }
+}
+
+export const setMatchStatus = (status) => {
+    return {
+        type: actionTypes.SET_MATCH_STATUS,
+        payload: status
+    }
+}

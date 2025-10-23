@@ -5,6 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
 import { useSelector } from 'react-redux';
 import { useWebSocket } from '../context/WebSocketContext';
+import { addFootballIncidents, addFootballMatchScore } from '../redux/actions/actions';
 
 const AddFootballIncident = ({match, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -53,7 +54,9 @@ const AddFootballIncident = ({match, awayPlayer, homePlayer, awayTeam, homeTeam,
 
         const message = JSON.parse(rawData);
         if(message.type === "ADD_FOOTBALL_INCIDENTS") {
-            dispatch(message.payload)
+            dispatch(addFootballIncidents(message.payload));
+        } else if (message.type === "UPDATE_FOOTBALL_SCORE") {
+            dispatch(addFootballMatchScore(message.payload));
         }
     }, [])
 

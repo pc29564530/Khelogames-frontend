@@ -6,6 +6,7 @@ import Dropdown from 'react-native-modal-dropdown';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
+import { useDispatch } from 'react-redux';
 
 const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -13,6 +14,7 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const [teamID, setTeamID] = useState(homeTeam.public_id);
     const [description, setDescription] = useState('');
     const axiosInstance = axiosInstance()
+    const dispatch = useDispatch();
     
     const handleAddShootout = async () => {
         try {
@@ -26,7 +28,6 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
                 "description":'',
                 "penalty_shootout_scored":goalScore
             }
-            console.log("Penalty Shootout Data: ", data)
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/football/addFootballIncidents`, data, {
                 headers: {
@@ -43,6 +44,26 @@ const AddFootballShootout = ({matchData, awayPlayer, homePlayer, awayTeam, homeT
     const formatIncidentType = (type) => {
         return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if(rawData === null || !rawData){
+            console.error("raw data is undefined");
+            return;
+        }
+
+        const message = JSON.parse(rawData);
+        if(message.type === "UPDATE_FOOTBALL_PENALTY_SHOOTOUT") {
+            dispatch(message.payload)
+        }
+    }, [])
+
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleWebSocketMessage
+    }, [handleWebSocketMessage])
 
     return (
         <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full bg-white`}>

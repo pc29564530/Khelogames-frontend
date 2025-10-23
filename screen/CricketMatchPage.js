@@ -8,13 +8,14 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
 import { StatusModal } from '../components/modals/StatusModal';
+import { useWebSocket } from '../context/WebSocketContext';
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -24,7 +25,6 @@ import Animated, {
     useSharedValue,
 } from 'react-native-reanimated';
 import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
-import { current } from '@reduxjs/toolkit';
 
 // get lead and trail status
 const getLeadTrailStatus = ({match}) => {
@@ -87,7 +87,7 @@ const TeamLogo = ({ team }) => {
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    
+    const wsRef = useWebSocket();
     
     const {matchPublicID} = route.params;
     const match = useSelector((state) => state.cricketMatchScore.match);
@@ -374,7 +374,7 @@ const CricketMatchPage = ({ route }) => {
                     },
                 }
             );
-            dispatch(getMatch(response.data || null));
+            dispatch(setMatchStatus(response.data || null));
         } catch (err) {
             console.error("Unable to update the match: ", err);
             setError("Failed to update match status. Please try again.");
@@ -382,6 +382,26 @@ const CricketMatchPage = ({ route }) => {
             setLoading(false);
         }
     };
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if(rawData === null || !rawData){
+            console.error("raw data is undefined");
+            return;
+        }
+
+        const message = JSON.parse(rawData);
+         if(message.type === "UPDATE_MATCH_STATUS") {
+            dispatch(setMatchStatus(message.payload));
+        }
+    }, [])
+
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleWebSocketMessage
+    }, [handleWebSocketMessage])
 
     const getInningDescription = () => {
         if (!match?.status_code || match?.status_code === "not_started") return null;

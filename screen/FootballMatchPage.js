@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -9,9 +9,10 @@ import { formattedTime, formattedDate, convertToISOString, formatToDDMMYY } from
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
-import { getMatch } from '../redux/actions/actions';
+import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus } from '../redux/actions/actions';
 import { StatusModal } from '../components/modals/StatusModal';
 const filePath = require('../assets/status_code.json');
+import { useWebSocket } from '../context/WebSocketContext';
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -28,11 +29,13 @@ import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
 
 const FootballMatchPage = ({ route }) => {
+    const wsRef = useWebSocket();
     const dispatch = useDispatch();
     const TopTab = createMaterialTopTabNavigator();
     const {matchPublicID} = route.params;                                                                     
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
+    const [allStatus, setAllStatus] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
     const [statusCode, setStatusCode] = useState();
@@ -40,6 +43,12 @@ const FootballMatchPage = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const game = useSelector((state) => state.sportReducers.game);
+
+    useEffect(() => {
+        const statusArray = filePath.status_codes;
+        const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), ({}))
+        setAllStatus(combined)
+    }, [])
 
     const {height: sHeight, width: sWidth} = Dimensions.get('screen');
 
@@ -205,6 +214,7 @@ const FootballMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
+                console.log("Match Lien no 210: ", response.data)
                 dispatch(getMatch(response.data || null));
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
@@ -229,7 +239,7 @@ const FootballMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            dispatch(getMatch(response.data || []));
+            dispatch(setMatchStatus(response.data || []));
         } catch (err) {
             console.error("Unable to update the match: ", err);
         } finally {
@@ -240,7 +250,7 @@ const FootballMatchPage = ({ route }) => {
     const toggleMenu = () => setMenuVisible(!menuVisible);
     const handleSearch = (text) => setSearchQuery(text);
 
-    const filteredStatusCodes = filePath["status_codes"].filter((item) => 
+    const filteredStatusCodes = allStatus?.football?.filter((item) => 
         item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -269,6 +279,30 @@ const FootballMatchPage = ({ route }) => {
             </View>
         );
     }
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if(rawData === null || !rawData){
+            console.error("raw data is undefined");
+            return;
+        }
+
+        const message = JSON.parse(rawData);
+        if(message.type === "UPDATE_FOOTBALL_SCORE") {
+            dispatch(setFootballScore(message.payload))
+        } else if(message.type === "ADD_FOOTBALL_SCORE"){
+            dispatch(addFootballMatchScore(message.payload))
+        } else if(message.type === "UPDATE_MATCH_STATUS") {
+            dispatch(setMatchStatus(message.payload));
+        }
+    }, [])
+
+    useEffect(() => {
+        if(!wsRef.current) {
+            return
+        }
+        wsRef.current.onmessage = handleWebSocketMessage
+    }, [handleWebSocketMessage])
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
@@ -436,7 +470,7 @@ const FootballMatchPage = ({ route }) => {
             </Animated.View>
 
             {/* Status Modal */}
-            {statusVisible && (
+            {/* {statusVisible && (
                 <Modal
                     transparent={true}
                     animationType="slide"
@@ -458,6 +492,7 @@ const FootballMatchPage = ({ route }) => {
                                 onChangeText={handleSearch}
                             />
                             <ScrollView style={tailwind`flex-1`}>
+                                {console.log("Filter ", filteredStatusCodes)}
                                 {filteredStatusCodes.map((item, index) => (
                                     <Pressable 
                                         key={index} 
@@ -466,12 +501,12 @@ const FootballMatchPage = ({ route }) => {
                                             handleUpdateResult(item.type); 
                                         }} 
                                         style={tailwind`p-4 border-b border-gray-200 flex-row items-center`}
-                                    >
+                                    >  
                                         <Text style={tailwind`text-lg text-gray-600 mr-3`}>
                                             {index + 1}.
                                         </Text>
                                         <Text style={tailwind`text-lg text-gray-800 flex-1`}>
-                                            {item.description}
+                                            {item.type}
                                         </Text>
                                     </Pressable>
                                 ))}
@@ -479,7 +514,7 @@ const FootballMatchPage = ({ route }) => {
                         </View>
                     </Pressable>
                 </Modal>
-            )}
+            )} */}
 
             {/* Menu Modal */}
             {menuVisible && (
@@ -499,7 +534,7 @@ const FootballMatchPage = ({ route }) => {
                                     }}
                                     style={tailwind`p-3`}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Match</Text>
+                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity 
                                     onPress={() => {
@@ -534,9 +569,10 @@ const FootballMatchPage = ({ route }) => {
                 </View>
             )}
             <StatusModal
+                statuses={filteredStatusCodes}
                 visible={statusVisible}
                 onClose={() => setStatusVisible(false)}
-                onSelect={(code) => updateStatus(code)}
+                onStatusSelect={() => handleUpdateResult()}
             />
         </View>
     );

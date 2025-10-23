@@ -3,18 +3,18 @@ import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { getFootballMatches } from '../services/footballMatchServices';
+import { getFootballMatchesService } from '../services/footballMatchServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFootballMatchScore, getMatch } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import Animated, {useAnimatedScrollHandler, interpolate, useSharedValue, useAnimatedStyle, Extrapolation} from 'react-native-reanimated';
-
+import { getMatches } from '../redux/actions/actions';
 
 const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const matches = useSelector((state)=> state.matchScore.matchScore ) || [];
+    const matches = useSelector((state)=> state.matches.matches ) || [];
     const game = useSelector(state => state.sportReducers.game);
     const match = useSelector((state) => state.matches.match);
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
@@ -29,11 +29,11 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     }, [match]);
     const fetchTournamentMatchs = async () => {
         try {
-            const item = await getFootballMatches({axiosInstance: axiosInstance, tournamentPublicID: tournament.public_id, game: game});  
+            const item = await getFootballMatchesService({axiosInstance: axiosInstance, tournamentPublicID: tournament.public_id, game: game});  
             if(item === null ){
                 return item;
             }
-            dispatch(getFootballMatchScore(item))
+            dispatch(getMatches(item))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
         }

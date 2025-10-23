@@ -2,20 +2,7 @@ import {Modal, View, Text, Pressable, ScrollView, TouchableOpacity} from 'react-
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import tailwind from 'twrnc';
 
-export const StatusModal = ({ visible, onClose, onStatusSelect }) => {
-    const statuses = [
-        { code: "not_started", label: "Not Started" },
-        { code: "toss", label: "Toss" },
-        { code: "in_progress", label: "In Progress" },
-        { code: "drinks", label: "Drinks Break" },
-        { code: "innings_break", label: "Innings Break" },
-        { code: "rain_delay", label: "Rain Delay" },
-        { code: "super_over", label: "Super Over" },
-        { code: "finished", label: "Finished" },
-        { code: "abandoned", label: "Abandoned" },
-        { code: "no_result", label: "No Result" },
-      ];
-      
+export const StatusModal = ({ statuses, visible, onClose, onStatusSelect }) => {
     return (
       <Modal transparent animationType="slide" visible={visible} onRequestClose={onClose}>
         <TouchableOpacity onPress={onClose} style={tailwind`flex-1 justify-end bg-black/50`}>
@@ -27,7 +14,7 @@ export const StatusModal = ({ visible, onClose, onStatusSelect }) => {
               </Text>
             </View>
             <ScrollView style={{ maxHeight: 400 }}>
-              {statuses.map((status) => (
+              {statuses?.map((status) => (
                 <Pressable
                   key={status.code}
                   onPress={() => onStatusSelect(status.code)}

@@ -177,6 +177,7 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
     const match = item;
     const dispatch = useDispatch()
     const incidents = useSelector(state => state.footballIncidents.incidents)
+    const game = useSelector(state => state.sportReducers.game)
     const [incidentModalVisible, setIncidentModalVisible] = useState(false);
     const [homePlayer, setHomePlayer] = useState([]);
     const [awayPlayer, setAwayPlayer] = useState([]);
