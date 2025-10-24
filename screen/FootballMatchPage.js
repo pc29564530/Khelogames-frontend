@@ -232,7 +232,7 @@ const FootballMatchPage = ({ route }) => {
         setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const data = { status_code: itm };
+            const data = { status_code: itm.type };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus/${matchPublicID}`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -470,7 +470,7 @@ const FootballMatchPage = ({ route }) => {
             </Animated.View>
 
             {/* Status Modal */}
-            {/* {statusVisible && (
+            {statusVisible && (
                 <Modal
                     transparent={true}
                     animationType="slide"
@@ -491,30 +491,22 @@ const FootballMatchPage = ({ route }) => {
                                 value={searchQuery}
                                 onChangeText={handleSearch}
                             />
-                            <ScrollView style={tailwind`flex-1`}>
-                                {console.log("Filter ", filteredStatusCodes)}
+                            <ScrollView style={{minHeight: 20}}>
                                 {filteredStatusCodes.map((item, index) => (
-                                    <Pressable 
-                                        key={index} 
-                                        onPress={() => { 
-                                            setStatusCode(item.type); 
-                                            handleUpdateResult(item.type); 
-                                        }} 
-                                        style={tailwind`p-4 border-b border-gray-200 flex-row items-center`}
-                                    >  
-                                        <Text style={tailwind`text-lg text-gray-600 mr-3`}>
-                                            {index + 1}.
-                                        </Text>
-                                        <Text style={tailwind`text-lg text-gray-800 flex-1`}>
-                                            {item.type}
-                                        </Text>
+                                    <Pressable
+                                        key={index}
+                                        onPress={() => {setStatusCode(item.type); handleUpdateResult(item)}}
+                                        style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
+                                    >
+                                        <MaterialIcon name="sports-football" size={22} color="#4b5563" />
+                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
                         </View>
                     </Pressable>
                 </Modal>
-            )} */}
+            )}
 
             {/* Menu Modal */}
             {menuVisible && (
@@ -568,12 +560,6 @@ const FootballMatchPage = ({ route }) => {
                     </View>
                 </View>
             )}
-            <StatusModal
-                statuses={filteredStatusCodes}
-                visible={statusVisible}
-                onClose={() => setStatusVisible(false)}
-                onStatusSelect={() => handleUpdateResult()}
-            />
         </View>
     );
 };

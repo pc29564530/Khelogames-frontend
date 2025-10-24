@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
@@ -16,6 +16,7 @@ import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
+const filePath = require('../assets/status_code.json');
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -107,6 +108,21 @@ const CricketMatchPage = ({ route }) => {
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
     const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
+    const [statusCode, setStatusCode] = useState();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [allStatus, setAllStatus] = useState([]);
+
+    useEffect(() => {
+        const statusArray = filePath.status_codes;
+        const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), ({}))
+        setAllStatus(combined)
+    }, [])
+
+    const handleSearch = (text) => setSearchQuery(text);
+
+    const filteredStatusCodes = allStatus?.cricket?.filter((item) => 
+        item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const {height: sHeight, width: sWidth} = Dimensions.get('screen');
 
@@ -366,7 +382,7 @@ const CricketMatchPage = ({ route }) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.put(
                 `${BASE_URL}/${game.name}/updateMatchStatus/${match.public_id}`,
-                { status_code: statusCode },
+                { status_code: statusCode.type },
                 {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -599,11 +615,45 @@ const CricketMatchPage = ({ route }) => {
 
                 <CricketMatchPageContent match={match} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
             </Animated.View>
-            <StatusModal
-                visible={statusVisible}
-                onClose={() => setStatusVisible(false)}
-                onStatusSelect={handleUpdateResult}
-            />
+
+            {/* Status Modal */}
+            {statusVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={statusVisible}
+                    onRequestClose={() => setStatusVisible(false)}
+                >
+                    <Pressable 
+                        onPress={() => setStatusVisible(false)} 
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                    >
+                        <View style={tailwind`bg-white rounded-t-lg max-h-[70%]`}>
+                            <View style={tailwind`p-4 border-b border-gray-200`}>
+                                <Text style={tailwind`text-lg font-semibold text-center`}>Update Match Status</Text>
+                            </View>
+                            <TextInput
+                                style={tailwind`bg-gray-100 p-3 m-4 rounded-md text-black`}
+                                placeholder="Search status..."
+                                value={searchQuery}
+                                onChangeText={handleSearch}
+                            />
+                            <ScrollView style={{minHeight: 20}}>
+                                {filteredStatusCodes.map((item, index) => (
+                                    <Pressable
+                                        key={index}
+                                        onPress={() => {setStatusCode(item.type); handleUpdateResult(item)}}
+                                        style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
+                                    >
+                                        <MaterialIcon name="sports-football" size={22} color="#4b5563" />
+                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
 
             {menuVisible && (
                 <Modal
