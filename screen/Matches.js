@@ -150,9 +150,26 @@ const Matches = () => {
     }
 
     const handleLiveMatches = () => {
-        const filterMatches = matches.filter((item) => liveStatus.includes(item.status_code));
-        dispatch(getMatches(filterMatches));
+        const liveMatches = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getLiveMatches`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                const item = response.data;
+                dispatch(getMatches(item))
+                
+            } catch (err) {
+                console.error("Failed to get live matches: ", err);
+            }
+        }
+        liveMatches();
     }
+
+    console.log("Matches: Line no 158: ", matches)
 
     return (
         <View style={tailwind`flex-1 bg-white p-4`}>
@@ -219,12 +236,12 @@ const Matches = () => {
                                                 {item.status !== "not_started" && (
                                                     <View>
                                                     <View style={tailwind``}>
-                                                        {item.scores.homeScore  && checkSport(item, game) && (
+                                                        {item?.scores?.homeScore  && checkSport(item, game) && (
                                                             <View style={tailwind``}>
                                                                 {renderInningScore(item.scores.homeScore)}
                                                             </View>
                                                         )}
-                                                        {item.scores.awayScore && (
+                                                        {item?.scores?.awayScore && (
                                                             <View style={tailwind``}>
                                                                 {renderInningScore(item.scores.awayScore)}
                                                             </View>
