@@ -21,8 +21,6 @@ function CreateCommunity () {
 
     const handleCreateCommunity = async () => {
         try {
-            console.log("CommunityName: ", communityName)
-            console.log("Description: ", description)
             if(!communityName.trim()){
                 alert('Please fill fields before creating the community.');
                 return;
@@ -37,7 +35,6 @@ function CreateCommunity () {
             });
             dispatch(addCommunity(response.data));
             setCommunityName('');
-            setCommunityType('Communtiy Type');
             setDescription('');
             navigation.goBack();
         } catch (err) {

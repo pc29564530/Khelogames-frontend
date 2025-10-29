@@ -101,9 +101,6 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
             
             if(message.type === "INNING_STATUS"){
                 const payload = message.payload;
-                console.log("Inning Status Line no 70: ", payload)
-                // if(message.payload.inning_status === "completed") {
-                    // console.log("Line no 80:", payload.inning_status)
                     dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number));
                     
                     // Also update batsman and bowler data from INNING_STATUS message
@@ -132,7 +129,6 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
         if(!wsRef.current) {
             return
         }
-
         wsRef.current.onmessage = handleWebSocketMessage;
     }, [handleWebSocketMessage]);
 

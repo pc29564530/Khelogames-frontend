@@ -23,7 +23,7 @@ export const renderInningScore = (scores) => {
         )}
       </View>
     ));
-  };
+};
   
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
@@ -75,7 +75,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("Matches: ", response.data)
             const item = response.data;
             dispatch(getCricketMatchScore(item || []))
         } catch (err) {
@@ -85,12 +84,12 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
 
     return (
         <Animated.ScrollView
-                onScroll={handlerScroll}
-                scrollEventThrottle={16}
-                style={tailwind`flex-1`}
-                contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
-                showsVerticalScrollIndicator={false}
-            >
+            onScroll={handlerScroll}
+            scrollEventThrottle={16}
+            style={tailwind`flex-1`}
+            contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
+            showsVerticalScrollIndicator={false}
+        >
                 <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
                     {matches?.length > 0 ? (
                         matches.map((stage, index) => (
@@ -167,12 +166,12 @@ const matchesData = (item, ind, navigation) => {
                             <View style={tailwind``}>
                                 {item.scores.home_score  && (
                                     <View style={tailwind``}>
-                                        {renderInningScore(item.scores.home_score)}
+                                        <Text>{renderInningScore(item.scores.home_score)}</Text>
                                     </View>
                                 )}
                                 {item.scores.away_score && (
                                     <View style={tailwind``}>
-                                        {renderInningScore(item.scores.away_score)}
+                                        <Text>{renderInningScore(item.scores.away_score)}</Text>
                                     </View>
                                 )}
                             </View>
