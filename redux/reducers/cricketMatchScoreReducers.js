@@ -10,8 +10,6 @@ const initialstate = {
 const cricketMatchScoreReducers = (state = initialstate, action) => {
     switch (action.type) {
         case actionTypes.SET_BAT_TEAM:
-            console.log("State BatTeam: ", state.batTeam)
-            console.log("Action BatTeam : ", action.payload)
             return {
                 ...state,
                 batTeam: action.payload
@@ -40,7 +38,6 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
         case actionTypes.UPDATE_INNING_SCORE:
             let newHomeScore = state.match.homeScore;
             let newAwayScore = state.match.awayScore;
-            console.log("New Home Score: ", action.payload)
 
             if (action.payload.team_id === state.match.homeTeam.id) {
                 const existingIndex = state.match.homeScore.findIndex(inning => inning && inning.inning_number === action.payload.inning_number);

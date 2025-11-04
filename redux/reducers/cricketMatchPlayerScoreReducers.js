@@ -1,4 +1,3 @@
-import { current } from '@reduxjs/toolkit';
 import * as actionTypes from '../types/actionTypes';
 
 const initialstate = {
@@ -15,14 +14,16 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
         case actionTypes.SET_CURRENT_BATSMAN:
             return {
                 ...state,
-                currentBatsman: action.payload
+                currentBatsman: action.payload || []
             }
+        
         case actionTypes.SET_CURRENT_BOWLER:
             return {
                 ...state,
-                currentBowler: action.payload
+                currentBowler: action.payload || []
             }
-        case actionTypes.INITIALIZE_NEW_INNING:
+        
+        case actionTypes.INITIALIZE_NEW_INNING: {
             const newInningNumber = action.payload.inning_number;
             return {
                 ...state,
@@ -41,30 +42,37 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                     }
                 }
             }
-        case actionTypes.UPDATE_BATSMAN_SCORE:
-            let inningKeyBatsman = String(action.payload.inning_number);
-            let currentBattingInning = state?.battingScore?.innings;
-            let batsmanInning = currentBattingInning[inningKeyBatsman] || [];
+        }
+        
+        case actionTypes.UPDATE_BATSMAN_SCORE: {
+            const inningKeyBatsman = String(action.payload.inning_number);
+            const currentBattingInning = state?.battingScore?.innings || {};
+            const batsmanInning = currentBattingInning[inningKeyBatsman] || [];
 
             // Create updated inning array
             const updatedBatsmanInning = batsmanInning.map(batter => {
-                if (batter.player.id === action.payload.batsman_id) {
+                if (batter.batsman_id === action.payload.batsman_id) {
                     return {
                         ...batter,
-                        runs_scored: action.payload.runs_scored,
-                        balls_faced: action.payload.balls_faced,
-                        fours: action.payload.fours,
-                        sixes: action.payload.sixes,
-                        batting_status: action.payload.batting_status,
-                        is_striker: action.payload.is_striker,
-                        is_currently_batting: action.payload.is_currently_batting
+                        ...action.payload
                     };
                 }
                 return batter;
             });
 
+            const updatedCurrentBatsman = state.currentBatsman.map(batsman => {
+                const batsmanId = batsman.batsman_id;
+                const payloadBatsmanId = action.payload.batsman_id;
+                if (batsmanId === payloadBatsmanId) {
+                    const updated = { ...batsman, ...action.payload };
+                    return updated;
+                }
+                return batsman;
+            });
+
             return {
                 ...state,
+                currentBatsman: updatedCurrentBatsman,
                 battingScore: {
                     ...state.battingScore,
                     innings: {
@@ -73,27 +81,38 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                     }
                 }
             }
-        case actionTypes.UPDATE_BOWLER_SCORE:
-            let inningKeyBowler = String(action.payload.inning_number);
-            let currentBowlerInnings = state?.bowlingScore?.innings;
-            let bowlerInning = currentBowlerInnings[inningKeyBowler] || [];
+        }
+        
+        case actionTypes.UPDATE_BOWLER_SCORE: {
+            const inningKeyBowler = String(action.payload.inning_number);
+            const currentBowlerInnings = state?.bowlingScore?.innings || {};
+            const bowlerInning = currentBowlerInnings[inningKeyBowler] || [];
+
             const updateBowlerInning = bowlerInning.map(bowler => {
-                if(bowler.player.id === action.payload.bowler_id) {
+                const bowlerId = bowler.player?.id || bowler.bowler_id || bowler.id;
+                const payloadId = action.payload.bowler_id || action.payload.player?.id || action.payload.id;
+                
+                if(bowlerId === payloadId) {
                     return {
                        ...bowler,
-                        ball_number: action.payload.ball_number,
-                        runs: action.payload.runs,
-                        wickets: action.payload.wickets,
-                        wide: action.payload.wide,
-                        no_ball: action.payload.no_ball,
-                        bowling_status: action.payload.bowling_status,
-                        is_current_bowler: action.payload.is_current_bowler 
+                       ...action.payload
                     }
                 }
-            })
+                return bowler;
+            });
+            const updatedCurrentBowler = state.currentBowler.map(bowler => {
+                const bowlerId = bowler.bowler_id;
+                const payloadBowlerId = action.payload.bowler_id;
+                if (bowlerId === payloadBowlerId) {
+                    const updated = { ...bowler, ...action.payload };
+                    return updated;
+                }
+                return bowler;
+            });
 
             return {
                 ...state,
+                currentBowler: updatedCurrentBowler,
                 bowlingScore: {
                     ...state.bowlingScore,
                     innings: {
@@ -102,10 +121,12 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                     }
                 }
             };
-        case actionTypes.ADD_BATSMAN:
-            let inningKey = String(action.payload.inning_number);
-            let currentBatsmanInnings = state?.battingScore?.innings || {};
-            let inningBatsmen = currentBatsmanInnings[inningKey] || [];
+        }
+        
+        case actionTypes.ADD_BATSMAN: {
+            const inningKey = String(action.payload.inning_number);
+            const currentBatsmanInnings = state?.battingScore?.innings || {};
+            const inningBatsmen = currentBatsmanInnings[inningKey] || [];
 
             return {
                 ...state,
@@ -117,84 +138,97 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                     }
                 }
             };
-        case actionTypes.ADD_BOWLER:
-            let addBowlerInningKey = String(action.payload.inning_number);
-            let addBowlerInning = state?.battingScore?.innings || {};
-            let inningBowler = addBowlerInning[addBowlerInningKey] || [];
+        }
+        
+        case actionTypes.ADD_BOWLER: {
+            const addBowlerInningKey = String(action.payload.inning_number);
+            const addBowlerInnings = state?.bowlingScore?.innings || {};
+            const inningBowlers = addBowlerInnings[addBowlerInningKey] || [];
 
             return {
                 ...state,
                 bowlingScore: {
                     ...state.bowlingScore,
                     innings: {
-                        ...addBowlerInning,
-                        [addBowlerInningKey]: [...inningBowler, action.payload]
+                        ...addBowlerInnings,
+                        [addBowlerInningKey]: [...inningBowlers, action.payload]
                     }
                 }
             };
+        }
+        
         case actionTypes.GET_CRICKET_PLAYER_SCORE:
             return {
                 ...state,
                 cricketPlayerScore: action.payload
             }
+        
         case actionTypes.ADD_CRICKET_MATCHES_PLAYER_SCORE:
             return {
                 ...state,
-                cricketPlayerScore: [...state.cricketPlayerScore, action.payload]
+                cricketPlayerScore: [...(state.cricketPlayerScore || []), action.payload]
             }
+        
         case actionTypes.GET_CRICKET_BATTING_SCORE:
             return {
                 ...state,
                 battingScore: action.payload
             }
+        
         case actionTypes.GET_CRICKET_BOWLING_SCORE:
             return {
                 ...state,
                 bowlingScore: action.payload
             }
+        
         case actionTypes.GET_CRICKET_WICKET_FALLEN:
             return {
                 ...state,
                 wicketFallen: action.payload
             }
+        
         case actionTypes.ADD_CRICKET_WICKET_FALLEN:
             return {
                 ...state,
                 wicketFallen: [...state.wicketFallen, action.payload]
             }
+        
         default:
-            return state
+            return state;
     }
 }
 
+// SIMPLE SELECTORS - Use the direct arrays from state
 export const selectCurrentBatsmen = (state, inningNumber) => {
-    if (!state?.cricketPlayerScore || !state.cricketPlayerScore.battingScore) {
-        return [];
-    }
-    const innings = state.cricketPlayerScore.battingScore.innings;  // Full path: Now safe
-    const inningKey = String(inningNumber);
     
-    if (!innings || !innings[inningKey]) {
+    const reducerState = state.cricketPlayerScore;
+    
+    if (!reducerState) {
+        console.log("⚠️ cricketPlayerScore reducer not found!");
+        console.log("Available reducers:", Object.keys(state));
         return [];
     }
-    const current = innings[inningKey].filter(b => b.is_currently_batting);
-    return current;
+    
+    // Use the direct currentBatsman array
+    const currentBatsmen = reducerState.currentBatsman || [];
+    
+    return currentBatsmen;
 };
 
 export const selectCurrentBowler = (state, inningNumber) => {
-    if (!state?.cricketPlayerScore || !state.cricketPlayerScore.bowlingScore) {
-        return null;
-    }
-    const innings = state.cricketPlayerScore.bowlingScore.innings;  // Full path
-    const inningKey = String(inningNumber);
     
-    if (!innings || !innings[inningKey]) {
-        return null;
+    const reducerState = state.cricketPlayerScore;
+    
+    if (!reducerState) {
+        console.log("⚠️ cricketPlayerScore reducer not found!");
+        console.log("Available reducers:", Object.keys(state));
+        return [];
     }
-    const currentBowlers = innings[inningKey].filter(b => b.is_current_bowler);
-    const result = currentBowlers.length > 0 ? currentBowlers : [];
-    return result;
+    
+    // Use the direct currentBowler array
+    const currentBowlers = reducerState.currentBowler || [];
+    
+    return currentBowlers;
 };
-
 
 export default cricketMatchPlayerScoreReducers;
