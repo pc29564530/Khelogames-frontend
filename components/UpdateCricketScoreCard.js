@@ -10,12 +10,20 @@ import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 import { useWebSocket } from '../context/WebSocketContext';
 
 export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
-    const wsRef = useWebSocket();
+    const {wsRef, subscribe} = useWebSocket();
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const [isWebSocketReady, setIsWebSocketReady] = useState(false);
     const isMountedRef = useRef(true);
     const lastPayloadRef = useRef(null);
     const dispatchRef = useRef(dispatch);
+
+    const payloadData = {
+            "type": "SUBSCRIBE",
+            "category": "MATCH",
+            "payload": {"match_public_id": match.public_id}
+    }
+
+    wsRef?.current?.send(JSON.stringify(payloadData))
     
     // Update dispatch ref when dispatch changes
     useEffect(() => {
@@ -24,6 +32,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
 
     const handleWebSocketMessage = useCallback((event) => {
         const rawData = event?.data;
+        console.log("Raw Data: ", rawData)
         try {
             if (rawData === null || !rawData) {
                 console.error("raw data is undefined");
@@ -47,12 +56,12 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
             console.log("Score Line no Empos...: ", message.payload)
 
             if(message.type === "UPDATE_SCORE") {
-                // console.log("Lineno 34: ", message.payload)
                 
                 // Batch all dispatches to prevent multiple re-renders
                 const dispatches = [];
-                
+                console.log("Message: ", message.payload.event_type)
                 if(message.payload.event_type === "normal"){
+                    console.log("Lien no 65")
                     if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
                     if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
@@ -125,12 +134,6 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
         }
     }, []); // Remove dispatch dependency to prevent infinite loop
 
-    useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-        wsRef.current.onmessage = handleWebSocketMessage;
-    }, [handleWebSocketMessage]);
 
     const handleCurrentScoreEvent = useCallback((item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
@@ -149,11 +152,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
     
 
     const handleScorecard = useCallback(async (temp) => {
-        console.log("Item 132: ", temp)
         const batting = currentBatsman?.find((item) => (item.is_currently_batting === true && item.is_striker === true));
-        // console.log("Line no 136 ", wsRef.current.readyState)
-        if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN){
-            console.log("Line no 136 ", wsRef.current.readyState)
             if(addCurrentScoreEvent.length === 0){
                 try {
                     const data = {
@@ -164,37 +163,39 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                         runs_scored: temp,
                         inning_number: Number(currentInning.slice(-1))
                     }
-                    console.log("Update Score: ", data)
                     const authToken = await AsyncStorage.getItem("AccessToken")
-                    const newMessage = {
-                        "type": "UPDATE_SCORE",
-                        "payload": {
-                            ...data,
-                            "event_type":"normal" 
-                        }
-                    }
-                    wsRef.current.send(JSON.stringify(newMessage));
+                    const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketRegularScore`, data, {
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    console.log("Update Score: ", response.data)
+
                 } catch (err) {
                     console.error("Failed to add the runs and balls: ", err)
                 }
             } else if(addCurrentScoreEvent[0] === "no_ball"){
                 try {
                     const data = {
-                        match_public_id: match.public_id,
-                        bowler_public_id: currentBowler[0]?.player?.public_id,
+                        match_public_id: match?.public_id,
                         batting_team_public_id: batTeam,
-                        batsman_public_id: batting.player.public_id,
+                        batsman_public_id: batting?.player?.public_id,
+                        bowler_public_id: currentBowler[0]?.player?.public_id,
                         runs_scored: temp,
-                        inning: Number(currentInning.slice(-1))
+                        inning_number: Number(currentInning.slice(-1))
                     }
-                    const newMessage = {
-                        "type": "UPDATE_SCORE",
-                        "payload": {
-                            ...data,
-                            "event_type":"no_ball" 
-                        }
-                    }
-                    wsRef.current.send(JSON.stringify(newMessage));
+
+                    const authToken = await AsyncStorage.getItem("AccessToken")
+                    const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketNoBall`, data, {
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    console.log("No Ball: ", response.data)
+
                 } catch (err) {
                     console.error("Failed to add the runs and balls: ", err)
                 }
@@ -202,21 +203,21 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 try {
                     const data = {
                         match_public_id: match?.public_id,
-                        batsman_public_id: batting?.player?.public_id,
                         batting_team_public_id: batTeam,
+                        batsman_public_id: batting?.player?.public_id,
                         bowler_public_id: currentBowler[0]?.player?.public_id,
                         runs_scored: temp,
                         inning_number: Number(currentInning.slice(-1))
                     }
 
-                    const newMessage = {
-                        "type": "UPDATE_SCORE",
-                        "payload": {
-                            ...data,
-                            "event_type":"wide" 
-                        }
-                    }
-                    wsRef.current.send(JSON.stringify(newMessage));
+                    const authToken = await AsyncStorage.getItem("AccessToken")
+                    const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketWide`, data, {
+                        headers: {
+                            'Authorization': `bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    console.log("Wide Ball: ", response.data)
 
                 } catch (err) {
                     console.error("Failed to add the runs and balls: ", err)
@@ -252,9 +253,14 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 } catch (err) {
                     console.error("Failed to add the runs and balls: ", err)
                 }
-            }
         }
     }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInning, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange]);
+
+    useEffect(() => {
+        console.log("Cricket - Subscribing to WebSocket messages");
+        const unsubscribe = subscribe(handleWebSocketMessage);
+        return unsubscribe; 
+    }, [handleWebSocketMessage, subscribe])
 
     const handleWicketType = useCallback((item) => {
         if(item === "Run Out"){

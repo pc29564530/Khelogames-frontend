@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
@@ -88,10 +88,10 @@ const TeamLogo = ({ team }) => {
 const CricketMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const wsRef = useWebSocket();
+    const {wsRef, subscribe} = useWebSocket();
     
     const {matchPublicID} = route.params;
-    const match = useSelector((state) => state.cricketMatchScore.match);
+    const match = useSelector(state => state.cricketMatchScore.match);
     const homePlayer = useSelector(state => state.teams.homePlayer);
     const awayPlayer = useSelector(state => state.teams.awayPlayer);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
@@ -111,6 +111,14 @@ const CricketMatchPage = ({ route }) => {
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [allStatus, setAllStatus] = useState([]);
+
+    const payloadData = {
+            "type": "SUBSCRIBE",
+            "category": "MATCH",
+            "payload": {"match_public_id": matchPublicID}
+    }
+
+    wsRef?.current?.send(JSON.stringify(payloadData))
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
@@ -303,7 +311,7 @@ const CricketMatchPage = ({ route }) => {
         };
 
         fetchMatch();
-    }, [matchPublicID, dispatch]);
+    }, [matchPublicID]);
 
     useEffect(() => {
         if (!match || !cricketToss || batTeam) return;
@@ -390,7 +398,7 @@ const CricketMatchPage = ({ route }) => {
                     },
                 }
             );
-            dispatch(setMatchStatus(response.data || null));
+            // dispatch(setMatchStatus(response.data || []));
         } catch (err) {
             console.error("Unable to update the match: ", err);
             setError("Failed to update match status. Please try again.");
@@ -407,17 +415,17 @@ const CricketMatchPage = ({ route }) => {
         }
 
         const message = JSON.parse(rawData);
-         if(message.type === "UPDATE_MATCH_STATUS") {
+        // console.log("Message Cricket: ", message)
+        if(message.type === "UPDATE_MATCH_STATUS") {
             dispatch(setMatchStatus(message.payload));
         }
     }, [])
 
-    useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-        wsRef.current.onmessage = handleWebSocketMessage
-    }, [handleWebSocketMessage])
+useEffect(() => {
+    console.log(" Cricket - Subscribing to WebSocket messages");
+    const unsubscribe = subscribe(handleWebSocketMessage);
+    return unsubscribe;
+}, [handleWebSocketMessage, subscribe]);    
 
     const getInningDescription = () => {
         if (!match?.status_code || match?.status_code === "not_started") return null;

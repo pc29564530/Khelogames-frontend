@@ -33,8 +33,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
-    const currentBatsman = useSelector(state => state.cricketPlayerScore.currentBatsman)
-    const currentBowler = useSelector(state => state.cricketPlayerScore.currentBowler)
+    const currentBatsman = useSelector(state => selectCurrentBatsmen(state, currentInningNumber));
+    const currentBowler = useSelector(state => selectCurrentBowler(state, currentInningNumber));
+
     const game = useSelector(state => state.sportReducers.game);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const batting = useSelector(state => state.cricketPlayerScore.battingScore);
@@ -148,8 +149,8 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             }
         } else if(currentInningNumber === 2 && (match.match_format === "ODI" || match.match_format === "T20")) {
              const firstInningBattingTeam = cricketToss?.tossDecision === "Batting" 
-            ? (cricketToss?.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID)
-            : (cricketToss?.tossWonTeam.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
+            ? (cricketToss?.tossWonTeam?.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID)
+            : (cricketToss?.tossWonTeam?.public_id === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID);
             const secondInningBattingTeam = firstInningBattingTeam === homeTeamPublicID ? awayTeamPublicID : homeTeamPublicID;
             setCurrentLiveScore(secondInningBattingTeam);
         }
