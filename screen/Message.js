@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { View, Text, Image, Pressable, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
@@ -28,7 +28,15 @@ function Message({ route }) {
     const [uploadImage, setUploadImage] = useState(false);
     const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.user.user)
-    const wsRef = useWebSocket();
+    const {wsRef, subscribe} = useWebSocket();
+
+    const payloadData = {
+            "type": "SUBSCRIBE",
+            "category": "CHAT",
+            "payload": {"profile_public_id": receiverProfile.public_id}
+    }
+
+    wsRef?.current?.send(JSON.stringify(payloadData))
     
     // const wsRef = useRef(null);
     const isMountedRef = useRef(true);
@@ -39,31 +47,8 @@ function Message({ route }) {
       setMediaType(mediaType);
       setUploadImage(true);
     }
-      
-    useEffect(() => {
-      if(!wsRef.current) {
-        return
-      }
 
-      wsRef.current.onmessage = (event) => {
-        const rawData = event?.data;
-        try {
-          if (rawData === null || !rawData) {
-            console.error("raw data is undefined");
-          } else {
-            const message = JSON.parse(rawData);
-            if (isMountedRef.current) {
-              setReceivedMessage((prevMessages) => [...prevMessages, message.payload]);
-            }
-          }
-        } catch (e) {
-          console.error('error parsing json: ', e);
-        }
-      }
-
-    }, []);
-
-    //Recieved Message Functionality
+        //Recieved Message Functionality
     useEffect(() => {
       const fetchAllMessage = async () => {
         try {
@@ -78,7 +63,6 @@ function Message({ route }) {
           });
 
           setCurrentUser(userPublicID);
-
           if (response.data === null || !response.data) {
               setReceivedMessage([]);
           } else {
@@ -93,6 +77,24 @@ function Message({ route }) {
       }
       fetchAllMessage();
     }, []);
+
+   const handleWebSocketMessage = useCallback((event) => {
+           const rawData = event.data;
+           if(rawData === null || !rawData){
+               console.error("raw data is undefined");
+               return;
+           }
+   
+           const message = JSON.parse(rawData);
+           console.log("Message data: ", message)
+           setReceivedMessage((prevMessages) => [...prevMessages, message.payload]);
+       }, [])
+   
+       useEffect(() => {
+           console.log("Message - Subscribing to WebSocket messages");
+           const unsubscribe = subscribe(handleWebSocketMessage);
+           return unsubscribe; 
+       }, [handleWebSocketMessage, subscribe])
 
     //Send Message Functionality
     const sendMessage = async () => {
@@ -196,7 +198,6 @@ function Message({ route }) {
     }
 
     const renderDateSeparator = (dateString) => {
-      console.log("Date String: ", dateString)
       return(
         <View style={tailwind`flex-row items-center my-4`}>
           <View style={tailwind`flex-1 h-px bg-gray-300`} />
@@ -261,7 +262,7 @@ function Message({ route }) {
                       </Text>
                     )}
                     <Text style={tailwind`text-xs text-gray-500`}>
-                      {new Date(item.isMyMessage ? item.created_at : item.sent_at).toLocaleTimeString([], {
+                      {new Date(item.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
@@ -282,7 +283,6 @@ function Message({ route }) {
       );
     }
 
-    console.log("Received Message: ", receivedMessage)
 
   return (
     <View style={tailwind`flex-1 bg-white`}>
@@ -290,7 +290,7 @@ function Message({ route }) {
         style={tailwind`flex-3/5 bg-white pb-16`}
         contentContainerStyle={tailwind`gap-2`}
       > 
-        {receivedMessage.map((item, index) => renderMessage(item, index))}
+        {receivedMessage.length>0 && receivedMessage?.map((item, index) => renderMessage(item, index))}
       </ScrollView>
       <View style={[tailwind`bg-white px-4 py-3 border-t border-gray-100`, { paddingBottom: Platform.OS === 'ios' ? 34 : 16 }]}>
           <View style={tailwind`flex-row items-end`}>

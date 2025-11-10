@@ -59,10 +59,20 @@ const TournamentParticipants = ({ tournament, currentRole, parentScrollY, header
 
   const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
-  useEffect(async() => {
-    const currentAuthUser = await AsyncStorage.getItem("User");
-    const userData = JSON.parse(currentAuthUser);
-    setAuthUser(userData);
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+       try {
+      const currentAuthUser = await AsyncStorage.getItem("User");
+      const userData = JSON.parse(currentAuthUser);
+
+      if (isMounted) {
+        setAuthUser(userData);
+      }
+    } catch (e) {
+      console.error("Failed to load auth user", e);
+    }
+    })();
   }, [])
 
   // Animation
