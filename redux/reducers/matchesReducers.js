@@ -1,71 +1,91 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
-        matches: [],
-        match: []
+    matches: [],
+    match: null  // ✅ Changed from [] to null
 }
 
-const  matchesReducers = (state=initialState, action) => {
-
+const matchesReducers = (state = initialState, action) => {
     switch (action.type) {
         case actionTypes.GET_MATCHES:
+            console.log("GET_MATCHES:", action);
             return {
                 ...state,
-                matches: Array.isArray(action.payload) ? action.payload: [],
+                matches: action.payload
             };
+
         case actionTypes.SET_MATCHES:
             return {
                 ...state,
                 matches: [...state.matches, action.payload],
             };
+
         case actionTypes.GET_MATCH:
+            console.log("GET_MATCH:", action.payload);
             return {
                 ...state,
                 match: action.payload
+            };
+
+        case actionTypes.SET_MATCH_STATUS: {
+            console.log("🔄 SET_MATCH_STATUS - Received payload:", action.payload);
+            
+            // ✅ FIX: Handle both payload formats
+            let matchId, statusCode;
+            
+            if (action.payload.match_id !== undefined) {
+                // Format 1: {match_id: 3, status_code: "in_progress"}
+                matchId = action.payload.match_id;
+                statusCode = action.payload.status_code;
+                console.log("📋 Format 1: match_id =", matchId, "status =", statusCode);
+            } else if (action.payload.id !== undefined) {
+                // Format 2: Full match object from WebSocket
+                matchId = action.payload.id;
+                statusCode = action.payload.status_code;
+                console.log("📋 Format 2 (WebSocket): id =", matchId, "status =", statusCode);
+            } else {
+                console.error("❌ Invalid payload - no match_id or id found:", action.payload);
+                return state;
             }
-        case actionTypes.SET_MATCH_STATUS:
-            const {id, status_code} = action.payload;
-            const updateMatch = {
-                ...state.matches,
-                group_stage: state.matches.group_stage?.map((item) => {
-                    item.id === id ? {...state.item, status_code} : state.item
-                }),
+
+            console.log("🎯 Looking for match with ID:", matchId);
+            console.log("🎯 Current match ID:", state.match?.id);
+
+            // Helper function to update matches in arrays
+            function updateStageArray(arr) {
+                if (!Array.isArray(arr)) return arr;
+
+                return arr.map(m => {
+                    if (m?.id === matchId) {
+                        console.log("✅ Found match in array - updating status");
+                        return { ...m, status_code: statusCode };
+                    }
+                    return m;
+                });
+            }
+
+            // Update matches array (tournament view)
+            const updatedMatches = state.matches.map(stage => ({
+                ...stage,
+                league_stage: updateStageArray(stage.league_stage),
+                group_stage: updateStageArray(stage.group_stage),
                 knockout_stage: {
-                    ...state.matches.knockout_stage,
-                    final: state.matches.knockout_stage?.final?.map(itm => itm.id === id ? {
-                            ...itm,
-                            status_code
-                        }: itm
-                    ),
-                    semifinal: state.matches.knockout_stage?.semifinal?.map(itm => itm.id === id ? {
-                            ...itm,
-                            status_code
-                        }: itm
-                    ), 
-                    quaterfinal: state.matches.knockout_stage?.quaterfinal?.map(itm => itm.id === id ? {
-                            ...itm,
-                            status_code
-                        }: itm
-                    ),
+                    ...stage.knockout_stage,
+                    final: updateStageArray(stage.knockout_stage?.final),
+                    semifinal: updateStageArray(stage.knockout_stage?.semifinal),
+                    quaterfinal: updateStageArray(stage.knockout_stage?.quaterfinal),
+                    round_16: updateStageArray(stage.knockout_stage?.round_16),
+                    round_32: updateStageArray(stage.knockout_stage?.round_32),
+                    round_64: updateStageArray(stage.knockout_stage?.round_64),
+                    round_128: updateStageArray(stage.knockout_stage?.round_128),
                 },
-                league_stage: {
-                    ...state.matches.league_stage,
-                    league_stage: state.matches?.league_stage?.map(itm => itm.id === id ? {
-                            ...itm,
-                            status_code
-                        } : itm
-                    )
-                }
-            }
-            const updateSingleMatch = state.match.id === action.payload.id ? {
-                ...state.match,
-                ...action.payload
-            } : state.match;
+            }));
             return {
                 ...state,
-                match: updateSingleMatch,
-                matches: updateMatch
-            }
+                matches: updatedMatches,
+            };
+        }
+
         default:
             return state;
     }

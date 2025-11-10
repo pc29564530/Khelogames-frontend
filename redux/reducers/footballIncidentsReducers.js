@@ -5,11 +5,11 @@ const initialState = {
 }
 
 const footballIncidentsReducers = (state = initialState, action) => {
-    switch(action) {
-        case actionTypes.ADD_FOOTBALL_INCIDENTS:
+    switch(action.type) {
+        case actionTypes.ADD_FOOTBALL_INCIDENT:
             return {
                 ...state,
-                incidents: [incidnets, ...action.payload]
+                incidents: [...state.incidents, action.payload]
             }
         case actionTypes.RESET_FOOTBALL_INCIDENTS:
             return initialState

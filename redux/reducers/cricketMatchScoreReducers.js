@@ -4,7 +4,7 @@ const initialstate = {
     cricketMatchScore: [],
     cricketInningScore: [],
     batTeam: null,
-    match:null
+    match:{}
 };
 
 const cricketMatchScoreReducers = (state = initialstate, action) => {
@@ -33,7 +33,7 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
         case actionTypes.GET_MATCH:
             return {
                 ...state,
-                match: action.payload || null,
+                match: action.payload || {},
             };
         case actionTypes.UPDATE_INNING_SCORE:
             let newHomeScore = state.match.homeScore;
@@ -77,6 +77,56 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                 }
 
             }
+        case actionTypes.SET_MATCH_STATUS: {
+            console.log("🔄 SET_MATCH_STATUS - Received payload:", action.payload);
+            
+            // ✅ FIX: Handle both payload formats
+            let matchId, statusCode;
+            
+            if (action.payload.match_id !== undefined) {
+                // Format 1: {match_id: 3, status_code: "in_progress"}
+                matchId = action.payload.match_id;
+                statusCode = action.payload.status_code;
+                console.log("📋 Format 1: match_id =", matchId, "status =", statusCode);
+            } else if (action.payload.id !== undefined) {
+                // Format 2: Full match object from WebSocket
+                matchId = action.payload.id;
+                statusCode = action.payload.status_code;
+                console.log("📋 Format 2 (WebSocket): id =", matchId, "status =", statusCode);
+            } else {
+                console.error("❌ Invalid payload - no match_id or id found:", action.payload);
+                return state;
+            }
+
+            console.log("🎯 Looking for match with ID:", matchId);
+            console.log("🎯 Current match ID:", state.match?.id);
+
+            // ✅ CRITICAL: Update single match (match detail view)
+            let updateSingleMatch = state.match;
+            
+            if (state.match?.id === matchId) {
+                console.log("✅ Match ID matches - updating single match");
+                console.log("   Old status:", state.match.status_code);
+                console.log("   New status:", statusCode);
+                
+                updateSingleMatch = { 
+                    ...state.match, 
+                    status_code: statusCode 
+                };
+                
+                console.log("✅ Updated single match:", updateSingleMatch.status_code);
+            } else {
+                console.log("ℹ️ Match ID doesn't match current match - no update");
+                console.log("   Current:", state.match?.id, "Expected:", matchId);
+            }
+
+            console.log("📤 Returning new state with status:", updateSingleMatch?.status_code);
+
+            return {
+                ...state,
+                match: updateSingleMatch,
+            };
+        }
         default:
             return state;
     }

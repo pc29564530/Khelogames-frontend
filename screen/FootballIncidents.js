@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Modal, ActivityIndicator, FlatList } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
@@ -9,8 +9,9 @@ import AddFootballModalIncident from '../components/AddFootballModalIncidents';
 import IncidentCheck from '../components/IncidentsCheck';
 import Animated, { useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation, useSharedValue } from 'react-native-reanimated';
 import { useFocusEffect } from '@react-navigation/native';
-import { getFootballIncidents } from '../redux/actions/actions';
+import { addFootballIncidents, addFootballMatchScore, setFootballScore, getFootballIncidents } from '../redux/actions/actions';
 import { useSelector, useDispatch } from 'react-redux';
+import { useWebSocket } from '../context/WebSocketContext';
 
 // change the code so that when no incident is done it does not show the header
 
@@ -31,120 +32,6 @@ extra_half_time: { label: "EXTRA TIME", style: "bg-orange-100 text-orange-800" }
 penalty_shootout: { label: "PENALTY SHOOTOUT", style: "bg-yellow-100 text-yellow-800" },
 full_time: { label: "FULL TIME", style: "bg-red-100 text-red-800" },
 };
-
-const dummyIncidents = [
-    // First half goal by Raya Club
-    {
-      id: 1,
-      public_id: "11111111-1111-1111-1111-111111111111",
-      match_id: 1,
-      team_id: 1, // Raya Club
-      periods: "first_half",
-      incident_type: "goal",
-      incident_time: 12,
-      description: "Striker scored a goal",
-      penalty_shootout_scored: false,
-      player: { name: "Raya Striker" },
-      home_score: { goals: 1 },
-      away_score: { goals: 0 }
-    },
-  
-    // First half yellow card for Mathura Club
-    {
-      id: 2,
-      public_id: "22222222-2222-2222-2222-222222222222",
-      match_id: 1,
-      team_id: 2, // Mathura Club
-      periods: "first_half",
-      incident_type: "yellow_card",
-      incident_time: 28,
-      description: "Foul by defender",
-      penalty_shootout_scored: false,
-      player: { name: "Mathura Defender" }
-    },
-  
-    // Substitution for Raya Club
-    {
-      id: 3,
-      public_id: "33333333-3333-3333-3333-333333333333",
-      match_id: 1,
-      team_id: 1,
-      periods: "second_half",
-      incident_type: "substitutions",
-      incident_time: 55,
-      description: "Midfielder substituted",
-      penalty_shootout_scored: false,
-      player_in: { name: "Fresh Midfielder" },
-      player_out: { name: "Tired Midfielder" }
-    },
-  
-    // Second half goal for Mathura Club
-    {
-      id: 4,
-      public_id: "44444444-4444-4444-4444-444444444444",
-      match_id: 1,
-      team_id: 2,
-      periods: "second_half",
-      incident_type: "goal",
-      incident_time: 78,
-      description: "Forward equalizer",
-      penalty_shootout_scored: false,
-      player: { name: "Mathura Forward" },
-      home_score: { goals: 1 },
-      away_score: { goals: 1 }
-    },
-
-  
-    // Penalty shootout kick 1 (Home scored)
-    {
-      id: 5,
-      public_id: "66666666-6666-6666-6666-666666666666",
-      match_id: 1,
-      team_id: 1,
-      periods: "penalty_shootout",
-      incident_type: "penalty_shootout",
-      incident_time: 91,
-      description: "Captain scored",
-      penalty_shootout_scored: true,
-      player: { name: "Raya Captain" },
-      home_score: { goals: 2 },
-      away_score: { goals: 1 }
-    },
-  
-    // Penalty shootout kick 2 (Away missed)
-    {
-      id: 6,
-      public_id: "77777777-7777-7777-7777-777777777777",
-      match_id: 1,
-      team_id: 2,
-      periods: "penalty_shootout",
-      incident_type: "penalty_shootout",
-      incident_time: 92,
-      description: "Captain missed",
-      penalty_shootout_scored: false,
-      player: { name: "Mathura Captain" },
-      home_score: { goals: 2 },
-      away_score: { goals: 1 }
-    },
-  
-    // Penalty shootout kick 3 (Home scored)
-    {
-      id: 7,
-      public_id: "88888888-8888-8888-8888-888888888888",
-      match_id: 1,
-      team_id: 1,
-      periods: "penalty_shootout",
-      incident_type: "penalty_shootout",
-      incident_time: 93,
-      description: "Winger scored",
-      penalty_shootout_scored: true,
-      player: { name: "Raya Winger" },
-      home_score: { goals: 3 },
-      away_score: { goals: 1 }
-    }
-  ];
-  
-
 
 const PenaltyShootOutIncident = ({key, item, match}) => {
     return(
@@ -173,7 +60,7 @@ const PenaltyShootOutIncident = ({key, item, match}) => {
     );
 }
 
-const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight }) => {
+const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, collapsedHeight }) => {
     const match = item;
     const dispatch = useDispatch()
     const incidents = useSelector(state => state.footballIncidents.incidents)
@@ -186,6 +73,8 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
     const [penaltyH, setPenaltyH] = useState([]);
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
+    const {wsRef, subscribe} = useWebSocket()
+    
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
@@ -196,6 +85,8 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
             }
         }
     })
+
+
 
     // Content animation style
     const contentStyle = useAnimatedStyle(() => {
@@ -226,9 +117,9 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                         'Content-Type': 'application/json',
                     },
                 })
-                setAwaySquad(response.data || [])
+                setHomeSquad(response.data || [])
             } catch (err) {
-                console.error("failed to fetch football lineup: ", err);
+                console.error("failed to fetch football lineup for home incident: ", err);
             }
         }
         const fetchASquad = async () => {
@@ -246,12 +137,15 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                 })
                 setAwaySquad(response.data || [])
             } catch (err) {
-                console.error("failed to fetch football lineup: ", err);
+                console.error("failed to fetch football lineup for away incident: ", err);
             }
         }
         fetchHSquad();
         fetchASquad();
-    }, [])
+    }, [match.public_id])
+
+    console.log("HomeSquad: ", homeSquad)
+    console.log("AwaySquad: ", awaySquad)
 
 
     useEffect(() => {
@@ -272,6 +166,7 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
                 const item = incidentsResponse.data[1].incidents;
+                //console.log("Football Incidents: ", item)
                 if(item){
                     dispatch(getFootballIncidents(item));
                 } else {
@@ -285,7 +180,7 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
         };
 
         fetchPlayersAndIncidents();
-    }, []);
+    }, [match, dispatch]);
 
     // useEffect(() => {
     //     setLoading(true)
@@ -325,6 +220,37 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
     const handleIncidentModal = () => {
         setIncidentModalVisible(true);
     }
+
+     const handleWebSocketMessage = useCallback((event) => {
+                const rawData = event.data;
+                if (!rawData) {
+                    console.error("Raw data is undefined");
+                    return;
+                }
+        
+                try {
+                    const message = JSON.parse(rawData);
+                    console.log("WebSocket Message Received:", message);
+                    console.log("Message Type: ", message.Type)
+                    switch(message.type) {
+                        case "ADD_FOOTBALL_INCIDENT":
+                            dispatch(addFootballIncidents(message.payload));
+                            
+                        default:
+                            console.log("Unhandled message type:", message.type);
+                    }
+                } catch (err) {
+                    console.error("Error parsing WebSocket message:", err);
+                }
+            }, [dispatch]);
+
+             useEffect(() => {
+                console.log("Football - Subscribing to WebSocket messages");
+                const unsubscribe = subscribe(handleWebSocketMessage);
+                return unsubscribe; 
+            }, [handleWebSocketMessage, subscribe])
+
+
 
     return (
         <View style={tailwind`flex-1`}>
@@ -382,8 +308,9 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                                 </View>
 
                                 <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
+                                    {/* {console.log("Incident Map: ", item)} */}
                                     {item.data.map((incident, index) => (
-                                    <IncidentCheck key={index} incident={[incident]} matchData={match} />
+                                    <IncidentCheck key={index} incident={incident} matchData={match} />
                                     ))}
                                 </View>
                                 </Animated.View>
@@ -392,6 +319,7 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
                     style={tailwind`flex-1 bg-gray-50`}
                     onScroll={handlerScroll}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
                         paddingTop: 20,
@@ -415,25 +343,34 @@ const FootballIncidents = ({ item, parentScrollY, headerHeight, collapsedHeight 
             )}
             {incidentModalVisible && (
                 <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={incidentModalVisible}
-                    onRequestClose={() => setIncidentModalVisible(false)}
+                transparent={true}
+                animationType="slide"
+                visible={incidentModalVisible}
+                onRequestClose={() => setIncidentModalVisible(false)}
                 >
-                    <Pressable onPress={() => setIncidentModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-t-lg p-8`}>
-                            <AddFootballModalIncident 
-                                match={match} 
-                                awayPlayer={awayPlayer} 
-                                homePlayer={homePlayer} 
-                                awayTeam={match.awayTeam} 
-                                homeTeam={match.homeTeam}
-                                awaySquad={awaySquad}
-                                homeSquad={homeSquad}
-                            />
-                        </View>
-                    </Pressable>
+                <View style={tailwind`justify-end bg-black bg-opacity-50`}>
+                    <Pressable
+                    style={tailwind`flex-1`}
+                    onPress={() => setIncidentModalVisible(false)}
+                    />
+                    <View style={tailwind`bg-white rounded-t-2xl p-8 max-h-[80%]`}>
+                    <ScrollView nestedScrollEnabled={true}>
+                        <AddFootballModalIncident
+                        tournament={tournament} 
+                        match={match} 
+                        awayPlayer={awayPlayer} 
+                        homePlayer={homePlayer} 
+                        awayTeam={match.awayTeam} 
+                        homeTeam={match.homeTeam}
+                        awaySquad={awaySquad}
+                        homeSquad={homeSquad}
+                        setIncidentModalVisible={setIncidentModalVisible}
+                        />
+                    </ScrollView>
+                    </View>
+                </View>
                 </Modal>
+
             )}
         </View>
     );

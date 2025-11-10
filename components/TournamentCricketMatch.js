@@ -1,10 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCricketMatchScore } from '../redux/actions/actions';
+import { getCricketMatchScore, getMatches } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -29,10 +29,11 @@ export const renderInningScore = (scores) => {
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const matches = useSelector((state) => state.cricketMatchScore.cricketMatchScore);
+    const matches = useSelector((state) => state.matches.matches);
     const game = useSelector(state => state.sportReducers.game);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
-
+    const [loading, setLoading] = useState(false);
+    console.log("Matches: ", matches)
     const {height: sHeight, width: sWidth} = Dimensions.get("window")
 
     const currentScrollY = useSharedValue(0);
@@ -63,11 +64,13 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
-        }, [])
+        }, [dispatch])
     );
 
     const fetchTournamentMatchs = async () => {
+        
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch/${tournament.public_id}`, {
                 headers: {
@@ -76,9 +79,12 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                 }
             });
             const item = response.data;
-            dispatch(getCricketMatchScore(item || []))
+            console.log("Item: ", item)
+            dispatch(getMatches(item || []))
         } catch (err) {
             console.error("Unable to fetch tournament matches: ", err);
+        } finally {
+            setLoading(false);
         }
     };
 

@@ -9,7 +9,7 @@ import { formattedTime, formattedDate, convertToISOString, formatToDDMMYY } from
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
-import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus } from '../redux/actions/actions';
+import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents } from '../redux/actions/actions';
 import { StatusModal } from '../components/modals/StatusModal';
 const filePath = require('../assets/status_code.json');
 import { useWebSocket } from '../context/WebSocketContext';
@@ -29,11 +29,11 @@ import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
 
 const FootballMatchPage = ({ route }) => {
-    const wsRef = useWebSocket();
+    const {wsRef, subscribe} = useWebSocket();
     const dispatch = useDispatch();
     const TopTab = createMaterialTopTabNavigator();
-    const {matchPublicID} = route.params;                                                                     
-    const match = useSelector((state) => state.matches.match);
+    const {matchPublicID, tournament} = route.params;                                                                     
+    const match = useSelector((state) => state.footballMatchScore.match);
     const navigation = useNavigation();
     const [allStatus, setAllStatus] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
@@ -43,6 +43,17 @@ const FootballMatchPage = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const game = useSelector((state) => state.sportReducers.game);
+
+    
+
+    const payloadData = {
+            "type": "SUBSCRIBE",
+            "category": "MATCH",
+            "payload": {"match_public_id": matchPublicID}
+    }
+
+    wsRef?.current?.send(JSON.stringify(payloadData)) 
+
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
@@ -214,7 +225,6 @@ const FootballMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("Match Lien no 210: ", response.data)
                 dispatch(getMatch(response.data || null));
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
@@ -239,7 +249,7 @@ const FootballMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            dispatch(setMatchStatus(response.data || []));
+            // dispatch(setMatchStatus(response.data || []));
         } catch (err) {
             console.error("Unable to update the match: ", err);
         } finally {
@@ -253,6 +263,13 @@ const FootballMatchPage = ({ route }) => {
     const filteredStatusCodes = allStatus?.football?.filter((item) => 
         item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
+ 
+
+    useEffect(() => {
+        if (match) {
+            setLoading(false);
+        }
+    }, [match]);
 
     if (loading && !match) {
         return (
@@ -280,29 +297,44 @@ const FootballMatchPage = ({ route }) => {
         );
     }
 
-    const handleWebSocketMessage = useCallback((event) => {
-        const rawData = event.data;
-        if(rawData === null || !rawData){
-            console.error("raw data is undefined");
-            return;
-        }
-
-        const message = JSON.parse(rawData);
-        if(message.type === "UPDATE_FOOTBALL_SCORE") {
-            dispatch(setFootballScore(message.payload))
-        } else if(message.type === "ADD_FOOTBALL_SCORE"){
-            dispatch(addFootballMatchScore(message.payload))
-        } else if(message.type === "UPDATE_MATCH_STATUS") {
-            dispatch(setMatchStatus(message.payload));
-        }
-    }, [])
+        const handleWebSocketMessage = useCallback((event) => {
+            const rawData = event.data;
+            if (!rawData) {
+                console.error("Raw data is undefined");
+                return;
+            }
+    
+            try {
+                const message = JSON.parse(rawData);
+                console.log("WebSocket Message Received:", message);
+                console.log("Message Type: ", message.type)
+                if(message.type === undefined || message.type === null){
+                    console.log("Message type is undefined ")
+                    return
+                }
+                switch(message.type) {
+                    case "UPDATE_FOOTBALL_SCORE":
+                        console.log("Score Update Payload:", message.payload);
+                        dispatch(setFootballScore(message.payload));
+                        break;
+                    case "UPDATE_MATCH_STATUS":
+                        dispatch(setMatchStatus(message.payload));
+                        break;
+                    default:
+                        console.log("Unhandled message type:", message.type);
+                }
+            } catch (err) {
+                console.error("Error parsing WebSocket message:", err);
+            }
+        }, [dispatch]);
 
     useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-        wsRef.current.onmessage = handleWebSocketMessage
-    }, [handleWebSocketMessage])
+        console.log("Football - Subscribing to WebSocket messages");
+        const unsubscribe = subscribe(handleWebSocketMessage);
+        return unsubscribe; 
+    }, [handleWebSocketMessage, subscribe])
+
+    //console.log("Tournqment Match Page; ", tournament)
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
@@ -448,6 +480,7 @@ const FootballMatchPage = ({ route }) => {
                     <TopTab.Screen name="Incidents">
                         {() => (
                             <FootballIncidents
+                                tournament={tournament}
                                 item={match}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}

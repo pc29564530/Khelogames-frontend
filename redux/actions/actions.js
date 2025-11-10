@@ -256,6 +256,7 @@ export const getCricketStanding = (standing) => {
 // }
 
 export const addFootballMatchScore = (matchScore) => {
+    console.log("Match Score: ", matchScore)
     return {
         type: actionTypes.ADD_FOOTBALL_SCORE,
         payload: matchScore
@@ -389,6 +390,7 @@ export const getMatch = (match) => {
 }
 
 export const getMatches = (matches) => {
+    //console.log("Action matches: ", matches)
     return {
         type: actionTypes.GET_MATCHES,
         payload: matches
@@ -587,8 +589,9 @@ export const setCurrentBowler = (bowler) => {
 }
 
 export const addFootballIncidents = (incident) => {
+    console.log("Acttion : incident; ", incident)
     return {
-        type: actionTypes.ADD_FOOTBALL_INCIDENTS,
+        type: actionTypes.ADD_FOOTBALL_INCIDENT,
         payload: incident
     }
 }
@@ -601,6 +604,7 @@ export const resetFootballIncidents = (incident) => {
 }
 
 export const getFootballIncidents = (incident) => {
+    // console.log("Action: ", incident)
     return {
         type: actionTypes.GET_FOOTBALL_INCIDENTS,
         payload: incident
@@ -608,6 +612,7 @@ export const getFootballIncidents = (incident) => {
 }
 
 export const setFootballScore = (score) => {
+    console.log("Set Football Score; ", score)
     return {
         type: actionTypes.SET_FOOTBALL_SCORE,
         payload: score
@@ -618,5 +623,12 @@ export const setMatchStatus = (status) => {
     return {
         type: actionTypes.SET_MATCH_STATUS,
         payload: status
+    }
+}
+
+export const getFootballScore = (score) => {
+    return {
+        type: actionTypes.GET_FOOTBALL_SCORE,
+        payload: score
     }
 }

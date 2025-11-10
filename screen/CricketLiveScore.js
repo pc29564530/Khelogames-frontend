@@ -181,11 +181,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const fetchCurrentBatsman = async () => {
         try {
             const authToken = AsyncStorage.getItem("AccessToken");
-            const data = {
-                match_public_id: match.public_id,
-                team_public_id: batTeam,
-                inning_number: currentInningNumber
-            }
+            // const data = {
+            //     match_public_id: match.public_id,
+            //     team_public_id: batTeam,
+            //     inning_number: currentInningNumber
+            // }
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCurrentBatsman` , {
                 params: {
                     match_public_id: match.public_id,

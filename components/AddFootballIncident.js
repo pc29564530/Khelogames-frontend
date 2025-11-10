@@ -1,170 +1,75 @@
-import React, {useCallback, useState, useEffect} from 'react';
-import {View, Text, TextInput, Pressable, Modal, Image, ScrollView} from 'react-native';
+import React, {useLayoutEffect} from 'react';
+import {View, Pressable} from 'react-native';
 import tailwind from 'twrnc';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Dropdown from 'react-native-modal-dropdown';
-import { useSelector } from 'react-redux';
-import { useWebSocket } from '../context/WebSocketContext';
-import { addFootballIncidents, addFootballMatchScore } from '../redux/actions/actions';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { useNavigation } from '@react-navigation/native';
 
-const AddFootballIncident = ({match, awayPlayer, homePlayer, awayTeam, homeTeam, selectedIncident, homeSquad, awaySquad}) => {
-    const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const [selectedHalf, setSelectedHalf] = useState("first_half");
-    const [selectedMinute, setSelectedMinute] = useState('45');
-    const [teamPublicID, setTeamPublicID] = useState(homeTeam.public_id);
-    const [description, setDescription] = useState('');
-    const game = useSelector((state) => state.sportReducers.game);
-    const wsRef = useWebSocket();
-    const minutes = Array.from({ length: 90 }, (_, i) => i + 1);
+// Import the separate components
+import StandardIncidentForm from '../components/form/StandardIncidentForm';
+import SubstitutionIncidentForm from '../components/form/SubstitutionIncidentForm';
+import ShootoutIncidentForm from '../components/form/ShootoutIncidentForm';
+import PeriodIncidentForm from '../components/form/PeriodIncidentForm';
 
-    const handleAddIncident = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const data = {
-                "match_public_id":match.public_id,
-                "team_public_id":teamPublicID,
-                "periods":selectedHalf,
-                "incident_type":selectedIncident,
-                "incident_time":selectedMinute,
-                "player_public_id":selectedPlayer.public_id,
-                "description":description
-            }
-            const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addFootballIncidents`, data, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            const item = response.data;
-        } catch (err) {
-            console.error("unable to add the incident: ", err);
+const AddFootballIncident = ({ route }) => {
+    const {
+        match, 
+        tournament, 
+        awayPlayer, 
+        homePlayer, 
+        awayTeam, 
+        homeTeam, 
+        incidentType, 
+        homeSquad, 
+        awaySquad,
+        componentType = "standard"
+    } = route.params;
+    
+    const navigation = useNavigation();
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: `Add ${incidentType.charAt(0).toUpperCase() + incidentType.slice(1).replace(/_/g, ' ')}`,
+            headerLeft: () => (
+                <Pressable onPress={() => navigation.goBack()}>
+                    <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+                </Pressable>
+            ),
+            headerStyle: tailwind`bg-red-400`,
+        });
+    }, [navigation, incidentType]);
+
+    // Render appropriate component based on type
+    const renderComponent = () => {
+        const commonProps = {
+            match,
+            tournament,
+            awayPlayer,
+            homePlayer,
+            awayTeam,
+            homeTeam,
+            homeSquad,
+            awaySquad,
+            incidentType,
+            navigation
+        };
+
+        switch (componentType) {
+            case "substitution":
+                return <SubstitutionIncidentForm {...commonProps} />;
+            case "shootout":
+                return <ShootoutIncidentForm {...commonProps} />;
+            case "period":
+                return <PeriodIncidentForm {...commonProps} />;
+            default:
+                return <StandardIncidentForm {...commonProps} />;
         }
-    }
-
-    const formatIncidentType = (type) => {
-        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    }
-
-    const handleWebSocketMessage = useCallback((event) => {
-        const rawData = event.data;
-        if(rawData === null || !rawData){
-            console.error("raw data is undefined");
-            return;
-        }
-
-        const message = JSON.parse(rawData);
-        if(message.type === "ADD_FOOTBALL_INCIDENTS") {
-            dispatch(addFootballIncidents(message.payload));
-        } else if (message.type === "UPDATE_FOOTBALL_SCORE") {
-            dispatch(addFootballMatchScore(message.payload));
-        }
-    }, [])
-
-    useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-        wsRef.current.onmessage = handleWebSocketMessage
-    }, [handleWebSocketMessage])
+    };
 
     return (
-        <ScrollView contentContainerStyle={tailwind`p-5 bg-gray-100 min-h-full`}>
-            {/* Header Section */}
-            <Text style={tailwind`text-xl font-bold text-gray-800 mb-5`}>Add Football {formatIncidentType(selectedIncident)}</Text>
-            {/* Select Period */}
-            <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Period:</Text>
-                <View style={tailwind`flex-row items-center justify-between`}>
-                        <Pressable 
-                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'first_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
-                        onPress={() => setSelectedHalf('first_half')}
-                    >
-                        <Text style={tailwind`text-white font-semibold`}>1st Half</Text>
-                    </Pressable>
-                    
-                    <Pressable 
-                        style={[tailwind`p-3 rounded-lg`, selectedHalf === 'second_half' ? tailwind`bg-red-400` : tailwind`bg-gray-200`]} 
-                        onPress={() => setSelectedHalf('second_half')}
-                    >
-                        <Text style={tailwind`text-white font-semibold`}>2nd Half</Text>
-                    </Pressable>
-                </View>
-            </View>
-            {/* Minute Selector */}
-            <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-lg font-semibold mb-2`}>Incident Time (Minute):</Text>
-                <Dropdown
-                    style={tailwind`border p-3 bg-white rounded-lg shadow-md`}
-                    options={minutes}
-                    onSelect={(index, value) => setSelectedMinute(value)}
-                    defaultValue={selectedMinute}
-                    renderRow={(minute) => (
-                        <Text style={tailwind`text-lg p-3 text-center`}>{minute}</Text>
-                    )}
-                />
-            </View>
-            {/* Team Selector */}
-            <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Team:</Text>
-                <View style={tailwind`flex-row justify-between`}>
-                    <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg mr-3`, teamPublicID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamPublicID(homeTeam.public_id)}
-                    >
-                        <Text style={tailwind`text-white font-semibold text-center`}>{homeTeam.name}</Text>
-                    </Pressable>
-                    <Pressable 
-                        style={[tailwind`p-4 flex-1 rounded-lg`, teamPublicID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}
-                        onPress={() => setTeamPublicID(awayTeam.public_id)}
-                    >
-                        <Text style={tailwind`text-white font-semibold text-center`}>{awayTeam.name}</Text>
-                    </Pressable>
-                </View>
-            </View>
-            {/* Player Selector */}
-            <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-lg font-semibold mb-2`}>Select Player:</Text>
-                <Dropdown
-                    style={tailwind`p-4 bg-white rounded-lg shadow-md border border-gray-200`}
-                    options={teamPublicID === homeTeam.public_id ? homeSquad.filter(player => player.is_substitute === false) : awaySquad.filter(player => player.is_substitute === false)}
-                    onSelect={(index, item) => setSelectedPlayer(item)}
-                    renderRow={(item) => (
-                        <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
-                            <Image
-                                src={{uri: item.media_url}}
-                                style={tailwind`rounded-full h-12 w-12 mr-3 bg-yellow-300`}
-                                resizeMode="cover"
-                            />
-                            <Text style={tailwind`text-lg font-semibold text-gray-700`}>{item.player_name}</Text>
-                        </View>
-                    )}
-                >
-                    <View style={tailwind`flex-row items-center justify-between p-3 border rounded-md bg-gray-50`}>
-                        <Text style={tailwind`text-lg font-medium text-gray-700`}>
-                            {selectedPlayer ? selectedPlayer.player_name : 'Select player'}
-                        </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color="gray" />
-                    </View>
-                </Dropdown>
-            </View>
-            {/* Description Input */}
-            <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-lg font-semibold mb-2`}>Description:</Text>
-                <TextInput
-                    style={tailwind`border p-4 rounded-lg bg-white shadow-md`}
-                    placeholder="Enter details about the substitution"
-                    value={description}
-                    onChangeText={setDescription}
-                />
-            </View>
-            {/* Confirm Button */}
-            <Pressable 
-                style={tailwind`p-4 bg-red-400 rounded-lg shadow-lg flex items-center justify-center`}
-                onPress={() => handleAddIncident()}
-            >
-                <Text style={tailwind`text-white font-semibold text-lg`}>Confirm`</Text>
-            </Pressable>
-        </ScrollView>
+        <View style={tailwind`flex-1 bg-white`}>
+            {renderComponent()}
+        </View>
     );
-}
+};
+
 export default AddFootballIncident;

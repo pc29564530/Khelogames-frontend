@@ -7,9 +7,19 @@
         "severity": "upcoming"
       },
       {
+        "label": "Resume",
+        "type": "resume",
+        "severity":"live"
+      },
+      {
         "label": "Scheduled",
         "type": "scheduled",
         "severity": "upcoming"
+      },
+      {
+        "label": "Resume",
+        "type": "resume",
+        "severity":"live"
       },
       {
         "label": "In Progress",

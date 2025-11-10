@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, Pressable, Image, Modal, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
@@ -111,14 +111,28 @@ const CricketMatchPage = ({ route }) => {
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [allStatus, setAllStatus] = useState([]);
+    const isMountedRef = useRef(true);
+    const lastPayloadRef = useRef(null);
+    const dispatchRef = useRef(dispatch);
+    
+    // Update dispatch ref when dispatch changes
+    useEffect(() => {
+        dispatchRef.current = dispatch;
+    }, [dispatch]);
 
-    const payloadData = {
-            "type": "SUBSCRIBE",
-            "category": "MATCH",
-            "payload": {"match_public_id": matchPublicID}
-    }
-
-    wsRef?.current?.send(JSON.stringify(payloadData))
+    // SUBSCRIBE ONCE - Send initial subscription
+    useEffect(() => {
+        if (!wsRef?.current || !match?.public_id) return;
+        
+        const payloadData = {
+            type: "SUBSCRIBE",
+            category: "MATCH",
+            payload: { match_public_id: match.public_id }
+        };
+        
+        console.log("CricketMatchPage - Subscribing to match:", match.public_id);
+        wsRef.current.send(JSON.stringify(payloadData));
+    }, [match?.public_id, wsRef]);
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
@@ -408,24 +422,116 @@ const CricketMatchPage = ({ route }) => {
     };
 
     const handleWebSocketMessage = useCallback((event) => {
-        const rawData = event.data;
-        if(rawData === null || !rawData){
-            console.error("raw data is undefined");
-            return;
-        }
+        const rawData = event?.data;
+        console.log("Raw Data: ", rawData)
+        try {
+            if (rawData === null || !rawData) {
+                console.error("raw data is undefined");
+                return;
+            }
+            
+            const message = JSON.parse(rawData);
+            
+            // Prevent duplicate processing - check by message type and key data
+            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
+            if (lastPayloadRef.current === messageKey) {
+                console.log("Duplicate message ignored:", messageKey);
+                return;
+            }
+            lastPayloadRef.current = messageKey;
+            console.log("Message Type: ", message.type)
+            console.log("Score Line no Empos...: ", message.payload)
 
-        const message = JSON.parse(rawData);
-        // console.log("Message Cricket: ", message)
-        if(message.type === "UPDATE_MATCH_STATUS") {
-            dispatch(setMatchStatus(message.payload));
-        }
-    }, [])
+            if(message.type === "UPDATE_SCORE") {
+                if (!message.payload.inning_score) {
+                        console.warn("Skipping UPDATE_SCORE without inning_score:", message.payload);
+                        return;
+                }
+                
+                // Batch all dispatches to prevent multiple re-renders
+                const dispatches = [];
+                console.log("Message: ", message.payload.event_type)
+                if(message.payload.event_type === "normal"){
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== inningStatus){
+                        console.log("Inning Number normal: ", message.payload.inning_score.inning_number)
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
+                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
+                } else if(message.payload.event_type === "wide") {
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
+                } else if(message.payload.event_type === "no_ball") {
+                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
+                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
+                } else if(message.payload.event_type === "wicket") {
+                    if(message.payload.out_batsman) dispatches.push(setBatsmanScore(message.payload.out_batsman));
+                    if(message.payload.not_out_batsman) dispatches.push(setBatsmanScore(message.payload.not_out_batsman));
+                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
+                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
+                    if(message.payload.wickets) dispatches.push(addCricketWicketFallen(message.payload.wickets));
+                    if(message.payload.inning_score.inning_status !== "in_progress"){
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                    }
+                }
+                
+                // Execute all dispatches at once
+                dispatches.forEach(dispatchAction => dispatchRef.current(dispatchAction));
+            } else if(message.type === "UPDATE_MATCH_STATUS") {
+                console.log("Update match status: ", message)
+                dispatch(setMatchStatus(message.payload));
+            }
 
-useEffect(() => {
-    console.log(" Cricket - Subscribing to WebSocket messages");
-    const unsubscribe = subscribe(handleWebSocketMessage);
-    return unsubscribe;
-}, [handleWebSocketMessage, subscribe]);    
+            // console.log("message : ", message.type)
+            // console.log("message payload status: ", message.payload.inning_status)
+            
+            if(message.type === "INNING_STATUS"){
+                const payload = message.payload;
+                    dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number));
+                    
+                    // Also update batsman and bowler data from INNING_STATUS message
+                    if(payload.striker) {
+                        dispatchRef.current(setBatsmanScore(payload.striker));
+                    }
+                    if(payload.non_striker) {
+                        dispatchRef.current(setBatsmanScore(payload.non_striker));
+                    }
+                    if(payload.bowler) {
+                        dispatchRef.current(setBowlerScore(payload.bowler));
+                    }
+                    if(payload.inning_score) {
+                        dispatchRef.current(setInningScore(payload.inning_score));
+                        dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number))
+                        dispatchRef.current(setCurrentInningNumber(payload.inning_score.inning_number))
+                    }
+                // }
+            }
+        } catch (e) {
+            console.error('error parsing json: ', e);
+        }
+    }, []);
+
+    useEffect(() => {
+        console.log(" Cricket - Subscribing to WebSocket messages");
+        const unsubscribe = subscribe(handleWebSocketMessage);
+        return unsubscribe;
+    }, [handleWebSocketMessage, subscribe]);    
 
     const getInningDescription = () => {
         if (!match?.status_code || match?.status_code === "not_started") return null;

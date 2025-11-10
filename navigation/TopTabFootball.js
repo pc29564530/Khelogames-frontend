@@ -12,7 +12,6 @@ import TournamentFootballMatch from '../components/TournamentFootballMatch';
 function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     const game = useSelector(state => state.sportReducers.game);
-    console.log("Header Height: ", headerHeight)
     return (
         <TopTab.Navigator
         screenOptions={{

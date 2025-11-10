@@ -81,12 +81,12 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
                             <View key={index} style={tailwind`bg-white`}>
                                 {Object.keys(stage.group_stage).length > 0 && 
                                     Object.entries(stage.group_stage).map(([stageName, matchs]) => (
-                                        matchesData(matchs, stageName, navigation)
+                                        matchesData(matchs, stageName, navigation, tournament)
                                     ))
                                 }
                                 {Object.keys(stage.league_stage).length > 0 && 
                                     Object.entries(stage.league_stage).map(([stageName, matchs]) => (
-                                        matchesData(matchs, stageName, navigation)
+                                        matchesData(matchs, stageName, navigation, tournament)
                                     ))
                                 }
                                 {Object.keys(stage.knockout_stage).length > 0 &&
@@ -97,7 +97,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
                                                     <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
                                                 )}
                                                 {matchs.map((item, ind) => (
-                                                    matchesData(item, ind, navigation)
+                                                    matchesData(item, ind, navigation, tournament)
                                                 ))}
                                             </View>
                                         )
@@ -114,9 +114,9 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     );
 }
 
-const matchesData = (item, ind, navigation) => {
+const matchesData = (item, ind, navigation, tournament) => {
     const handleFootballMatchPage = (item) => {
-        navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id});
+        navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, tournament: tournament});
     }
     return (
         <Pressable
@@ -127,14 +127,14 @@ const matchesData = (item, ind, navigation) => {
             <View style={tailwind`flex-row justify-between items-center`}>
                 <View>
                 <View style={tailwind`flex-row items-center mb-1`}>
-                    {item.homeTeam.media_url ? (
+                    {item.homeTeam?.media_url ? (
                         <Image
                             source={{ uri: item.homeTeam?.media_url }}
                             style={tailwind`w-6 h-6 rounded-full bg-gray-200`}
                         />
                     ): (
                         <View style={tailwind`w-6 h-6 rounded-full bg-gray-200`}>
-                            <Text>{item.homeTeam.media_url.charAt(0).toUpperCase()}</Text>
+                            <Text>{item.homeTeam?.media_url.charAt(0).toUpperCase()}</Text>
                         </View>
                     )}
                     <Text
@@ -145,14 +145,14 @@ const matchesData = (item, ind, navigation) => {
                     </Text>
                 </View>
                 <View style={tailwind`flex-row items-center`}>
-                    {item.homeTeam.media_url ? (
+                    {item.homeTeam?.media_url ? (
                         <Image
                             source={{ uri: item.awayTeam?.media_url }}
                             style={tailwind`w-6 h-6 rounded-full bg-gray-200`}
                         />
                     ): (
                         <View style={tailwind`w-6 h-6 rounded-full bg-gray-200`}>
-                            <Text>{item.awayTeam.media_url.charAt(0).toUpperCase()}</Text>
+                            <Text>{item.awayTeam?.media_url.charAt(0).toUpperCase()}</Text>
                         </View>
                     )}
                     <Text

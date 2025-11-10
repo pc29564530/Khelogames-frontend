@@ -39,6 +39,7 @@ import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
+import AddFootballIncident from '../components/AddFootballIncident';
 
 const Stack = createStackNavigator();
 
@@ -200,6 +201,15 @@ export default function MainNavigation() {
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage} 
                             options={{
                                 headerShown: false,
+                                headerTitle: '',
+                                headerBackTitleVisible: false,
+                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
+                                headerTintColor: tailwind.color('bg-black'),
+                            }}
+                        />
+                        <Stack.Screen name="AddFootballIncident" component={AddFootballIncident} 
+                            options={{
+                                headerShown: true,
                                 headerTitle: '',
                                 headerBackTitleVisible: false,
                                 headerStyle: { backgroundColor: tailwind.color('bg-red-400') },

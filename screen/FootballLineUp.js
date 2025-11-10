@@ -171,7 +171,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     if(!authUser){
       return null;
     }
-    if(currentTeamPlayer === homeTeamPublicID && match.homeTeam.user_id === authUser.id ){
+    if(currentTeamPlayer === homeTeamPublicID && match?.homeTeam?.user_id === authUser?.id ){
       return (
         <View style={tailwind`mb-2 gap-4 p-2`}>
           <Pressable
@@ -187,7 +187,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           </Pressable>
         </View>
       )
-    } else if(currentTeamPlayer === awayTeamPublicID && match.awayTeam.user_id === authUser.id ){
+    } else if(currentTeamPlayer === awayTeamPublicID && match?.awayTeam?.user_id === authUser?.id ){
       return (
         <View style={tailwind`mb-2 gap-4 p-2`}>
           <Pressable

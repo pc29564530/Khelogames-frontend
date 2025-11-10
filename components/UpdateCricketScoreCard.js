@@ -16,124 +16,11 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
     const isMountedRef = useRef(true);
     const lastPayloadRef = useRef(null);
     const dispatchRef = useRef(dispatch);
-
-    const payloadData = {
-            "type": "SUBSCRIBE",
-            "category": "MATCH",
-            "payload": {"match_public_id": match.public_id}
-    }
-
-    wsRef?.current?.send(JSON.stringify(payloadData))
     
     // Update dispatch ref when dispatch changes
     useEffect(() => {
         dispatchRef.current = dispatch;
     }, [dispatch]);
-
-    const handleWebSocketMessage = useCallback((event) => {
-        const rawData = event?.data;
-        console.log("Raw Data: ", rawData)
-        try {
-            if (rawData === null || !rawData) {
-                console.error("raw data is undefined");
-                return;
-            }
-            
-            const message = JSON.parse(rawData);
-            if (!message.payload.inning_score) {
-                    console.warn("Skipping UPDATE_SCORE without inning_score:", message.payload);
-                    return;
-            }
-            
-            // Prevent duplicate processing - check by message type and key data
-            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
-            if (lastPayloadRef.current === messageKey) {
-                console.log("Duplicate message ignored:", messageKey);
-                return;
-            }
-            lastPayloadRef.current = messageKey;
-            console.log("Message Type: ", message.type)
-            console.log("Score Line no Empos...: ", message.payload)
-
-            if(message.type === "UPDATE_SCORE") {
-                
-                // Batch all dispatches to prevent multiple re-renders
-                const dispatches = [];
-                console.log("Message: ", message.payload.event_type)
-                if(message.payload.event_type === "normal"){
-                    console.log("Lien no 65")
-                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
-                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
-                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
-                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
-                    if(message.payload.inning_score.inning_status !== inningStatus){
-                        console.log("Inning Number normal: ", message.payload.inning_score.inning_number)
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
-                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
-                    }
-                } else if(message.payload.event_type === "wide") {
-                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
-                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
-                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
-                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
-                    if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
-                    }
-                } else if(message.payload.event_type === "no_ball") {
-                    if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
-                    if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
-                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
-                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
-                    if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
-                    }
-                } else if(message.payload.event_type === "wicket") {
-                    if(message.payload.out_batsman) dispatches.push(setBatsmanScore(message.payload.out_batsman));
-                    if(message.payload.not_out_batsman) dispatches.push(setBatsmanScore(message.payload.not_out_batsman));
-                    if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
-                    if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
-                    if(message.payload.wickets) dispatches.push(addCricketWicketFallen(message.payload.wickets));
-                    if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
-                    }
-                }
-                
-                // Execute all dispatches at once
-                dispatches.forEach(dispatchAction => dispatchRef.current(dispatchAction));
-            }
-
-            // console.log("message : ", message.type)
-            // console.log("message payload status: ", message.payload.inning_status)
-            
-            if(message.type === "INNING_STATUS"){
-                const payload = message.payload;
-                    dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                    
-                    // Also update batsman and bowler data from INNING_STATUS message
-                    if(payload.striker) {
-                        dispatchRef.current(setBatsmanScore(payload.striker));
-                    }
-                    if(payload.non_striker) {
-                        dispatchRef.current(setBatsmanScore(payload.non_striker));
-                    }
-                    if(payload.bowler) {
-                        dispatchRef.current(setBowlerScore(payload.bowler));
-                    }
-                    if(payload.inning_score) {
-                        dispatchRef.current(setInningScore(payload.inning_score));
-                        dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number))
-                        dispatchRef.current(setCurrentInningNumber(payload.inning_score.inning_number))
-                    }
-                // }
-            }
-        } catch (e) {
-            console.error('error parsing json: ', e);
-        }
-    }, []); // Remove dispatch dependency to prevent infinite loop
-
 
     const handleCurrentScoreEvent = useCallback((item) => {
         const eventItem = item.toLowerCase().replace(/\s+/g, '_');
@@ -255,12 +142,6 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 }
         }
     }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInning, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange]);
-
-    useEffect(() => {
-        console.log("Cricket - Subscribing to WebSocket messages");
-        const unsubscribe = subscribe(handleWebSocketMessage);
-        return unsubscribe; 
-    }, [handleWebSocketMessage, subscribe])
 
     const handleWicketType = useCallback((item) => {
         if(item === "Run Out"){

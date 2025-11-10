@@ -40,7 +40,7 @@ const appReducer = combineReducers({
     community: communityReducers,
     editProfile: editProfileReducers,
     profile: profileReducers,
-    matchScore: footballMatchScoreReducers,
+    footballMatchScore: footballMatchScoreReducers,
     playerScore: footballMatchPlayerScoreReducers,
     cricketPlayerScore: cricketMatchPlayerScore,
     cricketMatchScore: cricketMatchScore,
