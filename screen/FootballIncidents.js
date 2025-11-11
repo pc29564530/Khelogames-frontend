@@ -240,7 +240,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                             console.log("Unhandled message type:", message.type);
                     }
                 } catch (err) {
-                    console.error("Error parsing WebSocket message:", err);
+                    console.error("Error parsing WebSocket message for football incident:", err);
                 }
             }, [dispatch]);
 
@@ -343,34 +343,33 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
             )}
             {incidentModalVisible && (
                 <Modal
-                transparent={true}
-                animationType="slide"
-                visible={incidentModalVisible}
-                onRequestClose={() => setIncidentModalVisible(false)}
+                    transparent={true}
+                    animationType="slide"
+                    visible={incidentModalVisible}
+                    onRequestClose={() => setIncidentModalVisible(false)}
                 >
-                <View style={tailwind`justify-end bg-black bg-opacity-50`}>
+                    <View style={tailwind`flex-1 bg-black bg-opacity-50 justify-end`}>
                     <Pressable
-                    style={tailwind`flex-1`}
-                    onPress={() => setIncidentModalVisible(false)}
+                        style={tailwind`flex-1`}
+                        onPress={() => setIncidentModalVisible(false)}
                     />
                     <View style={tailwind`bg-white rounded-t-2xl p-8 max-h-[80%]`}>
-                    <ScrollView nestedScrollEnabled={true}>
+                        <ScrollView nestedScrollEnabled={true}>
                         <AddFootballModalIncident
-                        tournament={tournament} 
-                        match={match} 
-                        awayPlayer={awayPlayer} 
-                        homePlayer={homePlayer} 
-                        awayTeam={match.awayTeam} 
-                        homeTeam={match.homeTeam}
-                        awaySquad={awaySquad}
-                        homeSquad={homeSquad}
-                        setIncidentModalVisible={setIncidentModalVisible}
+                            tournament={tournament}
+                            match={match}
+                            awayPlayer={awayPlayer}
+                            homePlayer={homePlayer}
+                            awayTeam={match.awayTeam}
+                            homeTeam={match.homeTeam}
+                            awaySquad={awaySquad}
+                            homeSquad={homeSquad}
+                            setIncidentModalVisible={setIncidentModalVisible}
                         />
-                    </ScrollView>
+                        </ScrollView>
                     </View>
-                </View>
+                    </View>
                 </Modal>
-
             )}
         </View>
     );

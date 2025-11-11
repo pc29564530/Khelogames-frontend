@@ -9,7 +9,7 @@ import { formattedTime, formattedDate, convertToISOString, formatToDDMMYY } from
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
-import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents } from '../redux/actions/actions';
+import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents, setMatchSubStatus } from '../redux/actions/actions';
 import { StatusModal } from '../components/modals/StatusModal';
 const filePath = require('../assets/status_code.json');
 import { useWebSocket } from '../context/WebSocketContext';
@@ -38,7 +38,9 @@ const FootballMatchPage = ({ route }) => {
     const [allStatus, setAllStatus] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
+    const [subStatusVisible, setSubStatusVisible] = useState(false);
     const [statusCode, setStatusCode] = useState();
+    const [subStatus, setSubStatus] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -215,7 +217,6 @@ const FootballMatchPage = ({ route }) => {
 
     useFocusEffect(useCallback(() => {
         const fetchMatchData = async () => {
-            setLoading(true);
             setError('');
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
@@ -229,14 +230,12 @@ const FootballMatchPage = ({ route }) => {
             } catch (err) {
                 console.error("Failed to fetch match data: ", err);
                 setError("Failed to load match data. Please try again.");
-            } finally {
-                setLoading(false);
             }
         };
         fetchMatchData();
     }, [matchPublicID, game.name, dispatch]));
 
-    const handleUpdateResult = async (itm) => {
+    const handleUpdateStatus = async (itm) => {
         setStatusVisible(false);
         setMenuVisible(false);
         setLoading(true);
@@ -244,6 +243,28 @@ const FootballMatchPage = ({ route }) => {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const data = { status_code: itm.type };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus/${matchPublicID}`, data, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            // dispatch(setMatchStatus(response.data || []));
+        } catch (err) {
+            console.error("Unable to update the match: ", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateSubStatus = async (itm) => {
+        setSubStatusVisible(false);
+        setMenuVisible(false);
+        setLoading(true);
+        try {
+            console.log("Item: Status: ", itm)
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const data = { sub_status: itm.type };
+            const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchSubStatus/${matchPublicID}`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -320,11 +341,14 @@ const FootballMatchPage = ({ route }) => {
                     case "UPDATE_MATCH_STATUS":
                         dispatch(setMatchStatus(message.payload));
                         break;
+                    case "UPDATE_MATCH_SUB_STATUS":
+                        dispatch(setMatchSubStatus(message.payload));
+                        break;
                     default:
                         console.log("Unhandled message type:", message.type);
                 }
             } catch (err) {
-                console.error("Error parsing WebSocket message:", err);
+                console.error("Error parsing WebSocket message football match:", err);
             }
         }, [dispatch]);
 
@@ -528,7 +552,46 @@ const FootballMatchPage = ({ route }) => {
                                 {filteredStatusCodes.map((item, index) => (
                                     <Pressable
                                         key={index}
-                                        onPress={() => {setStatusCode(item.type); handleUpdateResult(item)}}
+                                        onPress={() => {setStatusCode(item.type); handleUpdateStatus(item)}}
+                                        style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
+                                    >
+                                        <MaterialIcon name="sports-football" size={22} color="#4b5563" />
+                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+            )}
+
+            {/* Sub Status */}
+            {subStatusVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={subStatusVisible}
+                    onRequestClose={() => setSubStatusVisible(false)}
+                >
+                    <Pressable 
+                        onPress={() => setSubStatusVisible(false)} 
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                    >
+                        <View style={tailwind`bg-white rounded-t-lg max-h-[70%]`}>
+                            <View style={tailwind`p-4 border-b border-gray-200`}>
+                                <Text style={tailwind`text-lg font-semibold text-center`}>Update Match Sub Status</Text>
+                            </View>
+                            <TextInput
+                                style={tailwind`bg-gray-100 p-3 m-4 rounded-md text-black`}
+                                placeholder="Search status..."
+                                value={searchQuery}
+                                onChangeText={handleSearch}
+                            />
+                            <ScrollView style={{minHeight: 20}}>
+                                {filteredStatusCodes.map((item, index) => (
+                                    <Pressable
+                                        key={index}
+                                        onPress={() => {setSubStatus(item.type); handleUpdateSubStatus(item)}}
                                         style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
                                     >
                                         <MaterialIcon name="sports-football" size={22} color="#4b5563" />
@@ -559,7 +622,16 @@ const FootballMatchPage = ({ route }) => {
                                     }}
                                     style={tailwind`p-3`}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Status</Text>
+                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Main Status</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                        setSubStatusVisible(true);
+                                    }}
+                                    style={tailwind`p-3`}
+                                >
+                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Sub Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity 
                                     onPress={() => {

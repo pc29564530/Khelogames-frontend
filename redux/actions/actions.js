@@ -589,7 +589,7 @@ export const setCurrentBowler = (bowler) => {
 }
 
 export const addFootballIncidents = (incident) => {
-    console.log("Acttion : incident; ", incident)
+    // console.log("Acttion : incident; ", incident)
     return {
         type: actionTypes.ADD_FOOTBALL_INCIDENT,
         payload: incident
@@ -612,7 +612,7 @@ export const getFootballIncidents = (incident) => {
 }
 
 export const setFootballScore = (score) => {
-    console.log("Set Football Score; ", score)
+    // console.log("Set Football Score; ", score)
     return {
         type: actionTypes.SET_FOOTBALL_SCORE,
         payload: score
@@ -622,6 +622,14 @@ export const setFootballScore = (score) => {
 export const setMatchStatus = (status) => {
     return {
         type: actionTypes.SET_MATCH_STATUS,
+        payload: status
+    }
+}
+
+export const setMatchSubStatus = (status) => {
+    console.log("Sub Status Action: ", status)
+    return {
+        type: actionTypes.SET_MATCH_SUB_STATUS,
         payload: status
     }
 }
