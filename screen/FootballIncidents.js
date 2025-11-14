@@ -354,19 +354,17 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                         onPress={() => setIncidentModalVisible(false)}
                     />
                     <View style={tailwind`bg-white rounded-t-2xl p-8 max-h-[80%]`}>
-                        <ScrollView nestedScrollEnabled={true}>
-                        <AddFootballModalIncident
-                            tournament={tournament}
-                            match={match}
-                            awayPlayer={awayPlayer}
-                            homePlayer={homePlayer}
-                            awayTeam={match.awayTeam}
-                            homeTeam={match.homeTeam}
-                            awaySquad={awaySquad}
-                            homeSquad={homeSquad}
-                            setIncidentModalVisible={setIncidentModalVisible}
-                        />
-                        </ScrollView>
+                            <AddFootballModalIncident
+                                tournament={tournament}
+                                match={match}
+                                awayPlayer={awayPlayer}
+                                homePlayer={homePlayer}
+                                awayTeam={match.awayTeam}
+                                homeTeam={match.homeTeam}
+                                awaySquad={awaySquad}
+                                homeSquad={homeSquad}
+                                setIncidentModalVisible={setIncidentModalVisible}
+                            />
                     </View>
                     </View>
                 </Modal>

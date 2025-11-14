@@ -168,10 +168,10 @@ const matchesData = (item, ind, navigation, tournament) => {
                     {item.status_code !== "not_started" && (
                         <View style={tailwind`items-center mr-4`}>
                         <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-                            {item?.homeScore?.score || '0'}
+                            {item?.homeScore?.goals || '0'}
                         </Text>
                         <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-                            {item?.awayScore?.score || '0'}
+                            {item?.awayScore?.goals || '0'}
                         </Text>
                         </View>
                     )}

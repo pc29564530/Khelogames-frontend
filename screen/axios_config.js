@@ -1,31 +1,34 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_URL } from '../constants/ApiConstants';
-import { setAuthenticated } from '../redux/actions/actions';
+import { setAuthenticated, logout } from '../redux/actions/actions';
 import store from '../redux/store';
-import { logout } from '../redux/actions/actions';
-
 
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = async (error, token = null) => {
+const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    error ? prom.reject(error) : prom.resolve(token);
   });
-
   failedQueue = [];
+};
+
+const logoutFunc = async () => {
+  try {
+    await AsyncStorage.clear();
+    store.dispatch(logout());
+    store.dispatch(setAuthenticated(false));
+  } catch (err) {
+    console.error('Error during logout:', err);
+  }
 };
 
 const axiosInstance = axios.create();
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("AccessToken");
+    const token = await AsyncStorage.getItem('AccessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -46,19 +49,18 @@ axiosInstance.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-        .then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return axiosInstance(originalRequest);
-        })
-        .catch(err => Promise.reject(err));
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return axiosInstance(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
       }
 
       isRefreshing = true;
 
       try {
-        const refreshToken = await AsyncStorage.getItem("RefreshToken");
-
-        if(!refreshToken){
+        const refreshToken = await AsyncStorage.getItem('RefreshToken');
+        if (!refreshToken) {
           await logoutFunc();
           return Promise.reject();
         }
@@ -66,23 +68,19 @@ axiosInstance.interceptors.response.use(
         const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
           refresh_token: refreshToken,
         });
-        console.log("Renew Access: ", response.data)
 
-        const newAccessToken = response.data.AccessToken;
+        const newAccessToken = response.data.access_token;
+        const expiresAt = response.data.access_token_expires_at;
 
-        await AsyncStorage.setItem("AccessToken", newAccessToken);
-        await AsyncStorage.setItem("AccessTokenExpiresAt", response.data.AccessTokenExpiresAt);
-        const user = await AsyncStorage.getItem("User");
-        if(newAccessToken){
-          store.dispatch(setUser(user));
-          store.dispatch(setAuthenticated(true));
-        }
+        await AsyncStorage.setItem('AccessToken', newAccessToken);
+        await AsyncStorage.setItem('AccessTokenExpiresAt', expiresAt);
+
+        store.dispatch(setAuthenticated(true));
 
         axiosInstance.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         processQueue(null, newAccessToken);
-
         return axiosInstance(originalRequest);
       } catch (err) {
         processQueue(err, null);
@@ -96,15 +94,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-const logoutFunc = async () => {
-  try {
-    await AsyncStorage.clear();
-    store.dispatch(logout());
-    store.dispatch(setAuthenticated(false));
-  } catch (err) {
-    console.error("Error during logout: ", err)
-  }
-}
 
 export default axiosInstance;

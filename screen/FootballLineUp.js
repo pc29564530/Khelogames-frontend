@@ -158,9 +158,9 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     fetchPlayers();
   }, [currentTeamPlayer]);
 
-  const currentLineUp = currentSquad?.filter((itm) => itm.is_substitute == false);
+  const currentLineUp = currentSquad?.filter((itm) => itm?.is_substitute == false);
   const substitutionPlayer = currentSquad.filter(
-    (itm) => itm.is_substitute === true
+    (itm) => itm?.is_substitute === true
   );
 
   const togglePlayerSelection = (itm) => {
