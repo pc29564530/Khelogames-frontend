@@ -330,11 +330,11 @@ const CricketMatchPage = ({ route }) => {
     useEffect(() => {
         if (!match || !cricketToss || batTeam) return;
 
-        const tossWonTeamPublicId = cricketToss.tossWonTeam?.public_id;
-        const isBatting = cricketToss.tossDecision === "Batting";
+        const tossWonTeamPublicId = cricketToss?.tossWonTeam?.public_id;
+        const isBatting = cricketToss?.tossDecision === "Batting";
         const batTeamId = isBatting
-            ? (tossWonTeamPublicId === match.homeTeam.public_id ? match.homeTeam.public_id : match.awayTeam.public_id)
-            : (tossWonTeamPublicId !== match.homeTeam.public_id ? match.awayTeam.public_id : match.awayTeam.public_id);
+            ? (tossWonTeamPublicId === match?.homeTeam?.public_id ? match?.homeTeam?.public_id : match?.awayTeam?.public_id)
+            : (tossWonTeamPublicId !== match?.homeTeam?.public_id ? match?.awayTeam?.public_id : match?.awayTeam?.public_id);
 
         dispatch(setBatTeam(batTeamId));
     }, [match, cricketToss, batTeam]);
@@ -343,8 +343,8 @@ const CricketMatchPage = ({ route }) => {
         const fetchPlayers = async () => {
             try {
                 const [homePlayers, awayPlayers] = await Promise.all([
-                    fetchTeamPlayers(BASE_URL, match.homeTeam.public_id, game, axiosInstance),
-                    fetchTeamPlayers(BASE_URL, match.awayTeam.public_id, game, axiosInstance)
+                    fetchTeamPlayers(BASE_URL, match?.homeTeam?.public_id, game, axiosInstance),
+                    fetchTeamPlayers(BASE_URL, match?.awayTeam?.public_id, game, axiosInstance)
                 ]);
                 
                 dispatch(getHomePlayer(homePlayers));
@@ -363,11 +363,11 @@ const CricketMatchPage = ({ route }) => {
 
     useEffect(() => {
         // Only set initial state when match is first loaded AND status is truly not started
-        if (cricketToss && match && match.status_code === 'not_started' && !batTeam) {
-            const isHomeBatting = cricketToss.tossWonTeam.public_id === match.homeTeam.public_id && cricketToss.tossDecision === "Batting";
+        if (cricketToss && match && match?.status_code === 'not_started' && !batTeam) {
+            const isHomeBatting = cricketToss?.tossWonTeam?.public_id === match?.homeTeam?.public_id && cricketToss?.tossDecision === "Batting";
             dispatch(setInningStatus("not_started", 1));
             dispatch(setCurrentInningNumber(1));
-            dispatch(setBatTeam(isHomeBatting ? match.homeTeam.public_id : match.awayTeam.public_id));
+            dispatch(setBatTeam(isHomeBatting ? match?.homeTeam?.public_id : match?.awayTeam?.public_id));
         }
     }, [cricketToss, match, batTeam]);
 

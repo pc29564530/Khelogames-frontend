@@ -27,6 +27,7 @@ import TournamentStanding from './TournamentStanding';
 import FootballLineUp from './FootballLineUp';
 import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
+import MediaScreen from './Media';
 
 const FootballMatchPage = ({ route }) => {
     const {wsRef, subscribe} = useWebSocket();
@@ -516,6 +517,16 @@ const FootballMatchPage = ({ route }) => {
                     <TopTab.Screen name="LineUp">
                         {() => (
                             <FootballLineUp
+                                item={match}
+                                parentScrollY={parentScrollY}
+                                headerHeight={headerHeight}
+                                collapsedHeader={collapsedHeader}
+                            />
+                        )}
+                    </TopTab.Screen>
+                    <TopTab.Screen name="Media">
+                        {() => (
+                            <MediaScreen
                                 item={match}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}

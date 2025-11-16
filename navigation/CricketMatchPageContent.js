@@ -6,6 +6,7 @@ import CricketMatchDetails from '../screen/CricketMatchDetail';
 import CricketScoreCard from '../components/CricketScoreCard';
 import { useSelector } from 'react-redux';
 import CricketLive from '../screen/CricketLiveScore';
+import MediaScreen from '../screen/Media';
 
 function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();                                               
@@ -73,6 +74,17 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                         {() => (
                             <CricketTeamSquad
                                 match={match}
+                                parentScrollY={parentScrollY}
+                                headerHeight={headerHeight}
+                                collapsedHeader={collapsedHeader}
+                            />
+                        )}
+                    </TopTab.Screen>
+
+                    <TopTab.Screen name="Media">
+                        {() => (
+                            <MediaScreen
+                                item={match}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}

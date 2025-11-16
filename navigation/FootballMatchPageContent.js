@@ -1,3 +1,4 @@
+//This page is of no use
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
 import TournamentStanding from '../screen/TournamentStanding';

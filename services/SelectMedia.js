@@ -61,7 +61,7 @@ export const SelectMedia =  async (axiosInstance) => {
       type: res.type,
       size: res.size,
     }
-
+    
     const fileURL = await copyContentUriToFile(file.uri, res.name)
 
     const {uploadID, totalChunks} = await uploadMedia(fileURL, file.type, axiosInstance)
