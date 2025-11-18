@@ -2,7 +2,7 @@ import axios from "axios";
 import { AUTH_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {setAuthenticated, setUser, logout} from '../redux/actions/actions';
-import {persistor} from '../redux/store'
+import {persistor} from '../redux/store';
 
 export const loginServies = async ({ username, password, dispatch, isAuthenticated }) => {
     try {

@@ -4,6 +4,7 @@ import tailwind from 'twrnc';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import DrawerNavigation from './DrawerNavigation';
+import { navigationRef } from './NavigationService';
 import { useDispatch, useSelector } from 'react-redux';
 import SignIn from '../screen/SignIn';
 import SignUp from '../screen/SignUp';
@@ -66,7 +67,7 @@ export default function MainNavigation() {
                     // Clear any partial auth data
                     await AsyncStorage.multiRemove([
                         'AccessToken', 
-                        'RefreshToken', 
+                        'RefreshToken',
                         'AccessTokenExpiresAt',
                         'User'
                     ]);
@@ -74,7 +75,7 @@ export default function MainNavigation() {
             } catch (error) {
                 console.error('💥 Error checking auth status:', error);
                 dispatch(setAuthenticated(false));
-                dispatch(setUser(user))
+                dispatch(setUser([]))
             } finally {
                 // Small delay to prevent flash
                 setTimeout(() => {
@@ -105,7 +106,7 @@ export default function MainNavigation() {
     }
 
     return(
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             <Stack.Navigator initialRouteName={isAuthenticated?'Home':'SignIn'} 
                 screenOptions={{
                     presentation:'modal'

@@ -48,16 +48,29 @@ export const logout = () => {
 export const checkExpireTime = () => {
     return async (dispatch) => {
       try {
+        const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
+        
+        if (!refreshTokenExpireTime) {
+          // No expiration time stored, logout to be safe
+          dispatch(logout());
+          dispatch(setAuthenticated(false));
+          return;
+        }
 
         const currentTime = new Date();
-        const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
-        const expiresAt = new Date(refreshTokenExpireTime)
+        const expiresAt = new Date(refreshTokenExpireTime);
   
-        if (expiresAt > currentTime) {
+        // If refresh token is expired, logout
+        if (currentTime >= expiresAt) {
+          console.log('❌ Refresh token expired on app start - logging out');
           dispatch(logout());
+          dispatch(setAuthenticated(false));
         }
       } catch (error) {
         console.error('Error in checkExpireTime:', error);
+        // On error, logout to be safe
+        dispatch(logout());
+        dispatch(setAuthenticated(false));
       }
     };
 };

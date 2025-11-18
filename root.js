@@ -10,7 +10,7 @@ import User from './components/User';
 import {Provider, useSelector, useDispatch} from 'react-redux'
 import ThreadComment from './components/ThreadComment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import store from './redux/store';
+import { store } from './redux/store';
 import rootReducer from './redux/reducers';
 import ProfileMenu from './components/ProfileMenu';
 import Profile from './components/Profile';

@@ -2,7 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_URL } from '../constants/ApiConstants';
 import { setAuthenticated, logout } from '../redux/actions/actions';
-import store from '../redux/store';
+import { store } from '../redux/store';
+import { navigationRef } from '../navigation/NavigationService';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -16,9 +17,13 @@ const processQueue = (error, token = null) => {
 
 const logoutFunc = async () => {
   try {
+    // Clear AsyncStorage (access tokens, user data, etc.)
     await AsyncStorage.clear();
     store.dispatch(logout());
     store.dispatch(setAuthenticated(false));
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('SignIn');
+    }
   } catch (err) {
     console.error('Error during logout:', err);
   }
@@ -60,17 +65,39 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = await AsyncStorage.getItem('RefreshToken');
+        const refreshTokenExpiresAt = await AsyncStorage.getItem("RefreshTokenExpiresAt")
+        // Check if refresh token exists
         if (!refreshToken) {
+          console.log('❌ No refresh token found in Keystore - logging out');
+          processQueue(new Error('No refresh token'), null);
           await logoutFunc();
-          return Promise.reject();
+          return Promise.reject(new Error('No refresh token'));
         }
 
+        // Check if refresh token is expired
+        if (refreshTokenExpiresAt) {
+          const currentTime = new Date().getTime();
+          const expiresAt = new Date(refreshTokenExpiresAt).getTime();
+          
+          if (currentTime >= expiresAt) {
+            console.log('❌ Refresh token expired - logging out');
+            processQueue(new Error('Refresh token expired'), null);
+            await logoutFunc();
+            return Promise.reject(new Error('Refresh token expired'));
+          }
+        }
+
+        // Attempt to refresh the access token
         const response = await axios.post(`${AUTH_URL}/tokens/renew_access`, {
           refresh_token: refreshToken,
         });
 
-        const newAccessToken = response.data.access_token;
-        const expiresAt = response.data.access_token_expires_at;
+        const newAccessToken = response?.data?.access_token ?? response?.data?.AccessToken;
+        const expiresAt = response?.data?.access_token_expires_at ?? response?.data?.AccessTokenExpiresAt;
+
+        if (!newAccessToken || !expiresAt) {
+          throw new Error('Refresh response missing access token or expiry');
+        }
 
         await AsyncStorage.setItem('AccessToken', newAccessToken);
         await AsyncStorage.setItem('AccessTokenExpiresAt', expiresAt);
@@ -83,6 +110,8 @@ axiosInstance.interceptors.response.use(
         processQueue(null, newAccessToken);
         return axiosInstance(originalRequest);
       } catch (err) {
+        // If refresh fails (401, 403, or any error), it means refresh token is invalid/expired
+        console.log('❌ Token refresh failed - logging out:', err.response?.status || err.message);
         processQueue(err, null);
         await logoutFunc();
         return Promise.reject(err);

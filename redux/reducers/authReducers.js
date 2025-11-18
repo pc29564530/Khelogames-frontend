@@ -1,7 +1,7 @@
 import * as actionTypes from '../types/actionTypes';
 
 const initalState = {
-    isAuthenticated: null,
+    isAuthenticated: false,
     isMobileNumberVerified: false,
     expireTime:'',
     loading: true,
@@ -28,8 +28,8 @@ const authReducers = (state=initalState, action) => {
         case actionTypes.LOGOUT:
             return {
                 ...state,
-                isAuthenticated: action.payload,
-                user: action.payload
+                isAuthenticated: false,
+                user: null
             }
         default:
             return state;
