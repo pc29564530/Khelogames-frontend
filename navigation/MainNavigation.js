@@ -41,6 +41,7 @@ import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
 import AddFootballIncident from '../components/AddFootballIncident';
+import VideoPlayer from '../components/VideoPlayer';
 
 const Stack = createStackNavigator();
 
@@ -157,6 +158,15 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
+                        <Stack.Screen name="VideoPlayer" component={VideoPlayer} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+
                         <Stack.Screen name="Tournament" component={Tournament} />
                         <Stack.Screen name="TournamentPage" component={TournamentPage} 
                             options={() => ({
