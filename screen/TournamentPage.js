@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Platform,Dimensions, ScrollView, TextInput } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -8,9 +8,12 @@ import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { current } from '@reduxjs/toolkit';
 
 const TournamentPage = ({ route }) => {
-      const { tournament, currentRole } = route.params;
+      const { tournament } = route.params;
+      const [currentRole, setCurrentRole] = useState("admin")
+      const [showRoleModal, setShowRoleModal] = useState(false);
       const game = useSelector(state => state.sportReducers.game);
       const navigation = useNavigation();
       const { height: sHeight, width: sWidth } = Dimensions.get('screen');
@@ -158,6 +161,14 @@ const TournamentPage = ({ route }) => {
                 </Text>
               </Animated.View>
             </View>
+            {(currentRole === "admin" || currentRole === "manager") && (
+                <Pressable
+                  onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
+                  style={tailwind`absolute right-3 top-3`}
+                >
+                  <MaterialIcons name="settings" size={22} color="white" />
+                </Pressable>
+              )}
           </Animated.View>
           <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
             {checkSport(game)}

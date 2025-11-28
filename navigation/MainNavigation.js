@@ -42,6 +42,7 @@ import CreateMatch from '../screen/CreateMatch';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
 import AddFootballIncident from '../components/AddFootballIncident';
 import VideoPlayer from '../components/VideoPlayer';
+import ManageRole from '../screen/ManageRole';
 
 const Stack = createStackNavigator();
 
@@ -137,6 +138,14 @@ export default function MainNavigation() {
                         <Stack.Screen name="EditProfile" component={EditProfile} />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
                         <Stack.Screen name="CommunityPage" component={CommunityPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+                        <Stack.Screen name="ManageRole" component={ManageRole} 
                             options={() => ({
                                 headerShown: false,
                                 headerTitle: null,
