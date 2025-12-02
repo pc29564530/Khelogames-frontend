@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
 import { View, Text, Pressable, TextInput, FlatList, ActivityIndicator, Image, Modal } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -19,6 +19,7 @@ const ROLE_OPTIONS = [
 
 const ManageRole = ({ route, navigation }) => {
   const { tournament } = route.params;
+  const modalInputRef = useRef(null);
   const dispatch = useDispatch();
   const [search, setSearch] = useState('');
   const [searching, setSearching] = useState(false);
@@ -115,7 +116,14 @@ const ManageRole = ({ route, navigation }) => {
         });
     }, [navigation]);
 
-  console.log("User : ", userResults)
+  useEffect(() => {
+    if(showModal) {
+      setTimeout(() => {
+        modalInputRef?.current?.focus();
+      }, 100)
+    }
+  },[showModal])
+
 
   return (
     <View style={tailwind`flex-1 bg-white`}>
@@ -133,7 +141,12 @@ const ManageRole = ({ route, navigation }) => {
         <TextInput
           placeholder="Search by name"
           value={search}
-          onChangeText={setSearch}
+          onChangeText={(t) => {
+            setSearch(t)
+            if(!showModal && t.trim() !== "") {
+              setShowModal(true);
+            }
+          }}
           style={tailwind`border border-gray-300 p-2 rounded`}
         />
 
@@ -206,42 +219,58 @@ const ManageRole = ({ route, navigation }) => {
                 <MaterialIcons name="close" size={22} />
               </Pressable>
             </View>
-
-            <FlatList
-              data={userResults}
-              keyExtractor={(item) => String(item.id)}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => selectUser(item)}
-                  style={tailwind`p-3 border-b border-gray-200`}
-                >
-                  <View style={tailwind`flex-row items-center gap-3`}>
-                    {item.avatar_url ? (
-                      <Image
-                        source={{ uri: item.avatar_url }}
-                        style={tailwind`w-10 h-10 rounded-full`}
-                      />
-                    ) : (
-                      <View
-                        style={tailwind`w-10 h-10 rounded-full bg-yellow-300 items-center justify-center`}
-                      >
-                        <Text style={tailwind`font-semibold`}>
-                          {item.full_name.charAt(0).toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-
-                    <View style={tailwind``}>
-                      <Text style={tailwind`font-medium`}>{item.full_name}</Text>
-                      <Text style={tailwind`text-xs text-black`}>
-                        {item.username}
-                      </Text>
-                    </View>
-                  </View>
-                </Pressable>
-              )}
+            <TextInput
+              ref={modalInputRef}
+              placeholder="Search by name"
+              value={search}
+              onChangeText={(t) => {
+                setSearch(t)
+              }}
+              style={tailwind`border border-gray-300 p-2 rounded`}
             />
+            {userResults.length > 0 ? (
+                <FlatList
+                  data={userResults}
+                  keyExtractor={(item) => String(item.id)}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      onPress={() => selectUser(item)}
+                      style={tailwind`p-3 border-b border-gray-200`}
+                    >
+                      <View style={tailwind`flex-row items-center gap-3`}>
+                        {item.avatar_url ? (
+                          <Image
+                            source={{ uri: item.avatar_url }}
+                            style={tailwind`w-10 h-10 rounded-full`}
+                          />
+                        ) : (
+                          <View
+                            style={tailwind`w-10 h-10 rounded-full bg-yellow-300 items-center justify-center`}
+                          >
+                            <Text style={tailwind`font-semibold`}>
+                              {item.full_name.charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
 
+                        <View style={tailwind``}>
+                          <Text style={tailwind`font-medium`}>{item.full_name}</Text>
+                          <Text style={tailwind`text-xs text-black`}>
+                            {item.username}
+                          </Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  )}
+                />
+            ):(
+                <View style={tailwind`py-6 items-center justify-center`}>
+                  <MaterialIcons name="search-off" size={30} color="gray" />
+                  <Text style={tailwind`text-sm text-gray-600 mt-2`}>
+                    No Result Found
+                  </Text>
+                </View>
+            )}
           </View>
         </View>
       </Modal>
