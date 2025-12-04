@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_URL } from '../constants/ApiConstants';
 import { setAuthenticated, logout } from '../redux/actions/actions';
 import store from '../redux/store';
+import setupApiPerformanceTracking from '../services/apiPerformanceInterceptor';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -25,6 +26,9 @@ const logoutFunc = async () => {
 };
 
 const axiosInstance = axios.create();
+
+// Setup API performance tracking
+setupApiPerformanceTracking(axiosInstance);
 
 axiosInstance.interceptors.request.use(
   async (config) => {
