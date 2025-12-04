@@ -5,6 +5,18 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+// Mock redux-persist (virtual mock since package not installed)
+jest.mock('redux-persist', () => ({
+  persistReducer: jest.fn((config, reducer) => reducer),
+  persistStore: jest.fn(),
+  FLUSH: 'FLUSH',
+  REHYDRATE: 'REHYDRATE',
+  PAUSE: 'PAUSE',
+  PERSIST: 'PERSIST',
+  PURGE: 'PURGE',
+  REGISTER: 'REGISTER',
+}), { virtual: true });
+
 // Mock NetInfo
 jest.mock('@react-native-community/netinfo', () => ({
   fetch: jest.fn(() => Promise.resolve({ isConnected: true, isInternetReachable: true })),

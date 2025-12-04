@@ -226,10 +226,10 @@ const SignUp = () => {
     });
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-black`} showsVerticalScrollIndicator={false}>
+        <ScrollView style={tailwind`flex-1 bg-black`} showsVerticalScrollIndicator={false} testID="signup-screen">
             <View style={tailwind`flex-1 justify-center p-6 pt-6`}>
                 <View style={tailwind`items-center mb-4`}>
-                    <Text style={tailwind`text-4xl font-extrabold text-white mb-2`}>
+                    <Text style={tailwind`text-4xl font-extrabold text-white mb-2`} testID="signup-title">
                         Create Account
                     </Text>
                     <Text style={tailwind`text-gray-400 text-center`}>
@@ -244,6 +244,7 @@ const SignUp = () => {
                         <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                             <MaterialIcons name="person" size={24} color="#9CA3AF" />
                             <TextInput
+                                testID="signup-fullname-input"
                                 style={tailwind`flex-1 text-white text-lg pl-3`}
                                 placeholder="Full Name"
                                 placeholderTextColor="#9CA3AF"
@@ -253,7 +254,7 @@ const SignUp = () => {
                             />
                         </View>
                         {errors.fullName && (
-                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signup-fullname-error">
                                 {errors.fullName}
                             </Text>
                         )}
@@ -264,6 +265,7 @@ const SignUp = () => {
                         <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                             <MaterialIcons name="email" size={24} color="#9CA3AF" />
                             <TextInput
+                                testID="signup-email-input"
                                 style={tailwind`flex-1 text-white text-lg pl-3`}
                                 placeholder="Email Address"
                                 placeholderTextColor="#9CA3AF"
@@ -274,7 +276,7 @@ const SignUp = () => {
                             />
                         </View>
                         {errors.email && (
-                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signup-email-error">
                                 {errors.email}
                             </Text>
                         )}
@@ -285,6 +287,7 @@ const SignUp = () => {
                         <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                             <MaterialIcons name="lock" size={24} color="#9CA3AF" />
                             <TextInput
+                                testID="signup-password-input"
                                 style={tailwind`flex-1 text-white text-lg pl-3`}
                                 placeholder="Password"
                                 placeholderTextColor="#9CA3AF"
@@ -292,7 +295,7 @@ const SignUp = () => {
                                 onChangeText={(text) => handleInputChange('password', text)}
                                 secureTextEntry={!showPassword}
                             />
-                            <Pressable onPress={() => setShowPassword(!showPassword)}>
+                            <Pressable onPress={() => setShowPassword(!showPassword)} testID="signup-toggle-password">
                                 <MaterialIcons 
                                     name={showPassword ? "visibility" : "visibility-off"} 
                                     size={24} 
@@ -301,7 +304,7 @@ const SignUp = () => {
                             </Pressable>
                         </View>
                         {errors.password && (
-                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signup-password-error">
                                 {errors.password}
                             </Text>
                         )}
@@ -312,6 +315,7 @@ const SignUp = () => {
                         <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                             <MaterialIcons name="lock" size={24} color="#9CA3AF" />
                             <TextInput
+                                testID="signup-confirm-password-input"
                                 style={tailwind`flex-1 text-white text-lg pl-3`}
                                 placeholder="Confirm Password"
                                 placeholderTextColor="#9CA3AF"
@@ -319,7 +323,7 @@ const SignUp = () => {
                                 onChangeText={(text) => handleInputChange('confirmPassword', text)}
                                 secureTextEntry={!showConfirmPassword}
                             />
-                            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)} testID="signup-toggle-confirm-password">
                                 <MaterialIcons 
                                     name={showConfirmPassword ? "visibility" : "visibility-off"} 
                                     size={24} 
@@ -328,7 +332,7 @@ const SignUp = () => {
                             </Pressable>
                         </View>
                         {errors.confirmPassword && (
-                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                            <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signup-confirm-password-error">
                                 {errors.confirmPassword}
                             </Text>
                         )}
@@ -336,12 +340,13 @@ const SignUp = () => {
 
                     {/* Email Signup Button */}
                     <Pressable 
+                        testID="signup-submit-button"
                         style={tailwind`bg-red-500 py-4 rounded-lg shadow-md ${loading ? 'opacity-50' : ''}`}
                         onPress={handleEmailSignUp}
                         disabled={loading}
                     >
                         {loading ? (
-                            <ActivityIndicator size="small" color="white" />
+                            <ActivityIndicator size="small" color="white" testID="signup-loading-indicator" />
                         ) : (
                             <Text style={tailwind`text-white text-lg font-bold text-center`}>
                                 Create Account
@@ -360,6 +365,7 @@ const SignUp = () => {
                 {/* Google Signup Button */}
                 <View style={tailwind`mb-4`}>
                     <Pressable 
+                        testID="signup-google-button"
                         style={tailwind`bg-white py-4 rounded-lg shadow-md flex-row items-center justify-center ${loading ? 'opacity-50' : ''}`}
                         onPress={() => handleGoogleRedirect()}
                         disabled={loading}
@@ -374,7 +380,7 @@ const SignUp = () => {
                 {/* Sign In Link */}
                 <View style={tailwind`flex-row justify-center items-center`}>
                     <Text style={tailwind`text-gray-400`}>Already have an account? </Text>
-                    <Pressable onPress={handleNavigateLogin}>
+                    <Pressable onPress={handleNavigateLogin} testID="signup-navigate-signin-button">
                         <Text style={tailwind`text-red-500 font-semibold`}>Sign In</Text>
                     </Pressable>
                 </View>

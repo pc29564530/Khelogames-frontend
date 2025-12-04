@@ -34,7 +34,7 @@ function Home() {
 
     return (
     <>
-      <ScrollView style={tailwind`flex-1`}>
+      <ScrollView style={tailwind`flex-1`} testID="home-screen">
           <View style={tailwind`flex-row justify-evenly items-center bg-white `}>
             <Pressable style={tailwind`p-2 border border-white rounded-md bg-orange-200`}>
               <Text style={tailwind`text-white text-lg font-semibold`}>Explore</Text>

@@ -195,12 +195,12 @@ function SignIn() {
     };
     
     return (
-      <View style={tailwind`flex-1 bg-black p-6`}>
+      <View style={tailwind`flex-1 bg-black p-6`} testID="signin-screen">
         {/* <View style={tailwind`items-center`}>
           <Image src="" style={tailwind`rounded-full h-30 w-30 bg-white`}/>
         </View> */}
         <View style={tailwind`items-center mb-10`}>
-          <Text style={tailwind`text-4xl font-extrabold text-white`}>Sign In</Text>
+          <Text style={tailwind`text-4xl font-extrabold text-white`} testID="signin-title">Sign In</Text>
         </View>
 
         {/* Login using a Gmail account */}
@@ -210,6 +210,7 @@ function SignIn() {
               <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                   <MaterialIcons name="email" size={24} color="#9CA3AF" />
                   <TextInput
+                      testID="signin-email-input"
                       style={tailwind`flex-1 text-white text-lg pl-3`}
                       placeholder="Email Address"
                       placeholderTextColor="#9CA3AF"
@@ -220,7 +221,7 @@ function SignIn() {
                   />
               </View>
               {errors?.email && (
-                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signin-email-error">
                       {errors.email}
                   </Text>
               )}
@@ -231,6 +232,7 @@ function SignIn() {
               <View style={tailwind`flex-row items-center bg-gray-800 rounded-lg px-2.5 py-2.5`}>
                   <MaterialIcons name="lock" size={24} color="#9CA3AF" />
                   <TextInput
+                      testID="signin-password-input"
                       style={tailwind`flex-1 text-white text-lg pl-3`}
                       placeholder="Password"
                       placeholderTextColor="#9CA3AF"
@@ -238,7 +240,7 @@ function SignIn() {
                       onChangeText={(text) => handleInputChange('password', text)}
                       secureTextEntry={!showPassword}
                   />
-                  <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Pressable onPress={() => setShowPassword(!showPassword)} testID="signin-toggle-password">
                       <MaterialIcons 
                           name={showPassword ? "visibility" : "visibility-off"} 
                           size={24} 
@@ -247,7 +249,7 @@ function SignIn() {
                   </Pressable>
               </View>
               {errors?.password && (
-                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`}>
+                  <Text style={tailwind`text-red-400 text-sm mt-1 ml-1`} testID="signin-password-error">
                       {errors?.password}
                   </Text>
               )}
@@ -255,12 +257,13 @@ function SignIn() {
 
           {/* Email Signup Button */}
           <Pressable 
+              testID="signin-submit-button"
               style={tailwind`bg-red-500 py-4 rounded-lg shadow-md ${loading ? 'opacity-50' : ''}`}
               onPress={() => handleEmailSignIn()}
               disabled={loading}
           >
               {loading ? (
-                  <ActivityIndicator size="small" color="white" />
+                  <ActivityIndicator size="small" color="white" testID="signin-loading-indicator" />
               ) : (
                   <Text style={tailwind`text-white text-lg font-bold text-center`}>
                       Sign In
@@ -277,14 +280,14 @@ function SignIn() {
         </View>
   
         <View style={tailwind`mb-6`}>
-          <Pressable onPress={handleGoogleRedirect} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
+          <Pressable onPress={handleGoogleRedirect} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`} testID="signin-google-button">
             <AntDesign name="google" size={24} color="black" />
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Sign In using Gmail</Text>
           </Pressable>
         </View>
         {/* Remove Sign Up  */}
         <View style={tailwind`mb-6`}>
-          <Pressable onPress={() => navigation.navigate("SignUp")} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`}>
+          <Pressable onPress={() => navigation.navigate("SignUp")} style={tailwind`bg-white py-4 px-6 rounded-lg shadow-md flex-row items-center justify-center`} testID="signin-navigate-signup-button">
             <Text style={tailwind`text-lg font-semibold text-gray-800 ml-2`}>Add New Account</Text>
           </Pressable>
         </View>

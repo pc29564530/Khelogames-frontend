@@ -10,7 +10,12 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --watchAll=false --maxWorkers=2"
+    "test:ci": "jest --coverage --watchAll=false --maxWorkers=2",
+    "e2e:build:android": "detox build --configuration android.debug",
+    "e2e:test:android": "detox test --configuration android.debug",
+    "e2e:test:android:release": "detox test --configuration android.release",
+    "e2e:build:release": "detox build --configuration android.release",
+    "e2e:clean": "detox clean-framework-cache && detox build-framework-cache"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -87,6 +92,7 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.9.0",
     "axios-mock-adapter": "^2.1.0",
+    "detox": "^20.27.2",
     "jest": "^29.7.0",
     "react-native-dotenv": "^3.4.11",
     "react-test-renderer": "^18.2.0",
