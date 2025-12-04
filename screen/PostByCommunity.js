@@ -10,6 +10,8 @@ import {setThreads, setLikes} from '../redux/actions/actions';
 import Video from 'react-native-video';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
+import EmptyState from '../components/molecules/EmptyState';
+import { getEmptyStateVariant } from '../components/molecules/EmptyState/emptyStateVariants';
 
 const PostByCommunity = ({item, parentScrollY, headerHeight, collapsedHeader}) => {
     const community = item;
@@ -186,7 +188,14 @@ const PostByCommunity = ({item, parentScrollY, headerHeight, collapsedHeader}) =
               paddingBottom: 50,
             }}
             showsVerticalScrollIndicator={false}
-
+            ListEmptyComponent={
+                <EmptyState
+                    {...getEmptyStateVariant('communityThreads', {
+                        onAction: () => navigation.navigate('CreateThread', { communityType: community?.name }),
+                    })}
+                    testID="community-threads-empty-state"
+                />
+            }
         />
     );
 };

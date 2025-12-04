@@ -10,6 +10,8 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import {setGames, setGame, getTeams, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
+import EmptyState from '../components/molecules/EmptyState';
+import { getEmptyStateVariant } from '../components/molecules/EmptyState/emptyStateVariants';
 
 const Club = () => {
     const navigation = useNavigation();
@@ -138,26 +140,38 @@ const Club = () => {
                 </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }}>
-                {teams.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4`}>
-                        <Pressable onPress={() => handleClub(item)} style={tailwind`rounded-md w-full h-20 bg-white shadow-lg p-4 flex-row items-center`}>
-                            <View style={tailwind`rounded-full h-16 w-16 bg-gray-200 overflow-hidden`}>
-                                {item.media_url ? (
-                                    <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} />
-                                ) : (
-                                    <Text style={tailwind`text-black text-2xl py-4 font-bold text-center`}>{item?.name?.charAt(0).toUpperCase()}</Text>
-                                )}
-                            </View>
-                            <View style={tailwind`ml-4`}>
-                                <Text style={tailwind`text-lg font-bold text-black`}>{item.name}</Text>
-                                <View style={tailwind`flex-row gap-2`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.country}</Text>
-                                    <Text style={tailwind`text-gray-600`}>{game.name}</Text>
+                {teams && teams.length > 0 ? (
+                    teams.map((item, index) => (
+                        <View key={index} style={tailwind`mb-4`}>
+                            <Pressable onPress={() => handleClub(item)} style={tailwind`rounded-md w-full h-20 bg-white shadow-lg p-4 flex-row items-center`}>
+                                <View style={tailwind`rounded-full h-16 w-16 bg-gray-200 overflow-hidden`}>
+                                    {item.media_url ? (
+                                        <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} />
+                                    ) : (
+                                        <Text style={tailwind`text-black text-2xl py-4 font-bold text-center`}>{item?.name?.charAt(0).toUpperCase()}</Text>
+                                    )}
                                 </View>
-                            </View>
-                        </Pressable>
-                    </View>
-                ))}
+                                <View style={tailwind`ml-4`}>
+                                    <Text style={tailwind`text-lg font-bold text-black`}>{item.name}</Text>
+                                    <View style={tailwind`flex-row gap-2`}>
+                                        <Text style={tailwind`text-gray-600`}>{item.country}</Text>
+                                        <Text style={tailwind`text-gray-600`}>{game.name}</Text>
+                                    </View>
+                                </View>
+                            </Pressable>
+                        </View>
+                    ))
+                ) : (
+                    <EmptyState
+                        {...getEmptyStateVariant('clubs', {
+                            onAction: () => navigation.navigate('CreateClub'),
+                            onSecondaryAction: () => {
+                                // Browse clubs functionality
+                            },
+                        })}
+                        testID="clubs-empty-state"
+                    />
+                )}
             </ScrollView>
         </View>
     );

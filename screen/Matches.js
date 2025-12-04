@@ -14,6 +14,8 @@ import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/Formatted
 import { convertToISOString } from '../utils/FormattedDateTime';
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
+import EmptyState from '../components/molecules/EmptyState';
+import { getEmptyStateVariant } from '../components/molecules/EmptyState/emptyStateVariants';
 
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
 
@@ -201,69 +203,78 @@ const Matches = () => {
                 ))}
             </ScrollView>
                 <View>
-                    {matches?.map((item, index) => (
-                        <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
-                        style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`}
-                        >
-                            <View>
-                                <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
-                                    <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>
-                                    <AntDesign name="right" size={12} color="black" />
-                                </Pressable>
-                                <View style={tailwind`flex-row items-center justify-between `}>
-                                    <View style={tailwind`flex-row`}>
-                                        <View style={tailwind``}>
-                                            <Image 
-                                                source={{ uri: item.awayTeam?.media_url }} 
-                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                            />
-                                            <Image 
-                                                source={{ uri: item.homeTeam?.media_url }} 
-                                                style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                            />
+                    {matches && matches.length > 0 ? (
+                        matches.map((item, index) => (
+                            <Pressable key={index}  onPress={() => checkSportForMatchPage(item, game)}
+                            style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md`}
+                            >
+                                <View>
+                                    <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
+                                        <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>
+                                        <AntDesign name="right" size={12} color="black" />
+                                    </Pressable>
+                                    <View style={tailwind`flex-row items-center justify-between `}>
+                                        <View style={tailwind`flex-row`}>
+                                            <View style={tailwind``}>
+                                                <Image 
+                                                    source={{ uri: item.awayTeam?.media_url }} 
+                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                                />
+                                                <Image 
+                                                    source={{ uri: item.homeTeam?.media_url }} 
+                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
+                                                />
+                                            </View>
+                                            <View style={tailwind``}>
+                                                <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                    {item.homeTeam?.name}
+                                                </Text>
+                                                <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+                                                    {item.awayTeam?.name}
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <View style={tailwind``}>
-                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                {item.homeTeam?.name}
-                                            </Text>
-                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                {item.awayTeam?.name}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <View style={tailwind`items-center justify-center flex-row`}>
-                                        <View style={tailwind`mb-2 flex-row items-center gap-4`}>
-                                                {item.status !== "not_started" && (
-                                                    <View>
-                                                    <View style={tailwind``}>
-                                                        {item?.scores?.homeScore  && checkSport(item, game) && (
-                                                            <View style={tailwind``}>
-                                                                {renderInningScore(item.scores.homeScore)}
-                                                            </View>
-                                                        )}
-                                                        {item?.scores?.awayScore && (
-                                                            <View style={tailwind``}>
-                                                                {renderInningScore(item.scores.awayScore)}
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                    </View>
-                                                )}
-                                                <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
-                                                <View style={tailwind`mb-2 right`}>
-                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
-                                                    {item.status !== "not_started" ? (
-                                                        <Text style={tailwind`ml-2 text-md text-gray-800`}>{item.status_code}</Text>
-                                                    ):(
-                                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
+                                        <View style={tailwind`items-center justify-center flex-row`}>
+                                            <View style={tailwind`mb-2 flex-row items-center gap-4`}>
+                                                    {item.status !== "not_started" && (
+                                                        <View>
+                                                        <View style={tailwind``}>
+                                                            {item?.scores?.homeScore  && checkSport(item, game) && (
+                                                                <View style={tailwind``}>
+                                                                    {renderInningScore(item.scores.homeScore)}
+                                                                </View>
+                                                            )}
+                                                            {item?.scores?.awayScore && (
+                                                                <View style={tailwind``}>
+                                                                    {renderInningScore(item.scores.awayScore)}
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                        </View>
                                                     )}
-                                                </View>
-                                        </View>
-                                    </View> 
+                                                    <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
+                                                    <View style={tailwind`mb-2 right`}>
+                                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
+                                                        {item.status !== "not_started" ? (
+                                                            <Text style={tailwind`ml-2 text-md text-gray-800`}>{item.status_code}</Text>
+                                                        ):(
+                                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
+                                                        )}
+                                                    </View>
+                                            </View>
+                                        </View> 
+                                    </View>
                                 </View>
-                            </View>
-                    </Pressable>
-                    ))}
+                        </Pressable>
+                        ))
+                    ) : (
+                        <EmptyState
+                            {...getEmptyStateVariant('matches', {
+                                onAction: () => navigation.navigate('CreateMatch'),
+                            })}
+                            testID="matches-empty-state"
+                        />
+                    )}
                 </View>
                 {isDatePickerVisible && (
                     <Modal

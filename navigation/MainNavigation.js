@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {View,ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -40,13 +40,28 @@ import Follow from '../screen/Follow';
 import CreateMatch from '../screen/CreateMatch';
 import EditPlayerProfile from '../screen/EditPlayerProfile';
 import AddFootballIncident from '../components/AddFootballIncident';
+import {
+    defaultScreenOptions,
+    modalScreenOptions,
+    fadeTransition,
+} from './navigationConfig';
+import { stackGestureConfig } from './gestureConfig';
+import deepLinkingConfig from './deepLinkingConfig';
+import {
+    restoreNavigationState,
+    saveNavigationState,
+    sanitizeNavigationState,
+} from './navigationPersistence';
 
 const Stack = createStackNavigator();
 
 export default function MainNavigation() {
     const dispatch = useDispatch();
-    const[loading, setLoading] = useState(true)
+    const[loading, setLoading] = useState(true);
+    const [navigationReady, setNavigationReady] = useState(false);
+    const [initialNavigationState, setInitialNavigationState] = useState();
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const routeNameRef = useRef();
 
     useEffect(() => {
         
@@ -88,8 +103,37 @@ export default function MainNavigation() {
         dispatch(checkExpireTime());
     }, [dispatch]);
 
-    // Show loading while determining auth status
-    if (loading || isAuthenticated === null) {
+    // Restore navigation state on mount
+    useEffect(() => {
+        const restoreState = async () => {
+            try {
+                const state = await restoreNavigationState();
+                if (state && isAuthenticated) {
+                    setInitialNavigationState(state);
+                    console.log('✅ Navigation state restored');
+                }
+            } catch (error) {
+                console.error('❌ Error restoring navigation state:', error);
+            } finally {
+                setNavigationReady(true);
+            }
+        };
+
+        if (!loading) {
+            restoreState();
+        }
+    }, [loading, isAuthenticated]);
+
+    // Handle navigation state changes
+    const handleNavigationStateChange = (state) => {
+        if (state && isAuthenticated) {
+            const sanitized = sanitizeNavigationState(state);
+            saveNavigationState(sanitized);
+        }
+    };
+
+    // Show loading while determining auth status or restoring navigation
+    if (loading || isAuthenticated === null || !navigationReady) {
         console.log('⏳ Showing loading screen...');
         return (
             <View style={tailwind`flex-1 justify-center items-center bg-black`}>
@@ -105,10 +149,19 @@ export default function MainNavigation() {
     }
 
     return(
-        <NavigationContainer>
-            <Stack.Navigator initialRouteName={isAuthenticated?'Home':'SignIn'} 
+        <NavigationContainer 
+            linking={deepLinkingConfig}
+            initialState={initialNavigationState}
+            onStateChange={handleNavigationStateChange}
+            onReady={() => {
+                routeNameRef.current = navigationRef?.current?.getCurrentRoute()?.name;
+            }}
+        >
+            <Stack.Navigator 
+                initialRouteName={isAuthenticated?'Home':'SignIn'} 
                 screenOptions={{
-                    presentation:'modal'
+                    ...defaultScreenOptions,
+                    ...stackGestureConfig,
                 }}
             >
                 {isAuthenticated?(
@@ -121,9 +174,21 @@ export default function MainNavigation() {
                                 headerLeft: false
                                 })}
                         />
-                        <Stack.Screen name="CreateThread" component={CreateThread} />
-                        <Stack.Screen name="Shorts" component={Shorts} />
-                        <Stack.Screen name="CreateCommunity" component={CreateCommunity}/>
+                        <Stack.Screen 
+                            name="CreateThread" 
+                            component={CreateThread}
+                            options={modalScreenOptions}
+                        />
+                        <Stack.Screen 
+                            name="Shorts" 
+                            component={Shorts}
+                            options={fadeTransition}
+                        />
+                        <Stack.Screen 
+                            name="CreateCommunity" 
+                            component={CreateCommunity}
+                            options={modalScreenOptions}
+                        />
                         <Stack.Screen name="Profile" component={Profile}
                             options={() => ({
                                 headerShown: false,
@@ -147,7 +212,11 @@ export default function MainNavigation() {
                         <Stack.Screen name="Message" component={Message} />
                         <Stack.Screen name="MessagePage" component={MessagePage} />
                         <Stack.Screen name="Club" component={Club} />
-                        <Stack.Screen name="CreateClub" component={CreateClub} />
+                        <Stack.Screen 
+                            name="CreateClub" 
+                            component={CreateClub}
+                            options={modalScreenOptions}
+                        />
                         <Stack.Screen name="ClubPage" component={ClubPage} 
                             options={() => ({
                                 headerShown: false,
@@ -165,12 +234,21 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
-                        <Stack.Screen name="CreateMatch" component={CreateMatch} />
-                        <Stack.Screen name="CreateTournament" component={CreateTournament} />
+                        <Stack.Screen 
+                            name="CreateMatch" 
+                            component={CreateMatch}
+                            options={modalScreenOptions}
+                        />
+                        <Stack.Screen 
+                            name="CreateTournament" 
+                            component={CreateTournament}
+                            options={modalScreenOptions}
+                        />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
                         <Stack.Screen name="CreatePlayerProfile" component={CreatePlayerProfile} 
                             options={{
+                                ...modalScreenOptions,
                                 headerShown: true,
                                 headerTitle: '',
                                 headerBackTitleVisible: false,

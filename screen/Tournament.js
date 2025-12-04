@@ -17,6 +17,8 @@ import Animated, {
   useAnimatedScrollHandler,
   withTiming
 } from "react-native-reanimated";
+import EmptyState from '../components/molecules/EmptyState';
+import { getEmptyStateVariant } from '../components/molecules/EmptyState/emptyStateVariants';
 
 const Tournament = () => {
   const navigation = useNavigation();
@@ -300,7 +302,14 @@ const Tournament = () => {
               paddingTop: 120, // push down so content starts below header
               paddingBottom: 50,
             }}
-
+            ListEmptyComponent={
+              <EmptyState
+                {...getEmptyStateVariant('tournaments', {
+                  onAction: () => navigation.navigate('CreateTournament'),
+                })}
+                testID="tournaments-empty-state"
+              />
+            }
         />
 
       {/* Floating Action Button */}

@@ -10,3 +10,7 @@ export { default as Icon } from './Icon';
 export { default as Skeleton } from './Skeleton';
 export { default as Spinner } from './Spinner';
 export { default as ProgressBar } from './ProgressBar';
+export { default as OptimizedImage } from './OptimizedImage';
+export { default as LazyImage } from './LazyImage';
+export { default as AccessibleTouchable } from './AccessibleTouchable';
+export { default as FocusIndicator } from './FocusIndicator';
