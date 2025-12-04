@@ -640,3 +640,71 @@ export const getFootballScore = (score) => {
         payload: score
     }
 }
+
+// Validation Actions
+
+/**
+ * Set validation error for a specific field in a form
+ * @param {string} formId - Unique identifier for the form
+ * @param {string} fieldName - Name of the field with error
+ * @param {string} error - Error message
+ */
+export const setValidationError = (formId, fieldName, error) => ({
+  type: actionTypes.SET_VALIDATION_ERROR,
+  payload: { formId, fieldName, error },
+});
+
+/**
+ * Clear validation error for a specific field in a form
+ * @param {string} formId - Unique identifier for the form
+ * @param {string} fieldName - Name of the field to clear error
+ */
+export const clearValidationError = (formId, fieldName) => ({
+  type: actionTypes.CLEAR_VALIDATION_ERROR,
+  payload: { formId, fieldName },
+});
+
+/**
+ * Clear all validation errors for a specific form
+ * @param {string} formId - Unique identifier for the form
+ */
+export const clearFormValidationErrors = (formId) => ({
+  type: actionTypes.CLEAR_FORM_VALIDATION_ERRORS,
+  payload: { formId },
+});
+
+/**
+ * Clear all validation errors across all forms
+ */
+export const clearAllValidationErrors = () => ({
+  type: actionTypes.CLEAR_ALL_VALIDATION_ERRORS,
+});
+
+/**
+ * Validate and set errors for multiple fields in a form
+ * @param {string} formId - Unique identifier for the form
+ * @param {Object} fields - Object with field names as keys and values to validate
+ * @param {Object} validators - Object with field names as keys and validator functions as values
+ */
+export const validateForm = (formId, fields, validators) => {
+  return (dispatch) => {
+    // Clear existing errors for this form
+    dispatch(clearFormValidationErrors(formId));
+
+    let hasErrors = false;
+
+    // Validate each field
+    Object.keys(validators).forEach(fieldName => {
+      const validator = validators[fieldName];
+      const value = fields[fieldName];
+      const result = validator(value);
+
+      if (!result.isValid) {
+        dispatch(setValidationError(formId, fieldName, result.error));
+        hasErrors = true;
+      }
+    });
+
+    return !hasErrors;
+  };
+};

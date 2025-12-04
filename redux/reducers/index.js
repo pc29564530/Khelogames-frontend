@@ -28,6 +28,8 @@ import cricketTossReducers from "./cricketMatchTossReducers";
 import cricketMatchInningReducer from "./cricketMatchInning";
 import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 import footballIncidentsReducers from "./footballIncidentsReducers";
+import validationReducers from "./validationReducers";
+
 const appReducer = combineReducers({
     signup: signUpReducers,
     auth: authReducers,
@@ -54,6 +56,7 @@ const appReducer = combineReducers({
     cricketMatchInning: cricketMatchInningReducer,
     tournamentEntities: tournamentEntitiesReducers,
     footballIncidents: footballIncidentsReducers,
+    validation: validationReducers,
 });
 
 const persistConfig = {

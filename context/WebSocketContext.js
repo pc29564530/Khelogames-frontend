@@ -1,12 +1,13 @@
-import React, {createContext, useContext, useRef, useEffect, useCallback} from 'react';
+import React, {createContext, useContext, useRef, useEffect, useCallback, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {WebSocketManager, CONNECTION_STATES, CONNECTION_QUALITY} from '../services/WebSocketManager';
 
 const WebSocketContext = createContext(null);
 
 export const WebSocketProvider = ({children}) => {
-    const wsRef = useRef(null);
-    const messageHandlersRef = useRef(new Set());
-    const isMountedRef = useRef(true);
+    const wsManagerRef = useRef(null);
+    const [connectionState, setConnectionState] = useState(CONNECTION_STATES.DISCONNECTED);
+    const [connectionQuality, setConnectionQuality] = useState(CONNECTION_QUALITY.OFFLINE);
     
     const setupWebSocket = useCallback(async () => {
         try {
@@ -16,67 +17,98 @@ export const WebSocketProvider = ({children}) => {
                 return;
             }
             
-            console.log("Connecting to WebSocket...");
-            wsRef.current = new WebSocket('ws://192.168.1.3:8080/api/ws', '', {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`
+            // Create WebSocket manager with configuration
+            wsManagerRef.current = new WebSocketManager({
+                url: 'ws://192.168.1.3:8080/api/ws',
+                reconnect: true,
+                reconnectInterval: 1000,
+                maxReconnectAttempts: 10,
+                heartbeatInterval: 30000,
+                connectionTimeout: 10000,
+                onConnect: () => {
+                    console.log("WebSocket connected via manager");
+                },
+                onDisconnect: () => {
+                    console.log("WebSocket disconnected via manager");
+                },
+                onError: (error) => {
+                    console.error("WebSocket error via manager:", error);
+                },
+                onMessage: (message) => {
+                    console.log("WebSocket message via manager:", message);
+                },
+                onStateChange: (newState, oldState) => {
+                    console.log(`Connection state: ${oldState} -> ${newState}`);
+                    setConnectionState(newState);
+                },
+                onQualityChange: (newQuality, oldQuality) => {
+                    console.log(`Connection quality: ${oldQuality} -> ${newQuality}`);
+                    setConnectionQuality(newQuality);
                 }
             });
             
-            wsRef.current.onopen = () => {
-                console.log("WebSocket connection open");
-                console.log("WebSocket Ready State:", wsRef.current.readyState);
-            };
-
-            // Central message dispatcher - broadcasts to all handlers
-            wsRef.current.onmessage = (event) => {
-                console.log("WebSocket message received:", event.data);
-                messageHandlersRef.current.forEach(handler => {
-                    try {
-                        handler(event);
-                    } catch (error) {
-                        console.error("Error in message handler:", error);
-                    }
-                });
-            };
-
-            wsRef.current.onerror = (error) => {
-                console.log("WebSocket Error:", error);
-            };
+            // Connect with auth token
+            await wsManagerRef.current.connect(authToken);
             
-            wsRef.current.onclose = (event) => {
-                console.log("WebSocket connection closed:", event.reason);
-            };
         } catch (err) {
             console.error("Unable to setup the websocket:", err);
         }
     }, []);
     
-    const subscribe = useCallback((handler) => {
-        console.log("Adding message handler, total:", messageHandlersRef.current.size + 1);
-        messageHandlersRef.current.add(handler);
+    const subscribe = useCallback((channel, handler) => {
+        if (!wsManagerRef.current) {
+            console.warn("WebSocket manager not initialized");
+            return () => {};
+        }
         
-        return () => {
-            console.log("Removing message handler, remaining:", messageHandlersRef.current.size - 1);
-            messageHandlersRef.current.delete(handler);
-        };
+        return wsManagerRef.current.subscribe(channel, handler);
+    }, []);
+    
+    const send = useCallback((message) => {
+        if (!wsManagerRef.current) {
+            console.warn("WebSocket manager not initialized");
+            return;
+        }
+        
+        wsManagerRef.current.send(message);
+    }, []);
+    
+    const getConnectionState = useCallback(() => {
+        return wsManagerRef.current ? wsManagerRef.current.getConnectionState() : CONNECTION_STATES.DISCONNECTED;
+    }, []);
+    
+    const getConnectionQuality = useCallback(() => {
+        return wsManagerRef.current ? wsManagerRef.current.getConnectionQuality() : CONNECTION_QUALITY.OFFLINE;
+    }, []);
+    
+    const getAverageLatency = useCallback(() => {
+        return wsManagerRef.current ? wsManagerRef.current.getAverageLatency() : null;
     }, []);
     
     useEffect(() => {
         setupWebSocket();
         return () => {
-            isMountedRef.current = false;
-            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                wsRef.current.close();
+            if (wsManagerRef.current) {
+                wsManagerRef.current.disconnect();
             }
         };
     }, [setupWebSocket]);
     
     return (
-        <WebSocketContext.Provider value={{wsRef, subscribe}}>
+        <WebSocketContext.Provider value={{
+            wsManager: wsManagerRef.current,
+            subscribe,
+            send,
+            connectionState,
+            connectionQuality,
+            getConnectionState,
+            getConnectionQuality,
+            getAverageLatency
+        }}>
             {children}
         </WebSocketContext.Provider>
     );
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);
+export {CONNECTION_STATES, CONNECTION_QUALITY};
