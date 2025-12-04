@@ -723,3 +723,60 @@ export const clearLoading = (key) => ({
 export const clearAllLoading = () => ({
   type: actionTypes.CLEAR_ALL_LOADING,
 });
+
+// ============================================================================
+// Network Actions
+// ============================================================================
+
+/**
+ * Set online/offline status
+ */
+export const setOnlineStatus = (isOnline) => ({
+  type: 'NETWORK/SET_ONLINE_STATUS',
+  payload: { isOnline },
+});
+
+/**
+ * Set connection type (wifi, cellular, etc.)
+ */
+export const setConnectionType = (connectionType) => ({
+  type: 'NETWORK/SET_CONNECTION_TYPE',
+  payload: { connectionType },
+});
+
+/**
+ * Set connection quality
+ */
+export const setConnectionQuality = (quality) => ({
+  type: 'NETWORK/SET_CONNECTION_QUALITY',
+  payload: { quality },
+});
+
+/**
+ * Increment reconnect attempts
+ */
+export const incrementReconnectAttempts = () => ({
+  type: 'NETWORK/INCREMENT_RECONNECT_ATTEMPTS',
+});
+
+/**
+ * Reset reconnect attempts
+ */
+export const resetReconnectAttempts = () => ({
+  type: 'NETWORK/RESET_RECONNECT_ATTEMPTS',
+});
+
+/**
+ * Set queued requests count
+ */
+export const setQueuedRequestsCount = (count) => ({
+  type: 'NETWORK/SET_QUEUED_REQUESTS_COUNT',
+  payload: { count },
+});
+
+/**
+ * Reset network state
+ */
+export const resetNetworkState = () => ({
+  type: 'NETWORK/RESET_NETWORK_STATE',
+});

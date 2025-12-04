@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useOffline } from '../hooks/useOffline';
 import { useTheme } from '../hooks/useTheme';
 
@@ -9,36 +10,51 @@ import { useTheme } from '../hooks/useTheme';
  * Displays a banner when the device is offline and shows sync queue status
  */
 const OfflineIndicator = () => {
-  const { isOffline, syncQueueCount, syncData } = useOffline();
+  const { syncQueueCount, syncData } = useOffline();
   const theme = useTheme();
+  
+  // Get network state from Redux
+  const { isOnline, connectionQuality, queuedRequestsCount } = useSelector(state => state.network);
+  const isOffline = !isOnline;
+  
+  // Combine sync queue and network queue counts
+  const totalQueueCount = syncQueueCount + queuedRequestsCount;
 
-  if (!isOffline && syncQueueCount === 0) {
+  if (isOnline && totalQueueCount === 0) {
     return null;
   }
 
   const handleSync = async () => {
     await syncData();
   };
+  
+  // Determine background color based on connection quality
+  const getBackgroundColor = () => {
+    if (isOffline) return theme.colors.error;
+    if (connectionQuality === 'poor') return theme.colors.warning;
+    if (totalQueueCount > 0) return theme.colors.warning;
+    return theme.colors.success;
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.warning }]}>
+    <View style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
       <View style={styles.content}>
-        <Text style={[styles.text, { color: theme.colors.text.primary }]}>
-          {isOffline ? '📵 You are offline' : '📶 Back online'}
+        <Text style={[styles.text, { color: theme.colors.surface }]}>
+          {isOffline ? '📵 You are offline' : connectionQuality === 'poor' ? '📶 Poor connection' : '📶 Back online'}
         </Text>
         
-        {syncQueueCount > 0 && (
-          <Text style={[styles.subtext, { color: theme.colors.text.secondary }]}>
-            {syncQueueCount} action{syncQueueCount > 1 ? 's' : ''} pending sync
+        {totalQueueCount > 0 && (
+          <Text style={[styles.subtext, { color: theme.colors.surface }]}>
+            {totalQueueCount} request{totalQueueCount > 1 ? 's' : ''} pending
           </Text>
         )}
       </View>
 
-      {!isOffline && syncQueueCount > 0 && (
+      {isOnline && totalQueueCount > 0 && (
         <TouchableOpacity
           style={[styles.syncButton, { backgroundColor: theme.colors.primary }]}
           onPress={handleSync}
-          accessibilityLabel="Sync pending actions"
+          accessibilityLabel="Sync pending requests"
           accessibilityRole="button"
         >
           <Text style={[styles.syncButtonText, { color: theme.colors.surface }]}>

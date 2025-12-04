@@ -30,6 +30,7 @@ import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 import footballIncidentsReducers from "./footballIncidentsReducers";
 import validationReducers from "./validationReducers";
 import loadingReducers from "./loadingReducers";
+import networkReducers from "./networkReducers";
 
 const appReducer = combineReducers({
     signup: signUpReducers,
@@ -59,6 +60,7 @@ const appReducer = combineReducers({
     footballIncidents: footballIncidentsReducers,
     validation: validationReducers,
     loading: loadingReducers,
+    network: networkReducers,
 });
 
 const persistConfig = {

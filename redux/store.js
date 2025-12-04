@@ -1,32 +1,30 @@
-import {applyMiddleware, legacy_createStore as createStore} from 'redux';
 import { persistStore } from "redux-persist";
 import rootReducer from './reducers';
 import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import persistReducer from 'redux-persist/es/persistReducer';
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
+import getMiddleware from './middleware';
 
-let composer = applyMiddleware(thunk);
+// Get custom middleware
+const customMiddleware = getMiddleware();
 
-// Used for redux debbuger for chrome extension
-const composeEnhancers = composeWithDevTools({
-    realtime:true,
-    name: 'Khelogames-frontend',
-    host: 'localhost',
-    port:8080
-})
-
-if (__DEV__) {
-  composer = composeWithDevTools(applyMiddleware(thunk));
-}
-
+// Configure store with enhanced middleware
 export const store = configureStore({
     reducer: rootReducer,
     middleware: (getDefaultMiddleware) => [
         ...getDefaultMiddleware({
             serializableCheck: false,
+            immutableCheck: false, // Disabled for performance
         }),
-        thunk
-    ]
+        thunk,
+        ...customMiddleware, // Add custom middleware
+    ],
+    devTools: __DEV__ ? {
+        realtime: true,
+        name: 'Khelogames-frontend',
+        host: 'localhost',
+        port: 8080,
+    } : false,
 });
-export const persistor = persistStore(store)
+
+export const persistor = persistStore(store);

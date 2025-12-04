@@ -2,8 +2,15 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AUTH_URL } from '../constants/ApiConstants';
-import { setAuthenticated, logout } from '../redux/actions/actions';
-import store from '../redux/store';
+import { 
+  setAuthenticated, 
+  logout,
+  setOnlineStatus,
+  setConnectionType,
+  setConnectionQuality,
+  setQueuedRequestsCount,
+} from '../redux/actions/actions';
+import { store } from '../redux/store';
 import NetworkError, { TimeoutError, ConnectionError, ServerError } from '../utils/errors/NetworkError';
 import monitoringService from './monitoringService';
 
@@ -16,11 +23,93 @@ class NetworkService {
     this.failedQueue = [];
     this.offlineQueue = [];
     this.isOnline = true;
-    this.maxRetries = 3;
-    this.baseDelay = 1000; // 1 second
+    this.queueStorageKey = '@network_offline_queue';
+    
+    // Retry configuration
+    this.retryConfig = {
+      maxRetries: 3,
+      baseDelay: 1000, // 1 second
+      maxDelay: 30000, // 30 seconds
+      retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+      retryableMethods: ['GET', 'PUT', 'DELETE', 'POST'],
+    };
+    
+    // Timeout configuration for different request types
+    this.timeoutConfig = {
+      default: 30000, // 30 seconds
+      upload: 120000, // 2 minutes for file uploads
+      download: 60000, // 1 minute for downloads
+      quick: 10000, // 10 seconds for quick operations
+      long: 180000, // 3 minutes for long operations
+    };
     
     this.setupNetworkListener();
     this.axiosInstance = this.createAxiosInstance();
+    this.loadPersistedQueue();
+  }
+
+  /**
+   * Configure retry settings
+   */
+  configureRetry(config) {
+    this.retryConfig = {
+      ...this.retryConfig,
+      ...config,
+    };
+  }
+
+  /**
+   * Configure timeout settings
+   */
+  configureTimeout(config) {
+    this.timeoutConfig = {
+      ...this.timeoutConfig,
+      ...config,
+    };
+  }
+
+  /**
+   * Determine appropriate timeout for request
+   */
+  determineTimeout(config) {
+    // Check for custom timeout type in config
+    if (config.timeoutType) {
+      return this.timeoutConfig[config.timeoutType] || this.timeoutConfig.default;
+    }
+
+    // Determine based on content type and method
+    const contentType = config.headers?.['Content-Type'] || '';
+    const method = config.method?.toUpperCase();
+
+    // File upload detection
+    if (contentType.includes('multipart/form-data') || 
+        contentType.includes('application/octet-stream')) {
+      return this.timeoutConfig.upload;
+    }
+
+    // Download detection (Accept header or specific endpoints)
+    if (config.headers?.Accept?.includes('application/octet-stream') ||
+        config.url?.includes('/download')) {
+      return this.timeoutConfig.download;
+    }
+
+    // Quick operations (GET requests to specific endpoints)
+    if (method === 'GET' && (
+      config.url?.includes('/status') ||
+      config.url?.includes('/health') ||
+      config.url?.includes('/ping')
+    )) {
+      return this.timeoutConfig.quick;
+    }
+
+    // Long operations (specific endpoints that are known to be slow)
+    if (config.url?.includes('/export') ||
+        config.url?.includes('/report') ||
+        config.url?.includes('/batch')) {
+      return this.timeoutConfig.long;
+    }
+
+    return this.timeoutConfig.default;
   }
 
   /**
@@ -30,6 +119,14 @@ class NetworkService {
     NetInfo.addEventListener(state => {
       const wasOffline = !this.isOnline;
       this.isOnline = state.isConnected;
+      
+      // Dispatch Redux actions for network state
+      store.dispatch(setOnlineStatus(state.isConnected));
+      store.dispatch(setConnectionType(state.type));
+      
+      // Determine connection quality
+      const quality = this.determineConnectionQuality(state);
+      store.dispatch(setConnectionQuality(quality));
       
       if (wasOffline && this.isOnline) {
         console.log('📶 Network connection restored');
@@ -43,11 +140,51 @@ class NetworkService {
   }
 
   /**
+   * Determine connection quality based on network state
+   */
+  determineConnectionQuality(state) {
+    if (!state.isConnected) {
+      return 'offline';
+    }
+
+    // Check connection details if available
+    if (state.details) {
+      const { cellularGeneration, strength } = state.details;
+      
+      // For cellular connections
+      if (cellularGeneration) {
+        if (cellularGeneration === '5g') return 'excellent';
+        if (cellularGeneration === '4g') return 'good';
+        if (cellularGeneration === '3g') return 'poor';
+        return 'poor';
+      }
+
+      // For WiFi connections, use signal strength if available
+      if (strength !== undefined && strength !== null) {
+        if (strength >= 75) return 'excellent';
+        if (strength >= 50) return 'good';
+        return 'poor';
+      }
+    }
+
+    // Default based on connection type
+    if (state.type === 'wifi' || state.type === 'ethernet') {
+      return 'excellent';
+    }
+    
+    if (state.type === 'cellular') {
+      return 'good';
+    }
+
+    return 'good'; // Default to good if we can't determine
+  }
+
+  /**
    * Create axios instance with interceptors
    */
   createAxiosInstance() {
     const instance = axios.create({
-      timeout: 30000, // 30 seconds default timeout
+      timeout: this.timeoutConfig.default,
     });
 
     // Request interceptor
@@ -56,6 +193,11 @@ class NetworkService {
         const token = await AsyncStorage.getItem('AccessToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+        }
+        
+        // Set appropriate timeout based on request type
+        if (!config.timeout) {
+          config.timeout = this.determineTimeout(config);
         }
         
         // Add retry metadata
@@ -109,7 +251,7 @@ class NetworkService {
     });
 
     // Check if error is retryable
-    if (networkError.isRetryable() && this.shouldRetry(originalRequest)) {
+    if (networkError.isRetryable() && this.shouldRetry(originalRequest, error)) {
       return this.retryRequest(originalRequest, instance, networkError);
     }
 
@@ -202,18 +344,24 @@ class NetworkService {
    * Convert axios error to NetworkError
    */
   convertToNetworkError(error) {
+    const config = error.config || {};
+    const timeout = config.timeout || this.timeoutConfig.default;
+    
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       return new TimeoutError('Request timeout', {
-        url: error.config?.url,
-        method: error.config?.method,
+        url: config.url,
+        method: config.method,
+        timeout,
+        duration: config.metadata?.startTime ? Date.now() - config.metadata.startTime : null,
       });
     }
 
     if (!error.response) {
       return new ConnectionError('Connection failed', {
-        url: error.config?.url,
-        method: error.config?.method,
+        url: config.url,
+        method: config.method,
         message: error.message,
+        code: error.code,
       });
     }
 
@@ -223,8 +371,8 @@ class NetworkService {
         error.response.data?.message || 'Server error',
         status,
         {
-          url: error.config?.url,
-          method: error.config?.method,
+          url: config.url,
+          method: config.method,
           data: error.response.data,
         }
       );
@@ -235,8 +383,8 @@ class NetworkService {
       `NETWORK_${status}`,
       status,
       {
-        url: error.config?.url,
-        method: error.config?.method,
+        url: config.url,
+        method: config.method,
         data: error.response.data,
       }
     );
@@ -245,9 +393,34 @@ class NetworkService {
   /**
    * Check if request should be retried
    */
-  shouldRetry(config) {
+  shouldRetry(config, error) {
     const retryCount = config.metadata?.retryCount || 0;
-    return retryCount < this.maxRetries;
+    
+    // Check if max retries exceeded
+    if (retryCount >= this.retryConfig.maxRetries) {
+      return false;
+    }
+
+    // Check if method is retryable
+    const method = config.method?.toUpperCase();
+    if (!this.retryConfig.retryableMethods.includes(method)) {
+      return false;
+    }
+
+    // Check if status code is retryable
+    if (error.response) {
+      const status = error.response.status;
+      if (!this.retryConfig.retryableStatusCodes.includes(status)) {
+        return false;
+      }
+    }
+
+    // Always retry network errors (no response)
+    if (!error.response) {
+      return true;
+    }
+
+    return true;
   }
 
   /**
@@ -257,12 +430,14 @@ class NetworkService {
     const retryCount = config.metadata.retryCount;
     const delay = this.calculateBackoffDelay(retryCount);
 
-    console.log(`🔄 Retrying request (attempt ${retryCount + 1}/${this.maxRetries}) after ${delay}ms`);
+    console.log(`🔄 Retrying request (attempt ${retryCount + 1}/${this.retryConfig.maxRetries}) after ${delay}ms`);
     
     monitoringService.addBreadcrumb('Retrying request', {
       url: config.url,
+      method: config.method,
       attempt: retryCount + 1,
       delay,
+      errorType: error.code,
     });
 
     // Wait for backoff delay
@@ -276,13 +451,24 @@ class NetworkService {
   }
 
   /**
-   * Calculate exponential backoff delay
+   * Calculate exponential backoff delay with jitter
+   * 
+   * Uses full jitter algorithm:
+   * delay = random(0, min(maxDelay, baseDelay * 2^retryCount))
+   * 
+   * This prevents thundering herd problem when many clients retry simultaneously
    */
   calculateBackoffDelay(retryCount) {
-    // Exponential backoff: baseDelay * 2^retryCount + random jitter
-    const exponentialDelay = this.baseDelay * Math.pow(2, retryCount);
-    const jitter = Math.random() * 1000; // Add up to 1 second of jitter
-    return Math.min(exponentialDelay + jitter, 30000); // Cap at 30 seconds
+    // Calculate exponential delay
+    const exponentialDelay = this.retryConfig.baseDelay * Math.pow(2, retryCount);
+    
+    // Cap at max delay
+    const cappedDelay = Math.min(exponentialDelay, this.retryConfig.maxDelay);
+    
+    // Apply full jitter: random value between 0 and cappedDelay
+    const jitteredDelay = Math.random() * cappedDelay;
+    
+    return Math.floor(jitteredDelay);
   }
 
   /**
@@ -299,13 +485,109 @@ class NetworkService {
     console.log('📥 Queueing request for offline retry:', config.url);
     
     return new Promise((resolve, reject) => {
-      this.offlineQueue.push({
-        config,
+      const queueItem = {
+        config: this.serializeConfig(config),
+        timestamp: Date.now(),
         resolve,
         reject,
         instance,
-      });
+      };
+      
+      this.offlineQueue.push(queueItem);
+      
+      // Persist queue to storage
+      this.persistQueue();
+      
+      // Update Redux with queue count
+      store.dispatch(setQueuedRequestsCount(this.offlineQueue.length));
     });
+  }
+
+  /**
+   * Serialize axios config for storage
+   * Remove non-serializable properties
+   */
+  serializeConfig(config) {
+    return {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data,
+      params: config.params,
+      timeout: config.timeout,
+      metadata: config.metadata,
+    };
+  }
+
+  /**
+   * Persist offline queue to AsyncStorage
+   */
+  async persistQueue() {
+    try {
+      // Only persist serializable parts
+      const serializableQueue = this.offlineQueue.map(item => ({
+        config: item.config,
+        timestamp: item.timestamp,
+      }));
+      
+      await AsyncStorage.setItem(
+        this.queueStorageKey,
+        JSON.stringify(serializableQueue)
+      );
+    } catch (error) {
+      console.error('Failed to persist offline queue:', error);
+      monitoringService.logError(error, { context: 'persistQueue' });
+    }
+  }
+
+  /**
+   * Load persisted queue from AsyncStorage
+   */
+  async loadPersistedQueue() {
+    try {
+      const queueData = await AsyncStorage.getItem(this.queueStorageKey);
+      
+      if (queueData) {
+        const persistedQueue = JSON.parse(queueData);
+        
+        // Filter out old requests (older than 24 hours)
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+        const now = Date.now();
+        
+        const validRequests = persistedQueue.filter(item => {
+          return (now - item.timestamp) < maxAge;
+        });
+        
+        if (validRequests.length > 0) {
+          console.log(`📦 Loaded ${validRequests.length} persisted requests from storage`);
+          
+          // Convert to queue items with promises
+          validRequests.forEach(item => {
+            this.offlineQueue.push({
+              config: item.config,
+              timestamp: item.timestamp,
+              resolve: () => {}, // Placeholder - will be handled on retry
+              reject: () => {},
+              instance: this.axiosInstance,
+            });
+          });
+          
+          // Update Redux with queue count
+          store.dispatch(setQueuedRequestsCount(this.offlineQueue.length));
+          
+          // If online, process the queue
+          if (this.isOnline) {
+            this.processOfflineQueue();
+          }
+        } else {
+          // Clear old data
+          await AsyncStorage.removeItem(this.queueStorageKey);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load persisted queue:', error);
+      monitoringService.logError(error, { context: 'loadPersistedQueue' });
+    }
   }
 
   /**
@@ -320,15 +602,53 @@ class NetworkService {
     
     const queue = [...this.offlineQueue];
     this.offlineQueue = [];
+    
+    // Update Redux with queue count
+    store.dispatch(setQueuedRequestsCount(0));
+    
+    // Clear persisted queue
+    await AsyncStorage.removeItem(this.queueStorageKey);
+
+    const results = {
+      successful: 0,
+      failed: 0,
+      errors: [],
+    };
 
     for (const item of queue) {
       try {
         const response = await item.instance(item.config);
         item.resolve(response);
+        results.successful++;
       } catch (error) {
+        console.error('Failed to process queued request:', error);
         item.reject(error);
+        results.failed++;
+        results.errors.push({
+          url: item.config.url,
+          error: error.message,
+        });
       }
     }
+
+    console.log(`✅ Processed queue: ${results.successful} successful, ${results.failed} failed`);
+    
+    monitoringService.addBreadcrumb('Processed offline queue', {
+      successful: results.successful,
+      failed: results.failed,
+    });
+
+    return results;
+  }
+
+  /**
+   * Clear offline queue
+   */
+  async clearOfflineQueue() {
+    this.offlineQueue = [];
+    await AsyncStorage.removeItem(this.queueStorageKey);
+    store.dispatch(setQueuedRequestsCount(0));
+    console.log('🗑️ Offline queue cleared');
   }
 
   /**
@@ -350,6 +670,46 @@ class NetworkService {
    */
   getQueuedRequestCount() {
     return this.offlineQueue.length;
+  }
+
+  /**
+   * Get retry configuration
+   */
+  getRetryConfig() {
+    return { ...this.retryConfig };
+  }
+
+  /**
+   * Reset retry configuration to defaults
+   */
+  resetRetryConfig() {
+    this.retryConfig = {
+      maxRetries: 3,
+      baseDelay: 1000,
+      maxDelay: 30000,
+      retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+      retryableMethods: ['GET', 'PUT', 'DELETE', 'POST'],
+    };
+  }
+
+  /**
+   * Get timeout configuration
+   */
+  getTimeoutConfig() {
+    return { ...this.timeoutConfig };
+  }
+
+  /**
+   * Reset timeout configuration to defaults
+   */
+  resetTimeoutConfig() {
+    this.timeoutConfig = {
+      default: 30000,
+      upload: 120000,
+      download: 60000,
+      quick: 10000,
+      long: 180000,
+    };
   }
 }
 
