@@ -3,13 +3,15 @@
  * Supports primary, secondary, outline, and ghost variants with different sizes
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
   StyleSheet,
   View,
+  Animated,
+  Vibration,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import theme from '../../../theme';
@@ -27,7 +29,12 @@ const Button = ({
   testID,
   style,
   textStyle,
+  enableHaptic = true,
+  enableAnimation = true,
 }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const loadingRotation = useRef(new Animated.Value(0)).current;
+
   const buttonStyles = [
     styles.base,
     styles[variant],
@@ -44,37 +51,88 @@ const Button = ({
     textStyle,
   ];
 
+  // Animate button press with scale effect
+  const animatePress = () => {
+    if (!enableAnimation) return;
+    
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: theme.animations.duration.fastest,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: theme.animations.duration.fast,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // Loading spinner rotation animation
+  React.useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.timing(loadingRotation, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      loadingRotation.setValue(0);
+    }
+  }, [loading, loadingRotation]);
+
   const handlePress = () => {
     if (!disabled && !loading && onPress) {
+      // Trigger haptic feedback
+      if (enableHaptic) {
+        Vibration.vibrate(10);
+      }
+      
+      // Trigger press animation
+      animatePress();
+      
+      // Call the actual onPress handler
       onPress();
     }
   };
 
+  const spin = loadingRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
-    <TouchableOpacity
-      style={buttonStyles}
-      onPress={handlePress}
-      disabled={disabled || loading}
-      accessible={true}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityHint={accessibilityHint}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      testID={testID}
-      activeOpacity={0.7}
-    >
-      {loading ? (
-        <ActivityIndicator
-          color={variant === 'outline' || variant === 'ghost' ? theme.colors.primary.main : theme.colors.primary.contrast}
-          size="small"
-        />
-      ) : (
-        <View style={styles.content}>
-          {icon && <View style={styles.icon}>{icon}</View>}
-          <Text style={textStyles}>{children}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={buttonStyles}
+        onPress={handlePress}
+        disabled={disabled || loading}
+        accessible={true}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading, busy: loading }}
+        testID={testID}
+        activeOpacity={0.7}
+      >
+        {loading ? (
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <ActivityIndicator
+              color={variant === 'outline' || variant === 'ghost' ? theme.colors.primary.main : theme.colors.primary.contrast}
+              size="small"
+            />
+          </Animated.View>
+        ) : (
+          <View style={styles.content}>
+            {icon && <View style={styles.icon}>{icon}</View>}
+            <Text style={textStyles}>{children}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -179,6 +237,8 @@ Button.propTypes = {
   testID: PropTypes.string,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
   textStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  enableHaptic: PropTypes.bool,
+  enableAnimation: PropTypes.bool,
 };
 
 export default Button;

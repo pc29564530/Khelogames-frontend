@@ -13,3 +13,6 @@ export { default as PlayerListSkeleton } from './PlayerListSkeleton';
 export { default as EmptyState } from './EmptyState';
 export { default as OptimizedFlatList } from './OptimizedFlatList';
 export { default as FocusableModal } from './FocusableModal';
+export { default as AnimatedListItem } from './AnimatedListItem';
+export { default as AnimatedModal } from './AnimatedModal';
+export { default as AnimatedOverlay } from './AnimatedOverlay';

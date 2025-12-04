@@ -1,7 +1,8 @@
-import React, { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, View, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState, useRef } from 'react';
+import { FlatList, RefreshControl, View, ActivityIndicator, Animated } from 'react-native';
 import PropTypes from 'prop-types';
 import { Text } from '../../atoms';
+import theme from '../../../theme';
 
 /**
  * OptimizedFlatList - A performance-optimized FlatList component
@@ -37,9 +38,11 @@ const OptimizedFlatList = ({
   contentContainerStyle,
   style,
   testID,
+  animateItems = false,
   ...otherProps
 }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const refreshRotation = useRef(new Animated.Value(0)).current;
 
   /**
    * Optimized getItemLayout for fixed-height items
@@ -91,7 +94,24 @@ const OptimizedFlatList = ({
   }, [isLoadingMore, ListFooterComponent]);
 
   /**
-   * Pull-to-refresh control
+   * Animate refresh indicator
+   */
+  React.useEffect(() => {
+    if (refreshing) {
+      Animated.loop(
+        Animated.timing(refreshRotation, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      refreshRotation.setValue(0);
+    }
+  }, [refreshing, refreshRotation]);
+
+  /**
+   * Pull-to-refresh control with animation
    */
   const refreshControl = onRefresh ? (
     <RefreshControl
@@ -99,6 +119,7 @@ const OptimizedFlatList = ({
       onRefresh={onRefresh}
       tintColor="#FF6B35"
       colors={['#FF6B35']}
+      progressViewOffset={0}
     />
   ) : undefined;
 
@@ -177,6 +198,8 @@ OptimizedFlatList.propTypes = {
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
   /** Test ID for testing */
   testID: PropTypes.string,
+  /** Enable item entrance animations */
+  animateItems: PropTypes.bool,
 };
 
 export default OptimizedFlatList;

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+build/
+dist/
+.expo/
+.expo-shared/
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/build/
+*.ipa
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+*.log
+.DS_Store
+
+# Generated files
+*.generated.js
+*.generated.ts
+
+# Documentation
+docs/api/
+
+# Config files that should not be formatted
+.eslintrc.js
+babel.config.js
+metro.config.js
+jest.config.js
