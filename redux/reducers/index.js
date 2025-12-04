@@ -29,6 +29,7 @@ import cricketMatchInningReducer from "./cricketMatchInning";
 import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 import footballIncidentsReducers from "./footballIncidentsReducers";
 import validationReducers from "./validationReducers";
+import loadingReducers from "./loadingReducers";
 
 const appReducer = combineReducers({
     signup: signUpReducers,
@@ -57,6 +58,7 @@ const appReducer = combineReducers({
     tournamentEntities: tournamentEntitiesReducers,
     footballIncidents: footballIncidentsReducers,
     validation: validationReducers,
+    loading: loadingReducers,
 });
 
 const persistConfig = {

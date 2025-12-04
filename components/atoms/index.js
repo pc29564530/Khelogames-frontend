@@ -7,3 +7,6 @@ export { default as Button } from './Button';
 export { default as Text } from './Text';
 export { default as Input } from './Input';
 export { default as Icon } from './Icon';
+export { default as Skeleton } from './Skeleton';
+export { default as Spinner } from './Spinner';
+export { default as ProgressBar } from './ProgressBar';

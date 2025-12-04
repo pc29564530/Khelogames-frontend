@@ -708,3 +708,18 @@ export const validateForm = (formId, fields, validators) => {
     return !hasErrors;
   };
 };
+
+// Loading state actions
+export const setLoading = (key, value = true) => ({
+  type: actionTypes.SET_LOADING,
+  payload: { key, value },
+});
+
+export const clearLoading = (key) => ({
+  type: actionTypes.CLEAR_LOADING,
+  payload: { key },
+});
+
+export const clearAllLoading = () => ({
+  type: actionTypes.CLEAR_ALL_LOADING,
+});
