@@ -12,6 +12,7 @@ const logoPath = require('/Users/pawan/project/clone/Khelogames-frontend/assets/
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import {setAuthenticated} from '../redux/actions/actions';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { storeRefreshToken, storeRefreshTokenExpiresAt } from '../utils/SecureStorage';
 
 function SignIn() {
     const dispatch = useDispatch();
@@ -83,10 +84,10 @@ function SignIn() {
             await AsyncStorage.setItem("AccessToken", item.AccessToken);
             await AsyncStorage.setItem("Role", item.User?.role);
             await AsyncStorage.setItem("UserPublicID", item?.User?.public_id);
-            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
-            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
             await AsyncStorage.setItem("User", JSON.stringify(item.User));
+            await storeRefreshToken(item.RefreshToken);
+            await storeRefreshTokenExpiresAt(item.RefreshTokenExpiresAt);
             dispatch(setAuthenticated(true));
             dispatch(setUser(item.User));
             
@@ -130,10 +131,10 @@ function SignIn() {
             await AsyncStorage.setItem("AccessToken", item.AccessToken);
             await AsyncStorage.setItem("Role", item.User.role);
             await AsyncStorage.setItem("UserPublicID", item.User.public_id);
-            await AsyncStorage.setItem("RefreshToken", item.RefreshToken);
             await AsyncStorage.setItem("AccessTokenExpiresAt", item.AccessTokenExpiresAt);
-            await AsyncStorage.setItem("RefreshTokenExpiresAt", item.RefreshTokenExpiresAt);
             await AsyncStorage.setItem("User", JSON.stringify(item.User));
+            await storeRefreshToken(item.refresh_token);
+            await storeRefreshTokenExpiresAt(item.refresh_token_expires_at);
             dispatch(setAuthenticated(!isAuthenticated));
             dispatch(setUser(item.user));
             navigation.navigate("Home")

@@ -43,6 +43,7 @@ import EditPlayerProfile from '../screen/EditPlayerProfile';
 import AddFootballIncident from '../components/AddFootballIncident';
 import VideoPlayer from '../components/VideoPlayer';
 import ManageRole from '../screen/ManageRole';
+import { clearSecureStorage, getRefreshToken } from '../utils/SecureStorage';
 
 const Stack = createStackNavigator();
 
@@ -55,8 +56,8 @@ export default function MainNavigation() {
         
         const checkAuthStatus = async () => {
             try {
+                const refreshToken = await getRefreshToken();
                 const authToken = await AsyncStorage.getItem('AccessToken');
-                const refreshToken = await AsyncStorage.getItem('RefreshToken');
                 const user = await AsyncStorage.getItem("User");
                 
                 if (authToken && refreshToken && user) {
@@ -68,11 +69,11 @@ export default function MainNavigation() {
                     
                     // Clear any partial auth data
                     await AsyncStorage.multiRemove([
-                        'AccessToken', 
-                        'RefreshToken',
+                        'AccessToken',
                         'AccessTokenExpiresAt',
                         'User'
                     ]);
+                    await clearSecureStorage();
                 }
             } catch (error) {
                 console.error('💥 Error checking auth status:', error);

@@ -4,6 +4,7 @@ import { AUTH_URL } from '../constants/ApiConstants';
 import { setAuthenticated, logout } from '../redux/actions/actions';
 import { store } from '../redux/store';
 import { navigationRef } from '../navigation/NavigationService';
+import { getRefreshToken, getRefreshTokenExpiresAt, clearSecureStorage } from '../utils/SecureStorage';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -17,8 +18,10 @@ const processQueue = (error, token = null) => {
 
 const logoutFunc = async () => {
   try {
-    // Clear AsyncStorage (access tokens, user data, etc.)
+    // Clear AsyncStorage (access token, user data, etc.)
     await AsyncStorage.clear();
+    // Clear secure storage (refresh tokens)
+    await clearSecureStorage();
     store.dispatch(logout());
     store.dispatch(setAuthenticated(false));
     if (navigationRef.isReady()) {
@@ -64,8 +67,8 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = await AsyncStorage.getItem('RefreshToken');
-        const refreshTokenExpiresAt = await AsyncStorage.getItem("RefreshTokenExpiresAt")
+        const refreshToken = await getRefreshToken();
+        const refreshTokenExpiresAt = await getRefreshTokenExpiresAt();
         // Check if refresh token exists
         if (!refreshToken) {
           console.log('❌ No refresh token found in Keystore - logging out');

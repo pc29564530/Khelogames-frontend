@@ -3,6 +3,7 @@ import { AUTH_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {setAuthenticated, setUser, logout} from '../redux/actions/actions';
 import {persistor} from '../redux/store';
+import { clearSecureStorage, removeRefreshToken, storeRefreshToken, storeRefreshTokenExpiresAt } from "../utils/SecureStorage";
 
 export const loginServies = async ({ username, password, dispatch, isAuthenticated }) => {
     try {
@@ -11,9 +12,9 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         await AsyncStorage.setItem("AccessToken", item.access_token);
         await AsyncStorage.setItem("Role", item.user.role);
         await AsyncStorage.setItem("User", item.user);
-        await AsyncStorage.setItem("RefreshToken", item.refresh_token);
         await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
-        await AsyncStorage.setItem("RefreshTokenExpiresAt", item.refresh_token_expires_at);
+        await storeRefreshToken(item.refresh_token);
+        await storeRefreshTokenExpiresAt(item.refresh_token_expires_at);
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(item.user));
     } catch (err) {
@@ -29,11 +30,10 @@ export const logoutServies = async ({dispatch, navigation}) => {
         await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`);
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
-        await AsyncStorage.removeItem('RefreshToken');
         await AsyncStorage.removeItem('UserPulbicID');
         await AsyncStorage.removeItem("Role");
-        await persistor.purge()
-        console.log("Sign Out")
+        await clearSecureStorage();
+        await persistor.purge();
         navigation.navigate("SignIn");
       } catch (err) {
         alert("Failed to logout");

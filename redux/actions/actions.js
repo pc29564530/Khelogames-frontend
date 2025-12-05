@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as actionTypes from '../types/actionTypes';
 import { BASE_URL } from "../../constants/ApiConstants";
+import { getRefreshTokenExpiresAt } from "../../utils/SecureStorage";
 
 export const sendOTP = (mobileNumber) => ({
     type: actionTypes.SEND_OTP,
@@ -48,7 +49,7 @@ export const logout = () => {
 export const checkExpireTime = () => {
     return async (dispatch) => {
       try {
-        const refreshTokenExpireTime = await AsyncStorage.getItem('RefreshTokenExpiresAt');
+        const refreshTokenExpireTime = await getRefreshTokenExpiresAt();
         
         if (!refreshTokenExpireTime) {
           // No expiration time stored, logout to be safe
