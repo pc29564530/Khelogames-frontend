@@ -2,7 +2,6 @@ import { NativeBaseProvider } from 'native-base';
 import {Provider} from 'react-redux'
 import {store, persistor} from './redux/store';
 import MainNavigation from './navigation/MainNavigation';
-import { GlobalProvider } from './context/GlobalContext';
 import {WebSocketProvider} from './context/WebSocketContext';
 import { PersistGate } from 'redux-persist/integration/react';
 

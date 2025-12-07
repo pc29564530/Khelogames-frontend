@@ -1,18 +1,86 @@
+# React Native
 node_modules/
 android/
 .expo/
 dist/
 npm-debug.*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Metro
+.metro-health-check*
+
+# React Native Bundles
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/assets/index.android.bundle.meta
+ios/main.jsbundle
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Android
 *.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-web-build/
+*.keystore
+*.apk
+*.aab
+*.ap_
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/app/release/
+android/app/debug/
+android/local.properties
+# Removed android/gradle.properties from gitignore (needed for build config)
+
+# Gradle cache
+.gradle/
+build/
+
+# Android build artifacts (comprehensive)
+**/build/
+**/.gradle/
+**/local.properties
+**/*.iml
+**/.externalNativeBuild
+**/.cxx/
+**/captures/
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xccheckout
+ios/*.xcworkspace/xcuserdata
+ios/*.xcodeproj/xcuserdata
+ios/*.xcodeproj/project.xcworkspace/xcuserdata
+ios/*.moved-aside
+ios/DerivedData/
+ios/*.pbxuser
+ios/*.mode1v3
+ios/*.mode2v3
+ios/*.perspectivev3
 
 # macOS
 .DS_Store
 
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
+# IDE
+.vscode/
+.idea/
+
+# Temporary
+*.tmp
+*.temp
+*.log
+*.orig.*
+
+# Web (if using RN-Web)
+web-build/
+
+# Certificates & Signing Keys
+*.p8
+*.p12
+*.key
+*.mobileprovision
