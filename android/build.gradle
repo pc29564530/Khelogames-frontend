@@ -1,18 +1,70 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
-        minSdkVersion = 24
-        compileSdkVersion = 35
-        targetSdkVersion = 35
-        ndkVersion = "26.1.10909125"
-        kotlinVersion = "1.9.10"
+        buildToolsVersion = "34.0.0"
+        minSdkVersion = 23
+        compileSdkVersion = 34
+        targetSdkVersion = 33
+        kotlinVersion = "1.9.22"
+        ndkVersion = "23.1.7779620"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.7.3")
+        classpath("com.android.tools.build:gradle:8.0.2")
+        classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+        maven { url 'https://www.jitpack.io' }
+    }
+    
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.12.0'
+            force 'androidx.core:core-ktx:1.12.0'
+        }
+
+        // Replace old support libraries with AndroidX
+        all*.exclude group: 'com.android.support', module: 'support-v4'
+        all*.exclude group: 'com.android.support', module: 'appcompat-v7'
+        all*.exclude group: 'com.android.support', module: 'support-annotations'
+    }
+}
+
+// Enable BuildConfig for library modules compatibility
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android.buildFeatures.buildConfig = true
+            
+            // Fix namespace for libraries that don't have it
+            if (!project.android.hasProperty('namespace')) {
+                def manifestFile = project.file("src/main/AndroidManifest.xml")
+                if (manifestFile.exists()) {
+                    def manifest = new XmlSlurper().parse(manifestFile)
+                    def packageName = manifest.'@package'.text()
+                    if (packageName) {
+                        project.android.namespace = packageName
+                    }
+                }
+            }
+        }
+        
+        // Set Kotlin JVM target to match Java (17) set by React Native
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
     }
 }
