@@ -136,7 +136,14 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
-                        <Stack.Screen name="EditProfile" component={EditProfile} />
+                        <Stack.Screen name="EditProfile" component={EditProfile} 
+                            options={() => ({
+                                headerShown: true,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
                         <Stack.Screen name="CommunityPage" component={CommunityPage} 
                             options={() => ({

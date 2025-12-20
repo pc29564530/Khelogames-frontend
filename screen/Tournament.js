@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, Platform, PermissionsAndroid, Alert} from 'react-native';
 import axiosInstance from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -11,12 +11,14 @@ import { getTournamentBySportAction, setGames, setGame } from '../redux/actions/
 import { useDispatch, useSelector } from 'react-redux';
 import CountryPicker from 'react-native-country-picker-modal';
 import { sportsServices } from '../services/sportsServices';
+import Geolocation from "@react-native-community/geolocation";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   useAnimatedScrollHandler,
   withTiming
 } from "react-native-reanimated";
+import { BASE_URL } from '../constants/ApiConstants';
 
 const Tournament = () => {
   const navigation = useNavigation();
@@ -26,7 +28,13 @@ const Tournament = () => {
   const [isCountryPicker, setIsCountryPicker] = useState(false);
   const [typeFilterModal, setTypeFilterModal] = useState(false);
   const [statusFilterModal, setStatusFilterModal] = useState(false);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [selectedSport, setSelectedSport] = useState({ id: 1, min_players: 11, name: 'football' });
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('');
   const dispatch = useDispatch();
   const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
   const [filterTournaments, setFilterTournaments] = useState(tournaments?.tournaments || []);
@@ -201,6 +209,191 @@ const Tournament = () => {
         );
     }
 
+    const reverseGeoCode = async (lat, lon) => {
+  console.log("Reverse Latitude: ", lat);
+  console.log("Reverse Longitude: ", lon);
+
+  if (!lat || !lon) {
+    console.log("Skipping reverse geocode - coordinates are null");
+    return;
+  }
+
+  try {
+    const response = await axiosInstance.get(
+      `https://nominatim.openstreetmap.org/reverse`,
+      {
+        params: {
+          lat: lat,
+          lon: lon,
+          format: 'json'
+        },
+        headers: {
+          'User-Agent': 'KhelogamesApp/1.0',
+          'Accept': 'application/json',
+        },
+      }
+    );
+    
+    const data = response.data;
+    console.log("Reverse geocode result: ", data);
+    
+    if (data && data.address) {
+      const address = data.address;
+      const cityName = address.city || address.town || address.village || '';
+      const stateName = address.state || '';
+      const countryName = address.country || '';
+      
+      setCity(cityName);
+      setState(stateName);
+      setCountry(countryName);
+      console.log("Address set: ", cityName, stateName, countryName);
+    }
+  } catch (err) {
+    console.error("Failed to get the reverse geocode: ", err);
+    console.error("Error details:", err.response?.data || err.message);
+    
+    // Fallback or user notification
+    Alert.alert(
+      'Location Details Unavailable',
+      'Could not retrieve city/state information. Please check your internet connection.'
+    );
+  }
+};
+
+    useEffect(() => {
+      if(typeFilter === "nearby" && latitude && longitude){
+        reverseGeoCode(latitude, longitude);
+      }
+    }, [typeFilter, latitude, longitude])
+
+const getCurrentCoordinates = () => {
+    setIsLoadingLocation(true);
+    console.log("Getting current coordinates with GPS...");
+
+    let timeoutId = null;
+
+    // Use getCurrentPosition with high accuracy for GPS
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        console.log("Got position: ", position);
+        const {latitude: lat, longitude: lon} = position.coords;
+        console.log("Latitude: ", lat, " Longitude: ", lon);
+
+        // Clear timeout once we get a position
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        // Set state first
+        setLatitude(lat);
+        setLongitude(lon);
+        setIsLoadingLocation(false);
+
+        // Update location to server and reverse geocode
+        try {
+          const authToken = await AsyncStorage.getItem("AccessToken");
+          const reqData = {
+            latitude: lat.toString(),
+            longitude: lon.toString()
+          };
+          const res = await axiosInstance.put(`${BASE_URL}/update-user-location`, reqData, {
+            headers: {
+              "Authorization": `Bearer ${authToken}`,
+              "Content-Type": "application/json",
+            }
+          });
+
+          console.log("Location updated on server: ", res.data);
+
+          await AsyncStorage.setItem("UserLatitude", lat.toString());
+          await AsyncStorage.setItem("UserLongitude", lon.toString());
+
+          // Reverse geocode to get city/state/country
+          await reverseGeoCode(lat, lon);
+
+          Alert.alert('Success', 'Location retrieved and saved successfully!');
+        } catch (err) {
+          console.error("Failed to update location on server: ", err);
+          // Still try to reverse geocode even if server update fails
+          await reverseGeoCode(lat, lon);
+          Alert.alert('Warning', 'Location retrieved but failed to save to server.');
+        }
+      },
+      (error) => {
+        console.error("getCurrentPosition error: ", error);
+
+        // Clear timeout on error
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        setIsLoadingLocation(false);
+        
+        let errorMessage = 'Failed to get location.';
+        
+        if (error.code === 1) {
+          // PERMISSION_DENIED
+          errorMessage = 'Location permission denied. Please enable location permissions in app settings.';
+        } else if (error.code === 2) {
+          // POSITION_UNAVAILABLE
+          errorMessage = 'Location unavailable. Please check:\n1. GPS is enabled\n2. You are not in a GPS-blocking area\n3. Try moving to an open area';
+        } else if (error.code === 3) {
+          // TIMEOUT
+          errorMessage = 'Location request timed out.\n\nPlease:\n1. Ensure GPS/Location is enabled in device settings\n2. Move to an area with better GPS signal (outdoors)\n3. Wait a moment for GPS to initialize\n4. Try again';
+        }
+
+        Alert.alert('Location Error', errorMessage);
+      },
+      {
+        enableHighAccuracy: true,  // Use GPS for accurate location
+        timeout: 30000,  // 30 seconds timeout (GPS needs more time)
+        maximumAge: 10000,  // Accept cached position up to 10 seconds old
+      }
+    );
+
+    // Fallback timeout in case getCurrentPosition doesn't trigger error callback
+    timeoutId = setTimeout(() => {
+      console.log("Manual timeout triggered");
+      setIsLoadingLocation(false);
+      Alert.alert(
+        'Location Timeout',
+        'Location request took too long.\n\nTips:\n1. Make sure GPS is enabled in device settings\n2. Move to an open area (outdoors) for better GPS signal\n3. First GPS fix can take 30-60 seconds\n4. Try again or enter location manually'
+      );
+    }, 35000); // 35 second fallback timeout
+  };
+    
+
+    const handleLocation = async () => {
+        console.log("Platform: ", Platform.OS);
+        if (Platform.OS === "android") {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: 'Location Permission',
+              message: 'We need access to your location provide better result for matches, tournament etc.',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+          console.log("Granted: ", granted);
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            getCurrentCoordinates(); // This now handles both getting location AND updating server
+            return true;
+          } else {
+            Alert.alert(
+              'Location Permission Denied',
+              'You can still manually enter your city, state, and country.'
+            );
+            return false;
+          }
+        } else if (Platform.OS === "ios") {
+          // For iOS, request permission through Geolocation
+          getCurrentCoordinates();
+        }
+      };
+
+
   return (
     <View style={tailwind`flex-1 bg-gray-50`}>
         <View>
@@ -321,14 +514,18 @@ const Tournament = () => {
         >
           <View style={tailwind`bg-white rounded-2xl p-6 w-3/4`}>
             <Text style={tailwind`text-lg font-bold text-gray-800 mb-4 text-center`}>Select Category</Text>
-            {['all', 'international', 'country', 'local'].map((val) => (
+            {['international', 'country', 'nearby'].map((val) => (
               <Pressable
                 key={val}
                 style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
                 onPress={() => {
                   setTypeFilter(val);
                   setTypeFilterModal(false);
-                  if (val === 'country' || val === 'local') setIsCountryPicker(true);
+                  if (val === 'country') {
+                    setIsCountryPicker(true)
+                  } else if(val === 'nearby') {
+                    handleLocation()
+                  };
                 }}
               >
                 <Text style={tailwind`text-lg text-gray-800 capitalize`}>{val}</Text>

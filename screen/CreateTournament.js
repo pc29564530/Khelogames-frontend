@@ -17,6 +17,8 @@ const Stages = ['Group', 'Knockout', 'League'];
 const CreateTournament = () => {
     const [tournamentName, setTournamentName] = useState('');
     const [startOn, setStartOn] = useState(null);
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
     const [country, setCountry] = useState('');
     const [category, setCategory] = useState('');
     const [groupCount, setGroupCount] = useState(null);
@@ -36,53 +38,55 @@ const CreateTournament = () => {
     const game = useSelector((state) => state.sportReducers.game);
     
     const handleCreateTournament = async () => {
-  try {
-    const data = {
-      name: tournamentName,
-      country: category === 'international' ? '' : country,
-      status: "not_started",
-      level: category,
-      start_timestamp: modifyDateTime(startOn),
-      game_id: game.id,
-      group_count: parseInt(groupCount, 10),
-      max_group_team: parseInt(maxTeamGroup, 10),
-      stage: stage?.toLowerCase(),
-      has_knockout: isKnockout,
+        try {
+            const data = {
+            name: tournamentName,
+            status: "not_started",
+            level: "local",
+            start_timestamp: modifyDateTime(startOn),
+            game_id: game.id,
+            group_count: parseInt(groupCount, 10),
+            max_group_team: parseInt(maxTeamGroup, 10),
+            stage: stage?.toLowerCase(),
+            has_knockout: isKnockout,
+            city: city,
+            state: state,
+            country: country,
+            };
+
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.post(
+            `${BASE_URL}/${game.name}/createTournament`,
+            data,
+            {
+                headers: {
+                Authorization: `Bearer ${authToken}`,
+                "Content-Type": "application/json",
+                },
+            }
+            );
+
+            console.log("✅ Tournament Created Response:", response.data);
+
+            const tournament = response.data
+
+            console.log("API Response structure:", {
+            data: response.data,
+            type: typeof response.data,
+            isArray: Array.isArray(response.data)
+        });
+
+            if (tournament) {
+            dispatch(addTournament(tournament));
+                navigation.popToTop()
+            navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
+            } else {
+            console.log("❌ No tournament found in response", response.data);
+            }
+        } catch (err) {
+            console.log("❌ Unable to create a new tournament", err);
+        }
     };
-
-    const authToken = await AsyncStorage.getItem('AccessToken');
-    const response = await axiosInstance.post(
-      `${BASE_URL}/${game.name}/createTournament`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("✅ Tournament Created Response:", response.data);
-
-    const tournament = response.data
-
-    console.log("API Response structure:", {
-    data: response.data,
-    type: typeof response.data,
-    isArray: Array.isArray(response.data)
-});
-
-    if (tournament) {
-      dispatch(addTournament(tournament));
-        navigation.popToTop()
-      navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
-    } else {
-      console.log("❌ No tournament found in response", response.data);
-    }
-  } catch (err) {
-    console.log("❌ Unable to create a new tournament", err);
-  }
-};
 
 
     navigation.setOptions({
@@ -114,37 +118,54 @@ const CreateTournament = () => {
 
     return (
         <ScrollView style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
-            {/* Input Fields */}
-            <TextInput
-                style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-2`}
-                placeholder="Tournament Name"
-                placeholderTextColor="gray"
+            <View style={tailwind`mb-4`}>
+              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
+                Tournament Name *
+              </Text>
+              <TextInput
+                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
                 value={tournamentName}
                 onChangeText={setTournamentName}
-            />
-
-            {/* Country Selection */}
-            <Pressable
-                onPress={() => setIsCountryPicker(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
-            >
-                <Text style={tailwind`text-gray-600 text-lg`}>
-                    {country ? `Country: ${country}` : 'Select Country'}
-                </Text>
-                <AntDesign name="down" size={20} color="gray" />
-            </Pressable>
-
-            {/* Level Selection */}
-            <Pressable
-                onPress={() => setIsLevelVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
-            >
-                <Text style={tailwind`text-gray-600 text-lg`}>
-                    {category || 'Select Level'}
-                </Text>
-                <AntDesign name="down" size={20} color="gray" />
-            </Pressable>
-
+                placeholder="Enter your tournament name"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+            <View style={tailwind`mb-4`}>
+              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
+                City *
+              </Text>
+              <TextInput
+                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
+                value={city}
+                onChangeText={setCity}
+                placeholder="Enter your city"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+            <View style={tailwind`mb-4`}>
+              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
+                State *
+              </Text>
+              <TextInput
+                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
+                value={state}
+                onChangeText={setState}
+                placeholder="Enter your state"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+            <View style={tailwind`mb-4`}>
+              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
+                Country *
+              </Text>
+              <TextInput
+                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
+                value={country}
+                onChangeText={setCountry}
+                placeholder="Enter your full name"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
             {/* Date Picker */}
             <Pressable
                 onPress={() => setIsDurationVisible(true)}
