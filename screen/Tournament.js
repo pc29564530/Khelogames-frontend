@@ -19,11 +19,12 @@ import Animated, {
   withTiming
 } from "react-native-reanimated";
 import { BASE_URL } from '../constants/ApiConstants';
+import { getCurrentLocation } from '../utils/locationService';
 
 const Tournament = () => {
   const navigation = useNavigation();
   const [currentRole, setCurrentRole] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('international');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCountryPicker, setIsCountryPicker] = useState(false);
   const [typeFilterModal, setTypeFilterModal] = useState(false);
@@ -75,6 +76,7 @@ const Tournament = () => {
   useEffect(() => {
     const fetchTournament = async () => {
       const tournamentData = await getTournamentBySport({ axiosInstance, game });
+      // console.log("Sport Data: ", tournamentData)
       dispatch(getTournamentBySportAction(tournamentData.tournament));
     };
 
@@ -137,6 +139,37 @@ const Tournament = () => {
             transform: [{ translateY: pos.value }],
         };
     });
+
+    const fetchTournamentByNearBy = async ({cityName, stateName, countryName}) => {
+      try {
+        if (!cityName && !stateName && !countryName) {
+          console.log("No location data available yet, skipping API call");
+          return;
+        }
+
+        const params = {
+          city: cityName,
+          state: stateName,
+          country: countryName
+        };
+
+        console.log("Fetching tournaments by location:", params);
+
+        const authToken = await AsyncStorage.getItem("AccessToken");
+        const res = await axiosInstance.get(`${BASE_URL}/${game.name}/get-tournament-by-location`, {
+          params: params,  // Correct: query parameters go inside config object
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log(" Nearby tournaments fetched:", res.data);
+        dispatch(getTournamentBySportAction(res.data.tournament));
+      } catch (err) {
+        console.error(" Failed to fetch tournament by location:", err.response?.data || err.message);
+      }
+    };
 
 
   const renderFilterTournament = ({item}) => {
@@ -210,158 +243,119 @@ const Tournament = () => {
     }
 
     const reverseGeoCode = async (lat, lon) => {
-  console.log("Reverse Latitude: ", lat);
-  console.log("Reverse Longitude: ", lon);
-
-  if (!lat || !lon) {
-    console.log("Skipping reverse geocode - coordinates are null");
-    return;
-  }
-
-  try {
-    const response = await axiosInstance.get(
-      `https://nominatim.openstreetmap.org/reverse`,
-      {
-        params: {
-          lat: lat,
-          lon: lon,
-          format: 'json'
-        },
-        headers: {
-          'User-Agent': 'KhelogamesApp/1.0',
-          'Accept': 'application/json',
-        },
+      console.log("Lat: ", lat)
+      console.log("Long: ", lon)
+      if (!lat || !lon) {
+        console.log("Skipping reverse geocode - coordinates are null");
+        return;
       }
-    );
-    
-    const data = response.data;
-    console.log("Reverse geocode result: ", data);
-    
-    if (data && data.address) {
-      const address = data.address;
-      const cityName = address.city || address.town || address.village || '';
-      const stateName = address.state || '';
-      const countryName = address.country || '';
-      
-      setCity(cityName);
-      setState(stateName);
-      setCountry(countryName);
-      console.log("Address set: ", cityName, stateName, countryName);
-    }
-  } catch (err) {
-    console.error("Failed to get the reverse geocode: ", err);
-    console.error("Error details:", err.response?.data || err.message);
-    
-    // Fallback or user notification
-    Alert.alert(
-      'Location Details Unavailable',
-      'Could not retrieve city/state information. Please check your internet connection.'
-    );
-  }
-};
 
-    useEffect(() => {
-      if(typeFilter === "nearby" && latitude && longitude){
-        reverseGeoCode(latitude, longitude);
-      }
-    }, [typeFilter, latitude, longitude])
+      try {
+        // BigDataCloud Free API - No authentication required
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        
+        console.log("Fetching from BigDataCloud:", url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
 
-const getCurrentCoordinates = () => {
-    setIsLoadingLocation(true);
-    console.log("Getting current coordinates with GPS...");
-
-    let timeoutId = null;
-
-    // Use getCurrentPosition with high accuracy for GPS
-    Geolocation.getCurrentPosition(
-      async (position) => {
-        console.log("Got position: ", position);
-        const {latitude: lat, longitude: lon} = position.coords;
-        console.log("Latitude: ", lat, " Longitude: ", lon);
-
-        // Clear timeout once we get a position
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Set state first
-        setLatitude(lat);
-        setLongitude(lon);
-        setIsLoadingLocation(false);
+        const data = await response.json();
+        console.log("Reverse geocode result: ", data);
+        
+        if (data) {
+          const cityName = data.city || data.locality || '';
+          const stateName = data.principalSubdivision || '';
+          const countryName = data.countryName || '';
+          
+          setCity(cityName);
+          setState(stateName);
+          setCountry(countryName);
+          console.log("Address set: ", cityName, stateName, countryName);
+          fetchTournamentByNearBy({cityName, stateName, countryName})
+        }
+      } catch (err) {
+        console.error("BigDataCloud geocoding failed: ", err.message);
+      }
+    };
 
-        // Update location to server and reverse geocode
-        try {
-          const authToken = await AsyncStorage.getItem("AccessToken");
-          const reqData = {
-            latitude: lat.toString(),
-            longitude: lon.toString()
-          };
-          const res = await axiosInstance.put(`${BASE_URL}/update-user-location`, reqData, {
-            headers: {
-              "Authorization": `Bearer ${authToken}`,
-              "Content-Type": "application/json",
+    // useEffect(() => {
+    //   if(typeFilter === "nearby" && latitude && longitude){
+    //     reverseGeoCode(latitude, longitude);
+    //   }
+    // }, [typeFilter, latitude, longitude])
+
+
+    const getFastLocation = async () => {
+      return new Promise((resolve, reject) => {
+          Geolocation.getCurrentPosition(
+            (pos) => resolve(pos),
+            (err) => reject(err),
+            {
+              enableHighAccuracy: false,
+              timeout: 8000,
+              maximumAge: 60000,
             }
-          });
+          )
+      })
+    }
 
-          console.log("Location updated on server: ", res.data);
+    const getPreciseLocation = async () => {
+      return new Promise((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          (pos) => resolve(pos),
+          (err) => reject(err),
+          {
+            enableHighAccuracy: true,
+            timeout: 25000,
+            maximumAge: 0,
+          }
+        )
+      });
+    }
+
+
+    const getCurrentCoordinates = async () => {
+      setIsLoadingLocation(true);
+      console.log("Getting location (robust)...");
+
+      const fastPos = await getFastLocation();
+      const { latitude: lat, longitude: lon } = fastPos.coords;
+      console.log("FAST location:", lat, lon);
+
+      setLatitude(lat);
+      setLongitude(lon);
+
+      await AsyncStorage.setItem("UserLatitude", lat.toString());
+      await AsyncStorage.setItem("UserLongitude", lon.toString());
+
+      reverseGeoCode(lat, lon); // quick nearby tournaments
+
+      setTimeout(async () => {
+        try {
+          const precisePos = await getPreciseLocation();
+          const {latitude: lat, longitude: lon} = precisePos.coords;
+          console.log("Precise location:", lat, lon);
+
+          setLatitude(lat);
+          setLongitude(lon);
 
           await AsyncStorage.setItem("UserLatitude", lat.toString());
           await AsyncStorage.setItem("UserLongitude", lon.toString());
-
-          // Reverse geocode to get city/state/country
-          await reverseGeoCode(lat, lon);
-
-          Alert.alert('Success', 'Location retrieved and saved successfully!');
-        } catch (err) {
-          console.error("Failed to update location on server: ", err);
-          // Still try to reverse geocode even if server update fails
-          await reverseGeoCode(lat, lon);
-          Alert.alert('Warning', 'Location retrieved but failed to save to server.');
+          reverseGeoCode(lat, lon)
+        } catch(err) {
+          console.error("Failed to get precise location: ", err)
         }
-      },
-      (error) => {
-        console.error("getCurrentPosition error: ", error);
-
-        // Clear timeout on error
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-        }
-
         setIsLoadingLocation(false);
-        
-        let errorMessage = 'Failed to get location.';
-        
-        if (error.code === 1) {
-          // PERMISSION_DENIED
-          errorMessage = 'Location permission denied. Please enable location permissions in app settings.';
-        } else if (error.code === 2) {
-          // POSITION_UNAVAILABLE
-          errorMessage = 'Location unavailable. Please check:\n1. GPS is enabled\n2. You are not in a GPS-blocking area\n3. Try moving to an open area';
-        } else if (error.code === 3) {
-          // TIMEOUT
-          errorMessage = 'Location request timed out.\n\nPlease:\n1. Ensure GPS/Location is enabled in device settings\n2. Move to an area with better GPS signal (outdoors)\n3. Wait a moment for GPS to initialize\n4. Try again';
-        }
-
-        Alert.alert('Location Error', errorMessage);
-      },
-      {
-        enableHighAccuracy: true,  // Use GPS for accurate location
-        timeout: 30000,  // 30 seconds timeout (GPS needs more time)
-        maximumAge: 10000,  // Accept cached position up to 10 seconds old
-      }
-    );
-
-    // Fallback timeout in case getCurrentPosition doesn't trigger error callback
-    timeoutId = setTimeout(() => {
-      console.log("Manual timeout triggered");
-      setIsLoadingLocation(false);
-      Alert.alert(
-        'Location Timeout',
-        'Location request took too long.\n\nTips:\n1. Make sure GPS is enabled in device settings\n2. Move to an open area (outdoors) for better GPS signal\n3. First GPS fix can take 30-60 seconds\n4. Try again or enter location manually'
-      );
-    }, 35000); // 35 second fallback timeout
-  };
-    
+      }, 1500);
+    };
 
     const handleLocation = async () => {
         console.log("Platform: ", Platform.OS);
@@ -483,14 +477,14 @@ const getCurrentCoordinates = () => {
                 )}
             </Animated.View>
         </View>
-        <Animated.FlatList 
+        <Animated.FlatList
             data={filterTournaments}
             keyExtractor={(item, index) => item.public_id ? item.public_id.toString() : index.toString()}
             renderItem={renderFilterTournament}
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             contentContainerStyle={{
-              paddingTop: 120, // push down so content starts below header
+              paddingTop: (typeFilter !== 'all' || statusFilter !== 'all') ? 170 : 120, // push down so content starts below header
               paddingBottom: 50,
             }}
 
