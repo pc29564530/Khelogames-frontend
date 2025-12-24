@@ -16,11 +16,15 @@ const Club = () => {
     const scrollViewRef = useRef(null);
     
     const [currentRole, setCurrentRole] = useState('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [country, setCountry] = useState('');
     const [selectedSport, setSelectedSport] = useState("football");
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const teams = useSelector((state) => state.teams.teamsBySports);
+
 
     useEffect(() => {
         const defaultSport = { id: 1, name: 'football', min_players: 11 };

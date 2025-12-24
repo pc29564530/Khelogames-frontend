@@ -43,6 +43,7 @@ import EditPlayerProfile from '../screen/EditPlayerProfile';
 import AddFootballIncident from '../components/AddFootballIncident';
 import VideoPlayer from '../components/VideoPlayer';
 import ManageRole from '../screen/ManageRole';
+import EditClub from '../screen/EditClub';
 import { clearSecureStorage, getRefreshToken } from '../utils/SecureStorage';
 
 const Stack = createStackNavigator();
@@ -137,6 +138,14 @@ export default function MainNavigation() {
                             })}
                         />
                         <Stack.Screen name="EditProfile" component={EditProfile} 
+                            options={() => ({
+                                headerShown: true,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+                        <Stack.Screen name="EditClub" component={EditClub} 
                             options={() => ({
                                 headerShown: true,
                                 headerTitle: null,

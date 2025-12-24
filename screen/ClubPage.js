@@ -182,6 +182,12 @@ const ClubPage = ({route}) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`absolute left-2 top-4`}>
                   <MaterialIcons name="arrow-back" size={22} color="white" />
                 </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('EditClub', { teamData })}
+                  style={tailwind`absolute right-2 top-4`}
+                >
+                  <MaterialIcons name="edit" size={22} color="white" />
+                </TouchableOpacity>
                 <View style={tailwind`items-center`}>
                   <Animated.Image source="" 
                   style={[tailwind`w-32 h-32 rounded-full absolute z-10 self-center top-9  bg-red-200`, animImage]}/>
