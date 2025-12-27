@@ -7,11 +7,12 @@ import tailwind from 'twrnc';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
-const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight, navigation }) => {
+const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const entities = useSelector(state => state.tournamentEntities.tournamentEntities)
-
+    const navigation = useNavigation();
     
     const game = useSelector(state => state.sportReducers.game);
 

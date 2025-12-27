@@ -7,10 +7,14 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
-  Image
+  Image,
+  PermissionsAndroid,
+  Platform,
+  Alert
 } from 'react-native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
@@ -19,7 +23,7 @@ const filePath = require('../assets/knockout.json')
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 const matchFormatPath = require('../assets/match_format.json');
-import { Alert } from 'react-native';
+import Geolocation from '@react-native-community/geolocation';
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
@@ -39,6 +43,10 @@ const CreateMatch = ({ route }) => {
     const [result, setResult] = useState(null);
     const [matchType, setMatchType] = useState('');
     const [stage, setStage] = useState('');
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [locationBuffer, setLocationBuffer] = useState([]);
     
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
@@ -143,9 +151,169 @@ const CreateMatch = ({ route }) => {
       console.log("stage: ", stage)
     })
 
+    const reverseGeoCode = async (lat, lon) => {
+      console.log("Lat: ", lat)
+      console.log("Long: ", lon)
+      if (!lat || !lon) {
+        console.log("Skipping reverse geocode - coordinates are null");
+        return;
+      }
+
+      try {
+        // BigDataCloud Free API - No authentication required
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        
+        console.log("Fetching from BigDataCloud:", url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Reverse geocode result: ", data);
+        console.log("Data: ", data.localityInfo.administrative)
+        
+        if (data) {
+          const cityName = data.city || data.locality || '';
+          const stateName = data.principalSubdivision || '';
+          const countryName = data.countryName || '';
+          
+          // setCity(cityName);
+          // setState(stateName);
+          // setCountry(countryName);
+          console.log("Address set: ", cityName, stateName, countryName);
+          fetchTournamentByNearBy({cityName, stateName, countryName})
+        }
+      } catch (err) {
+        console.error("BigDataCloud geocoding failed: ", err.message);
+      }
+    };
+
+
+    const getCurrentCoordinates = () => {
+      setIsLoadingLocation(true);
+      console.log("Getting match location...");
+
+      // First try with high accuracy
+      Geolocation.getCurrentPosition(
+        (position) => {
+          handlePositionSuccess(position);
+        },
+        (error) => {
+          console.error("High accuracy failed:", error);
+          // Fallback to lower accuracy
+          console.log("Trying with lower accuracy...");
+          Geolocation.getCurrentPosition(
+            (position) => {
+              handlePositionSuccess(position);
+            },
+            (finalError) => {
+              console.error("Final geolocation error:", finalError);
+              setIsLoadingLocation(false);
+              Alert.alert(
+                'Location Error',
+                `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
+              );
+            },
+            {
+              enableHighAccuracy: false, // Lower accuracy = faster
+              timeout: 15000,
+              maximumAge: 10000,
+            }
+          );
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 10000,
+          distanceFilter: 0,
+          forceRequestLocation: true,
+          showLocationDialog: true,
+        }
+      );
+    };
+
+const handlePositionSuccess = (position) => {
+    console.log("✓ SUCCESS - Position received:", position);
+
+    if (!position || !position.coords) {
+      setIsLoadingLocation(false);
+      Alert.alert('Location Error', 'Unable to get coordinates');
+      return;
+    }
+
+    const {latitude, longitude, accuracy} = position.coords;
+    console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
+    reverseGeoCode(latitude, longitude)
+
+    setLocationBuffer(prevBuffer => {
+      const newBuffer = [...prevBuffer, {latitude, longitude}];
+      if (newBuffer.length > 3) {
+        newBuffer.shift();
+      }
+
+      if (newBuffer.length >= 3) {
+        const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
+        const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
+        setLatitude(avgLat);
+        setLongitude(avgLng);
+        console.log("Avg location set:", avgLat, avgLng);
+        setIsLoadingLocation(false);
+      } else {
+        setLatitude(latitude);
+        setLongitude(longitude);
+        console.log("Initial location set:", latitude, longitude);
+        setIsLoadingLocation(false);
+      }
+
+      return newBuffer;
+    });
+};
+
+
+    const handleLocation = async () => {
+        console.log("Platform:", Platform.OS);
+        if (Platform.OS === "android") {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                {
+                    title: 'Location Permission',
+                    message: 'We need access to your location to set the team location.',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                }
+            );
+            console.log("Granted:", granted);
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                getCurrentCoordinates();
+                return true;
+            } else {
+                Alert.alert(
+                    'Location Permission Denied',
+                    'You can still create a team without location.'
+                );
+                return false;
+            }
+        } else if (Platform.OS === "ios") {
+            getCurrentCoordinates();
+        }
+    };
+
   return (
     <SafeAreaView style={tailwind`flex-1 bg-gray-100`}>
-      <ScrollView style={tailwind` p-4`}>
+      <ScrollView
+        style={tailwind`flex-1 p-4`}
+        contentContainerStyle={tailwind`pb-6`}
+        showsVerticalScrollIndicator={false}
+      >
       {tournament.stage !== 'knockout' &&
         (!firstEntity?.group_id ||
         !secondEntity?.group_id ||
@@ -225,9 +393,54 @@ const CreateMatch = ({ route }) => {
               </Pressable>
           </View>
         )}
-        <View  style={tailwind`mb-2`}>
-            <Pressable onPress={handleSetFixture} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-center items-center`}>
-                <Text style={tailwind`text-black text-center text-lg`}>Create Match</Text>
+
+        {/* GPS Location Card */}
+        <View style={tailwind`bg-white p-4 rounded-lg shadow-md mb-4`}>
+            <View style={tailwind`flex-row items-center justify-between mb-2`}>
+                <Text style={tailwind`text-lg font-semibold text-gray-800`}>GPS Coordinates</Text>
+                {latitude && longitude && (
+                    <MaterialIcons name="check-circle" size={20} color="#10B981" />
+                )}
+            </View>
+            <Text style={tailwind`text-xs text-gray-500 mb-3`}>
+                Optional - Add match location
+            </Text>
+
+            <Pressable
+                onPress={handleLocation}
+                disabled={isLoadingLocation}
+                style={[
+                    tailwind`p-3 rounded-lg flex-row items-center justify-between`,
+                    isLoadingLocation ? tailwind`bg-gray-100` : tailwind`bg-red-50`,
+                ]}
+            >
+                <View style={tailwind`flex-row items-center flex-1`}>
+                    <MaterialIcons
+                        name="my-location"
+                        size={20}
+                        color={latitude && longitude ? "#10B981" : "#EF4444"}
+                    />
+                    <Text style={[tailwind`ml-2 flex-1 text-sm`, latitude && longitude ? tailwind`text-green-600 font-semibold` : tailwind`text-red-500 font-medium`]}>
+                        {isLoadingLocation
+                            ? 'Getting location...'
+                            : latitude && longitude
+                                ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+                                : 'Tap to get location'}
+                    </Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
+            </Pressable>
+        </View>
+
+        {/* Create Match Button */}
+        <View style={tailwind`mb-4`}>
+            <Pressable
+              onPress={handleSetFixture}
+              style={tailwind`bg-red-400 py-4 rounded-xl shadow-lg`}
+            >
+                <Text style={tailwind`text-white text-center text-lg font-bold`}>
+                  Create Match
+                </Text>
             </Pressable>
         </View>
 

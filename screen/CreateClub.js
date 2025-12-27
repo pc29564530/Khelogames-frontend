@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setTeams } from '../redux/actions/actions';
 import CountryPicker from 'react-native-country-picker-modal';
 import Geolocation from '@react-native-community/geolocation';
-import { getCurrentPosition } from '@react-native-community/geolocation/js/implementation';
 
 const CreateClub = () => {
     const navigation = useNavigation();
