@@ -47,6 +47,9 @@ const CreateMatch = ({ route }) => {
     const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationBuffer, setLocationBuffer] = useState([]);
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [country, setCountry] = useState('');
     
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
@@ -197,7 +200,7 @@ const CreateMatch = ({ route }) => {
     };
 
 
-    const getCurrentCoordinates = () => {
+  const getCurrentCoordinates = () => {
       setIsLoadingLocation(true);
       console.log("Getting match location...");
 
@@ -238,9 +241,9 @@ const CreateMatch = ({ route }) => {
           showLocationDialog: true,
         }
       );
-    };
+  };
 
-const handlePositionSuccess = (position) => {
+  const handlePositionSuccess = (position) => {
     console.log("✓ SUCCESS - Position received:", position);
 
     if (!position || !position.coords) {
@@ -275,7 +278,7 @@ const handlePositionSuccess = (position) => {
 
       return newBuffer;
     });
-};
+  };
 
 
     const handleLocation = async () => {

@@ -9,14 +9,16 @@ import axiosInstance from './axios_config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { SelectMedia } from '../services/SelectMedia';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setTeams } from '../redux/actions/actions';
 import Geolocation from '@react-native-community/geolocation';
 
 const EditClub = ({ route }) => {
     const navigation = useNavigation();
     const { teamData } = route.params;
+    console.log("Team: ", teamData)
     const dispatch = useDispatch();
+    const game = useSelector((state) => state.sportReducers.game)
 
     // Initialize state with existing team data
     const [teamName, setTeamName] = useState(teamData.name || '');
@@ -30,6 +32,7 @@ const EditClub = ({ route }) => {
     const [latitude, setLatitude] = useState(teamData.latitude ? parseFloat(teamData.latitude) : null);
     const [longitude, setLongitude] = useState(teamData.longitude ? parseFloat(teamData.longitude) : null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [locationBuffer, setLocationBuffer] = useState([]);
 
     const handleMediaSelection = async () => {
         const { mediaURL, mediaType } = await SelectMedia(axiosInstance);
@@ -77,63 +80,85 @@ const EditClub = ({ route }) => {
         }
     };
 
-    const getFastLocation = async () => {
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-                (pos) => resolve(pos),
-                (err) => reject(err),
-                {
-                    enableHighAccuracy: false,
-                    timeout: 8000,
-                    maximumAge: 20000,
-                }
+    const getCurrentCoordinates = () => {
+    setIsLoadingLocation(true);
+    console.log("Getting match location...");
+
+    // First try with high accuracy
+    Geolocation.getCurrentPosition(
+        (position) => {
+        handlePositionSuccess(position);
+        },
+        (error) => {
+        console.error("High accuracy failed:", error);
+        // Fallback to lower accuracy
+        console.log("Trying with lower accuracy...");
+        Geolocation.getCurrentPosition(
+            (position) => {
+            handlePositionSuccess(position);
+            },
+            (finalError) => {
+            console.error("Final geolocation error:", finalError);
+            setIsLoadingLocation(false);
+            Alert.alert(
+                'Location Error',
+                `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
             );
-        });
-    };
+            },
+            {
+            enableHighAccuracy: false, // Lower accuracy = faster
+            timeout: 15000,
+            maximumAge: 10000,
+            }
+        );
+        },
+        {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 10000,
+        distanceFilter: 0,
+        forceRequestLocation: true,
+        showLocationDialog: true,
+        }
+    );
+    
+};
 
-    const getCurrentLocation = async () => {
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-                (pos) => resolve(pos),
-                (err) => reject(err),
-                {
-                    enableHighAccuracy: true,
-                    timeout: 25000,
-                    maximumAge: 0,
-                }
-            );
-        });
-    };
+    const handlePositionSuccess = (position) => {
+        console.log("✓ SUCCESS - Position received:", position);
 
-    const getCurrentCoordinates = async () => {
-        setIsLoadingLocation(true);
-        console.log("Getting team location...");
+        if (!position || !position.coords) {
+        setIsLoadingLocation(false);
+        Alert.alert('Location Error', 'Unable to get coordinates');
+        return;
+        }
 
-        try {
-            const fastPos = await getFastLocation();
-            const { latitude: lat, longitude: lon } = fastPos.coords;
-            setLatitude(lat);
-            setLongitude(lon);
+        const {latitude, longitude, accuracy} = position.coords;
+        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
+        reverseGeocode(latitude, longitude)
 
-            reverseGeocode(lat, lon);
+        setLocationBuffer(prevBuffer => {
+        const newBuffer = [...prevBuffer, {latitude, longitude}];
+        if (newBuffer.length > 3) {
+            newBuffer.shift();
+        }
 
-            setTimeout(async () => {
-                try {
-                    const precisePos = await getCurrentLocation();
-                    const { latitude: lat, longitude: lon } = precisePos.coords;
-                    console.log("Precise location:", lat, lon);
-
-                    setLatitude(lat);
-                    setLongitude(lon);
-                } catch (err) {
-                    console.error("Failed to get precise location: ", err);
-                }
-                setIsLoadingLocation(false);
-            }, 1500);
-        } catch (err) {
-            console.error("Failed to get location: ", err);
+        if (newBuffer.length >= 3) {
+            const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
+            const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
+            setLatitude(avgLat);
+            setLongitude(avgLng);
+            console.log("Avg location set:", avgLat, avgLng);
+            setIsLoadingLocation(false);
+        } else {
+            setLatitude(latitude);
+            setLongitude(longitude);
+            console.log("Initial location set:", latitude, longitude);
             setIsLoadingLocation(false);
         }
+
+        return newBuffer;
+        });
     };
 
     const handleLocation = async () => {
@@ -173,6 +198,7 @@ const EditClub = ({ route }) => {
                 gender: gender,
                 country: country,
                 type: category,
+                game_id: teamData.game_id,
                 latitude: latitude != null ? latitude.toString() : '',
                 longitude: longitude != null ? longitude.toString() : '',
                 city: city,
@@ -180,9 +206,9 @@ const EditClub = ({ route }) => {
             };
             console.log("Updated team: ", updatedTeam);
             const authToken = await AsyncStorage.getItem('AccessToken');
-
+            console.log("team public id: ", teamData.public_id.toString())
             const response = await axiosInstance.put(
-                `${BASE_URL}/${teamData.game_name}/updateTeam/${teamData.public_id}`,
+                `${BASE_URL}/${game.name}/update-team-location/${teamData.public_id.toString()}`,
                 updatedTeam,
                 {
                     headers: {
@@ -191,6 +217,7 @@ const EditClub = ({ route }) => {
                     },
                 }
             );
+            console.log("update team: ", response.data)
 
             Alert.alert('Success', 'Team updated successfully!');
             navigation.goBack();

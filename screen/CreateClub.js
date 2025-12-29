@@ -30,6 +30,7 @@ const CreateClub = () => {
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [locationBuffer, setLocationBuffer] = useState([]);
 
     const dispatch = useDispatch();
     const game = useSelector((state) => state.sportReducers.game)
@@ -134,62 +135,84 @@ const CreateClub = () => {
       }
     };
 
-    const getFastLocation = async () => {
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-                (pos) => resolve(pos),
-                (err) => reject(err),
-                {
-                    enableHighAccuracy: false,
-                    timeout: 8000,
-                    maximumAge: 20000,
-                }
-            )
-        })
-    }
-
-    const getCurrentLocation = async () => {
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-            (pos) => resolve(pos),
-            (err) => reject(err),
-            {
-                enableHighAccuracy: true,
-                timeout: 25000,
-                maximumAge: 0,
-            }
-        )
-        })
-    }
- 
-    const getCurrentCoordinates = async () => {
+    const getCurrentCoordinates = () => {
         setIsLoadingLocation(true);
-        console.log("Getting team location...");
+        console.log("Getting match location...");
 
-        const fastPos = await getFastLocation();
-        const {latitude: lat, longitude: lon} = fastPos.coords;
-        setLatitude(lat);
-        setLongitude(lon);
+        // First try with high accuracy
+        Geolocation.getCurrentPosition(
+            (position) => {
+            handlePositionSuccess(position);
+            },
+            (error) => {
+            console.error("High accuracy failed:", error);
+            // Fallback to lower accuracy
+            console.log("Trying with lower accuracy...");
+            Geolocation.getCurrentPosition(
+                (position) => {
+                handlePositionSuccess(position);
+                },
+                (finalError) => {
+                console.error("Final geolocation error:", finalError);
+                setIsLoadingLocation(false);
+                Alert.alert(
+                    'Location Error',
+                    `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
+                );
+                },
+                {
+                enableHighAccuracy: false, // Lower accuracy = faster
+                timeout: 15000,
+                maximumAge: 10000,
+                }
+            );
+            },
+            {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 10000,
+            distanceFilter: 0,
+            forceRequestLocation: true,
+            showLocationDialog: true,
+            }
+        );
+    };
 
-        reverseGeocode(lat, lon)
+    const handlePositionSuccess = (position) => {
+        console.log("✓ SUCCESS - Position received:", position);
 
-         setTimeout(async () => {
-        try {
-          const precisePos = await getCurrentLocation();
-          const {latitude: lat, longitude: lon} = precisePos.coords;
-          console.log("Precise location:", lat, lon);
-
-          setLatitude(lat);
-          setLongitude(lon);
-
-        //   await AsyncStorage.setItem("UserLatitude", lat.toString());
-        //   await AsyncStorage.setItem("UserLongitude", lon.toString());
-        //   reverseGeoCode(lat, lon)
-        } catch(err) {
-          console.error("Failed to get precise location: ", err)
-        }
+        if (!position || !position.coords) {
         setIsLoadingLocation(false);
-      }, 1500);
+        Alert.alert('Location Error', 'Unable to get coordinates');
+        return;
+        }
+
+        const {latitude, longitude, accuracy} = position.coords;
+        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
+        reverseGeocode(latitude, longitude)
+
+        setLocationBuffer(prevBuffer => {
+        const newBuffer = [...prevBuffer, {latitude, longitude}];
+        if (newBuffer.length > 3) {
+            newBuffer.shift();
+        }
+
+        if (newBuffer.length >= 3) {
+            const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
+            const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
+            setLatitude(avgLat);
+            setLongitude(avgLng);
+            console.log("Avg location set:", avgLat, avgLng);
+            setIsLoadingLocation(false);
+        } else {
+            setLatitude(latitude);
+            setLongitude(longitude);
+            console.log("Initial location set:", latitude, longitude);
+            setIsLoadingLocation(false);
+        }
+
+        return newBuffer;
+        });
     };
 
     const handleLocation = async () => {
