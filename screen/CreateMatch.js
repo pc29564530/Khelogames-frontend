@@ -92,6 +92,11 @@ const CreateMatch = ({ route }) => {
           Alert.alert("Validation Error", "Please select match type and stage.");
           return;
         }
+
+        if (!latitude || !longitude) {
+          Alert.alert("Location Required", "Please enable location to create a match. Tap on 'GPS Coordinates' to get your location.");
+          return;
+        }
         
         const fixture = {
           tournament_public_id: tournament.public_id,
@@ -104,7 +109,12 @@ const CreateMatch = ({ route }) => {
           result: result,
           stage: stage,
           knockout_level_id:  knockoutLevel,
-          match_format: matchFormat
+          match_format: matchFormat,
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          city: city,
+          state: state,
+          country: country
         };
         
         const authToken = await AsyncStorage.getItem('AccessToken');
@@ -281,10 +291,10 @@ const CreateMatch = ({ route }) => {
   };
 
 
-    const handleLocation = async () => {
-        console.log("Platform:", Platform.OS);
-        if (Platform.OS === "android") {
-            const granted = await PermissionsAndroid.request(
+  const handleLocation = async () => {
+      console.log("Platform:", Platform.OS);
+      if (Platform.OS === "android") {
+          const granted = await PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                 {
                     title: 'Location Permission',
@@ -293,18 +303,18 @@ const CreateMatch = ({ route }) => {
                     buttonNegative: 'Cancel',
                     buttonPositive: 'OK',
                 }
-            );
-            console.log("Granted:", granted);
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                getCurrentCoordinates();
-                return true;
-            } else {
-                Alert.alert(
-                    'Location Permission Denied',
-                    'You can still create a team without location.'
-                );
-                return false;
-            }
+          );
+          console.log("Granted:", granted);
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+              getCurrentCoordinates();
+              return true;
+          } else {
+              Alert.alert(
+                  'Location Permission Denied',
+                  'You can still create a team without location.'
+              );
+              return false;
+          }
         } else if (Platform.OS === "ios") {
             getCurrentCoordinates();
         }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, Pressable, Modal, ScrollView, Image } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, Image, PermissionsAndroid, Platform, Alert } from 'react-native';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -14,6 +14,7 @@ import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/Formatted
 import { convertToISOString } from '../utils/FormattedDateTime';
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
+import Geolocation from '@react-native-community/geolocation';
 
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
 
@@ -74,6 +75,10 @@ const fomratDateToString = (date) => {
 const Matches = () => {
     const navigation = useNavigation();
     const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [locationBuffer, setLocationBuffer] = useState([]);
     const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const dispatch = useDispatch();
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -169,7 +174,132 @@ const Matches = () => {
         liveMatches();
     }
 
-    console.log("Matches: Line no 158: ", matches)
+    const getCurrentCoordinates = async () => {
+        setIsLoadingLocation(true);
+        console.log("Getting match location...");
+
+        // First try with high accuracy
+        Geolocation.getCurrentPosition(
+            (position) => {
+            handlePositionSuccess(position);
+            },
+            (error) => {
+            console.error("High accuracy failed:", error);
+            // Fallback to lower accuracy
+            console.log("Trying with lower accuracy...");
+            Geolocation.getCurrentPosition(
+                (position) => {
+                handlePositionSuccess(position);
+                },
+                (finalError) => {
+                console.error("Final geolocation error:", finalError);
+                setIsLoadingLocation(false);
+                Alert.alert(
+                    'Location Error',
+                    `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
+                );
+                },
+                {
+                enableHighAccuracy: false, // Lower accuracy = faster
+                timeout: 15000,
+                maximumAge: 10000,
+                }
+            );
+            },
+            {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 10000,
+            distanceFilter: 0,
+            forceRequestLocation: true,
+            showLocationDialog: true,
+            }
+        );
+
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/get-matches-by-location`, {
+                params: {
+                    start_timestamp: fomratDateToString(selectedDate),
+                    latitude: latitude,
+                    longitude: longitude
+                },
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log("Matches Response by location: ", response.data)
+        } catch (err) {
+            console.error("Failed to get the matches by location: ", err)
+        }
+    };
+
+    const handlePositionSuccess = (position) => {
+        console.log("✓ SUCCESS - Position received:", position);
+
+        if (!position || !position.coords) {
+        setIsLoadingLocation(false);
+        Alert.alert('Location Error', 'Unable to get coordinates');
+        return;
+        }
+
+        const {latitude, longitude, accuracy} = position.coords;
+        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
+        // reverseGeocode(latitude, longitude)
+
+        setLocationBuffer(prevBuffer => {
+        const newBuffer = [...prevBuffer, {latitude, longitude}];
+        if (newBuffer.length > 3) {
+            newBuffer.shift();
+        }
+
+        if (newBuffer.length >= 3) {
+            const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
+            const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
+            setLatitude(avgLat);
+            setLongitude(avgLng);
+            console.log("Avg location set:", avgLat, avgLng);
+            setIsLoadingLocation(false);
+        } else {
+            setLatitude(latitude);
+            setLongitude(longitude);
+            console.log("Initial location set:", latitude, longitude);
+            setIsLoadingLocation(false);
+        }
+
+        return newBuffer;
+        });
+    };
+
+    const handleLocation = async () => {
+        console.log("Platform:", Platform.OS);
+        if (Platform.OS === "android") {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                {
+                    title: 'Location Permission',
+                    message: 'We need access to your location to set the team location.',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                }
+            );
+            console.log("Granted:", granted);
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                getCurrentCoordinates();
+                return true;
+            } else {
+                Alert.alert(
+                    'Location Permission Denied',
+                    'You can still create a team without location.'
+                );
+                return false;
+            }
+        } else if (Platform.OS === "ios") {
+            getCurrentCoordinates();
+        }
+    };
 
     return (
         <View style={tailwind`flex-1 bg-white p-4`}>
@@ -183,6 +313,9 @@ const Matches = () => {
                     <Text style={tailwind`ml-2 text-base text-black`}>
                         {formattedDate(fomratDateToString(selectedDate))}
                     </Text>
+                </Pressable>
+                <Pressable onPress={() => {handleLocation()}} style={tailwind`bg-red-500 rounded-md shadow-md p-2`}>
+                    <Text style={tailwind`text-white text-lg font-bold`}>Nearby</Text>
                 </Pressable>
                 <Pressable onPress={() => handleLiveMatches()} style={tailwind`bg-red-500 rounded-md shadow-md p-2`}>
                     <Text style={tailwind`text-white text-lg font-bold`}>Live</Text>
