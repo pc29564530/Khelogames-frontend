@@ -2,10 +2,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { View, Text, Dimensions, Pressable } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axiosInstance from './axios_config';
-import { BASE_URL } from '../constants/ApiConstants';
 import { getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
+import { fetchCommunityJoinedByUserService, addUserToCommunity } from '../services/communityServices';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -31,29 +29,35 @@ export default function CommunityPage({ route }) {
     const dispatch = useDispatch();
     const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity);
     const [memberCount, setMemberCount] = useState(1);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState({});
 
     const AnimatedMaterialIcons = Animated.createAnimatedComponent(MaterialIcons);
     const AnimatedAntDesign = Animated.createAnimatedComponent(AntDesign)
 
+    const fetchCommunityJoinedByUser = async () => {
+        try {
+            setLoading(true);
+            const response = await fetchCommunityJoinedByUserService();
+            dispatch(getJoinedCommunity(response.data))
+        } catch (err) {
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to get joined community",
+                fields: backendError,
+            });
+            console.error('unable to get the joined communities', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchCommunityJoinedByUser();
     },[]);
-    
-    const fetchCommunityJoinedByUser = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            dispatch(getJoinedCommunity(response.data))
-
-        } catch (e) {
-            console.error('unable to get the joined communities', e);
-        }
-    };
     
     const handleAnnouncement = (item) => {
         navigation.navigate('CommunityMessage', {item:item})
@@ -61,17 +65,17 @@ export default function CommunityPage({ route }) {
 
     const handleJoinCommunity = async (communityPublicID) => {
         try {
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`${BASE_URL}/addJoinCommunity/${communityPublicID}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                }
-            });
+            setLoading(true);
+            const response = await addUserToCommunity({communityPublicID: communityPublicID})
             dispatch(addJoinedCommunity(response.data));
-            
         } catch (err) {
-            console.error(err);
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to join community",
+                fields: backendError,
+            });
+        } finally {
+            setLoading(false);
         }
     }
 

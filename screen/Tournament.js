@@ -19,7 +19,7 @@ import Animated, {
   withTiming
 } from "react-native-reanimated";
 import { BASE_URL } from '../constants/ApiConstants';
-import { getCurrentLocation } from '../utils/locationService';
+import { validateTournamentField } from '../utils/validation/tournamentValidation';
 
 const Tournament = () => {
   const navigation = useNavigation();
@@ -36,10 +36,15 @@ const Tournament = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
+  const [error, setError] = useState({
+    global: null,   // screen-level errors
+    fields: {},     // validation errors
+  });
   const dispatch = useDispatch();
   const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
   const [filterTournaments, setFilterTournaments] = useState(tournaments?.tournaments || []);
   const [isDropDown, setIsDropDown] = useState(false);
+  const [loading, setLoading] = useState(false);
   const games = useSelector((state) => state.sportReducers.games);
   const game = useSelector((state) => state.sportReducers.game);
   const scrollViewRef = useRef(null);
@@ -56,10 +61,12 @@ const Tournament = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await sportsServices({ axiosInstance });
-        dispatch(setGames(data));
-      } catch (error) {
-        console.error('unable to fetch games data: ', error);
+        const response = await sportsServices({ axiosInstance });
+        const item = response.data;
+        dispatch(setGames(item));
+      } catch (err) {
+        console.log("Unable to get sports: ", err)
+        logSilentError(err);
       }
     };
     fetchData();
@@ -75,9 +82,29 @@ const Tournament = () => {
 
   useEffect(() => {
     const fetchTournament = async () => {
-      const tournamentData = await getTournamentBySport({ axiosInstance, game });
-      // console.log("Sport Data: ", tournamentData)
-      dispatch(getTournamentBySportAction(tournamentData.tournament));
+      try {
+        setLoading(true);
+        setError({ global: null, fields: {} });
+
+        const response = await getTournamentBySport({ axiosInstance, game });
+        const item = response.data;
+        if(response.success && item.tournament.length === 0){
+          //First to add new tournament
+        }
+        dispatch(getTournamentBySportAction(item.tournament));
+      } catch(err) {
+        logSilentError(err);
+
+        // only set global error if no data exists
+        if (!tournaments || tournaments.length === 0) {
+          setError({
+            global: 'Unable to load tournaments',
+            fields: {},
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     if (game?.name) {
@@ -142,9 +169,19 @@ const Tournament = () => {
 
     const fetchTournamentByNearBy = async ({cityName, stateName, countryName}) => {
       try {
-        if (!cityName && !stateName && !countryName) {
-          console.log("No location data available yet, skipping API call");
-          return;
+
+        const formData = {
+          city: cityName,
+          state: stateName,
+          country: countryName,
+        }
+        const validation = validateTournamentField(formData);
+        if(!validation.isValid) {
+          setError({
+            global: null,
+            fields: validation.errors,
+          });
+          return
         }
 
         const params = {
@@ -167,6 +204,12 @@ const Tournament = () => {
         console.log(" Nearby tournaments fetched:", res.data);
         dispatch(getTournamentBySportAction(res.data.tournament));
       } catch (err) {
+        logSilentError(err);
+
+        setError({
+          global: 'Unable to fetch nearby tournaments',
+          fields: {},
+        });
         console.error(" Failed to fetch tournament by location:", err.response?.data || err.message);
       }
     };
@@ -286,12 +329,6 @@ const Tournament = () => {
       }
     };
 
-    // useEffect(() => {
-    //   if(typeFilter === "nearby" && latitude && longitude){
-    //     reverseGeoCode(latitude, longitude);
-    //   }
-    // }, [typeFilter, latitude, longitude])
-
 
     const getFastLocation = async () => {
       return new Promise((resolve, reject) => {
@@ -410,27 +447,32 @@ const Tournament = () => {
                         showsHorizontalScrollIndicator={false}
                         ref={scrollViewRef}
                         contentContainerStyle={tailwind`flex-row px-2`}
-                    >
-                        {games && 
-                        games?.map((item, index) => (
-                            <Pressable
-                            key={index}
-                            style={[
-                                tailwind`px-4 py-2 rounded-full mr-2 shadow-md`,
-                                selectedSport.id === item.id ? tailwind`bg-orange-500` : tailwind`bg-gray-200`,
-                            ]}
-                            onPress={() => handleSport(item)}
-                            >
-                            <Text
+                    > 
+                        {games?.length > 0 ? (
+                            games.map((item, index) => (
+                                <Pressable
+                                key={index}
                                 style={[
-                                tailwind`font-semibold`,
-                                selectedSport === item ? tailwind`text-white` : tailwind`text-gray-700`,
+                                    tailwind`px-4 py-2 rounded-full mr-2 shadow-md`,
+                                    selectedSport.id === item.id ? tailwind`bg-orange-500` : tailwind`bg-gray-200`,
                                 ]}
-                            >
-                                {item.name}
-                            </Text>
-                            </Pressable>
-                        ))}
+                                onPress={() => handleSport(item)}
+                                >
+                                <Text
+                                    style={[
+                                    tailwind`font-semibold`,
+                                    selectedSport.id === item.id ? tailwind`text-white` : tailwind`text-gray-700`,
+                                    ]}
+                                >
+                                    {item.name}
+                                </Text>
+                                </Pressable>
+                            ))
+                        ) : (
+                            <View style={tailwind`px-4 py-2`}>
+                                <Text style={tailwind`text-gray-500 text-sm`}>Loading sports...</Text>
+                            </View>
+                        )}
                     </ScrollView>
                     <Pressable onPress={scrollRight} style={tailwind`justify-center ml-2`}>
                         <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
@@ -477,6 +519,22 @@ const Tournament = () => {
                 )}
             </Animated.View>
         </View>
+
+        {/* Inline Error Display */}
+        {!loading && error.global && (
+          <View style={tailwind`mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg`}>
+            <Text style={tailwind`text-red-600 text-sm mb-2`}>
+              {error.global}
+            </Text>
+            <Pressable
+              onPress={() => dispatch(setGame(game))}
+              style={tailwind`self-start px-4 py-2 bg-red-100 rounded`}
+            >
+              <Text style={tailwind`text-red-700`}>Retry</Text>
+            </Pressable>
+          </View>
+        )}
+
         <Animated.FlatList
             data={filterTournaments}
             keyExtractor={(item, index) => item.public_id ? item.public_id.toString() : index.toString()}

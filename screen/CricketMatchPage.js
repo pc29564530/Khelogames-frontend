@@ -26,6 +26,7 @@ import Animated, {
     useSharedValue,
 } from 'react-native-reanimated';
 import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
+import { handleInlineError } from '../utils/errorHandler';
 
 // get lead and trail status
 const getLeadTrailStatus = ({match}) => {
@@ -101,8 +102,11 @@ const CricketMatchPage = ({ route }) => {
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchScore.inningStatus);
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
     const [inningVisible, setInningVisible] = useState(false);
@@ -315,10 +319,15 @@ const CricketMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                dispatch(getMatch(response.data || null));
+                const item = response.data;
+                dispatch(getMatch(item.data || null));
             } catch (err) {
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get match",
+                    fields: backendError,
+                })
                 console.error("Failed to fetch match data: ", err);
-                setError("Failed to load match data. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -342,6 +351,11 @@ const CricketMatchPage = ({ route }) => {
     useEffect(() => {
         const fetchPlayers = async () => {
             try {
+                setLoading(true);
+                setError({
+                    global: null,
+                    fields: {},
+                })
                 const [homePlayers, awayPlayers] = await Promise.all([
                     fetchTeamPlayers(BASE_URL, match?.homeTeam?.public_id, game, axiosInstance),
                     fetchTeamPlayers(BASE_URL, match?.awayTeam?.public_id, game, axiosInstance)
@@ -350,8 +364,14 @@ const CricketMatchPage = ({ route }) => {
                 dispatch(getHomePlayer(homePlayers));
                 dispatch(getAwayPlayer(awayPlayers));
             } catch (err) {
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get team player",
+                    fields: backendError,
+                });
                 console.error("Failed to fetch players: ", err);
-                setError("Failed to load team players. Please try again.");
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -401,6 +421,7 @@ const CricketMatchPage = ({ route }) => {
         setLoading(true);
         
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.put(
                 `${BASE_URL}/${game.name}/updateMatchStatus/${match.public_id}`,
@@ -414,8 +435,12 @@ const CricketMatchPage = ({ route }) => {
             );
             // dispatch(setMatchStatus(response.data || []));
         } catch (err) {
+            const backendError = err?.response?.data?.error.fields;
+            setError({
+                global: "Unable to update match status",
+                fields: backendError,
+            })
             console.error("Unable to update the match: ", err);
-            setError("Failed to update match status. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -423,9 +448,12 @@ const CricketMatchPage = ({ route }) => {
 
     const handleWebSocketMessage = useCallback((event) => {
         const rawData = event?.data;
-        console.log("Raw Data: ", rawData)
         try {
             if (rawData === null || !rawData) {
+                setError({
+                    global: "Getting message...",
+                    fields: {},
+                })
                 console.error("raw data is undefined");
                 return;
             }
@@ -599,11 +627,11 @@ const CricketMatchPage = ({ route }) => {
         );
     }
 
-    if (error) {
+    if (error.global) {
         return (
             <View style={tailwind`flex-1 justify-center items-center`}>
-                <Text style={tailwind`text-red-500`}>{error}</Text>
-                <Pressable 
+                <Text style={tailwind`text-red-500`}>{error.global}</Text>
+                <Pressable
                     onPress={() => navigation.goBack()}
                     style={tailwind`mt-4 bg-red-400 px-4 py-2 rounded-lg`}
                 >
@@ -641,7 +669,7 @@ const CricketMatchPage = ({ route }) => {
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
-                        {match?.status_code || 'Loading...'}
+                        {match?.status_code}
                     </Text>
                 </Animated.View>
 

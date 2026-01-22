@@ -6,22 +6,26 @@ import tailwind from 'twrnc';
 import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector } from 'react-redux';
-import { ScrollView } from 'native-base';
 import TournamentPlayerStatsModal from '../components/modals/cricket/TournamentStats';
 import TournamentPlayerStatsRow from '../components/TournamentPlayerStatsRow';
 import Animated, {Extrapolation, useAnimatedScrollHandler, interpolate, useSharedValue} from 'react-native-reanimated';
 
 
 const TournamentFootballStats = ({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) => {
-    const [selectedTab, setSelectedTab] = useState('batting');
     const [mostGoals, setMostGoals] = useState(null);
     const [mostYellowCards, setMostYellowCards] = useState(null);
     const [mostRedCards, setMostRedCards] = useState(null);
     
     const [modalVisible, setModalVisible] = useState(false);
+    const [showAll, setShowAll] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [modalTitle, setModalTitle] = useState('');
+    const [currentDate, setCurrentDate] = useState(null);
     const [modalType, setModalType] = useState('');
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const game = useSelector(state => state.sportReducers.game);
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
@@ -38,22 +42,28 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
     })
 
     useEffect(() => {
+        const date = new Date();
+        setCurrentDate(date);
+    }, []);
+
+    useEffect(() => {
         const fetchGoals = async () => {
             try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-
+                const authToken = await AsyncStorage.getItem("AccessToken");
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
                     }
                 })
-                setMostGoals(response.data || []);
+                setMostGoals(response?.data?.data || []);
             } catch (err) {
-                console.error("Failed to fetch most goals: ", err);
+                const backendErrors = err?.response?.data?.error.fields;
+                setError({
+                    global: "Unable to get goals",
+                    fields: backendErrors,
+                })
+                console.log("Failed to fetch most goals: ", err);
             }
         }
 
@@ -71,7 +81,12 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                 })
                 setMostYellowCards(response.data || []);
             } catch (err) {
-                console.error("Failed to fetch yellow cards: ", err);
+                const backendErrors = err?.response?.data?.error.fields;
+                setError({
+                    global: "Unable to get yellow cards",
+                    fields: backendErrors,
+                })
+                console.log("Failed to fetch yellow cards: ", err);
             }
         }
 
@@ -87,8 +102,13 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                         'content-type': 'application/json'
                     }
                 })
-                setMostRedCards(response.data || []);
+                setMostRedCards(response.data.data || []);
             } catch (err) {
+                const backendErrors = err?.response?.data?.error.fields;
+                setError({
+                    global: "Unable to get red cards",
+                    fields: backendErrors,
+                })
                 console.error("Failed to fetch red cards: ", err);
             }
         }
@@ -100,6 +120,17 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
 
     return (
         <View style={tailwind`flex-1 mb-4`}>
+            {error.global && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error?.global}
+                    </Text>
+                </View>
+            )}
+            {/* TODO: Check for start time stamp display the ui according to it. */}
+            {tournament.start_timestamp === currentDate && (
+                <></>
+            )}
             <Animated.ScrollView 
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
@@ -123,7 +154,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                         </Pressable>
                     </View>
                     <FlatList
-                        data={mostGoals?.slice(0,1)}
+                        data={showAll ? mostGoals : (mostGoals?.length >= 2 ? mostGoals?.slice(0,1) : [])}
                         keyExtractor={item => item.id}
                         renderItem={({item}) => (
                             <TournamentPlayerStatsRow player={item} type={"mostGoals"}/>
@@ -148,7 +179,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                         </Pressable>
                     </View>
                     <FlatList
-                        data={mostYellowCards?.slice(0,1)}
+                        data={showAll ? mostYellowCards : (mostYellowCards?.length >= 2 ? mostYellowCards?.slice(0,1) : [])}
                         keyExtractor={item => item.id}
                         renderItem={({item}) => (
                             <TournamentPlayerStatsRow player={item} type={"mostYellowCards"}/>
@@ -172,7 +203,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                         </Pressable>
                     </View>
                     <FlatList
-                        data={mostRedCards?.slice(0,1)}
+                        data={showAll ? mostRedCards : (mostRedCards?.length >= 2 ? mostRedCards?.slice(0,1) : [])}
                         keyExtractor={item => item.id}
                         renderItem={({item}) => (
                             <TournamentPlayerStatsRow player={item} type={"mostRedCards"}/>

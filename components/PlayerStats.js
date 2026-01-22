@@ -8,6 +8,10 @@ import { BASE_URL } from '../constants/ApiConstants';
 export const CricketPlayerStats = ({player}) => {
     const [cricketPlayerStats, setCricketPlayerStats] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const [selectedMatchType, setSelectedMatchType] = useState("Test");
     const [playerStats, setPlayerStats] = useState(null);
     const [selectedFormat, setSelectedFormat] = useState("Test");
@@ -16,6 +20,7 @@ export const CricketPlayerStats = ({player}) => {
     useEffect(() => {
         const fetchPlayerStats = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get( `${BASE_URL}/getPlayerCricketStats`, {
                     params: {
@@ -26,9 +31,16 @@ export const CricketPlayerStats = ({player}) => {
                         'Content-Type': 'application/json'
                     }
                 })
-                setPlayerStats(response.data || []);
+                console.log("Player Stats: ", response.data.data)
+                setPlayerStats(response.data.data || []);
             } catch (err) {
+                setError({
+                    global: "Unable to get player stats",
+                    fields: {}
+                })
                 console.error("Failed to fetch player cricket stats", err);
+            } finally {
+                setLoading(false);
             }
         }
         fetchPlayerStats();
@@ -54,6 +66,13 @@ export const CricketPlayerStats = ({player}) => {
 
     return (
         <ScrollView style={tailwind`p-4`}>
+            {error.global && !playerStats && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error.global}
+                    </Text>
+                </View>
+            )}
             <View style={tailwind`flex-row justify-around`}>
                 {['Test', 'ODI', 'T20'].map((format) => (
                     <Pressable key={format} onPress={() => setSelectedFormat(format)}>

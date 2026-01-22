@@ -11,8 +11,8 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
 import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents, setMatchSubStatus } from '../redux/actions/actions';
 import { StatusModal } from '../components/modals/StatusModal';
-const filePath = require('../assets/status_code.json');
 import { useWebSocket } from '../context/WebSocketContext';
+import { validateMatchStatus, validateMatchSubStatus, validateMatchForm } from '../utils/validation/matchValidation';
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -28,6 +28,7 @@ import FootballLineUp from './FootballLineUp';
 import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
 import MediaScreen from './Media';
+const filePath = require('../assets/status_code.json');
 
 const FootballMatchPage = ({ route }) => {
     const {wsRef, subscribe} = useWebSocket();
@@ -44,23 +45,21 @@ const FootballMatchPage = ({ route }) => {
     const [subStatus, setSubStatus] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const game = useSelector((state) => state.sportReducers.game);
-
-    
-
     const payloadData = {
             "type": "SUBSCRIBE",
             "category": "MATCH",
             "payload": {"match_public_id": matchPublicID}
     }
-
     wsRef?.current?.send(JSON.stringify(payloadData)) 
-
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
-        const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), ({}))
+        const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), {})
         setAllStatus(combined)
     }, [])
 
@@ -218,7 +217,7 @@ const FootballMatchPage = ({ route }) => {
 
     useFocusEffect(useCallback(() => {
         const fetchMatchData = async () => {
-            setError('');
+            setLoading(true);
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
@@ -227,20 +226,48 @@ const FootballMatchPage = ({ route }) => {
                         'Content-Type': 'application/json',
                     },
                 });
-                dispatch(getMatch(response.data || null));
+                const item = response.data;
+                dispatch(getMatch(item.data || null));
             } catch (err) {
+                const backendErrors = err?.response?.data?.error?.fields || {};
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to load match data. Please try again.",
+                    fields: backendErrors,
+                })
                 console.error("Failed to fetch match data: ", err);
-                setError("Failed to load match data. Please try again.");
+            } finally {
+                setLoading(false);
             }
         };
         fetchMatchData();
     }, [matchPublicID, game.name, dispatch]));
 
     const handleUpdateStatus = async (itm) => {
-        setStatusVisible(false);
-        setMenuVisible(false);
-        setLoading(true);
         try {
+            const formData = {
+                status_code: itm.type,
+            }
+
+            // Validate the form data
+            const validation = validateMatchStatus(formData);
+            if (!validation.isValid) {
+                setError({
+                    global: null,
+                    fields: validation.errors
+                });
+                console.error("Validation errors:", validation.errors);
+                return;
+            }
+
+            // Close modals and show loading
+            setStatusVisible(false);
+            setMenuVisible(false);
+            setLoading(true);
+            setError({
+                global: null,
+                fields: {},
+            });
+
             const authToken = await AsyncStorage.getItem('AccessToken');
             const data = { status_code: itm.type };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchStatus/${matchPublicID}`, data, {
@@ -249,20 +276,54 @@ const FootballMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            // dispatch(setMatchStatus(response.data || []));
+
+            dispatch(setMatchStatus(response.data.data || []));
+
+            // Clear errors on success
+            setError({
+                global: null,
+                fields: {},
+            });
         } catch (err) {
-            console.error("Unable to update the match: ", err);
+            const backendErrors = err?.response?.data?.error?.fields || {};
+            setError({
+                global: err?.response?.data?.error?.message || "Unable to update match status. Please try again.",
+                fields: backendErrors,
+            });
+            setStatusVisible(true);
+            console.error("Unable to update the match status: ", err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleUpdateSubStatus = async (itm) => {
-        setSubStatusVisible(false);
-        setMenuVisible(false);
-        setLoading(true);
         try {
-            console.log("Item: Status: ", itm)
+            const formData = {
+                sub_status: itm.type,
+                event_type: 'status'
+            }
+            // Validate the form data
+            const validation = validateMatchSubStatus(formData);
+            if (!validation.isValid) {
+                setError({
+                    global: null,
+                    fields: validation.errors
+                });
+                console.error("Validation errors:", validation.errors);
+                return;
+            }
+
+            // Close modals and show loading
+            setSubStatusVisible(false);
+            setMenuVisible(false);
+            setLoading(true);
+            setError({
+                global: null,
+                fields: {},
+            });
+
+            // console.log("Item: Status: ", itm)
             const authToken = await AsyncStorage.getItem('AccessToken');
             const data = { sub_status: itm.type };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchSubStatus/${matchPublicID}`, data, {
@@ -271,9 +332,24 @@ const FootballMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            // dispatch(setMatchStatus(response.data || []));
+
+            dispatch(setMatchSubStatus(response.data.data || response.data || []));
+
+            // Clear errors on success
+            setError({
+                global: null,
+                fields: {},
+            });
         } catch (err) {
-            console.error("Unable to update the match: ", err);
+            const backendErrors = err?.response?.data?.error?.fields || {};
+            setError({
+                global: err?.response?.data?.error?.message || "Unable to update match sub-status. Please try again.",
+                fields: backendErrors,
+            });
+
+            // Re-open modal to show error
+            setSubStatusVisible(true);
+            console.error("Unable to update the match sub-status: ", err);
         } finally {
             setLoading(false);
         }
@@ -282,9 +358,32 @@ const FootballMatchPage = ({ route }) => {
     const toggleMenu = () => setMenuVisible(!menuVisible);
     const handleSearch = (text) => setSearchQuery(text);
 
-    const filteredStatusCodes = allStatus?.football?.filter((item) => 
-        item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    // Close status modal and clear errors
+    const handleCloseStatusModal = () => {
+        setStatusVisible(false);
+        setError({
+            global: null,
+            fields: {},
+        });
+        setSearchQuery('');
+    };
+
+    // Close sub-status modal and clear errors
+    const handleCloseSubStatusModal = () => {
+        setSubStatusVisible(false);
+        setError({
+            global: null,
+            fields: {},
+        });
+        setSearchQuery('');
+    };
+    // console.log("All Status: ", allStatus?.football)
+    const filteredStatusCodes = allStatus?.football?.filter((item) =>
+            item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    console.log("Line no 362: ", filteredStatusCodes)
  
 
     useEffect(() => {
@@ -302,23 +401,6 @@ const FootballMatchPage = ({ route }) => {
         );
     }
 
-    if (error) {
-        return (
-            <View style={tailwind`flex-1 justify-center items-center bg-white px-4`}>
-                <Text style={tailwind`text-red-500 text-center`}>{error}</Text>
-                <Pressable 
-                    onPress={() => {
-                        setError('');
-                        // Retry logic here
-                    }}
-                    style={tailwind`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
-                >
-                    <Text style={tailwind`text-white`}>Retry</Text>
-                </Pressable>
-            </View>
-        );
-    }
-
         const handleWebSocketMessage = useCallback((event) => {
             const rawData = event.data;
             if (!rawData) {
@@ -328,15 +410,15 @@ const FootballMatchPage = ({ route }) => {
     
             try {
                 const message = JSON.parse(rawData);
-                console.log("WebSocket Message Received:", message);
-                console.log("Message Type: ", message.type)
+                // console.log("WebSocket Message Received:", message);
+                // console.log("Message Type: ", message.type)
                 if(message.type === undefined || message.type === null){
                     console.log("Message type is undefined ")
                     return
                 }
                 switch(message.type) {
                     case "UPDATE_FOOTBALL_SCORE":
-                        console.log("Score Update Payload:", message.payload);
+                        // console.log("Score Update Payload:", message.payload);
                         dispatch(setFootballScore(message.payload));
                         break;
                     case "UPDATE_MATCH_STATUS":
@@ -543,36 +625,93 @@ const FootballMatchPage = ({ route }) => {
                     transparent={true}
                     animationType="slide"
                     visible={statusVisible}
-                    onRequestClose={() => setStatusVisible(false)}
+                    onRequestClose={() => handleCloseStatusModal()}
                 >
-                    <Pressable 
-                        onPress={() => setStatusVisible(false)} 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-                    >
-                        <View style={tailwind`bg-white rounded-t-lg max-h-[70%]`}>
-                            <View style={tailwind`p-4 border-b border-gray-200`}>
-                                <Text style={tailwind`text-lg font-semibold text-center`}>Update Match Status</Text>
+                    <View style={tailwind`flex-1 bg-black/50 justify-end`}>
+                        {/* Backdrop - tap to close */}
+                        <Pressable
+                            style={tailwind`absolute inset-0`}
+                            onPress={() => handleCloseStatusModal()}
+                        />
+
+                        {/* Modal Content - won't close on tap */}
+                        <View style={tailwind`bg-white rounded-t-2xl max-h-[75%]`}>
+                            {/* Drag Handle */}
+                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mt-2 mb-3`} />
+
+                            {/* Header */}
+                            <View style={tailwind`px-5 pb-4 border-b border-gray-100`}>
+                                <Text style={tailwind`text-xl font-bold text-gray-900`}>Update Match Status</Text>
+                                <Text style={tailwind`text-sm text-gray-600 mt-1`}>Select the current match status</Text>
                             </View>
-                            <TextInput
-                                style={tailwind`bg-gray-100 p-3 m-4 rounded-md text-black`}
-                                placeholder="Search status..."
-                                value={searchQuery}
-                                onChangeText={handleSearch}
-                            />
-                            <ScrollView style={{minHeight: 20}}>
-                                {filteredStatusCodes.map((item, index) => (
-                                    <Pressable
-                                        key={index}
-                                        onPress={() => {setStatusCode(item.type); handleUpdateStatus(item)}}
-                                        style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
-                                    >
-                                        <MaterialIcon name="sports-football" size={22} color="#4b5563" />
-                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
-                                    </Pressable>
-                                ))}
+
+                            {/* Search Bar */}
+                            <View style={tailwind`px-5 py-4`}>
+                                <View style={tailwind`flex-row items-center bg-gray-100 rounded-lg px-4 py-3`}>
+                                    <MaterialIcon name="search" size={20} color="#9CA3AF" />
+                                    <TextInput
+                                        style={tailwind`flex-1 ml-2 text-base text-gray-900`}
+                                        placeholder="Search status..."
+                                        placeholderTextColor="#9CA3AF"
+                                        value={searchQuery}
+                                        onChangeText={handleSearch}
+                                    />
+                                    {searchQuery.length > 0 && (
+                                        <Pressable onPress={() => setSearchQuery('')}>
+                                            <MaterialIcon name="close" size={20} color="#9CA3AF" />
+                                        </Pressable>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Global Error Display */}
+                            {error?.global && (
+                                <View style={tailwind`mx-5 mb-3 bg-red-50 border border-red-200 rounded-lg p-3`}>
+                                    <View style={tailwind`flex-row items-center`}>
+                                        <MaterialIcon name="error-outline" size={18} color="#ef4444" />
+                                        <Text style={tailwind`text-sm font-semibold text-red-800 ml-2 flex-1`}>
+                                            {error.global}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Status List */}
+                            <ScrollView style={tailwind`pb-10`}>
+                                {filteredStatusCodes?.length > 0 ? (
+                                    filteredStatusCodes.map((item, index) => (
+                                        <Pressable
+                                            key={index}
+                                            onPress={() => {setStatusCode(item.type); handleUpdateStatus(item);}}
+                                            style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                        >
+                                            <View style={tailwind`flex-row items-center justify-between`}>
+                                                <View style={tailwind`flex-row items-center flex-1`}>
+                                                    <View style={tailwind`w-10 h-10 bg-blue-100 rounded-full items-center justify-center`}>
+                                                        <MaterialIcon name="sports-soccer" size={20} color="#2563eb" />
+                                                    </View>
+                                                    <View style={tailwind`ml-3 flex-1`}>
+                                                        <Text style={tailwind`text-base font-semibold text-gray-900`}>{item.label}</Text>
+                                                        <Text style={tailwind`text-xs text-gray-500 mt-0.5`}>
+                                                            {item.type}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                                {match?.status_code === item.type && (
+                                                    <MaterialIcon name="check-circle" size={22} color="#10b981" />
+                                                )}
+                                            </View>
+                                        </Pressable>
+                                    ))
+                                ) : (
+                                    <View style={tailwind`py-12 items-center`}>
+                                        <MaterialIcon name="search-off" size={48} color="#d1d5db" />
+                                        <Text style={tailwind`text-gray-500 mt-3`}>No status found</Text>
+                                    </View>
+                                )}
                             </ScrollView>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
             )}
 
@@ -582,36 +721,93 @@ const FootballMatchPage = ({ route }) => {
                     transparent={true}
                     animationType="slide"
                     visible={subStatusVisible}
-                    onRequestClose={() => setSubStatusVisible(false)}
+                    onRequestClose={handleCloseSubStatusModal}
                 >
-                    <Pressable 
-                        onPress={() => setSubStatusVisible(false)} 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-                    >
-                        <View style={tailwind`bg-white rounded-t-lg max-h-[70%]`}>
-                            <View style={tailwind`p-4 border-b border-gray-200`}>
-                                <Text style={tailwind`text-lg font-semibold text-center`}>Update Match Sub Status</Text>
+                    <View style={tailwind`flex-1 bg-black/50 justify-end`}>
+                        {/* Backdrop - tap to close */}
+                        <Pressable
+                            style={tailwind`absolute inset-0`}
+                            onPress={handleCloseSubStatusModal}
+                        />
+
+                        {/* Modal Content - won't close on tap */}
+                        <View style={tailwind`bg-white rounded-t-2xl max-h-[75%]`}>
+                            {/* Drag Handle */}
+                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mt-2 mb-3`} />
+
+                            {/* Header */}
+                            <View style={tailwind`px-5 pb-4 border-b border-gray-100`}>
+                                <Text style={tailwind`text-xl font-bold text-gray-900`}>Update Sub Status</Text>
+                                <Text style={tailwind`text-sm text-gray-600 mt-1`}>Select the detailed match sub-status</Text>
                             </View>
-                            <TextInput
-                                style={tailwind`bg-gray-100 p-3 m-4 rounded-md text-black`}
-                                placeholder="Search status..."
-                                value={searchQuery}
-                                onChangeText={handleSearch}
-                            />
-                            <ScrollView style={{minHeight: 20}}>
-                                {filteredStatusCodes.map((item, index) => (
-                                    <Pressable
-                                        key={index}
-                                        onPress={() => {setSubStatus(item.type); handleUpdateSubStatus(item)}}
-                                        style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
-                                    >
-                                        <MaterialIcon name="sports-football" size={22} color="#4b5563" />
-                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
-                                    </Pressable>
-                                ))}
+
+                            {/* Search Bar */}
+                            <View style={tailwind`px-5 py-4`}>
+                                <View style={tailwind`flex-row items-center bg-gray-100 rounded-lg px-4 py-3`}>
+                                    <MaterialIcon name="search" size={20} color="#9CA3AF" />
+                                    <TextInput
+                                        style={tailwind`flex-1 ml-2 text-base text-gray-900`}
+                                        placeholder="Search sub status..."
+                                        placeholderTextColor="#9CA3AF"
+                                        value={searchQuery}
+                                        onChangeText={handleSearch}
+                                    />
+                                    {searchQuery.length > 0 && (
+                                        <Pressable onPress={() => setSearchQuery('')}>
+                                            <MaterialIcon name="close" size={20} color="#9CA3AF" />
+                                        </Pressable>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Global Error Display */}
+                            {error?.global && (
+                                <View style={tailwind`mx-5 mb-3 bg-red-50 border border-red-200 rounded-lg p-3`}>
+                                    <View style={tailwind`flex-row items-center`}>
+                                        <MaterialIcon name="error-outline" size={18} color="#ef4444" />
+                                        <Text style={tailwind`text-sm font-semibold text-red-800 ml-2 flex-1`}>
+                                            {error.global}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Status List */}
+                            <ScrollView style={tailwind`pb-10`}>
+                                {filteredStatusCodes?.length > 0 ? (
+                                    filteredStatusCodes.map((item, index) => (
+                                        <Pressable
+                                            key={index}
+                                            onPress={() => {setSubStatus(item.type); handleUpdateSubStatus(item)}}
+                                            style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                        >
+                                            <View style={tailwind`flex-row items-center justify-between`}>
+                                                <View style={tailwind`flex-row items-center flex-1`}>
+                                                    <View style={tailwind`w-10 h-10 bg-green-100 rounded-full items-center justify-center`}>
+                                                        <MaterialIcon name="timer" size={20} color="#16a34a" />
+                                                    </View>
+                                                    <View style={tailwind`ml-3 flex-1`}>
+                                                        <Text style={tailwind`text-base font-semibold text-gray-900`}>{item.label}</Text>
+                                                        <Text style={tailwind`text-xs text-gray-500 mt-0.5`}>
+                                                            {item.type}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                                {match?.sub_status === item.type && (
+                                                    <MaterialIcon name="check-circle" size={22} color="#10b981" />
+                                                )}
+                                            </View>
+                                        </Pressable>
+                                    ))
+                                ) : (
+                                    <View style={tailwind`py-12 items-center`}>
+                                        <MaterialIcon name="search-off" size={48} color="#d1d5db" />
+                                        <Text style={tailwind`text-gray-500 mt-3`}>No sub status found</Text>
+                                    </View>
+                                )}
                             </ScrollView>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
             )}
 
@@ -623,43 +819,55 @@ const FootballMatchPage = ({ route }) => {
                     visible={menuVisible}
                     onRequestClose={toggleMenu}
                 >
-                    <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1`}>
+                    <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1 bg-black/30`}>
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={tailwind`mt-20 mr-4 bg-white rounded-lg shadow-lg p-2 w-40`}>
-                                <TouchableOpacity 
+                            <View style={tailwind`mt-16 mr-4 bg-white rounded-xl shadow-2xl overflow-hidden w-56`}>
+                                <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         setStatusVisible(true);
                                     }}
-                                    style={tailwind`p-3`}
+                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Main Status</Text>
+                                    <View style={tailwind`w-9 h-9 bg-blue-100 rounded-lg items-center justify-center mr-3`}>
+                                        <MaterialIcon name="edit" size={18} color="#2563eb" />
+                                    </View>
+                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Edit Main Status</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         setSubStatusVisible(true);
                                     }}
-                                    style={tailwind`p-3`}
+                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>Edit Sub Status</Text>
+                                    <View style={tailwind`w-9 h-9 bg-green-100 rounded-lg items-center justify-center mr-3`}>
+                                        <MaterialIcon name="update" size={18} color="#16a34a" />
+                                    </View>
+                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Edit Sub Status</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                    }}
+                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
+                                >
+                                    <View style={tailwind`w-9 h-9 bg-purple-100 rounded-lg items-center justify-center mr-3`}>
+                                        <MaterialIcon name="share" size={18} color="#9333ea" />
+                                    </View>
+                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Share</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         // Handle delete
                                     }}
-                                    style={tailwind`p-3`}
+                                    style={tailwind`px-4 py-4 flex-row items-center active:bg-red-50`}
                                 >
-                                    <Text style={tailwind`text-lg text-red-600`}>Delete Match</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity 
-                                    onPress={() => {
-                                        setMenuVisible(false);
-                                    }}
-                                    style={tailwind`p-3`}
-                                >
-                                <Text style={tailwind`text-lg text-gray-800`}>Share</Text>
+                                    <View style={tailwind`w-9 h-9 bg-red-100 rounded-lg items-center justify-center mr-3`}>
+                                        <MaterialIcon name="delete" size={18} color="#dc2626" />
+                                    </View>
+                                    <Text style={tailwind`text-base font-medium text-red-600`}>Delete Match</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

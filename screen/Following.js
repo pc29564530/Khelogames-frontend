@@ -13,6 +13,10 @@ function Following() {
     const navigation = useNavigation();
     const [followingWithProfile, setFollowingWithProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    })
     const following = useSelector((state) => state.user.following)
     const fetchFollowing = async () => {
         try {
@@ -25,14 +29,18 @@ function Following() {
             });
 
             const item = response.data;
-            if(item === null || !item) {
+            if(item.data === null || !item) {
                 dispatch(getFollowingUser([]));
             } else {
-                dispatch(getFollowingUser(item));
+                dispatch(getFollowingUser(item.data));
             }
 
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            setError({
+                global: "Unable to get following user",
+                fields: {},
+            })
+            console.error("Unable to get following user: ", err);
         }
     }
     
@@ -49,6 +57,13 @@ function Following() {
     return (
         <ScrollView style={tailwind`bg-white`}>
             <View style={tailwind`flex-1 bg-white pl-5`}>
+                {error.global && following.length === 0 && (
+                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                        <Text style={tailwind`text-red-700 text-sm`}>
+                            {error.global}
+                        </Text>
+                    </View>
+                )}
                 {following?.map((item, i) => (
                     <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile(item.profile?.public_id)}>
                         {!item.profile && !item.profile?.avatar_url ?(

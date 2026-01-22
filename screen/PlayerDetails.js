@@ -20,6 +20,11 @@ const PlayerDetails = ({
 }) => {
   const [playerTeam, setPlayerTeam] = useState([]);
   const [currentClub, setCurrentClub] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  });
 
   const currentScrollY = useSharedValue(0);
 
@@ -39,9 +44,14 @@ const PlayerDetails = ({
   useEffect(() => {
     const fetchTeamByPlayer = async () => {
       try {
+        setLoading(true);
+        setError({
+          global: null,
+          fields: {},
+        })
         const authToken = await AsyncStorage.getItem("AccessToken");
         const response = await axiosInstance.get(
-          `${BASE_URL}/getTeamByPlayer/${player.public_id}`,
+          `${BASE_URL}/getTeamByPlayer/${player?.public_id}`,
           {},
           {
             headers: {
@@ -50,14 +60,20 @@ const PlayerDetails = ({
             },
           }
         );
+        const item = response.data;
 
-        if (response.data) {
-          setPlayerTeam(response.data);
-          setCurrentClub(response.data.find((item) => item.leave_date === null));
+        if (item.data) {
+          setPlayerTeam(item.data);
+          setCurrentClub(item.data.find((item) => item.leave_date === null));
         } else {
           setPlayerTeam([]);
         }
       } catch (err) {
+        const backendError = err?.response?.data?.error?.fields;
+        setError({
+          global: "Unable to get team player",
+          fields: backendError,
+        })
         console.log("Error fetching team:", err);
       }
     };
@@ -105,14 +121,14 @@ const PlayerDetails = ({
           <View>
             <Text style={tailwind`text-xs text-gray-500 mb-1`}>Nationality</Text>
             <Text style={tailwind`text-sm font-semibold text-gray-900`}>
-              {player.country ?? "-"}
+              {player?.country ?? "-"}
             </Text>
           </View>
 
           <View>
             <Text style={tailwind`text-xs text-gray-500 mb-1`}>Position</Text>
             <Text style={tailwind`text-sm font-semibold text-gray-900`}>
-              {player.positions ?? "-"}
+              {player?.positions ?? "-"}
             </Text>
           </View>
 
@@ -198,14 +214,14 @@ const PlayerDetails = ({
           <View>
             <Text style={tailwind`text-xs text-gray-500 mb-1`}>Nationality</Text>
             <Text style={tailwind`text-sm font-semibold text-gray-900`}>
-              {player.country ?? "-"}
+              {player?.country ?? "-"}
             </Text>
           </View>
 
           <View>
             <Text style={tailwind`text-xs text-gray-500 mb-1`}>Position</Text>
             <Text style={tailwind`text-sm font-semibold text-gray-900`}>
-              {player.positions ?? "-"}
+              {player?.positions ?? "-"}
             </Text>
           </View>
 

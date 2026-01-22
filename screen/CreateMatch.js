@@ -9,8 +9,7 @@ import {
   Dimensions,
   Image,
   PermissionsAndroid,
-  Platform,
-  Alert
+  Platform
 } from 'react-native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -24,6 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 const matchFormatPath = require('../assets/match_format.json');
 import Geolocation from '@react-native-community/geolocation';
+import { validateMatchForm } from '../utils/validation/matchValidation';
+import { handleInlineError } from '../utils/errorHandler';
 
 const matchTypes = ['Team', 'Individual', 'Double'];
 const Stages = ['Group', 'Knockout', 'League'];
@@ -47,15 +48,17 @@ const CreateMatch = ({ route }) => {
     const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationBuffer, setLocationBuffer] = useState([]);
-    const [city, setCity] = useState('');
-    const [state, setState] = useState('');
-    const [country, setCountry] = useState('');
+    const [error, setError] = useState({
+      global: null,
+      fields: {},
+    })
     
     const game = useSelector(state => state.sportReducers.game);
     const navigation = useNavigation();
     const [knockoutLevel, setKnockoutLevel] = useState(null);
     const [isModalMatchFormat, setIsModalMatchFormat] = useState(false);
     const [matchFormat, setMatchFormat] = useState(null);
+    const [loading, setLoading] = useState(false);
   
     const modifyDateTime = (newDateTime) => {
       if (!newDateTime) {
@@ -80,41 +83,50 @@ const CreateMatch = ({ route }) => {
   
     const handleSetFixture = async () => {
       try {
-        if (!firstEntity || !secondEntity) {
-          Alert.alert("Validation Error", "Please select both teams.");
-          return;
-        }
-        if (!startTime) {
-          Alert.alert("Validation Error", "Please select start time.");
-          return;
-        }
-        if (!matchType || !stage) {
-          Alert.alert("Validation Error", "Please select match type and stage.");
-          return;
+
+        const formData = {
+          firstEntity,
+          secondEntity,
+          startOn: startTime,
+          matchType,
+          stage,
+          matchFormat,
+          knockoutLevel,
+          location: latitude && longitude ? { latitude, longitude } : null,
+          latitude,
+          longitude,
         }
 
-        if (!latitude || !longitude) {
-          Alert.alert("Location Required", "Please enable location to create a match. Tap on 'GPS Coordinates' to get your location.");
-          return;
+        const validation = validateMatchForm(formData);
+        if (!validation.isValid) {
+            setError({
+              global: null,
+              fields: validation.errors,
+            });
+            console.log("Validation Errors: ", validation.errors);
+            return;
         }
+        setLoading(true);
+        setError({
+          global: null,
+          fields: {},
+        });
+
         
         const fixture = {
-          tournament_public_id: tournament.public_id,
-          away_team_public_id: secondEntity.public_id,
-          home_team_public_id: firstEntity.public_id,
+          tournament_public_id: tournament?.public_id,
+          away_team_public_id: secondEntity?.public_id,
+          home_team_public_id: firstEntity?.public_id,
           start_timestamp: modifyDateTime(startTime),
           end_timestamp: endTime?modifyDateTime(endTime):'',
           type: matchType.toLowerCase(),
           status_code: "not_started",
           result: result,
-          stage: stage,
+          stage: stage.toLowerCase(),
           knockout_level_id:  knockoutLevel,
           match_format: matchFormat,
-          latitude: latitude.toString(),
-          longitude: longitude.toString(),
-          city: city,
-          state: state,
-          country: country
+          latitude: latitude ? latitude.toString() : '',
+          longitude: longitude ? longitude.toString() : '',
         };
         
         const authToken = await AsyncStorage.getItem('AccessToken');
@@ -124,10 +136,18 @@ const CreateMatch = ({ route }) => {
             'Content-Type': 'application/json',
           },
         });
-        } catch (error) {
-          console.error("Failed to create match: ", err);
-        } finally {
+
+          console.log("Match created successfully:", response.data);
           navigation.goBack();
+        } catch (err) {
+          //Extract validation errors from backend response
+          const backendErrors = err?.response?.data?.error?.fields || {};
+          setError({
+            global: "Unable to create match",
+            fields: backendErrors,
+          })
+        } finally {
+          setLoading(false);
         }
     };
 
@@ -165,13 +185,10 @@ const CreateMatch = ({ route }) => {
     })
 
     const reverseGeoCode = async (lat, lon) => {
-      console.log("Lat: ", lat)
-      console.log("Long: ", lon)
       if (!lat || !lon) {
         console.log("Skipping reverse geocode - coordinates are null");
         return;
       }
-
       try {
         // BigDataCloud Free API - No authentication required
         const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
@@ -229,11 +246,8 @@ const CreateMatch = ({ route }) => {
             },
             (finalError) => {
               console.error("Final geolocation error:", finalError);
+              console.error(`Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`);
               setIsLoadingLocation(false);
-              Alert.alert(
-                'Location Error',
-                `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
-              );
             },
             {
               enableHighAccuracy: false, // Lower accuracy = faster
@@ -258,7 +272,7 @@ const CreateMatch = ({ route }) => {
 
     if (!position || !position.coords) {
       setIsLoadingLocation(false);
-      Alert.alert('Location Error', 'Unable to get coordinates');
+      console.error('Location Error: Unable to get coordinates');
       return;
     }
 
@@ -309,10 +323,7 @@ const CreateMatch = ({ route }) => {
               getCurrentCoordinates();
               return true;
           } else {
-              Alert.alert(
-                  'Location Permission Denied',
-                  'You can still create a team without location.'
-              );
+              console.error('Location Permission Denied: You can still create a team without location.');
               return false;
           }
         } else if (Platform.OS === "ios") {
@@ -339,23 +350,31 @@ const CreateMatch = ({ route }) => {
           </View>
       )}
         <View style={tailwind`mb-2`}>
-          <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-            <Text style={tailwind`text-black text-lg`}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
-            <AntDesign name="down" size={24} color="black" />
-          </Pressable>
+            <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
+              <Text style={tailwind`text-black text-lg`}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
+              <AntDesign name="down" size={24} color="black" />
+            </Pressable>
+            {(error.fields.firstEntity || error.fields.home_team_public_id) && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.firstEntity || error.fields.home_team_public_id}</Text>
+            )}
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
                 <Text style={tailwind`text-black text-lg`}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
                 <AntDesign name="down" size={24} color="black" />
             </Pressable>
+            {(error.fields.secondEntity || error.fields.away_team_public_id) && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.secondEntity || error.fields.away_team_public_id}</Text>
+            )}
         </View>
-
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalStartTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
               <Text style={tailwind`text-black text-lg text-center`}>{startTime?startTime:'Start Time'}</Text>
               <AntDesign name="calendar" size={24} color="black" />
             </Pressable>
+            {(error.fields.startOn || error.fields.start_timestamp) && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.startOn || error.fields.start_timestamp}</Text>
+            )}
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalEndTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
@@ -375,13 +394,18 @@ const CreateMatch = ({ route }) => {
             ))}
           </View>
         </View>
-
+        {(error.fields.matchType || error.fields.type) && (
+          <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.matchType || error.fields.type}</Text>
+        )}
         {matchType === 'Team' && game.name === "cricket" && (
           <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalMatchFormat(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
               <Text style={tailwind`text-black text-center text-lg`}>{matchFormat?matchFormat:'Select Match Format'}</Text>
               <AntDesign name="down" size={24} color="black" />
             </Pressable>
+            {(error.fields.matchFormat || error.fields.match_format) && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.matchFormat || error.fields.match_format}</Text>
+            )}
           </View>
         )}
 
@@ -395,16 +419,29 @@ const CreateMatch = ({ route }) => {
               </Pressable>
             ))}
           </View>
+          {error.fields.stage && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.stage}</Text>
+          )}
         </View>
 
         {/* Stage is knockout select level */}
         {stage === 'Knockout'  && (
-          <View style={tailwind`mb-2`}>
-              <Pressable onPress={() => setIsModalKnockoutLevel(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                  <Text style={tailwind`text-black text-center text-lg`}>{knockoutLevel?knockoutLevel:'Select Knockout Level'}</Text>
-                  <AntDesign name="down" size={24} color="black" />
-              </Pressable>
-          </View>
+          <>
+            <View style={tailwind`mb-2`}>
+                <Pressable onPress={() => setIsModalKnockoutLevel(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
+                    <Text style={tailwind`text-black text-center text-lg`}>
+                      {knockoutLevel
+                        ? filePath["knockout"].find(item => item.id === knockoutLevel)?.round_name.toUpperCase() || knockoutLevel
+                        : 'Select Knockout Level'
+                      }
+                    </Text>
+                    <AntDesign name="down" size={24} color="black" />
+                </Pressable>
+            </View>
+            {(error.fields.knockoutLevel || error.fields.knockout_level_id) && (
+              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.knockoutLevel || error.fields.knockout_level_id}</Text>
+            )}
+          </>
         )}
 
         {/* GPS Location Card */}
@@ -444,6 +481,9 @@ const CreateMatch = ({ route }) => {
                 <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
             </Pressable>
         </View>
+        {error.fields.location && (
+          <Text style={tailwind`text-red-500 mb-2`}>{error.fields.location}</Text>
+        )}
 
         {/* Create Match Button */}
         <View style={tailwind`mb-4`}>

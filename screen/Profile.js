@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput, Image, KeyboardAvoidingView} from 'react-native';
 import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -15,10 +15,12 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import CountryPicker from 'react-native-country-picker-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, useAnimatedProps } from 'react-native-reanimated';
+import { handleInlineError } from '../utils/errorHandler';
+import ToastManager from '../utils/ToastManager';
 
 function Profile({route}) {
     const {profilePublicID} = route.params;
-
+    console.log("Profile: ", profilePublicID)
     const dispatch = useDispatch();
     const isFollowing = useSelector((state) => state.user.isFollowing)
     const navigation = useNavigation();
@@ -53,7 +55,8 @@ function Profile({route}) {
             'Content-Type': 'application/json'
           }
         })
-        dispatch(getProfile(response.data))
+        const item = response.data;
+        dispatch(getProfile(response.data.data))
       }
       if(profilePublicID !== profile.public_id){
         fetchProfile();
@@ -62,20 +65,16 @@ function Profile({route}) {
 
     useFocusEffect(
       React.useCallback(() => {
-        if(profilePublicID != profile.public_id){
-          fetchFollowing();
-          verifyUser();
-          fetchData();
+        fetchFollowing();
+        verifyUser();
+        fetchData();
+        fetchFollowerCount();
+        fetchFollowingCount();
+        if(profilePublicID !== authProfilePublicID){
           checkIsFollowingFunc();
         }
-      }, [])
+      }, [profilePublicID])
     );
-
-    useFocusEffect(useCallback(() => {
-      if (profilePublicID !== authProfilePublicID){
-        checkIsFollowingFunc();
-      }
-    },[]))
 
     const checkIsFollowingFunc = async () => {
         try {
@@ -86,63 +85,84 @@ function Profile({route}) {
                   'Content-Type': 'application/json'
               }
             });
-            dispatch(checkIsFollowing(response.data));
+            dispatch(checkIsFollowing(response.data.data));
         } catch (err) {
+            const message = handleInlineError(err);
+            ToastManager.show('Failed to update. Please try again.', 'err'); 
             console.error("Unable to check is_following: ", err);
         }
     };
 
-    const handleReduxFollow = async () => {
-      try {
-          setLoading(true);
-          const authToken = await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.post(`${BASE_URL}/create_follow/${profilePublicID}`,{},{
-              headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          if(!response.data ||  response.data === null ){
-            dispatch(setFollowUser([]));
-          } else {
-            dispatch(setFollowUser(response.data));
-            await checkIsFollowingFunc();
-            await fetchFollowerCount(); // Update follower count
-          }
-      } catch (err) {
-          console.error("Failed to follow user:", err);
-      } finally {
-          setLoading(false);
-      }
-    };
+const handleReduxFollow = async () => {
+  setLoading(true);
+  try {
+    const authToken = await AsyncStorage.getItem('AccessToken');
 
-    const handleReduxUnFollow = async () => {
-      try {
-        setLoading(true);
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.delete(
-          `${BASE_URL}/unFollow/${userPublicID}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        if(!response.data ||  response.data === null ){
-          dispatch(setUnFollowUser([]));
-        } else {
-          dispatch(setUnFollowUser(response.data));
-          await checkIsFollowingFunc();
-          await fetchFollowerCount(); // Update follower count
-        }
-    } catch(e){
-      console.error('Unable to unfollow again:', e);
-    } finally {
-        setLoading(false);
+    const response = await axiosInstance.post(
+      `${BASE_URL}/create_follow/${profilePublicID}`,
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Update Redux state
+    if (response?.data) {
+      dispatch(setFollowUser(response.data.data));
+    } else {
+      dispatch(setFollowUser([]));
     }
-  };
+
+    // Update follower count & isFollowing status
+    try { await checkIsFollowingFunc(); } catch {}
+    try { await fetchFollowerCount(); } catch {}
+    ToastManager.show('User followed successfully!', 'success');
+  } catch (err) {
+    console.error('Follow user failed:', err);
+    ToastManager.show('Failed to follow user. Please try again.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleReduxUnFollow = async () => {
+  setLoading(true);
+  try {
+    const authToken = await AsyncStorage.getItem('AccessToken');
+
+    const response = await axiosInstance.delete(
+      `${BASE_URL}/unFollow/${profilePublicID}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Update Redux state
+    if (response?.data) {
+      dispatch(setUnFollowUser(response.data.data));
+    } else {
+      dispatch(setUnFollowUser([]));
+    }
+
+    // Update follower count & isFollowing status
+    try { await checkIsFollowingFunc(); } catch {}
+    try { await fetchFollowerCount(); } catch {}
+
+    ToastManager.show('User unfollowed successfully!', 'info');
+  } catch (err) {
+    console.error('Unfollow user failed:', err);
+    ToastManager.show('Failed to unfollow user. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleFollowButton = async () => {
     if(isFollowing?.is_following) {
@@ -185,10 +205,11 @@ function Profile({route}) {
         if (response.data === null) {
           setProfileData([]);
         } else {
-          dispatch(getProfile(response.data))
-          setProfileData(response.data)
+          const item = response.data
+          dispatch(getProfile(item.data))
+          setProfileData(item.data)
 
-          if(!response.data.avatar_url || response.data.avatar_url === '') {
+          if(!item.data.avatar_url || response.item.avatar_url === '') {
             const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
             setDisplayText(usernameInitial.toUpperCase());
           } else {
@@ -200,10 +221,11 @@ function Profile({route}) {
        if( response.data == null ){
           setProfileData([])
         } else {
-          setProfileData(response.data);
-          dispatch(getProfile(response.data))
-          if(!response.data.avatar_url || response.data.avatar_url === '') {
-            const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
+          const item =  response.data
+          setProfileData(item.data);
+          dispatch(getProfile(item.data))
+          if(!item.data.avatar_url || item.data.avatar_url === '') {
+            const usernameInitial = item.data.username ? item.data.username.charAt(0) : '';
             setDisplayText(usernameInitial.toUpperCase());
           } else {
             setDisplayText('');
@@ -219,8 +241,7 @@ function Profile({route}) {
     const userPublicID = await AsyncStorage.getItem("UserPublicID");
     if(profilePublicID === authProfilePublicID) {
       setShowEditProfileButton(true);
-      setFoll
-      setCurrentUser(authPublicID);
+      setCurrentUser(authProfilePublicID);
     } else {
       setCurrentUser(profilePublicID);
     }
@@ -237,8 +258,8 @@ function Profile({route}) {
         });
 
         const item = response.data;
-        if(item !== null && Array.isArray(item)) {
-          setFollowerCount(item.length);
+        if(item.data !== null && Array.isArray(item.data)) {
+          setFollowerCount(item.data.length);
         }
     } catch(err) {
         console.error("Error fetching follower count:", err);
@@ -255,18 +276,14 @@ function Profile({route}) {
         }
       });
       const item = response.data;
-      if(item !== null && Array.isArray(item)) {
-        setFollowingCount(item.length);
+      if(item.data !== null && Array.isArray(item.data)) {
+        setFollowingCount(item.data.length);
       }
     } catch(err) {
         console.error("Error fetching following count:", err);
     }
   }
 
-  useEffect(() => {
-    fetchFollowerCount();
-    fetchFollowingCount();
-  }, []);
 
   // handle message used to open the message box
   const handleMessage = () => {
@@ -435,7 +452,6 @@ useEffect(() => {
           console.error("Failed to verified the details and documents: ", err)
         }
       }
-
     return(
       <View style={tailwind`flex-1`}>
             <Animated.View style={[tailwind`flex-row items-center justify-between`, animatedHeader]}>
@@ -659,7 +675,7 @@ useEffect(() => {
                           style={tailwind`items-center justify-center p-4  bg-red-400 rounded-xl border-white`}
                         >
                           <Text style={tailwind`text-white text-base font-semibold`}>
-                            {documentUploaded ? "Document Uploaded ✅" : "Upload Document"}
+                            {documentUploaded ? "Document Uploaded" : "Upload Document"}
                           </Text>
                         </Pressable>
                       </View>

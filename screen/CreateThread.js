@@ -12,6 +12,9 @@ import { addNewThreadServices } from '../services/threadsServices';
 import { SelectMedia } from '../services/SelectMedia';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
+import { handleInlineError } from '../utils/errorHandler';
+import { setThreads } from '../redux/actions/actions';
+import { validateThreadForm } from '../utils/validation/threadValidation';
 
 function CreateThread() {
     const isFocused = useIsFocused();
@@ -27,6 +30,10 @@ function CreateThread() {
     const [communityList, setCommunityList] = useState([]);
     const [isCommunityListModal, setIsCommunityListModal] = useState(false);
     const [communityType, setCommunityType] = useState(communityType || 'Select Community')
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const threads = useSelector(state => state.threads.threads)
 
     const handleMediaSelection = async () => {
@@ -37,7 +44,7 @@ function CreateThread() {
           setMediaType(mediaType);
           setLikeCount(0);
         } catch (err) {
-          console.error("Error selecting media ", err);
+            console.error("Unable to select media: ", err)
         }
     }
 
@@ -51,7 +58,6 @@ function CreateThread() {
                   },
               })
               const item = await response.data;
-
               if(item === null) {
                   setCommunityList([]);
               } else {
@@ -69,23 +75,78 @@ function CreateThread() {
               }
 
         } catch(err) {
-              console.error('error unable to get community list', err)
+              const backendErrors = err.response?.data?.error?.fields || {};
+              setError({
+                global: "Unable to get community",
+                fields: backendErrors,
+              })
+              console.error("Unable to get community: ", err);
         }
     }
 
     const HandleSubmit = async () => {
-        const thread = {
-          community_public_id: selectedCommunityPublicID?.public_id,
-          title: title,
-          content: content,
-          mediaURL: mediaURL,
-          mediaType: mediaType,
-        };
-        addNewThreadServices({dispatch: dispatch, thread: thread, navigation: navigation});
+        try {
+            // Clear previous errors
+            setError({
+                global: null,
+                fields: {},
+            });
+
+            const formData = {
+                title,
+                content,
+                mediaURL,
+            }
+
+            const validation = validateThreadForm(formData)
+            if(!validation.isValid){
+                // Check if validation returned a global error
+                if (validation.errors.global) {
+                    setError({
+                        global: validation.errors.global,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: null,
+                        fields: validation.errors,
+                    })
+                }
+                return
+            }
+
+            const thread = {
+                community_public_id: selectedCommunityPublicID?.public_id,
+                title: title,
+                content: content,
+                mediaURL: mediaURL,
+                mediaType: mediaType,
+            };
+            const threadCreated = await addNewThreadServices({dispatch: dispatch, thread: thread, navigation: navigation});
+            const item = threadCreated;
+            dispatch(setThreads(item || []));
+            console.log("thread: ", item);
+        } catch (err) {
+            const backendErrors = err.response?.data?.error?.fields || {};
+            console.log("Backend: ", backendErrors)
+
+            // Check if backend returned a "global" error in fields
+            if (backendErrors.global) {
+                setError({
+                    global: backendErrors.global,
+                    fields: {},
+                });
+            } else {
+                setError({
+                    global: "Unable to create thread",
+                    fields: backendErrors,
+                });
+            }
+            console.error("Unable to create thread: ", err);
+        }
     }
 
     const handleSelectCommunity = () => {
-      console.log("Not able to select ")
       setIsCommunityListModal(true);
       fetchCommunity()
     }
@@ -120,6 +181,13 @@ function CreateThread() {
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
+            {error?.global && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error?.global}
+                    </Text>
+                </View> 
+            )}
             <ScrollView style={tailwind`flex-1`} contentContainerStyle={tailwind`pb-20`}>
                 {/* Title Input */}
                 <View style={tailwind`p-4`}>
@@ -131,6 +199,11 @@ function CreateThread() {
                         placeholderTextColor="black"
                         multiline={true}
                     />
+                    {error?.fields.title && (
+                        <Text style={tailwind`text-red-500 text-sm p-2`}>
+                            *{error.title}
+                        </Text>
+                    )}
                     
                     {/* Content Input with fixed height */}
                     <TextInput
@@ -141,6 +214,11 @@ function CreateThread() {
                         placeholder="Write something here..."
                         placeholderTextColor="black"
                     />
+                    {error?.fields.content && (
+                        <Text style={tailwind`text-red-500 text-sm p-2`}>
+                            *{error.content}
+                        </Text>
+                    )}
                 </View>
                 
                 {/* Media Display */}

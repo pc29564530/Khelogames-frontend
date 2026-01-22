@@ -13,8 +13,14 @@ function Follower() {
     const navigation = useNavigation();
     const [followerWithProfile, setFollowerWithProfile] = useState([]);
     const [displayText, setDisplayText] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    })
     const follower = useSelector((state) => state.user.follower)
     const fetchFollower = async () => {
+        setLoading(true);
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
@@ -25,14 +31,20 @@ function Follower() {
             });
 
             const item = response.data;
-            if(item === null || !item) {
-                setFollowerWithProfile([]);
+            if(item.success && item.data.length === 0 ) {
+                //So no data exists
                 dispatch(getFollowerUser([]));
-            } else {
-                dispatch(getFollowerUser(item));
+            } else if(item.success && item.data.length>0){
+                dispatch(getFollowerUser(item.data));
             }
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            setError({
+                global: "Unable to get follower",
+                fields: {},
+            })
+            console.error("Unable to get follower: ", err);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -48,6 +60,13 @@ function Follower() {
     return (
         <ScrollView style={tailwind`bg-white`}>
             <View style={tailwind`flex-1 bg-white pl-5`}>
+                {error?.global && follower?.length === 0 && (
+                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                        <Text style={tailwind`text-red-700 text-sm`}>
+                            {error.global}
+                        </Text>
+                    </View>
+                )}
                 {follower?.map((item, i) => (
                     <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile(item.profile?.public_id)}>
                         {!item.profile && !item.profile.avatar_url ?(

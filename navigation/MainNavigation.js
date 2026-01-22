@@ -65,7 +65,7 @@ export default function MainNavigation() {
                     dispatch(setAuthenticated(true));
                     dispatch(setUser(user));
                 } else {
-                    console.log('❌ No valid tokens found - setting authenticated to false');
+                    console.log('No valid tokens found - setting authenticated to false');
                     dispatch(setAuthenticated(false));
                     
                     // Clear any partial auth data
@@ -84,7 +84,7 @@ export default function MainNavigation() {
                 // Small delay to prevent flash
                 setTimeout(() => {
                     setLoading(false);
-                    console.log('✅ Auth check completed, app loading finished');
+                    console.log('Auth check completed, app loading finished');
                 }, 200);
             }
         };

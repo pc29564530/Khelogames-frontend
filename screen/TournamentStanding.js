@@ -19,10 +19,11 @@ import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import PointTable from '../components/PointTable';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchStandings, fetchGroups, addGroup, getTeamsByTournamentID, fetchAllGroups } from '../services/tournamentServices';
+import { fetchStandings, fetchGroups, addGroup, fetchAllGroups } from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeamToGroup } from '../redux/actions/actions';
+import { addTeamToGroup, setStandings, setGroups } from '../redux/actions/actions';
 import TournamentParticipants from './TournamentParticipants';
+import { getTournamentStandings } from '../services/tournamentServices';
 import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Extrapolation, interpolate} from 'react-native-reanimated';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -45,6 +46,10 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
   const [createGroupMode, setCreateGroupMode] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  })
   const [tournamentParticipants, setTournamentParticipants] = useState();
 
   // Redux state
@@ -66,7 +71,7 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
             parentScrollY.value = event.contentOffset.y
         }
       }
-  })
+  });
 
 
   // Focus effect for data fetching
@@ -83,45 +88,68 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
             const response = await axiosInstance.get(
                 `${BASE_URL}/${game.name}/getTournamentParticipants/${tournament.public_id}`,
                 {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
+                  headers: {
+                      'Authorization': `Bearer ${authToken}`,
+                      'Content-Type': 'application/json'
+                  }
                 }
             );
-            setTournamentParticipants(response.data || []);
+            const item = response.data;
+            setTournamentParticipants(item.data || []);
         } catch (err) {
-            console.error("Failed to get tournamentParticipants for adding to standing: ", err);
+            const backendError = err?.response?.data?.error?.fields || {};
+            setError({global: "Unable to get teams", fields: backendError,});
+            console.error("Failed to get tournament participants for adding to standing: ", err);
         }
     }
     fetchTeam()
   }, [selectedGroup])
 
   useEffect(() => {
-    fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game, loading: loading, setLoading: setLoading });
+    const fetchStandings = async () => {
+      try {
+        setLoading(true);
+        const response = await getTournamentStandings({ tournament: tournament, game: game});
+        const item = response.data;
+        dispatch(setStandings(item || []));
+      } catch (err) {
+          const backendError = err.response.data.error.fields;
+          setError({
+            global: "Unable to get tournament standing",
+            fields: backendError,
+          });
+          console.log("Unable to get tournament standing: ", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStandings();
   }, [tournament, axiosInstance, dispatch]);
 
-  // Refresh handler
-  const onRefresh = async () => {
-    setRefreshing(true);
+  const getGroup = async () => {
+    setLoading(true);
     try {
-      await Promise.all([
-        fetchAllGroups({ axiosInstance: axiosInstance, dispatch: dispatch }),
-        fetchStandings({ tournament: tournament, axiosInstance: axiosInstance, dispatch: dispatch, game: game, loading: loading, setLoading: setLoading })
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to refresh data. Please try again.');
+      const res = fetchAllGroups();
+      dispatch(setGroups(res.data))
+    } catch(err) {
+      const backendErrrors = err?.response?.data?.error?.fields;
+      setError({
+        global: "Unable to get groups",
+        fields: backendErrrors,
+      })
     } finally {
-      setRefreshing(false);
+      setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    getGroup()
+  }, []);
 
   // Group selection handler
   const handleGroupSelect = (item) => {
     setSelectedGroup(item);
     setIsModalGroupVisible(false);
-    // Show success feedback
-    Alert.alert('Success', `Selected group: ${item.name}`);
   };
 
   // Team toggle handler with validation
@@ -194,8 +222,12 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
       );
 
     } catch (err) {
+      const backendError = err?.response?.data?.error?.fields || {};
+      setError({
+        global: "Unable to create standing",
+        fields: backendError,
+      });
       console.error("Unable to add teams to group: ", err);
-      Alert.alert('Error', 'Failed to add teams to group. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -316,9 +348,6 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         style={tailwind`flex-1 bg-gray-50`}
         onScroll={handlerScroll}
         scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
             paddingTop: 20,
@@ -337,6 +366,13 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
             </Text>
           </Pressable>
         </View>
+        {error?.global && standings.length === 0 && (
+            <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                <Text style={tailwind`text-red-700 text-sm`}>
+                    {error?.global}
+                </Text>
+            </View>
+        )}
 
         {/* Standings Section */}
         <View style={tailwind`p-2`}>

@@ -80,32 +80,32 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
         case actionTypes.SET_MATCH_STATUS: {
             console.log("🔄 SET_MATCH_STATUS - Received payload:", action.payload);
             
-            // ✅ FIX: Handle both payload formats
+            // FIX: Handle both payload formats
             let matchId, statusCode;
             
             if (action.payload.match_id !== undefined) {
                 // Format 1: {match_id: 3, status_code: "in_progress"}
                 matchId = action.payload.match_id;
                 statusCode = action.payload.status_code;
-                console.log("📋 Format 1: match_id =", matchId, "status =", statusCode);
+                console.log("Format 1: match_id =", matchId, "status =", statusCode);
             } else if (action.payload.id !== undefined) {
                 // Format 2: Full match object from WebSocket
                 matchId = action.payload.id;
                 statusCode = action.payload.status_code;
-                console.log("📋 Format 2 (WebSocket): id =", matchId, "status =", statusCode);
+                console.log("Format 2 (WebSocket): id =", matchId, "status =", statusCode);
             } else {
-                console.error("❌ Invalid payload - no match_id or id found:", action.payload);
+                console.error("Invalid payload - no match_id or id found:", action.payload);
                 return state;
             }
 
-            console.log("🎯 Looking for match with ID:", matchId);
-            console.log("🎯 Current match ID:", state.match?.id);
+            console.log("Looking for match with ID:", matchId);
+            console.log("Current match ID:", state.match?.id);
 
-            // ✅ CRITICAL: Update single match (match detail view)
+            // CRITICAL: Update single match (match detail view)
             let updateSingleMatch = state.match;
             
             if (state.match?.id === matchId) {
-                console.log("✅ Match ID matches - updating single match");
+                console.log("Match ID matches - updating single match");
                 console.log("   Old status:", state.match.status_code);
                 console.log("   New status:", statusCode);
                 
@@ -114,7 +114,7 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                     status_code: statusCode 
                 };
                 
-                console.log("✅ Updated single match:", updateSingleMatch.status_code);
+                console.log("Updated single match:", updateSingleMatch.status_code);
             } else {
                 console.log("ℹ️ Match ID doesn't match current match - no update");
                 console.log("   Current:", state.match?.id, "Expected:", matchId);

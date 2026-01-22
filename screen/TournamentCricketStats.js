@@ -109,7 +109,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                 const data = {
                     tournament_id: tournament.id
                 }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFours/${tournament.id}`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFours/${tournament.public_id}`, {
                     headers: { 
                         'Authorization': `Bearer ${authToken}`,
                         'content-type': 'application/json'
@@ -345,7 +345,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={showAll ? mostRuns : mostRuns?.slice(0,1)}
+                            data={showAll ? mostRuns : (mostRuns?.length > 2 ? mostRuns?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostRuns"}/>
@@ -370,7 +370,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={showAll ? highestRuns : highestRuns?.slice(0,1)}
+                            data={showAll ? highestRuns : (highestRuns?.length > 2 ? highestRuns?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"highestRuns"}/>
@@ -394,7 +394,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={mostSixes?.slice(0,1)}
+                            data={showAll ? mostSixes : (mostSixes?.length > 2 ? mostSixes?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostSixes"}/>
@@ -419,7 +419,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={mostFours?.slice(0,1)}
+                            data={showAll ? mostFours : (mostFours?.length > 2 ? mostFours?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostFours"}/>
@@ -444,7 +444,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={battingAverage?.slice(0,1)}
+                            data={showAll ? battingAverage : (battingAverage?.length > 2 ? battingAverage?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"battingAverage"}/>
@@ -469,7 +469,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={battingStrike?.slice(0,1)}
+                            data={showAll ? battingStrike : (battingStrike?.length > 2 ? battingStrike?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"battingStrike"}/>
@@ -494,7 +494,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={mostFifties?.slice(0,1)}
+                            data={showAll ? mostFifties : (mostFifties?.length > 2 ? mostFifties?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostFifties"}/>
@@ -518,7 +518,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={mostHundreds?.slice(0,1)}
+                            data={showAll ? mostHundreds : (mostHundreds?.length > 2 ? mostHundreds?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostHundreds"}/>
@@ -546,7 +546,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={mostWickets?.slice(0,1)}
+                            data={showAll ? mostWickets : (mostWickets?.length > 2 ? mostWickets?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"mostWickets"}/>
@@ -570,7 +570,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={bowlingEconomy?.slice(0,1)}
+                            data={showAll ? bowlingEconomy : (bowlingEconomy?.length > 2 ? bowlingEconomy?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"bowlingEconomy"}/>
@@ -594,7 +594,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={bowlingAverage?.slice(0,1)}
+                            data={showAll ? bowlingAverage : (bowlingAverage?.length > 2 ? bowlingAverage?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"bowlingAverage"}/>
@@ -618,7 +618,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={bowlingStrike?.slice(0,1)}
+                            data={showAll ? bowlingStrike : (bowlingStrike?.length > 2 ? bowlingStrike?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"bowlingStrike"}/>
@@ -642,7 +642,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                             </Pressable>
                         </View>
                         <FlatList
-                            data={fiveWicketsHaul?.slice(0,1)}
+                            data={showAll ? fiveWicketsHaul : (fiveWicketsHaul?.length > 2 ? fiveWicketsHaul?.slice(0,1) : [])}
                             keyExtractor={item => item.id}
                             renderItem={({item}) => (
                                 <TournamentPlayerStatsRow player={item} type={"fiveWicketsHaul"}/>

@@ -10,6 +10,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { getTeamPlayers } from '../redux/actions/actions';
 const positions = require('../assets/position.json');
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
+
+//TODO: Squad selection should display the current squad selected
 const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) => {
   const dispatch = useDispatch();
   const match = item;
@@ -20,6 +22,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [currentSquad, setCurrentSquad] = useState([]);
   const [selectedSquad, setSelectedSquad] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  })
   const [authUser, setAuthUser] = useState(null);
 
   const game = useSelector((state) => state.sportReducers.game);
@@ -81,8 +88,42 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     return pos;
   };
 
+  //TODO: Need to make toggle or revert the squad
+
+  // const togglePlayerSelection = (player) => {
+  //   setSelectedSquad((prev) =>
+  //     prev.some((p) => p.public_id === player.public_id)
+  //       ? prev.filter((p) => p.public_id !== player.public_id)
+  //       : [...prev, player]
+  //   );
+
+  //   setIsSubstituted((prev) =>
+  //     prev.includes(player.public_id)
+  //       ? prev
+  //       : prev
+  //   );
+  // };
+
   const handleSelectSquad = async () => {
     try {
+      setLoading(true);
+      setError({ global: null, fields: {} });
+
+      const payload = {
+        match_public_id: match.public_id,
+        team_public_id: currentTeamPlayer,
+        player: selectedSquad,
+        is_substitute: isSubstituted,
+      };
+
+      const validation = validateFootballLineUp(payload);
+      if (!validation.isValid) {
+        setError({ global: null, fields: validation.errors });
+        return;
+      }
+
+      setError({ global: null, fields: {} });
+
       const data = {
         match_public_id: match.public_id,
         team_public_id:
@@ -103,9 +144,12 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           },
         }
       );
-      setCurrentSquad(response.data || []);
+      setCurrentSquad(response.data.data || []);
     } catch (err) {
+      setError({ global: "Unable to create squad for match", fields: err?.response?.data?.error?.fields || {} });
       console.error('Failed to create the squad for match: ', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,6 +157,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   useEffect(() => {
     const fetchSquad = async () => {
       try {
+        setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.get(
           `${BASE_URL}/${game.name}/getFootballMatchSquad`,
@@ -127,8 +172,14 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
             },
           }
         );
-        setCurrentSquad(response.data || []);
+        // console.log("Squad: ", response.data)
+        setCurrentSquad(response.data.data || []);
       } catch (err) {
+        const backendError = err?.response?.data?.error?.fields || {};
+        setError({
+          global: "Unable to fetch squad",
+          fields: backendError,
+        })
         console.error('failed to fetch football lineup: ', err);
       }
     };
@@ -150,8 +201,12 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           }
         );
 
-        dispatch(getTeamPlayers(response.data || []));
+        dispatch(getTeamPlayers(response.data.data || []));
       } catch (err) {
+        setError({
+          global: "Unable to fetch team players",
+          fields: err?.response?.data?.error?.fields || {},
+        })
         console.error('unable to fetch the team player: ', err);
       }
     };
@@ -256,6 +311,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       <AddTeamPlayerButton />
       </Animated.View>
       {/* Current Lineup */}
+      {error.global && currentLineUp.length === 0 && (
+        <Text style={tailwind`text-red-600 text-center mt-4`}>
+          {error.global}
+        </Text>
+      )}
       {currentLineUp.length > 0 && (
         <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4 mx-1`}>
           <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>
@@ -387,9 +447,14 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                     <View>
                       <Switch
                         value={isSubstituted.includes(itm.public_id)}
+                        disabled={
+                          !selectedSquad.some((p) => p.public_id === itm.public_id)
+                        }
                         onValueChange={(value) => {
                           if (value) {
-                            setIsSubstituted((prev) => [...prev, itm.public_id]);
+                            setIsSubstituted((prev) => {
+                              prev.includes(itm.public_id) ? prev : [...prev, itm.public_id]
+                            });
                           } else {
                             setIsSubstituted((prev) =>
                               prev.filter((pid) => pid !== itm.public_id)

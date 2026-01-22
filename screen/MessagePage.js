@@ -8,6 +8,7 @@ import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { handleInlineError } from '../utils/errorHandler';
 
 function MessagePage() {
     const dispatch = useDispatch();
@@ -17,6 +18,11 @@ function MessagePage() {
     const [displayText, setDisplayText] = useState('');
     const [communities, setCommunities] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
     const [filteredCommunities, setFilteredCommunities] = useState([]);
     const following = useSelector((state) => state.user.following)
 
@@ -51,14 +57,15 @@ function MessagePage() {
                 setFilteredUsers(followingData); // Initialize filtered users
                 dispatch(getFollowingUser(followingData));
             }
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            const message = handleInlineError(err);
+            setError(message);
         }
     }
 
     const fetchCommunity = async () => {
         try {
-            const currentUser = await AsyncStorage.getItem('UserPublicID');
+            setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getCommunityByMessage`, {
                 headers: {
@@ -71,16 +78,24 @@ function MessagePage() {
                 setFilteredCommunities([]);
             } else {
                 setCommunities(response.data);
-                setFilteredCommunities(response.data); // Initialize filtered communities
+                setFilteredCommunities(response.data);
             }
 
         } catch(err) {
-            console.error('error not able fetch all community: ', err);
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to get community",
+                fields: backendError,
+            })
+            console.error("Unable to get community: ", err);
+        } finally {
+            setLoading(false);
         }
     }
 
     const fetchMessageReceiver = async () => {
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/getMessagedUser`, null, {
                 headers: {
@@ -93,11 +108,17 @@ function MessagePage() {
                 setFollowingWithProfile([]);
                 setFilteredUsers([]);
             } else {
-                setFilteredUsers(item); // Initialize filtered users
+                setFilteredUsers(item);
             }
-
         } catch(err) {
-            console.error('unable to get user: ', err);
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to get message",
+                fields: backendError,
+            })
+            console.error("Unable to get message: ", err);
+        } finally {
+            setLoading(false);
         }
     }
     
@@ -148,7 +169,6 @@ function MessagePage() {
             const fullName = profile.full_name || '';
             const username = profile.owner || profile.username || '';
             const name = profile.name || '';
-            
             return (
                 fullName.toLowerCase().includes(searchTerm) ||
                 username.toLowerCase().includes(searchTerm) ||
@@ -223,7 +243,13 @@ function MessagePage() {
 
             <View style={tailwind`flex-1 bg-white px-4`}>
                 {renderNoResults()}
-                
+                {error?.global && filteredCommunities.length === 0 && (
+                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                        <Text style={tailwind`text-red-700 text-sm`}>
+                            {error?.global}
+                        </Text>
+                    </View>
+                )}
                 {/* Communities Section */}
                 {filteredCommunities.length > 0 && (
                     <View style={tailwind`mb-4`}>

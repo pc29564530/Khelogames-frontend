@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, TextInput, Modal, ScrollView} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -13,10 +14,13 @@ import { BASE_URL } from '../constants/ApiConstants';
 import CheckBox from '@react-native-community/checkbox';
 import { addTournament } from '../redux/actions/actions';
 const Stages = ['Group', 'Knockout', 'League'];
+import { validateTournamentField, validateTournamentForm } from '../utils/validation/tournamentValidation';
+import { handleInlineError } from '../utils/errorHandler';
+
 
 const CreateTournament = () => {
-    const [tournamentName, setTournamentName] = useState('');
-    const [startOn, setStartOn] = useState(null);
+    const [name, setName] = useState('');
+    const [startTimestamp, setStartTimestamp] = useState(null);
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [country, setCountry] = useState('');
@@ -24,6 +28,11 @@ const CreateTournament = () => {
     const [groupCount, setGroupCount] = useState(null);
     const [maxTeamGroup, setMaxGroupTeam] = useState(null);
     const [stage, setStage] = useState(null)
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
     
 
     const [isSportVisible, setIsSportVisible] = useState(false);
@@ -36,22 +45,99 @@ const CreateTournament = () => {
     const levels = ['International', 'Country', 'Local'];
     const navigation = useNavigation();
     const game = useSelector((state) => state.sportReducers.game);
+
+
+    // Get location based on IP when screen is focused
+    useFocusEffect(
+        React.useCallback(() => {
+            let isActive = true;
+            const getIPLocation = async () => {
+                try {
+                    console.log("Getting IP-based location...");
+                    // Try BigDataCloud API
+                    const response = await fetch('http://ip-api.com/json/', {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    console.log("IP location response status:", response);
+
+                    if (!isActive) return;
+
+                    const data = await response.json();
+                    console.log("IP location response:", data);
+
+                    if (data && data.status === 'success') {
+                        let cleanedRegion = data.regionName || data.region || '';
+
+                        // Remove common prefixes/suffixes to make region names cleaner
+                        cleanedRegion = cleanedRegion
+                            .replace(/^National Capital Territory of /i, '')
+                            .replace(/^Union Territory of /i, '')
+                            .replace(/^State of /i, '')
+                            .trim();
+
+                        setCity(data.city || '');
+                        setState(cleanedRegion);
+                        setCountry(data.country || '');
+                        console.log("✓ Location set:");
+                        console.log("  City:", data.city);
+                        console.log("  State:", cleanedRegion);
+                        console.log("  Country:", data.country);
+                    }
+                } catch (err) {
+                    console.error("IP location failed:", err.message);
+                }
+            };
+            getIPLocation();
+            // Cleanup when screen loses focus
+            return () => {
+            isActive = false;
+            };
+        }, [city, state, country])
+    );
     
     const handleCreateTournament = async () => {
         try {
+            // Validate all fields before submission
+            const formData = {
+                name,
+                city,
+                state,
+                country,
+                startTimestamp,
+                stage,
+                groupCount,
+                maxTeamGroup,
+            }
+
+            const validation = validateTournamentForm(formData);
+            console.log("Validation Result: ", validation);
+            if (!validation.isValid) {
+                setError({
+                    global: null,
+                    fields: validation.errors
+                });
+                return;
+            }
+            setLoading(true);
+            setError({
+                global: null,
+                fields: {},
+            });
+
             const data = {
-            name: tournamentName,
-            status: "not_started",
-            level: "local",
-            start_timestamp: modifyDateTime(startOn),
-            game_id: game.id,
-            group_count: parseInt(groupCount, 10),
-            max_group_team: parseInt(maxTeamGroup, 10),
-            stage: stage?.toLowerCase(),
-            has_knockout: isKnockout,
-            city: city,
-            state: state,
-            country: country,
+                name: name,
+                status: "not_started",
+                level: "local",
+                start_timestamp: modifyDateTime(startTimestamp),
+                game_id: game.id,
+                group_count: parseInt(groupCount, 10),
+                max_group_team: parseInt(maxTeamGroup, 10),
+                stage: stage?.toLowerCase(),
+                has_knockout: isKnockout,
+                city: city,
+                state: state,
+                country: country,
             };
 
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -60,13 +146,12 @@ const CreateTournament = () => {
             data,
             {
                 headers: {
-                Authorization: `Bearer ${authToken}`,
+                "Authorization": `Bearer ${authToken}`,
                 "Content-Type": "application/json",
                 },
             }
             );
 
-            console.log("✅ Tournament Created Response:", response.data);
 
             const tournament = response.data
 
@@ -77,14 +162,28 @@ const CreateTournament = () => {
         });
 
             if (tournament) {
-            dispatch(addTournament(tournament));
+                dispatch(addTournament(tournament));
                 navigation.popToTop()
-            navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
+                navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
             } else {
-            console.log("❌ No tournament found in response", response.data);
+            console.error("No tournament found in response", response.data);
             }
         } catch (err) {
-            console.log("❌ Unable to create a new tournament", err);
+            const backendErrors = err.response?.data?.error?.fields || {};
+            if (backendErrors.global) {
+                setError({
+                    global: backendErrors.global,
+                    fields: {},
+                });
+            } else {
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to create tournament",
+                    fields: backendErrors,
+                });
+            }
+            console.error("Unable to create a new tournament", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -118,17 +217,29 @@ const CreateTournament = () => {
 
     return (
         <ScrollView style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
+            {error?.global && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        *{error?.global}
+                    </Text>
+                </View> 
+            )}
             <View style={tailwind`mb-4`}>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Tournament Name *
+                Tournament Name*
               </Text>
               <TextInput
                 style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={tournamentName}
-                onChangeText={setTournamentName}
+                value={name}
+                onChangeText={setName}
                 placeholder="Enter your tournament name"
                 placeholderTextColor="#9CA3AF"
               />
+              {(error?.fields?.name || error?.fields?.tournamentName) && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.name || error?.fields.tournamentName}
+                </Text>
+              )}
             </View>
             <View style={tailwind`mb-4`}>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
@@ -141,6 +252,11 @@ const CreateTournament = () => {
                 placeholder="Enter your city"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields.city && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.city}
+                </Text>
+              )}
             </View>
             <View style={tailwind`mb-4`}>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
@@ -153,6 +269,11 @@ const CreateTournament = () => {
                 placeholder="Enter your state"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields.state && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.state}
+                </Text>
+              )}
             </View>
             <View style={tailwind`mb-4`}>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
@@ -165,17 +286,29 @@ const CreateTournament = () => {
                 placeholder="Enter your full name"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields.country && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.country}
+                </Text>
+              )}
             </View>
             {/* Date Picker */}
-            <Pressable
-                onPress={() => setIsDurationVisible(true)}
-                style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
-            >
-                <Text style={tailwind`text-gray-600 text-lg`}>
-                    {startOn ? startOn: 'Select Start Date'}
-                </Text>
-                <AntDesign name="calendar" size={20} color="gray" />
-            </Pressable>
+            <View>
+              <Pressable
+                    onPress={() => setIsDurationVisible(true)}
+                    style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
+                >
+                    <Text style={tailwind`text-gray-600 text-lg`}>
+                        {startTimestamp ? startTimestamp: 'Select Start Date'}
+                    </Text>
+                    <AntDesign name="calendar" size={20} color="gray" />
+                </Pressable>
+                {(error?.fields.startOn || error?.fields.start_timestamp) && (
+                    <Text style={tailwind`text-red-500 text-sm mb-4`}>
+                        *{error.fields.start_timestamp || error?.fields.startOn}
+                    </Text>
+                )}
+            </View>
 
             <View style={tailwind`mb-2`}>
                 <Text style={tailwind`text-lg text-gray-700 mb-2`}>Stage</Text>
@@ -187,8 +320,13 @@ const CreateTournament = () => {
                     ))}
                 </View>
             </View>
+            {error?.fields.stage && (
+                <Text style={tailwind`text-red-500 text-sm mb-4`}>
+                    *{error.fields.stage}
+                </Text>
+            )}
             {/* Select Group Count */}
-            {(stage === "Group" || stage === "League") && (
+            {(stage === "group" || stage === "league") && (
                 <TextInput
                     style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
                     placeholder="Group Count"
@@ -198,6 +336,11 @@ const CreateTournament = () => {
                     onChangeText={setGroupCount}
                 />
             ) }
+            {error?.fields.groupCount && (
+                <Text style={tailwind`text-red-500 text-sm mb-4`}>
+                    *{error.fields.groupCount}
+                </Text>
+            )}
 
             {/* Max Team Per Group */}
             {(stage === "Group" || stage === "League") && (
@@ -209,6 +352,11 @@ const CreateTournament = () => {
                     value={maxTeamGroup}
                     onChangeText={setMaxGroupTeam}
                 />
+            )}
+            {stage === "Group" && error?.fields.maxTeamGroup && (
+                <Text style={tailwind`text-red-500 text-sm mb-4`}>
+                    *{error.fields.maxTeamGroup}
+                </Text>
             )}
             <View style={tailwind`border flex-row rounded-md bg-white border-gray-300 shadow-md mb-4 p-2`}>
                 <Text style={tailwind`ml-2 text-lg text-black-200 text-lg`}>Has Knockout Stage: </Text>
@@ -311,8 +459,8 @@ const CreateTournament = () => {
                 <Pressable onPress={() => setIsDurationVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
                   <View style={tailwind`bg-white rounded-md p-4`}>
                     <DateTimePicker
-                            onSelectedChange={(startOn) => {
-                            setStartOn(startOn);
+                            onSelectedChange={(startTimestamp) => {
+                            setStartTimestamp(startTimestamp);
                             setIsDurationVisible(false);
                         }}
                     />

@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import { addFootballMatchScore } from "../redux/actions/actions";
+import axiosInstance from "../screen/axios_config";
 
-export const getFootballMatchesService  = async ({axiosInstance, tournamentPublicID, game}) => {
-    try {
+export const getFootballMatchesService  = async ({ tournamentPublicID, game}) => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch/${tournamentPublicID}`, {
             headers: {
@@ -11,10 +11,7 @@ export const getFootballMatchesService  = async ({axiosInstance, tournamentPubli
                 'Content-Type': 'application/json'
             }
         });
-        return response.data || [];
-    } catch (err) {
-        console.error("unable to get the all the match: ", err);
-    }
+        return response.data
 }
 
 export const addFootballScoreServices = async ({game, dispatch, item, authToken, axiosInstance}) => {

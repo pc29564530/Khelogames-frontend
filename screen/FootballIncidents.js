@@ -73,6 +73,10 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     const [penaltyH, setPenaltyH] = useState([]);
     const [penaltyA, setPenaltyA] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const {wsRef, subscribe} = useWebSocket()
     
     const currentScrollY = useSharedValue(0);
@@ -85,8 +89,6 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
             }
         }
     })
-
-
 
     // Content animation style
     const contentStyle = useAnimatedStyle(() => {
@@ -102,10 +104,10 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
         };
     });
     
-
     useEffect(() => {
         const fetchHSquad = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballMatchSquad`, {
                     params: {
@@ -117,9 +119,17 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                         'Content-Type': 'application/json',
                     },
                 })
-                setHomeSquad(response.data || [])
+                const item = response.data;
+                setHomeSquad(item.data || [])
             } catch (err) {
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get match lineup",
+                    fields: backendError,
+                })
                 console.error("failed to fetch football lineup for home incident: ", err);
+            } finally {
+                setLoading(false);
             }
         }
         const fetchASquad = async () => {
@@ -135,9 +145,17 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                         'Content-Type': 'application/json',
                     },
                 })
-                setAwaySquad(response.data || [])
+                const item = response.data;
+                setAwaySquad(item.data || [])
             } catch (err) {
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get match lineup",
+                    fields: backendError,
+                });
                 console.error("failed to fetch football lineup for away incident: ", err);
+            } finally {
+                setLoading(false);
             }
         }
         fetchHSquad();
@@ -151,29 +169,40 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     useEffect(() => {
         const fetchPlayersAndIncidents = async () => {
             try {
+                setLoading(true);
+                setError({
+                    global: null,
+                    fields: {},
+                })
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const homeResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc/${match.homeTeam.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
-                setHomePlayer(homeResponse.data || []);
+                setHomePlayer(homeResponse.data.data || []);
 
                 const awayResponse = await axiosInstance.get(`${BASE_URL}/football/getTeamsMemberFunc/${match.awayTeam.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
-                setAwayPlayer(awayResponse.data || []);
+                setAwayPlayer(awayResponse.data.data || []);
 
                 const incidentsResponse = await axiosInstance.get(`${BASE_URL}/football/getFootballIncidents/${match.public_id}`, {
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
-                const item = incidentsResponse.data[1].incidents;
+                const item = incidentsResponse.data.data[1].incidents;
                 //console.log("Football Incidents: ", item)
+                if(item.length === 0 )
                 if(item){
                     dispatch(getFootballIncidents(item));
                 } else {
                     dispatch(getFootballIncidents([]));
                 }
             } catch (err) {
-                console.error("Unable to fetch data: ", err);
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get match indcident",
+                    fields: backendError,
+                })
+                console.error("Unable to get match incidents: ", err);
             } finally {
                 setLoading(false);
             }

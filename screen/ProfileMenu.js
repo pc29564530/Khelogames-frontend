@@ -27,6 +27,10 @@ function ProfileMenu() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentRole, setCurrentRole] = useState('');
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  });
   const user = useSelector(state => state.user.user)
 
   useEffect(() => {
@@ -37,20 +41,27 @@ function ProfileMenu() {
     roleStatus();
   }, []);
 
-  useFocusEffect( useCallback(() => {
-    const fetchProfileData = async () => {
-      try {
-        const authPublicID = await AsyncStorage.getItem("UserPublicID");
-        const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
-        dispatch(getProfile(response.data));
-        dispatch(setAuthProfilePublicID(response.data.public_id))
-      } catch (err) {
-        console.error('Unable to fetch the profile data: ', err);
-      }
-    };
+  const fetchProfileData = useCallback(async () => {
+    try {
+      const authPublicID = await AsyncStorage.getItem("UserPublicID");
+      const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
+      dispatch(getProfile(response.data.data));
+      dispatch(setAuthProfilePublicID(response.data.data.public_id))
+      // Clear errors on success
+      setError({ global: null, fields: {} });
+    } catch (err) {
+      const backendErrors = err?.response?.data?.error?.fields || {};
+      setError({
+        global: err?.response?.data?.error?.message || "Unable to load profile.",
+        fields: backendErrors,
+      })
+      console.error('Unable to fetch the profile data: ', err);
+    }
+  }, [dispatch]);
 
+  useFocusEffect( useCallback(() => {
     fetchProfileData();
-  }, [dispatch]));
+  }, [fetchProfileData]));
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -84,6 +95,12 @@ function ProfileMenu() {
   }, [axiosInstance]);
 
   const toggleMyCommunity = async () => {
+    // If already showing, just collapse
+    if (showMyCommunity) {
+      setShowMyCommunity(false);
+      return;
+    }
+
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
@@ -93,9 +110,18 @@ function ProfileMenu() {
         },
       });
       setMyCommunityData(response.data || []);
-      setShowMyCommunity((prev) => !prev);
+      setShowMyCommunity(true);
+      // Clear any previous errors
+      setError({ global: null, fields: {} });
     } catch (err) {
-      console.error(err);
+      const backendErrors = err?.response?.data?.error?.fields || {};
+      setError({
+        global: err?.response?.data?.error?.message || "Unable to load communities. Please try again.",
+        fields: backendErrors,
+      })
+      console.error("Unable to get community: ", err);
+      // Don't show the community section if there's an error
+      setShowMyCommunity(false);
     }
   };
 
@@ -113,6 +139,23 @@ function ProfileMenu() {
 
   return (
     <View style={tailwind`flex-1`}>
+      {/* Global Error Banner - Big Tech Pattern */}
+      {error?.global && (
+        <View style={tailwind`bg-red-50 border-b border-red-200 p-4`}>
+          <View style={tailwind`flex-row items-center justify-between`}>
+            <View style={tailwind`flex-1 flex-row items-center`}>
+              <MaterialIcons name="error-outline" size={20} color="#DC2626" />
+              <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>
+                {error?.global}
+              </Text>
+            </View>
+            <Pressable onPress={fetchProfileData} style={tailwind`ml-2 bg-red-600 px-3 py-1 rounded`}>
+              <Text style={tailwind`text-white text-sm font-semibold`}>Retry</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
         {profile?.avatar_url ? (
           <Image style={tailwind`w-28 h-28 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
@@ -121,8 +164,8 @@ function ProfileMenu() {
             <Text style={tailwind`text-red-500 text-4xl`}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
           </View>
         )}
-        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name}</Text>
-        <Text style={tailwind`text-xl text-white`}>@{profile?.username}</Text>
+        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name || 'Loading...'}</Text>
+        <Text style={tailwind`text-xl text-white`}>@{profile?.username || '...'}</Text>
         <View style={tailwind`flex-row justify-center mt-5`}>
           <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
           <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
@@ -155,18 +198,27 @@ function ProfileMenu() {
 
           {showMyCommunity && (
             <ScrollView style={tailwind`mt-5`}>
-              {myCommunityData.map((item, index) => (
-                <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2 gap-2`}>
-                  {item?.media_url ? (
-                    <Image source="" style={tailwind`h-12 w-12 bg-red-400 rounded-lg`} />
-                  ):(
-                    <View style={tailwind`h-10 w-10 bg-red-400 rounded-full items-center justify-center`}>
-                      <Text style={tailwind`text-lg text-white`}>{item.name.charAt(0).toUpperCase()}</Text>
-                    </View>
-                  )}
-                  <Text style={tailwind`text-xl text-black`}>{item.name}</Text>
-                </Pressable>
-              ))}
+              {myCommunityData.length > 0 ? (
+                myCommunityData.map((item, index) => (
+                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2 gap-2`}>
+                    {item?.media_url ? (
+                      <Image source="" style={tailwind`h-12 w-12 bg-red-400 rounded-lg`} />
+                    ):(
+                      <View style={tailwind`h-10 w-10 bg-red-400 rounded-full items-center justify-center`}>
+                        <Text style={tailwind`text-lg text-white`}>{item.name.charAt(0).toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <Text style={tailwind`text-xl text-black`}>{item.name}</Text>
+                  </Pressable>
+                ))
+              ) : (
+                <View style={tailwind`items-center py-8`}>
+                  <MaterialIcons name="group-off" size={48} color="#D1D5DB" />
+                  <Text style={tailwind`text-gray-500 mt-2 text-center`}>
+                    No communities yet.{'\n'}Join or create one to get started!
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           )}
         </View>

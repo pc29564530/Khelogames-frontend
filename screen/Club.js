@@ -19,6 +19,8 @@ const Club = () => {
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [country, setCountry] = useState('');
+    const [error, setError] = useState({global: null, fields:{}});
+    const [loading, setLoading] = useState(false);
     const [selectedSport, setSelectedSport] = useState("football");
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
@@ -34,10 +36,16 @@ const Club = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await sportsServices({ axiosInstance });
-                dispatch(setGames(data));
-            } catch (error) {
-                console.error("Unable to fetch games data: ", error);
+                const response = await sportsServices();
+                console.log("Games: ", response.data)
+                dispatch(setGames(response.data));
+            } catch (err) {
+                logSilentError(err)
+                setError({
+                    global: 'Unable to load games',
+                    fields: {}
+                })
+                console.error("Unable to fetch games data: ", err);
             }
         };
         fetchData();
@@ -54,6 +62,11 @@ const Club = () => {
     useEffect(() => {
         const getClubData = async () => {
             try {
+                setLoading(false);
+                setError({
+                    global: null,
+                    fields: {},
+                })
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`, {
                     headers: {
@@ -63,13 +76,19 @@ const Club = () => {
                 });
 
                 const item = response.data;
-                if (!item || item === null) {
-                    dispatch(getTeamsBySport([]));
-                } else {
-                    dispatch(getTeamsBySport(item));
+                if(item.success && item.data.length === 0) {
+                    //First to add new team
                 }
+                dispatch(getTeamsBySport(item.data));
             } catch (err) {
-                console.error("Unable to fetch all team or club: ", err);
+                logSilentError(err);
+                setError({
+                    global: 'Unable to load teams',
+                    fields: {},
+                })
+                console.error("Unable to fetch all team: ", err);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -122,6 +141,8 @@ const Club = () => {
         dispatch(setGame(item));
     }
 
+    console.log("Games: ", games)
+
     return (
         <View style={tailwind`flex-1 bg-gray-100`}>
             <View style={tailwind`flex-row shadow-lg bg-white p-2`}>
@@ -141,6 +162,13 @@ const Club = () => {
                     <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
                 </Pressable>
             </View>
+            {error?.global && teams.length === 0 && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error?.global}
+                    </Text>
+                </View>
+            )}
             <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }}>
                 {teams.map((item, index) => (
                     <View key={index} style={tailwind`mb-4`}>

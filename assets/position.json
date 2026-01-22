@@ -1,38 +1,20 @@
 {
   "football": [
-    { "code": "GK", "name": "Goalkeeper" },
-    { "code": "DF", "name": "Defender" },
-    { "code": "MF", "name": "Midfielder" },
-    { "code": "FW", "name": "Forward" },
-    { "code": "ST", "name": "Striker" },
-    { "code": "LW", "name": "Left Winger" },
-    { "code": "RW", "name": "Right Winger" },
-    { "code": "CM", "name": "Central Midfielder" },
-    { "code": "DM", "name": "Defensive Midfielder" },
-    { "code": "AM", "name": "Attacking Midfielder" }
+    { "code": "GK", "name": "Goalkeeper", "category": "GK" },
+    { "code": "CB", "name": "Center Back", "category": "DF" },
+    { "code": "LB", "name": "Left Back", "category": "DF" },
+    { "code": "RB", "name": "Right Back", "category": "DF" },
+    { "code": "DM", "name": "Defensive Midfielder", "category": "MF" },
+    { "code": "CM", "name": "Central Midfielder", "category": "MF" },
+    { "code": "AM", "name": "Attacking Midfielder", "category": "MF" },
+    { "code": "LW", "name": "Left Winger", "category": "FW" },
+    { "code": "RW", "name": "Right Winger", "category": "FW" },
+    { "code": "ST", "name": "Striker", "category": "FW" }
   ],
   "cricket": [
     { "code": "BT", "name": "Batsman" },
     { "code": "BL", "name": "Bowler" },
     { "code": "AR", "name": "All-Rounder" },
-    { "code": "WK", "name": "Wicket-Keeper" },
-    { "code": "AL", "name": "All-Rounder Lower Order" }
-  ],
-  "basketball": [
-    { "code": "PG", "name": "Point Guard" },
-    { "code": "SG", "name": "Shooting Guard" },
-    { "code": "SF", "name": "Small Forward" },
-    { "code": "PF", "name": "Power Forward" },
-    { "code": "C", "name": "Center" }
-  ],
-  "tennis": [
-    { "code": "S", "name": "Singles" },
-    { "code": "D", "name": "Doubles" }
-  ],
-  "volleyball": [
-    { "code": "OH", "name": "Outside Hitter" },
-    { "code": "MB", "name": "Middle Blocker" },
-    { "code": "S", "name": "Setter" },
-    { "code": "L", "name": "Libero" }
+    { "code": "WK", "name": "Wicket-Keeper" }
   ]
 }

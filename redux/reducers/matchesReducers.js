@@ -2,7 +2,7 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
     matches: [],
-    match: null  // ✅ Changed from [] to null
+    match: null
 }
 
 const matchesReducers = (state = initialState, action) => {
@@ -28,28 +28,27 @@ const matchesReducers = (state = initialState, action) => {
             };
 
         case actionTypes.SET_MATCH_STATUS: {
-            console.log("🔄 SET_MATCH_STATUS - Received payload:", action.payload);
+            console.log("SET_MATCH_STATUS - Received payload:", action.payload);
             
-            // ✅ FIX: Handle both payload formats
             let matchId, statusCode;
             
             if (action.payload.match_id !== undefined) {
                 // Format 1: {match_id: 3, status_code: "in_progress"}
                 matchId = action.payload.match_id;
                 statusCode = action.payload.status_code;
-                console.log("📋 Format 1: match_id =", matchId, "status =", statusCode);
+                console.log("Format 1: match_id =", matchId, "status =", statusCode);
             } else if (action.payload.id !== undefined) {
                 // Format 2: Full match object from WebSocket
                 matchId = action.payload.id;
                 statusCode = action.payload.status_code;
-                console.log("📋 Format 2 (WebSocket): id =", matchId, "status =", statusCode);
+                console.log("Format 2 (WebSocket): id =", matchId, "status =", statusCode);
             } else {
-                console.error("❌ Invalid payload - no match_id or id found:", action.payload);
+                console.error("Invalid payload - no match_id or id found:", action.payload);
                 return state;
             }
 
-            console.log("🎯 Looking for match with ID:", matchId);
-            console.log("🎯 Current match ID:", state.match?.id);
+            console.log("Looking for match with ID:", matchId);
+            console.log("Current match ID:", state.match?.id);
 
             // Helper function to update matches in arrays
             function updateStageArray(arr) {
@@ -57,7 +56,6 @@ const matchesReducers = (state = initialState, action) => {
 
                 return arr.map(m => {
                     if (m?.id === matchId) {
-                        console.log("✅ Found match in array - updating status");
                         return { ...m, status_code: statusCode };
                     }
                     return m;

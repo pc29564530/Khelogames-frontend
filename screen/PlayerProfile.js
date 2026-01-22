@@ -39,6 +39,11 @@ const PlayerProfile = ({ route }) => {
   const games = useSelector(state => state.sportReducers.games);
   const game = useSelector(state => state.sportReducers.game);
   const [isOwner, setIsOwner] = useState(false);
+  const [error, setError] = useState({
+    global: null,
+    fields: {}
+  });
+
   const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID);
 
   const parentScrollY = useSharedValue(0);
@@ -158,19 +163,25 @@ const PlayerProfile = ({ route }) => {
             ? `${BASE_URL}/getPlayer/${publicID}`
             : `${BASE_URL}/getPlayerByProfile/${publicID}`;
 
-        const playerResponse = await axiosInstance.get(url, {
+        const response = await axiosInstance.get(url, {
           headers: {
             Authorization: `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         });
 
-        if (playerResponse.data) {
-          setPlayer(playerResponse.data);
-        } else {
-          setPlayer(null);
+        if (response.data.success && response.data.data) {
+          setPlayer(response.data.data);
+        } else if(response.data.success && response.data.data === null) {
+          if(authProfilePublicID === publicID) {
+            navigation.navigate("CreatePlayerProfile")
+          }
         }
       } catch (err) {
+        setError({
+          global: "Unable to get player profile",
+          fields: {},
+        })
         console.error('Failed to get player profile: ', err);
       } finally {
         setLoading(false);
@@ -178,20 +189,6 @@ const PlayerProfile = ({ route }) => {
     };
     fetchPlayer();
   }, []);
-
-  useEffect(() => {
-    if (authProfilePublicID === publicID) {
-      setIsOwner(true);
-    }
-  }, []);
-
-  const handleAddActivity = () => {
-    if (isOwner) {
-      navigation.navigate('CreatePlayerProfile');
-    } else {
-      Alert.alert('Not allowed to edit');
-    }
-  };
 
   if (loading) {
     return (
@@ -203,8 +200,6 @@ const PlayerProfile = ({ route }) => {
 
   return (
     <View style={tailwind`flex-1 bg-gray-50`}>
-      {player ? (
-        <>
           {/* Header */}
           <Animated.View
             style={[
@@ -255,25 +250,6 @@ const PlayerProfile = ({ route }) => {
           <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
               <TopTabPlayer player={player} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
           </Animated.View>
-        </>
-      ) : (
-        <View style={tailwind`mx-4 mt-16`}>
-          <View
-            style={tailwind`bg-white rounded-2xl p-10 shadow-lg items-center justify-center`}
-          >
-            <TouchableOpacity
-              onPress={handleAddActivity}
-              activeOpacity={0.8}
-              style={tailwind`bg-red-100 p-4 rounded-full mb-4`}
-            >
-              <AntDesign name="adduser" size={40} color="#ef4444" />
-            </TouchableOpacity>
-            <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-              Add Player Activity
-            </Text>
-          </View>
-        </View>
-      )}
     </View>
   );
 };

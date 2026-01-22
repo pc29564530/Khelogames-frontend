@@ -8,7 +8,7 @@ const TopTabPlayer = ({ player, parentScrollY, headerHeight, collapsedHeader }) 
   const TopTab = createMaterialTopTabNavigator();
 
   const renderCareerTab = () => {
-    switch (player.game_id) {
+    switch (player?.game_id) {
       case 1:
         return (props) => (
           <FootballPlayerStats

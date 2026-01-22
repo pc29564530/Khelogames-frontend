@@ -14,11 +14,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setTeams } from '../redux/actions/actions';
 import CountryPicker from 'react-native-country-picker-modal';
 import Geolocation from '@react-native-community/geolocation';
+import { validateTeamField, validateTeamForm } from '../utils/validation/teamValidation';
+import { handleInlineError } from '../utils/errorHandler';
 
 const CreateClub = () => {
     const navigation = useNavigation();
     const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const [teamName, setTeamName] = useState('');
+    const [name, setName] = useState('');
     const [mediaUrl, setMediaUrl] = useState('');
     const [mediaType, setMediaType] = useState('');
     const [national, setNational] = useState(false);
@@ -26,11 +28,15 @@ const CreateClub = () => {
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [gender, setGender] = useState('');
-    const [category, setCategory] = useState('');
+    const [type, setType] = useState('');
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationBuffer, setLocationBuffer] = useState([]);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
 
     const dispatch = useDispatch();
     const game = useSelector((state) => state.sportReducers.game)
@@ -54,6 +60,7 @@ const CreateClub = () => {
                         method: 'GET',
                         headers: { 'Accept': 'application/json' }
                     });
+                    console.log("IP location response status:", response);
 
                     if (!isActive) return;
 
@@ -90,7 +97,7 @@ const CreateClub = () => {
             isActive = false;
             };
         }, [])
-        );
+    );
 
     const reverseGeocode = async (lat, lon) => {
       console.log("Lat: ", lat)
@@ -247,12 +254,29 @@ const CreateClub = () => {
     const handleSubmit = async () => {
         try {
             const userPublicID = await AsyncStorage.getItem('UserPublicID');
+            const formData = {
+                name,
+                city,
+                state,
+                country,
+                gender,
+                type,
+            }
+            const validation = validateTeamForm(formData)
+            if(!validation.isValid){
+                setError({
+                    global: null,
+                    fields: validation.errors,
+                })
+                return;
+            }
             const newTeam = {
-                name: teamName,
+                name: name,
                 media_url: mediaUrl,
                 gender: gender,
+                national: national,
                 country: country,
-                type: category,
+                type: type,
                 player_count: 0,
                 game_id: game.id,
                 latitude: latitude != null ? latitude.toString() : '',
@@ -277,7 +301,12 @@ const CreateClub = () => {
             dispatch(setTeams(item));
             navigation.navigate('Club');
         } catch (err) {
-            console.error('Unable to create the club ', err);
+            const backendErrors = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to create new team",
+                fields: backendErrors,
+            });
+            console.error("Unable to create new team: ", err);
         }
     };
     
@@ -295,7 +324,14 @@ const CreateClub = () => {
                 style={tailwind`flex-1 bg-gray-50`}
                 contentContainerStyle={tailwind`p-5`}
                 showsVerticalScrollIndicator={false}
-            >
+            >   
+                {error.global && (
+                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                        <Text style={tailwind`text-red-700 text-sm`}>
+                            {error.global}
+                        </Text>
+                    </View>
+                )}
                 {/* Header */}
                 <Text style={tailwind`text-3xl font-bold text-gray-800 mb-2`}>Create Team</Text>
                 <Text style={tailwind`text-base text-gray-500 mb-6`}>Fill in the details to create your team</Text>
@@ -324,40 +360,60 @@ const CreateClub = () => {
                         <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Team Name *</Text>
                         <TextInput
                             style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
-                            value={teamName}
-                            onChangeText={setTeamName}
+                            value={name}
+                            onChangeText={setName}
                             placeholder="Enter team name"
                             placeholderTextColor="#9CA3AF"
                         />
+                        {error?.fields?.name && (
+                        <Text style={tailwind`text-red-500 text-sm`}>
+                            *{error.fields?.name}
+                        </Text>
+                    )}
                     </View>
-
                     {/* Gender */}
                     <View style={tailwind`mb-4`}>
                         <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Gender *</Text>
                         <View style={tailwind`flex-row gap-3`}>
                             <Pressable
-                                onPress={() => setGender('M')}
+                                onPress={() => setGender('male')}
                                 style={[
                                     tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    gender === 'M' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                    gender === 'male' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
                                 ]}
                             >
-                                <Text style={[tailwind`font-semibold`, gender === 'M' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                <Text style={[tailwind`font-semibold`, gender === 'male' ? tailwind`text-white` : tailwind`text-gray-600`]}>
                                     Male
                                 </Text>
                             </Pressable>
                             <Pressable
-                                onPress={() => setGender('F')}
+                                onPress={() => setGender('female')}
                                 style={[
                                     tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    gender === 'F' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                    gender === 'female' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
                                 ]}
                             >
-                                <Text style={[tailwind`font-semibold`, gender === 'F' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                <Text style={[tailwind`font-semibold`, gender === 'female' ? tailwind`text-white` : tailwind`text-gray-600`]}>
                                     Female
                                 </Text>
                             </Pressable>
+                            <Pressable
+                                onPress={() => setGender('mixed')}
+                                style={[
+                                    tailwind`flex-1 py-3 rounded-xl items-center`,
+                                    gender === 'mixed' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                ]}
+                            >
+                                <Text style={[tailwind`font-semibold`, gender === 'mixed' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                    Mixed
+                                </Text>
+                            </Pressable>
                         </View>
+                        {error?.fields?.gender && (
+                            <Text style={tailwind`text-red-500 text-sm`}>
+                                *{error.fields?.gender}
+                            </Text>
+                        )}
                     </View>
 
                     {/* Category */}
@@ -367,18 +423,23 @@ const CreateClub = () => {
                             {['team', 'individual', 'double'].map((item) => (
                                 <Pressable
                                     key={item}
-                                    onPress={() => setCategory(item)}
+                                    onPress={() => setType(item)}
                                     style={[
                                         tailwind`flex-1 py-3 rounded-xl items-center`,
-                                        category === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                        type === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
                                     ]}
                                 >
-                                    <Text style={[tailwind`font-semibold text-sm`, category === item ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                    <Text style={[tailwind`font-semibold text-sm`, type === item ? tailwind`text-white` : tailwind`text-gray-600`]}>
                                         {item.charAt(0).toUpperCase() + item.slice(1)}
                                     </Text>
                                 </Pressable>
                             ))}
                         </View>
+                        {error?.fields?.type && (
+                            <Text style={tailwind`text-red-500 text-sm`}>
+                                *{error.fields?.type}
+                            </Text>
+                        )}
                     </View>
                 </View>
 
@@ -395,6 +456,11 @@ const CreateClub = () => {
                             placeholder="Enter city"
                             placeholderTextColor="#9CA3AF"
                         />
+                        {error?.fields?.city && (
+                            <Text style={tailwind`text-red-500 text-sm`}>
+                                *{error.fields.city}
+                            </Text>
+                        )}
                     </View>
 
                     <View style={tailwind`mb-4`}>
@@ -406,6 +472,11 @@ const CreateClub = () => {
                             placeholder="Enter state or province"
                             placeholderTextColor="#9CA3AF"
                         />
+                        {error?.fields?.state && (
+                            <Text style={tailwind`text-red-500 text-sm`}>
+                                *{error.fields.state}
+                            </Text>
+                        )}
                     </View>
 
                     <View style={tailwind`mb-0`}>
@@ -417,6 +488,11 @@ const CreateClub = () => {
                             placeholder="Enter country"
                             placeholderTextColor="#9CA3AF"
                         />
+                        {error?.fields?.country && (
+                            <Text style={tailwind`text-red-500 text-sm`}>
+                                *{error.fields.country}
+                            </Text>
+                        )}
                     </View>
                 </View>
 

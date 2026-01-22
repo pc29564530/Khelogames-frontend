@@ -69,6 +69,10 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [isStartNewInningModalVisible, setIsStartNewInningModalVisible] = useState(false);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
@@ -125,11 +129,16 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json'
                     }
                 })
-                const item = response.data
-                dispatch(setBatTeam(item.batting_team.public_id))
-                dispatch(setCurrentInningNumber(item.inning.inning_number))
-                dispatch(setInningStatus(item.inning.inning_status, item.inning.inning_number))
+                const item = response.data;
+                dispatch(setBatTeam(item.data.batting_team.public_id))
+                dispatch(setCurrentInningNumber(item.data.inning.inning_number))
+                dispatch(setInningStatus(item.data.inning.inning_status, item.inning.inning_number))
             } catch (err) {
+                const backendError = err.response.data.error.fields;
+                setError({
+                    global: "Unable to get current inning",
+                    fields: backendError,
+                })
                 console.error("Failed to get cricket inning : ", err)
             }
         }
@@ -197,7 +206,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json',
                 },
             })
-            const item = response.data.batsman;
+            const item = response.data.data.batsman;
             if(item){
                 dispatch(setCurrentBatsman(item))
             } else {
@@ -205,6 +214,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             }
 
         } catch (err) {
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to get current batsman",
+                fields: backendError,
+            })
             console.error("Failed to fetch current batsman: ", err);
         }
     }
@@ -223,7 +237,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json',
                 },
             })
-            const item = response.data.bowler;
+            const item = response.data.data.bowler;
             if(item){
                 dispatch(setCurrentBowler(item))
             } else {
@@ -254,14 +268,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json'
                     }
                 })
-                if(response.data){
+                const item = response.data;
+                if(item.data){
                     setIsCurrentInningEnded(true)
                 }
-                dispatch(setEndInning(response?.data.inning));
-                dispatch(setBatsmanScore(response.data.batsman));
-                dispatch(setBowlerScore(response.data.bowler));
+                dispatch(setEndInning(item?.data.inning));
+                dispatch(setBatsmanScore(item.data.batsman));
+                dispatch(setBowlerScore(item.data.bowler));
                 dispatch(setInningStatus("completed", currentInningNumber));
             } catch (err) {
+                const backendError = err.response.data.error.fields;
+                setError({
+                    global: "Unable to end inning",
+                    fields: backendError,
+                })
                 console.error("Failed to end inning: ", err);
             }
         }
@@ -302,9 +322,15 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                             'Content-Type': 'application/json',
                         },
                     });
+                    const item = response.data;
                     
-                    dispatch(getHomePlayer(response.data || []));
+                    dispatch(getHomePlayer(item.data || []));
                 } catch (err) {
+                    const backendError = err?.response?.data?.error?.fields;
+                    setError({
+                        global: "Unable to get team player",
+                        fields: backendError,
+                    })
                     console.error("unable to fetch the team player: ", err);
                 }
             }
@@ -317,15 +343,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                             'Content-Type': 'application/json',
                         },
                     });
-                    
-                    dispatch(getAwayPlayer(response.data || []));
+                    const item = response.data;
+                    dispatch(getAwayPlayer(item.data || []));
                 } catch (err) {
+                    const backendError = err?.response?.data?.error?.fields;
+                    setError({
+                        global: "Unable to get team player",
+                        fields: backendError,
+                    })
                     console.error("unable to fetch the team player: ", err);
                 }
             }
             fetchHomePlayers();
             fetchAwayPlayers();
-        }, [match.id]);
+        }, [match.public_id]);
 
         useEffect(() => {
             if(inningStatus === "completed"){
@@ -484,12 +515,17 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                             }
                         })
                         const item = response.data;
-                        if(item){
-                            dispatch(setInningStatus(item.inning_status, item.inning_number));
+                        if(item.data){
+                            dispatch(setInningStatus(item.data.inning_status, item.data.inning_number));
                         }
                     }
                 }
             } catch(err){
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to update inning",
+                    fields: backendError,
+                })
                 console.log("Failed to update inning status: ", err)
             }
         }
@@ -954,7 +990,7 @@ const InningActionModal = ({
               ) : (
                 <View style={tailwind`px-4 pb-4 pt-2`}>
                   <Text style={tailwind`text-lg font-semibold`}>
-                    🎯 Target: {targetScore || 0} runs
+                    Target: {targetScore || 0} runs
                   </Text>
                 </View>
               )}

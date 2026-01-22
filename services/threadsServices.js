@@ -2,9 +2,9 @@ import { AUTH_URL, BASE_URL } from "../constants/ApiConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { addThreads, setThreads } from "../redux/actions/actions";
 import axiosInstance from "../screen/axios_config";
+import { handleInlineError, logSilentError } from "../utils/errorHandler";
 
-export const getAllThreadServices = async ({ dispatch }) => {
-    try {
+export const getAllThreadServices = async () => {
         const authToken = await AsyncStorage.getItem("AccessToken");
         const response = await axiosInstance.get(`${BASE_URL}/GetAllThreadDetailFunc`, {
             headers: {
@@ -12,19 +12,10 @@ export const getAllThreadServices = async ({ dispatch }) => {
                 "Content-Type": 'application/json',
             },
         });
-        const item = response.data;
-        if (item === null) {
-            dispatch(setThreads([]));
-        } else {
-            dispatch(setThreads(response.data));
-        }
-    } catch (err) {
-        console.error(err);
-    }
+        return response.data;
 };
 
-export const addNewThreadServices = async ({dispatch, thread, navigation}) => {
-    try {
+export const addNewThreadServices = async ({thread}) => {
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.post(`${BASE_URL}/create_thread`, thread, {
             headers: {
@@ -32,10 +23,5 @@ export const addNewThreadServices = async ({dispatch, thread, navigation}) => {
                 'Content-Type': 'application/json',
             },
         });
-        const item = response.data || [];
-        dispatch(addThreads(item));
-        navigation.navigate('Home');
-    } catch (err) {
-        console.error("unable to add the new thread: ", err);
-    }
+        return response.data;
 }

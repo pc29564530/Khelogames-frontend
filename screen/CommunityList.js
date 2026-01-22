@@ -10,38 +10,51 @@ const  logoPath = require('/Users/pawan/project/Khelogames-frontend/assets/image
 
 function CommunityList() {
     const [communityList, setCommunityList] = useState([]);
-    // const [dispayText, setDisplayText] = useState('')
-    
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
     const navigation = useNavigation();
     const fetchCommunity = async () => {
         try {
+            setLoading(true);
+            setError({
+                global: null,
+                fields: {},
+            })
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/get_all_communities`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
-            })
-            const item = await response.data;
+            });
+            const item = response.data;
 
-            if(item === null) {
+            if(item.data === null) {
                 setCommunityList([]);
             } else {
-                const communityWithDisplayText = item.map((item, index) => {
+                const communityWithDisplayText = item.data.map((itm, index) => {
                     let displayText = '';
-                    const words = item.communities_name.split(' ');
+                    const words = itm.communities_name.split(' ');
                     displayText = words[0].charAt(0).toUpperCase();
                     if(words.length>1){
                         displayText += words[1].charAt(0).toUpperCase()
                     }
-                    return {...item, displayText, displayText}
+                    return {...itm, displayText, displayText}
                 })
-
                 setCommunityList(communityWithDisplayText);
             }
-
         } catch(err) {
+            const backendError = err?.response?.data?.error?.fields;
+            setError({
+                global: "Unable to get community list",
+                fields: backendError,
+            });
             console.error('error unable to get community list', err)
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -65,6 +78,13 @@ function CommunityList() {
 
     return (
         <View style={tailwind`flex-1 bg-black `}>
+            {error?.global && communityList.length === 0 && (
+                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error?.global}
+                    </Text>
+                </View>
+            )}
             {communityList.map((item,index)=> (
                 <Pressable key={index} onPress={()=>handleSelectCommunity(item.communities_name)} style={tailwind`bg-black border rounded-md p-2 gap-3 flex-row`}>
                     <View style={tailwind`w-12 h-12 rounded-12 bg-red-100 items-center justify-center`}>

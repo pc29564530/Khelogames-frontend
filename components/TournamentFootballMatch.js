@@ -12,6 +12,11 @@ import Animated, {useAnimatedScrollHandler, interpolate, useSharedValue, useAnim
 import { getMatches } from '../redux/actions/actions';
 
 const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matches.matches ) || [];
@@ -27,15 +32,29 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     useEffect(() => {
         console.debug("Match : ", match)
     }, [match]);
+    
     const fetchTournamentMatchs = async () => {
         try {
-            const item = await getFootballMatchesService({axiosInstance: axiosInstance, tournamentPublicID: tournament.public_id, game: game});  
-            if(item === null ){
-                return item;
+            setLoading(true);
+            const response = await getFootballMatchesService({ tournamentPublicID: tournament.public_id, game: game});  
+            const item = response.data;
+            if (response.success && item.length === 0) {
+                //TODO: if no match exits show this 
+                return (
+                    <View>
+
+                    </View>
+                )
             }
-            dispatch(getMatches(item))
+            dispatch(getMatches(item || []));
         } catch (err) {
+            setError({
+                global: "Unable to get all matches",
+                fields: {},
+            })
             console.error("Unable to fetch tournament matches: ", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -76,6 +95,13 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
                 showsVerticalScrollIndicator={false}
             >
                 <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
+                    {matches?.length === 0 && error?.global && (
+                        <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                            <Text style={tailwind`text-red-700 text-sm`}>
+                                {error.global}
+                            </Text>
+                        </View>
+                    )}
                     {matches?.length > 0 ? (
                         matches.map((stage, index) => (
                             <View key={index} style={tailwind`bg-white`}>

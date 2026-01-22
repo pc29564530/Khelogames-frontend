@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect, useLayoutEffect} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -29,6 +30,10 @@ import {setEditFullName, setEditDescription, setProfileAvatar} from '../redux/ac
 import {useDispatch} from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from "@react-native-community/geolocation";
+import { validateProfileForm } from '../utils/validation/profileValidation';
+import ToastManager from '../utils/ToastManager';
+import { handleInlineError, logSilentError } from '../utils/errorHandler';
+
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
@@ -69,12 +74,66 @@ export default function EditProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [getCurrentLocation, setGetCurrentLocation] = useState(null);
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  });
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   const navigation = useNavigation();
   const [isRolesModalVisible, setIsRolesModalVisible] = useState(false);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
+
+      // Get location based on IP when screen is focused
+      useFocusEffect(
+          React.useCallback(() => {
+              let isActive = true;
+              const getIPLocation = async () => {
+                  try {
+                      console.log("Getting IP-based location...");
+                      // Try BigDataCloud API
+                      const response = await fetch('http://ip-api.com/json/', {
+                          method: 'GET',
+                          headers: { 'Accept': 'application/json' }
+                      });
+                      console.log("IP location response status:", response);
+  
+                      if (!isActive) return;
+  
+                      const data = await response.json();
+                      console.log("IP location response:", data);
+  
+                      if (data && data.status === 'success') {
+                          let cleanedRegion = data.regionName || data.region || '';
+  
+                          // Remove common prefixes/suffixes to make region names cleaner
+                          cleanedRegion = cleanedRegion
+                              .replace(/^National Capital Territory of /i, '')
+                              .replace(/^Union Territory of /i, '')
+                              .replace(/^State of /i, '')
+                              .trim();
+  
+                          setCity(data.city || '');
+                          setState(cleanedRegion);
+                          setCountry(data.country || '');
+                          console.log("✓ Location set:");
+                          console.log("  City:", data.city);
+                          console.log("  State:", cleanedRegion);
+                          console.log("  Country:", data.country);
+                      }
+                  } catch (err) {
+                      console.error("IP location failed:", err.message);
+                  }
+              };
+              getIPLocation();
+              // Cleanup when screen loses focus
+              return () => {
+              isActive = false;
+              };
+          }, [city, state, country])
+      );
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -86,9 +145,10 @@ export default function EditProfile() {
             'Content-Type': 'application/json',
           },
         });
-        console.log('Roles: ', response.data);
-        setRoles(response.data || []);
+        console.log('Roles: ', response.data.data);
+        setRoles(response.data.data || []);
       } catch (err) {
+        logSilentError(err);
         console.error('Failed to fetch roles: ', err);
       }
     };
@@ -128,7 +188,7 @@ export default function EditProfile() {
 
   const fetchUserProfile = async () => {
     try {
-      setIsLoadingProfile(true);
+      setLoading(true);
       const authToken = await AsyncStorage.getItem('AccessToken');
       const userPublicID = await AsyncStorage.getItem('UserPublicID');
 
@@ -141,21 +201,21 @@ export default function EditProfile() {
           },
         },
       );
+      const item = response.data;
 
-      setProfile(response.data);
-      setFullName(response.data.full_name || '');
-      setBio(response.data.bio || '');
-      setAvatarUrl(response.data.avatar_url || '');
-      setCity(response.data.city || '');
-      setState(response.data.state || '');
-      setCountry(response.data.country || '');
-      setLatitude(response.data.latitude || null);
-      setLongitude(response.data.longitude || null);
-    } catch (e) {
-      console.error('Unable to fetch user profile: ', e);
-      Alert.alert('Error', 'Failed to load profile');
+      setProfile(item.data);
+      setFullName(item.data.full_name || '');
+      setBio(item.data.bio || '');
+      setAvatarUrl(item.data.avatar_url || '');
+      setCity(item.data.city || '');
+      setState(item.data.state || '');
+      setCountry(item.data.country || '');
+      setLatitude(item.data.latitude || null);
+      setLongitude(item.data.longitude || null);
+    } catch (err) {
+      console.error('Unable to fetch user profile: ', err);
     } finally {
-      setIsLoadingProfile(false);
+      setLoading(false);
     }
   };
 
@@ -183,13 +243,29 @@ export default function EditProfile() {
   }, [navigation]);
 
   const handleEditProfile = async () => {
-    if (!fullName.trim()) {
-      Alert.alert('Validation Error', 'Please enter your full name');
-      return;
-    }
-
     try {
-      setIsSaving(true);
+      const formData = {
+        full_name: fullName,
+        bio,
+        city,
+        state,
+        country,
+      }
+      const validation = validateProfileForm(formData);
+      if (!validation.isValid) {
+          setError({
+            global: null,
+            fields: validation.errors
+          });
+          console.error("Validation Errors: ", validation.errors);
+          return;
+      }
+
+      setLoading(true);
+      setError({
+        global: null,
+        fields: {},
+      });
       const authToken = await AsyncStorage.getItem('AccessToken');
       const data = {
         full_name: fullName,
@@ -198,8 +274,8 @@ export default function EditProfile() {
         city: city,
         state: state,
         country: country,
-        latitude: latitude.toString(),
-        longitude: longitude.toString(),
+        latitude: latitude?.toString(),
+        longitude: longitude?.toString(),
       };
 
       console.log("Data: ", data)
@@ -215,19 +291,29 @@ export default function EditProfile() {
         },
       );
 
-      const item = response.data || [];
-      dispatch(setEditFullName(item.full_name));
-      dispatch(setProfileAvatar(response.data.avatar_url));
-      dispatch(setEditDescription(response.data.bio));
+      const item = response.data;
+      dispatch(setEditFullName(item.data.full_name));
+      dispatch(setProfileAvatar(item.data.avatar_url));
+      dispatch(setEditDescription(item.data.bio));
 
-      Alert.alert('Success', 'Profile updated successfully', [
-        {text: 'OK', onPress: () => navigation.goBack()},
-      ]);
+      ToastManager.success('Profile updated successfully!');
+      navigation.goBack();
     } catch (err) {
+      const backendErrors = err?.response?.data?.error?.fields || {};
+      if (backendErrors.global) {
+        setError({
+          global: backendErrors.global,
+          fields: {},
+        });
+      } else {
+        setError({
+          global: err?.response?.data?.error?.message || "Unable to edit profile",
+          fields: backendErrors,
+        });
+      }
       console.error('unable to update edit the profile ', err);
-      Alert.alert('Error', 'Failed to update profile');
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
@@ -249,10 +335,8 @@ export default function EditProfile() {
       );
       setSelectedRole(item);
       setIsRolesModalVisible(false);
-      Alert.alert('Success', `Role "${item.name}" added successfully`);
     } catch (err) {
       console.error('unable to add the new role: ', err);
-      Alert.alert('Error', 'Failed to add role');
     }
   };
 
@@ -295,10 +379,7 @@ export default function EditProfile() {
         }
 
         setIsLoadingLocation(false);
-        Alert.alert(
-          'Location Error',
-          `Failed to get location (Error ${error.code}).\n\nPlease check:\n1. Location services are ON in device settings\n2. Google Play Services is up to date\n3. Try restarting the app\n\nOr enter your location manually.`
-        );
+        setError(`Failed to get location. Please enter manually.\n\nPlease check:\n1. Location services are ON in device settings\n2. Google Play Services is up to date\n3. Try restarting the app\n\nOr enter your location manually.`);
       },
       {
         enableHighAccuracy: false,  // Network location for faster results
@@ -353,16 +434,16 @@ export default function EditProfile() {
     }
   };
 
-  if (isLoadingProfile) {
-    return (
-      <View style={tailwind`flex-1 justify-center items-center bg-gray-50`}>
-        <ActivityIndicator size="large" color="#EF4444" />
-        <Text style={tailwind`mt-4 text-gray-600 text-base`}>
-          Loading profile...
-        </Text>
-      </View>
-    );
-  }
+  // if (isLoadingProfile) {
+  //   return (
+  //     <View style={tailwind`flex-1 justify-center items-center bg-gray-50`}>
+  //       <ActivityIndicator size="large" color="#EF4444" />
+  //       <Text style={tailwind`mt-4 text-gray-600 text-base`}>
+  //         Loading profile...
+  //       </Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <KeyboardAvoidingView
@@ -371,6 +452,15 @@ export default function EditProfile() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tailwind`pb-6`}>
+        {/* Global Error Display */}
+        {error?.global && (
+          <View style={tailwind`mx-5 mt-4 mb-2 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+            <Text style={tailwind`text-red-700 text-sm`}>
+              *{error?.global}
+            </Text>
+          </View>
+        )}
+
         {/* Profile Avatar Section */}
         <View style={tailwind`bg-white shadow-sm`}>
           {/* Cover Background */}
@@ -429,8 +519,12 @@ export default function EditProfile() {
                 placeholder="Enter your full name"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields?.full_name && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error?.fields?.full_name}
+                </Text>
+              )}
             </View>
-
             <View>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
                 Bio
@@ -446,8 +540,13 @@ export default function EditProfile() {
                 textAlignVertical="top"
               />
               <Text style={tailwind`text-gray-400 text-xs mt-1 text-right`}>
-                {bio.length}/500 characters
+                {bio.length}/100 characters
               </Text>
+              {error?.fields?.bio && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.bio}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -521,6 +620,11 @@ export default function EditProfile() {
                 placeholder="Enter city"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields?.city && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.city}
+                </Text>
+              )}
             </View>
 
             <View style={tailwind`mb-3`}>
@@ -534,8 +638,12 @@ export default function EditProfile() {
                 placeholder="Enter state or province"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields?.state && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.state}
+                </Text>
+              )}
             </View>
-
             <View>
               <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
                 Country
@@ -547,8 +655,12 @@ export default function EditProfile() {
                 placeholder="Enter country"
                 placeholderTextColor="#9CA3AF"
               />
+              {error?.fields?.country && (
+                <Text style={tailwind`text-red-500 text-sm mt-1`}>
+                  *{error.fields.country}
+                </Text>
+              )}
             </View>
-
             {latitude && longitude && (
               <View
                 style={tailwind`mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200`}>
@@ -587,7 +699,7 @@ export default function EditProfile() {
               </View>
 
               <ScrollView style={tailwind`p-5`}>
-                {roles.map((item, i) => (
+                {roles?.map((item, i) => (
                   <Pressable
                     key={i}
                     onPress={() => handleNewRole(item)}

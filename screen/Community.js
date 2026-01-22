@@ -8,11 +8,18 @@ import CreateCommunity from './CreateCommunity';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllCommunities, getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
+import { handleInlineError } from '../utils/errorHandler';
+import { fetchCommunityJoinedByUserService, fetchAllCommunityService, addUserToCommunity } from '../services/communityServices';
 
 function Community() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const [createCommunityScreen, setCreateCommunityScreen] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
     const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity || []);
     const community = useSelector((state) => state.community.community || []);
 
@@ -23,49 +30,59 @@ function Community() {
 
     const fetchCommunityJoinedByUser = async () => {
         try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            dispatch(getJoinedCommunity(response.data || []));
-        } catch (e) {
-            console.error('Unable to get the joined communities', e);
+            setLoading(true);
+            const response = await fetchCommunityJoinedByUserService();
+            if(response.success && response.data.length === 0){
+                //No community joined by user
+                dispatch(getJoinedCommunity([]));
+            }
+            dispatch(getJoinedCommunity(response.data));
+        } catch (err) {
+            setError({
+                global: 'Unable to load community',
+                fields: {},
+            })
+            console.error('Unable to get the joined communities', err);
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchData = async () => {
         try {
-
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            
-            const response = await axiosInstance.get(`${BASE_URL}/getAllCommunities`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-                
-            });
-            dispatch(getAllCommunities(response.data || []));
+            setLoading(true);
+            const response = await fetchAllCommunityService();
+            if(response.success && response.data.length === 0){
+                //No community exists
+                dispatch(getAllCommunities([]));
+            }
+            dispatch(getAllCommunities(response.data));
         } catch (err) {
-            console.error(err);
+            setError({
+                global: 'Unable to load community',
+                fields: {},
+            })
+            console.error('Unable to get all communities', err);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleJoinCommunity = async (communityPublicID) => {
         try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/addJoinCommunity/${communityPublicID}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            const response = await addUserToCommunity({communityPublicID: communityPublicID});
+            if(response.success && response.data.length === 0){
+                dispatch(addJoinedCommunity({}));
+                //No community exists
+            }
             dispatch(addJoinedCommunity(response.data));
         } catch (err) {
-            console.error("Error joining community: ", err);
+            const errorMessage = handleInlineError(err);
+            setError({
+                global: 'Unable to add user to community',
+                fields: {errorMessage},
+            })
+            console.error('Unable to add user to  community', err);
         }
     };
 
@@ -91,6 +108,13 @@ function Community() {
                     <View>
                         <Text style={tailwind`text-black font-bold p-2`}>Communities For You</Text>
                     </View>
+                    {error.global && (
+                        <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                            <Text style={tailwind`text-red-700 text-sm`}>
+                                {error.global}
+                            </Text>
+                        </View>
+                    )}
                     <View style={tailwind`w-full rounded-md pb-12 pl-2 pr-2`}>
                         {community?.map((item, i) => (
                             <View style={tailwind`flex-row bg-white mb-1 p-3 rounded-lg h-20 shadow-lg `} key={i}>

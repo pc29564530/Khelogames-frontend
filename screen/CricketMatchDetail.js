@@ -9,6 +9,7 @@ import {useSelector, useDispatch } from 'react-redux';
 import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import { setCricketMatchToss } from '../redux/actions/actions';
+import validateCricketTossForm from '../utils/validation/cricketTossValidation';
 import Animated, {useSharedValue, useAnimatedStyle, Extrapolation, interpolate, useAnimatedScrollHandler} from 'react-native-reanimated';
 
 const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
@@ -19,6 +20,11 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     const [tossOption, setTossOption] = useState('');
     const [teamID, setTeamId] = useState('');
     const [matchFormat, setMatchFormat] = useState();
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
@@ -54,6 +60,21 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
 
     const addToss = async () => {
         try {
+            setLoading(true);
+            const formData = {
+                match_public_id: match.public_id,
+                toss_decision: tossOption,
+                toss_win: teamID,
+            }
+            const validation = validateCricketTossForm(formData);
+            if(!validation.isValid) {
+                setError({
+                    global: null,
+                    fields: validation.errors,
+                });
+                console.error("Unable to create toss: ", err);
+                return
+            }
             const data = {
                 match_public_id: match.public_id,
                 toss_decision: tossOption,
@@ -69,13 +90,21 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             dispatch(setCricketMatchToss(response.data))
             setIsTossedModalVisible(false);
         } catch (err) {
+            const backendErrors = err.response.data.error.fields;
+            setError({
+                global: "Unable to create cricket toss",
+                fields: backendErrors,
+            });
             console.error("unable to add the toss: ", err);
+        } finally {
+            setLoading(false);
         }
     }
 
     useEffect(() => {
         const fetchTossData = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss/${match.public_id}`, {
                     headers: {
@@ -89,7 +118,14 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                 }
                 dispatch(setCricketMatchToss(response.data))
             } catch (err) {
+                const backendError = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get toss details",
+                    fields: backendError,
+                });
                 console.error("Unable to get the toss data: ", err);
+            } finally {
+                setLoading(false);
             }
         }
         fetchTossData();

@@ -4,7 +4,7 @@ import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCricketMatchScore, getMatches } from '../redux/actions/actions';
+import { getCricketMatchScore, getMatch, getMatches } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -33,6 +33,10 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     const game = useSelector(state => state.sportReducers.game);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    })
     console.log("Matches: ", matches)
     const {height: sHeight, width: sWidth} = Dimensions.get("window")
 
@@ -68,7 +72,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
     );
 
     const fetchTournamentMatchs = async () => {
-        
         try {
             setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
@@ -79,9 +82,18 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                 }
             });
             const item = response.data;
-            console.log("Item: ", item)
-            dispatch(getMatches(item || []))
+            if(item.success && item.data.length === 0) {
+                //Added the null data
+                dispatch(getMatches([]));
+            }
+            dispatch(getMatches(item.data))
         } catch (err) {
+            if(matches?.length === 0) {
+                setError({
+                    global: 'Unable to get match by tournament',
+                    fields: {},
+                })
+            }
             console.error("Unable to fetch tournament matches: ", err);
         } finally {
             setLoading(false);
@@ -97,6 +109,13 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             showsVerticalScrollIndicator={false}
         >
                 <Animated.View style={[tailwind`p-1 bg-white`, contentStyle]}>
+                    {matches?.length === 0 && error?.global && (
+                        <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                            <Text style={tailwind`text-red-700 text-sm`}>
+                                {error.global}
+                            </Text>
+                        </View>
+                    )}
                     {matches?.length > 0 ? (
                         matches.map((stage, index) => (
                             <View key={index} style={tailwind`bg-white`}>

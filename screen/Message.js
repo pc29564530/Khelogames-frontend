@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { View, Text, Image, Pressable, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Image, Pressable, TextInput, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
@@ -13,121 +13,238 @@ import {SelectMedia} from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuthProfilePublicID } from '../redux/actions/actions';
 import { useWebSocket } from '../context/WebSocketContext';
+import { handleInlineError } from '../utils/errorHandler';
+import Video from 'react-native-video';
 
 function Message({ route }) {
     const navigation = useNavigation();
     const [receivedMessage, setReceivedMessage] = useState([]);
     const [newMessageContent, setNewMessageContent] = useState('');
-    const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
+    const authProfilePublicID = useSelector(state => state.profile?.authProfilePublicID)
     const [allMessage, setAllMessage] = useState([]);
-    const receiverProfile = route.params.profileData;
+    const receiverProfile = route?.params?.profileData;
     const [currentUser, setCurrentUser] = useState('');
     const [showEmojiSelect, setShowEmojiSelect] = useState(false);
     const [mediaType, setMediaType] = useState('');
     const [mediaURL,setMediaURL] = useState('');
     const [uploadImage, setUploadImage] = useState(false);
     const [loading, setLoading] = useState(false);
-    const user = useSelector((state) => state.user.user)
+    const [sendingMessage, setSendingMessage] = useState(false);
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const user = useSelector((state) => state.user?.user)
     const {wsRef, subscribe} = useWebSocket();
+    const scrollViewRef = useRef(null);
 
-    const payloadData = {
-            "type": "SUBSCRIBE",
-            "category": "CHAT",
-            "payload": {"profile_public_id": receiverProfile.public_id}
-    }
-
-    wsRef?.current?.send(JSON.stringify(payloadData))
-    
-    // const wsRef = useRef(null);
     const isMountedRef = useRef(true);
 
+    // Safe WebSocket subscription
+    useEffect(() => {
+        if (!receiverProfile?.public_id || !wsRef?.current) return;
+
+        try {
+            const payloadData = {
+                "type": "SUBSCRIBE",
+                "category": "CHAT",
+                "payload": {"profile_public_id": receiverProfile.public_id}
+            }
+
+            if (wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify(payloadData));
+            }
+        } catch (err) {
+            console.error("Failed to subscribe to chat:", err);
+        }
+    }, [receiverProfile?.public_id, wsRef]);
+
     const handleMediaSelection = async () => {
-      const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
-      setMediaURL(mediaURL);
-      setMediaType(mediaType);
-      setUploadImage(true);
+        try {
+            setSendingMessage(true);
+            const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
+            setMediaURL(mediaURL);
+            setMediaType(mediaType);
+            setUploadImage(true);
+            setError({ global: null, fields: {} });
+        } catch (err) {
+            const errorMessage = handleInlineError(err);
+            setError({
+                global: "Failed to select media. Please try again.",
+                fields: {},
+            });
+            console.error("Media selection failed:", err);
+        } finally {
+            setSendingMessage(false);
+        }
     }
 
-        //Recieved Message Functionality
+        //Received Message Functionality
     useEffect(() => {
+      if (!receiverProfile?.public_id) {
+          setError({
+              global: "Invalid receiver profile",
+              fields: {},
+          });
+          return;
+      }
+
       const fetchAllMessage = async () => {
         try {
           setLoading(true);
+          setError({ global: null, fields: {} });
+
           const authToken = await AsyncStorage.getItem('AccessToken');
           const userPublicID = await AsyncStorage.getItem('UserPublicID');
+
+          if (!authToken || !userPublicID) {
+              throw new Error("Authentication required");
+          }
+
           const response = await axiosInstance.get(`${BASE_URL}/getMessage/${receiverProfile.public_id}`, {
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'content-type': 'application/json'
             }
           });
+          const item = response.data;
 
-          setCurrentUser(userPublicID);
-          if (response.data === null || !response.data) {
-              setReceivedMessage([]);
-          } else {
-            setAllMessage(response.data);
-            setReceivedMessage(response.data);
+          if (isMountedRef.current) {
+              setCurrentUser(userPublicID);
+              if (item?.data === null || !item?.data || !Array.isArray(item?.data)) {
+                  setReceivedMessage([]);
+              } else {
+                setAllMessage(item.data);
+                setReceivedMessage(item.data);
+              }
           }
-        } catch (e) {
-          console.error('Unable to get the message: ', e)
+        } catch (err) {
+          if (isMountedRef.current) {
+              const backendErrors = err?.response?.data?.error?.fields || {};
+              setError({
+                  global: "Unable to load messages.",
+                  fields: backendErrors,
+              });
+              console.error("Failed to fetch messages:", err);
+          }
         } finally {
-          setLoading(false);
+          if (isMountedRef.current) {
+              setLoading(false);
+          }
         }
       }
       fetchAllMessage();
-    }, []);
+
+      return () => {
+          isMountedRef.current = false;
+      };
+    }, [receiverProfile?.public_id]);
 
    const handleWebSocketMessage = useCallback((event) => {
-           const rawData = event.data;
-           if(rawData === null || !rawData){
-               console.error("raw data is undefined");
-               return;
+           try {
+               const rawData = event?.data;
+               if (!rawData) {
+                   console.error("WebSocket: raw data is undefined");
+                   return;
+               }
+
+               const message = JSON.parse(rawData);
+               console.log("Message data: ", message);
+
+               if (message?.payload && isMountedRef.current) {
+                   setReceivedMessage((prevMessages) => {
+                       // Prevent duplicate messages
+                       const isDuplicate = prevMessages.some(
+                           msg => msg?.id === message.payload?.id && msg?.created_at === message.payload?.created_at
+                       );
+                       if (isDuplicate) return prevMessages;
+
+                       return [...prevMessages, message.payload];
+                   });
+
+                   // Auto scroll to bottom when new message arrives
+                   setTimeout(() => {
+                       scrollViewRef.current?.scrollToEnd({ animated: true });
+                   }, 100);
+               }
+           } catch (err) {
+               console.error("Failed to parse WebSocket message:", err);
            }
-   
-           const message = JSON.parse(rawData);
-           console.log("Message data: ", message)
-           setReceivedMessage((prevMessages) => [...prevMessages, message.payload]);
        }, [])
-   
+
        useEffect(() => {
            console.log("Message - Subscribing to WebSocket messages");
            const unsubscribe = subscribe(handleWebSocketMessage);
-           return unsubscribe; 
+           return () => {
+               if (unsubscribe) unsubscribe();
+           };
        }, [handleWebSocketMessage, subscribe])
 
     //Send Message Functionality
     const sendMessage = async () => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          const userPublicID = await AsyncStorage.getItem('UserPublicID');
-          const data = {
-              sender_public_id: userPublicID,
-              receiver_public_id: receiverProfile.public_id,
-              content: newMessageContent,
-              media_url: mediaURL,
-              media_type: mediaType,
-              sent_at: new Date().toISOString(),
-          }
+        if (!wsRef?.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            setError({
+                global: "Connection lost. Please check your internet connection.",
+                fields: {},
+            });
+            return;
+        }
 
-          if(uploadImage){
-              data.media_url = mediaURL;
-              data.media_type= mediaType;
-              setUploadImage(false);
-          }
+        if (!newMessageContent.trim() && !uploadImage) {
+            return; // Don't send empty messages
+        }
 
-          const newMessage = {
-              "type": "CREATE_MESSAGE",
-              "payload": data
-          }
+        try {
+            setSendingMessage(true);
+            setError({ global: null, fields: {} });
 
-          wsRef.current.send(JSON.stringify(newMessage));
-          setNewMessageContent('');
-          setMediaURL('');
-          setMediaType('');
-      
-      } else {
-        console.log("WebSocket is not ready");
-      }
+            const userPublicID = await AsyncStorage.getItem('UserPublicID');
+
+            if (!userPublicID) {
+                throw new Error("User not authenticated");
+            }
+
+            const data = {
+                sender_public_id: userPublicID,
+                receiver_public_id: receiverProfile?.public_id,
+                content: newMessageContent.trim(),
+                sent_at: new Date().toISOString(),
+            }
+
+            if (uploadImage && mediaURL && mediaType) {
+                data.media_url = mediaURL;
+                data.media_type = mediaType;
+            }
+
+            const newMessage = {
+                "type": "CREATE_MESSAGE",
+                "payload": data
+            }
+
+            wsRef.current.send(JSON.stringify(newMessage));
+
+            // Clear input immediately for better UX
+            setNewMessageContent('');
+            setMediaURL('');
+            setMediaType('');
+            setUploadImage(false);
+            setShowEmojiSelect(false);
+
+            // Auto scroll to bottom after sending
+            setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+
+        } catch (err) {
+            const backendErrors = err?.response?.data?.error?.fields || {};
+            setError({
+                global: err?.response?.data?.error?.message || "Failed to send message. Please try again.",
+                fields: backendErrors,
+            });
+            console.error("Failed to send message:", err);
+        } finally {
+            setSendingMessage(false);
+        }
     }
     const handleEmoji = () => {
       setShowEmojiSelect(!showEmojiSelect);
@@ -141,29 +258,47 @@ function Message({ route }) {
               <View style={tailwind`flex-row items-center gap-4 p-6`}>
                   <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
                   <View style={tailwind`flex-row gap-4`}>
-                      <Image source={{uri: receiverProfile.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
+                      {receiverProfile?.avatar_url ? (
+                          <Image source={{uri: receiverProfile.avatar_url}} style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1`}/>
+                      ) : (
+                          <View style={tailwind`h-8 w-8 rounded-full bg-red-500 mt-1 items-center justify-center`}>
+                              <Text style={tailwind`text-white text-sm`}>
+                                  {receiverProfile?.full_name?.charAt(0)?.toUpperCase() || '?'}
+                              </Text>
+                          </View>
+                      )}
                       <View>
-                          <Text style={tailwind`text-white`}>{receiverProfile.full_name}</Text>
-                          <Text style={tailwind`text-white`}>@{receiverProfile.username}</Text>
-                      </View> 
+                          <Text style={tailwind`text-white`}>{receiverProfile?.full_name || 'Unknown'}</Text>
+                          <Text style={tailwind`text-white`}>@{receiverProfile?.username || 'user'}</Text>
+                      </View>
                   </View>
               </View>
           )
       })
-    },[navigation,receiverProfile]);
+    },[navigation, receiverProfile]);
 
     // Helper function to check if we need a date separator
     const shouldShowDateSeparator = (currentMessage, previousMessage) => {
       if (!previousMessage) return true; // Show for first message
-      
-      const currentDate = new Date(currentMessage.created_at);
-      const previousDate = new Date(previousMessage.created_at);
-      
-      // Compare dates without time
-      const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-      const previousDateOnly = new Date(previousDate.getFullYear(), previousDate.getMonth(), previousDate.getDate());
-      
-      return currentDateOnly.getTime() !== previousDateOnly.getTime();
+
+      try {
+          const currentDate = new Date(currentMessage?.created_at || currentMessage?.sent_at);
+          const previousDate = new Date(previousMessage?.created_at || previousMessage?.sent_at);
+
+          // Check if dates are valid
+          if (isNaN(currentDate.getTime()) || isNaN(previousDate.getTime())) {
+              return false;
+          }
+
+          // Compare dates without time
+          const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+          const previousDateOnly = new Date(previousDate.getFullYear(), previousDate.getMonth(), previousDate.getDate());
+
+          return currentDateOnly.getTime() !== previousDateOnly.getTime();
+      } catch (err) {
+          console.error("Date comparison error:", err);
+          return false;
+      }
     };
 
 
@@ -211,101 +346,185 @@ function Message({ route }) {
       )
     }
 
-    const renderMessage = (item,index) => {
-        const isMyMessage = item?.sender?.public_id !== user?.public_id ? false : true;
-        const previousMessage = index > 0 ? receivedMessage[index - 1] : null;
-        const showDateSeparator = shouldShowDateSeparator(item, previousMessage);
-        return (
-          <View style={tailwind`flex-1`}>
-              {showDateSeparator && renderDateSeparator(item.sent_at || item.created_at)}
-               <View key={index} style={[
-                  tailwind`flex-row`,
-                  isMyMessage
-                    ? tailwind`justify-start`
-                    : tailwind`justify-end`,
-                  ]}
-                >
-                <View style={[
-                        tailwind`p-2 rounded-2xl`,
-                        isMyMessage
-                        ? tailwind`bg-gray-300`
-                        : tailwind`bg-green-200`,
-                    ]}         
-                >
-                    {item.media_type === 'image'&& (
-                        <View style={tailwind`rounded-xl overflow-hidden mb-1`}>
-                            <Image 
-                                source={{uri: item.media_url}}
-                                style={{ width: 220, height: 160 }}
-                                resizeMode='cover'
-                            />
-                        </View>
-                    )}
-                    {(item.media_type == "video/mp4" || item.media_type == "video/quicktime" || item.media_type == "video/mkv") && (
-                        <View style={tailwind`rounded-xl overflow-hidden mb-1 relative`}>
-                            <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`}
-                              source={{ uri: item.media_url }}
-                              controls={true}
-                              onFullscreenPlayerWillPresent={() => {handleFullScreen()}}
-                              onVolumeChange={()=>{handleVolume()}}
-                              resizeMode='cover'
-                            />
-                        </View>
-                    )}
-                    {item.content && (
-                        <Text
-                            style={[
-                            tailwind`text-base leading-5`,
-                            ]}
-                        >
-                            {item.content}
-                      </Text>
-                    )}
-                    <Text style={tailwind`text-xs text-gray-500`}>
-                      {new Date(item.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Text>
+    const renderMessage = (item, index) => {
+        if (!item) return null;
 
-                </View>
+        try {
+            const isMyMessage = item?.sender?.public_id === user?.public_id;
+            const previousMessage = index > 0 ? receivedMessage[index - 1] : null;
+            const showDateSeparator = shouldShowDateSeparator(item, previousMessage);
+
+            return (
+              <View key={item?.id || index} style={tailwind`flex-1 px-2`}>
+                  {showDateSeparator && renderDateSeparator(item.sent_at || item.created_at)}
+                   <View style={[
+                      tailwind`flex-row mb-2`,
+                      isMyMessage
+                        ? tailwind`justify-end`
+                        : tailwind`justify-start`,
+                      ]}
+                    >
+                    <View style={[
+                            tailwind`p-3 rounded-2xl max-w-[80%]`,
+                            isMyMessage
+                            ? tailwind`bg-blue-500`
+                            : tailwind`bg-gray-300`,
+                        ]}
+                    >
+                        {item?.media_type === 'image' && item?.media_url && (
+                            <View style={tailwind`rounded-xl overflow-hidden mb-1`}>
+                                <Image
+                                    source={{uri: item.media_url}}
+                                    style={{ width: 220, height: 160 }}
+                                    resizeMode='cover'
+                                    onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
+                                />
+                            </View>
+                        )}
+                        {(item?.media_type === "video/mp4" || item?.media_type === "video/quicktime" || item?.media_type === "video/mkv") && item?.media_url && (
+                            <View style={tailwind`rounded-xl overflow-hidden mb-1 relative`}>
+                                <Video
+                                    style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`}
+                                    source={{ uri: item.media_url }}
+                                    controls={true}
+                                    resizeMode='cover'
+                                    onError={(e) => console.log("Video load error:", e)}
+                                />
+                            </View>
+                        )}
+                        {item?.content && (
+                            <Text
+                                style={[
+                                    tailwind`text-base leading-5`,
+                                    isMyMessage ? tailwind`text-white` : tailwind`text-gray-900`
+                                ]}
+                            >
+                                {item.content}
+                          </Text>
+                        )}
+                        <Text style={[
+                            tailwind`text-xs mt-1`,
+                            isMyMessage ? tailwind`text-blue-100` : tailwind`text-gray-500`
+                        ]}>
+                          {item?.created_at || item?.sent_at ?
+                              new Date(item.created_at || item.sent_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                              : '--:--'
+                          }
+                        </Text>
+
+                    </View>
+                  </View>
               </View>
-          </View>
-        )
+            );
+        } catch (err) {
+            console.error("Error rendering message:", err);
+            return null;
+        }
     }
 
     if (loading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="red" />
-          <Text style={{ marginTop: 10 }}>Loading Standings...</Text>
+        <View style={tailwind`flex-1 justify-center items-center bg-white`}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={tailwind`mt-4 text-gray-600`}>Loading messages...</Text>
         </View>
       );
+    }
+
+    if (!receiverProfile?.public_id) {
+        return (
+            <View style={tailwind`flex-1 justify-center items-center bg-white p-4`}>
+                <MaterialIcons name="error-outline" size={48} color="#ef4444" />
+                <Text style={tailwind`mt-4 text-lg text-gray-900 text-center`}>Invalid Chat</Text>
+                <Text style={tailwind`mt-2 text-sm text-gray-600 text-center`}>
+                    Unable to load chat. Please go back and try again.
+                </Text>
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    style={tailwind`mt-4 bg-blue-500 px-6 py-3 rounded-lg`}
+                >
+                    <Text style={tailwind`text-white font-semibold`}>Go Back</Text>
+                </Pressable>
+            </View>
+        );
     }
 
 
   return (
     <View style={tailwind`flex-1 bg-white`}>
-      <ScrollView 
-        style={tailwind`flex-3/5 bg-white pb-16`}
-        contentContainerStyle={tailwind`gap-2`}
-      > 
-        {receivedMessage.length>0 && receivedMessage?.map((item, index) => renderMessage(item, index))}
+      {/* Global Error Banner */}
+      {error?.global && (
+        <View style={tailwind`bg-red-50 border-b border-red-200 p-3`}>
+          <View style={tailwind`flex-row items-center`}>
+            <MaterialIcons name="error-outline" size={18} color="#ef4444" />
+            <Text style={tailwind`text-sm text-red-800 ml-2 flex-1`}>
+              {error.global}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      <ScrollView
+        ref={scrollViewRef}
+        style={tailwind`flex-1 bg-white`}
+        contentContainerStyle={tailwind`py-4 gap-1`}
+        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
+      >
+        {receivedMessage.length > 0 ? (
+            receivedMessage.map((item, index) => renderMessage(item, index))
+        ) : (
+            <View style={tailwind`flex-1 justify-center items-center py-20`}>
+                <MaterialIcons name="chat-bubble-outline" size={64} color="#d1d5db" />
+                <Text style={tailwind`mt-4 text-gray-500 text-center`}>
+                    No messages yet.{'\n'}Start the conversation!
+                </Text>
+            </View>
+        )}
       </ScrollView>
       <View style={[tailwind`bg-white px-4 py-3 border-t border-gray-100`, { paddingBottom: Platform.OS === 'ios' ? 34 : 16 }]}>
+          {/* Media Preview */}
+          {uploadImage && mediaURL && (
+              <View style={tailwind`mb-2 flex-row items-center bg-gray-50 p-2 rounded-lg`}>
+                  {mediaType === 'image' ? (
+                      <Image source={{uri: mediaURL}} style={tailwind`w-16 h-16 rounded-lg`} />
+                  ) : (
+                      <View style={tailwind`w-16 h-16 bg-gray-300 rounded-lg items-center justify-center`}>
+                          <AntDesign name="playcircleo" size={24} color="#6b7280" />
+                      </View>
+                  )}
+                  <Text style={tailwind`flex-1 ml-3 text-sm text-gray-700`}>
+                      {mediaType === 'image' ? 'Image attached' : 'Video attached'}
+                  </Text>
+                  <Pressable
+                      onPress={() => {
+                          setUploadImage(false);
+                          setMediaURL('');
+                          setMediaType('');
+                      }}
+                      style={tailwind`p-2`}
+                  >
+                      <MaterialIcons name="close" size={20} color="#6b7280" />
+                  </Pressable>
+              </View>
+          )}
+
           <View style={tailwind`flex-row items-end`}>
             {/* Emoji Button */}
-            <Pressable 
+            <Pressable
               onPress={handleEmoji}
               style={tailwind`p-2 mr-2`}
+              disabled={sendingMessage}
             >
-              <MaterialIcons 
-                name="emoji-emotions" 
-                size={24} 
+              <MaterialIcons
+                name="emoji-emotions"
+                size={24}
                 color={showEmojiSelect ? "#3b82f6" : "#6b7280"}
               />
             </Pressable>
-            
+
             {/* Text Input */}
             <View style={tailwind`flex-1 mr-2`}>
               <TextInput
@@ -319,22 +538,32 @@ function Message({ route }) {
                 placeholder="Message..."
                 placeholderTextColor="#9ca3af"
                 textAlignVertical="center"
+                editable={!sendingMessage}
               />
             </View>
-            
+
             {/* Media/Send Button */}
             {newMessageContent.trim() || uploadImage ? (
-              <Pressable 
+              <Pressable
                 onPress={sendMessage}
-                style={tailwind`bg-blue-500 rounded-full p-3 shadow-sm`}
+                disabled={sendingMessage}
+                style={[
+                    tailwind`rounded-full p-3 shadow-sm`,
+                    sendingMessage ? tailwind`bg-gray-400` : tailwind`bg-blue-500`
+                ]}
               >
-                <MaterialIcons name="send" size={20} color="white" />
+                {sendingMessage ? (
+                    <ActivityIndicator size="small" color="white" />
+                ) : (
+                    <MaterialIcons name="send" size={20} color="white" />
+                )}
               </Pressable>
             ) : (
               <View style={tailwind`flex-row`}>
-                <Pressable 
+                <Pressable
                   onPress={handleMediaSelection}
                   style={tailwind`p-3 mr-1`}
+                  disabled={sendingMessage}
                 >
                   <AntDesign name="camera" size={22} color="#6b7280" />
                 </Pressable>
