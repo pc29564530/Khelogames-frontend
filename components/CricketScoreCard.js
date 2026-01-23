@@ -104,6 +104,10 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 });
                 dispatch(getCricketBattingScore(battingScore?.data?.data || []));
             } catch (err) {
+                setError({
+                    global: "Unable to get inning score",
+                    fields: {},
+                })
                 console.error("Unable to fetch batting score: ", err);
             } finally {
                 setIsLoading(false);
@@ -125,7 +129,11 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 });
                 dispatch(getCricketBowlingScore(bowlingScore?.data?.data || []))
             } catch (err) {
-                console.error("Unable to fetch bowling score: ", err);
+                setError({
+                    global: "Unable to get inning score",
+                    fields: {},
+                });
+                console.error("Unable to get bowling score: ", err);
             }
         };
         fetchBowling();
@@ -159,8 +167,30 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     }, [currentScoreCard, match.public_id]);
 
     const handleAddNextBatsman = async () => {
+        
         try{
-
+            setIsLoading(true);
+            const formData = {
+                match_public_id: match.public_id,
+                team_public_id: batTeam,
+                batsman_public_id: item.public_id,
+                position: item.position,
+                runs_scored: 0,
+                balls_faced: 0,
+                fours: 0,
+                sixes: 0,
+                batting_status: true,
+                is_striker: false,
+                is_currently_batting: true,
+            }
+            const validation = validateCricketBatsman(formData);
+            if (!validation.isValid) {
+                setError({
+                    global: null,
+                    fields: validation.errors,
+                })
+                return;
+            }
             const data = {
                 match_public_id: match.public_id,
                 team_public_id: batTeam,
@@ -183,7 +213,13 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 },
             })
         } catch (err) {
+            setError({
+                global: "Unable to select batsman",
+                fields: err?.response?.data?.error?.fields,
+            })
             console.error("Failed to add the striker : ", err)
+        } finally {
+            setIsLoading(false);
         }
     }
 
