@@ -106,18 +106,18 @@ export const validateCricketScoreField = (fieldName, value, allValues = {}) => {
   // Handle function-based conditional requirements
   if (typeof rules.required === 'function') {
     const isRequired = rules.required(allValues);
-    if (isRequired && (!value || value === '')) {
+    if (isRequired && (value === null || value === undefined || value === '')) {
       return rules.message;
     }
     if (!isRequired) {
       return null; // Field not required in this context
     }
-  } else if (rules.required && (!value || value === '')) {
+  } else if (rules.required && (value === null || value === undefined || value === '')) {
     return rules.message;
   }
 
   // Skip other validations if field is empty and not required
-  if (!value || value === '') return null;
+  if (value === null || value === undefined || value === '') return null;
 
   // Custom validation
   if (rules.custom) {

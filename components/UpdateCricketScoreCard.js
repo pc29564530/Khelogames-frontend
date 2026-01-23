@@ -11,7 +11,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 import { validateCricketScoreForm } from '../utils/validation/cricketScoreValidation';
 import { handleInlineError } from '../utils/errorHandler';
 
-export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInning }) => {
+export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInningNumber }) => {
     const {wsRef, subscribe} = useWebSocket();
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const [isWebSocketReady, setIsWebSocketReady] = useState(false);
@@ -56,9 +56,11 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     batsman_public_id: batting?.player.public_id,
                     bowler_public_id: currentBowler[0]?.player?.public_id,
                     runs_scored: temp,
-                    inning_number: Number(currentInning.slice(-1)),
+                    inning_number: currentInningNumber,
                     addCurrentScoreEvent: []
                 }
+
+                console.log("Form Datas: ", formData)
 
                 // Validate the form data
                 const validation = validateCricketScoreForm(formData);
@@ -110,7 +112,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     batsman_public_id: batting?.player?.public_id,
                     bowler_public_id: currentBowler[0]?.player?.public_id,
                     runs_scored: temp,
-                    inning_number: Number(currentInning.slice(-1)),
+                    inning_number: currentInningNumber,
                     addCurrentScoreEvent: ['no_ball']
                 }
 
@@ -164,7 +166,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     batsman_public_id: batting?.player?.public_id,
                     bowler_public_id: currentBowler[0]?.player?.public_id,
                     runs_scored: temp,
-                    inning_number: Number(currentInning.slice(-1)),
+                    inning_number: currentInningNumber,
                     addCurrentScoreEvent: ['wide']
                 }
 
@@ -226,7 +228,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                                        (wicketType === 'Run Out' || wicketType === "Catch") ? selectedFielder?.public_id : null,
                     runs_scored: temp,
                     bowl_type: addCurrentScoreEvent.length === 2 ? addCurrentScoreEvent[1] : null,
-                    inning_number: Number(currentInning.slice(-1)),
+                    inning_number: currentInningNumber,
                     addCurrentScoreEvent: addCurrentScoreEvent
                 }
 
@@ -247,7 +249,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                         match_public_id: formData.match_public_id,
                         batting_team_public_id: formData.batsman_team_public_id,
                         bowling_team_public_id: formData.bowling_team_public_id,
-                        Batsman_public_id: formData.batsman_public_id,
+                        batsman_public_id: formData.batsman_public_id,
                         bowler_public_id: formData.bowler_public_id,
                         wicket_type: formData.wicket_type,
                         fielder_public_id: formData.fielder_public_id,
@@ -258,11 +260,11 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                         "event_type": "wicket"
                     }
                 }
-                wsRef.current.send(JSON.stringify(newMessage));
-                setError({
-                    global: null,
-                    fields: {},
-                });
+
+                // Check if WebSocket is ready before sending
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify(newMessage));
+                }
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
@@ -273,7 +275,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 console.error("Failed to add the wickets: ", err)
             }
         }
-    }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInning, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange, game]);
+    }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInningNumber, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange, game, setError]);
 
     const handleWicketType = useCallback((item) => {
         if(item === "Run Out"){
@@ -291,12 +293,10 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
         <View>
             <View style={tailwind`p-4 bg-white rounded-xl`}>
                 <Text style={tailwind`text-lg font-bold text-gray-900 mb-3`}>Update Score</Text>
-                {/* Field-specific Error Display */}
-                {error?.fields && Object.keys(error.fields).length > 0 && (
+                {/* Global Error Display */}
+                {error?.global && (
                     <View style={tailwind`bg-red-50 border border-red-200 rounded-lg p-3 mb-3`}>
-                        <View style={tailwind`flex-row items-start mb-1`}>
-                                <Text style={tailwind`text-sm font-semibold text-red-800 mb-1`}>*{error.fields}</Text>
-                        </View>
+                        <Text style={tailwind`text-sm font-semibold text-red-800`}>{error.global}</Text>
                     </View>
                 )}
 

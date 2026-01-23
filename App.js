@@ -20,13 +20,11 @@ export default function App() {
   return ( 
     <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <ErrorBoundary>
             <NativeBaseProvider>
             <WebSocketProvider>
               <MainNavigation />
             </WebSocketProvider>
           </NativeBaseProvider>
-          </ErrorBoundary>
         </PersistGate>
     </Provider>
   );

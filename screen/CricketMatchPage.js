@@ -361,8 +361,8 @@ const CricketMatchPage = ({ route }) => {
                     fetchTeamPlayers(BASE_URL, match?.awayTeam?.public_id, game, axiosInstance)
                 ]);
                 
-                dispatch(getHomePlayer(homePlayers));
-                dispatch(getAwayPlayer(awayPlayers));
+                dispatch(getHomePlayer(homePlayers.data));
+                dispatch(getAwayPlayer(awayPlayers.data));
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields;
                 setError({
@@ -550,8 +550,8 @@ const CricketMatchPage = ({ route }) => {
                     }
                 // }
             }
-        } catch (e) {
-            console.error('error parsing json: ', e);
+        } catch (err) {
+            console.error('error parsing json: ', err);
         }
     }, []);
 

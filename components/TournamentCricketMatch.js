@@ -37,7 +37,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         global: null,
         fields: {},
     })
-    console.log("Matches: ", matches)
     const {height: sHeight, width: sWidth} = Dimensions.get("window")
 
     const currentScrollY = useSharedValue(0);
@@ -166,37 +165,37 @@ const matchesData = (item, ind, navigation) => {
                 <View style={tailwind`flex-row`}>
                     <View style={tailwind``}>
                         <Image 
-                            source={{ uri: item.teams.home_team?.media_url }} 
+                            source={{ uri: item?.teams?.home_team?.media_url }} 
                             style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
                         />
                         <Image 
-                            source={{ uri: item.teams.away_team?.media_url }} 
+                            source={{ uri: item?.teams?.away_team?.media_url }} 
                             style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
                         />
                     </View>
                     <View style={tailwind``}>
                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                            {item.teams.home_team?.name}
+                            {item?.teams?.home_team?.name}
                         </Text>
                         <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                            {item.teams.away_team?.name}
+                            {item?.teams?.away_team?.name}
                         </Text>
                     </View>
                 </View>
                 <View style={tailwind`items-center justify-center flex-row right-4`}>
                     <View style={tailwind`mb-2 flex-row`}>
                         
-                        {item.status !== "not_started" && (
+                        {item?.status !== "not_started" && (
                             <View>
                             <View style={tailwind``}>
-                                {item.scores.home_score  && (
+                                {item?.scores?.home_score  && (
                                     <View style={tailwind``}>
-                                        <Text>{renderInningScore(item.scores.home_score)}</Text>
+                                        <Text>{renderInningScore(item?.scores?.home_score)}</Text>
                                     </View>
                                 )}
-                                {item.scores.away_score && (
+                                {item?.scores?.away_score && (
                                     <View style={tailwind``}>
-                                        <Text>{renderInningScore(item.scores.away_score)}</Text>
+                                        <Text>{renderInningScore(item?.scores?.away_score)}</Text>
                                     </View>
                                 )}
                             </View>
@@ -205,13 +204,13 @@ const matchesData = (item, ind, navigation) => {
                         <View style={tailwind`w-0.4 h-10 bg-gray-200 left-2`}/>
                         <View style={tailwind`mb-2 ml-4 items-center justify-evenly`}>
                             <Text style={tailwind`text-md text-gray-800`}>
-                                {formatToDDMMYY(convertToISOString(item.start_timestamp))}
+                                {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                             </Text>
-                            {item.status !== "not_started" ? (
-                                <Text style={tailwind`text-md text-gray-800`}>{item.status}</Text>
+                            {item?.status !== "not_started" ? (
+                                <Text style={tailwind`text-md text-gray-800`}>{item?.status}</Text>
                             ) : (
                                 <Text style={tailwind`text-md text-gray-800`}>
-                                    {formattedTime(convertToISOString(item.start_timestamp))}
+                                    {formattedTime(convertToISOString(item?.start_timestamp))}
                                 </Text>
                             )}
                         </View>

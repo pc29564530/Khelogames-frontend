@@ -169,11 +169,11 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     </View>
                     <View style={tailwind`flex-row`}>
                         <Text>Date: </Text>
-                        <Text>{formattedDate(convertToISOString(match?.start_timestamp))}</Text>
+                        <Text>{match?.start_timestamp ? formattedDate(convertToISOString(match?.start_timestamp)) : '-'}</Text>
                     </View>
                     <View style={tailwind`flex-row`}>
                         <Text>Time: </Text>
-                        <Text>{formattedTime(convertToISOString(match?.start_timestamp))}</Text>
+                        <Text>{match?.start_timestamp ? formattedTime(convertToISOString(match?.start_timestamp)) : '-'}</Text>
                     </View>
                     {isTossed &&  (
                         <View style={tailwind`mt-4`}>

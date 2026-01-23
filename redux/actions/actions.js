@@ -63,7 +63,7 @@ export const checkExpireTime = () => {
   
         // If refresh token is expired, logout
         if (currentTime >= expiresAt) {
-          console.log('❌ Refresh token expired on app start - logging out');
+          console.log('Refresh token expired on app start - logging out');
           dispatch(logout());
           dispatch(setAuthenticated(false));
         }

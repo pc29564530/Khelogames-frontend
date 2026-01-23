@@ -36,6 +36,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [currentScoreCard, setCurrentScoreCard] = useState();
     const [selectedInning, setSelectedInning] = useState(1);
+    const [error, setError] = useState({global: null, fields: {}});
     const homeTeamID = match?.homeTeam?.id;
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
@@ -101,7 +102,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                         'Content-Type': 'application/json',
                     },
                 });
-                dispatch(getCricketBattingScore(battingScore?.data || []));
+                dispatch(getCricketBattingScore(battingScore?.data?.data || []));
             } catch (err) {
                 console.error("Unable to fetch batting score: ", err);
             } finally {
@@ -122,24 +123,13 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                         'Content-Type': 'application/json',
                     },
                 });
-                dispatch(getCricketBowlingScore(bowlingScore?.data || []))
+                dispatch(getCricketBowlingScore(bowlingScore?.data?.data || []))
             } catch (err) {
                 console.error("Unable to fetch bowling score: ", err);
             }
         };
         fetchBowling();
-    }, [currentScoreCard, match.id]);
-
-    useEffect(() => {
-        const loadPlayers = async () => {
-            const homePlayersResponse = await fetchTeamPlayers(BASE_URL, homeTeamPublicID, game, axiosInstance);
-            const awayPlayersResponse = await fetchTeamPlayers(BASE_URL, awayTeamPublicID, game, axiosInstance);
-            dispatch(getHomePlayer(homePlayersResponse));
-            dispatch(getAwayPlayer(awayPlayersResponse));
-        };
-
-        loadPlayers();
-    }, []);
+    }, [currentScoreCard, match.public_id]);
 
     useEffect(() => {
         const handleYetToBat = () => {
@@ -205,24 +195,24 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                     team_public_id: currentScoreCard,
                 }
                 const authToken = await AsyncStorage.getItem("AccessToken")
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets/${match?.public_id}`, {
                     params: {
-                        "match_id": match.id.toString(),
-                        "team_id": currentScoreCard.toString()
+                        "match_public_id": match.public_id.toString(),
+                        "team_public_id": currentScoreCard.toString()
                     },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 })
-                dispatch(getCricketWicketFallen(response?.data || []))
-                setWicketsData(response.data || []);
+                dispatch(getCricketWicketFallen(response?.data?.data || []))
+                setWicketsData(response.data.data || []);
             } catch (err) {
                 console.error("failed to get the wickets: ", err)
             }
         }
         fetchTeamWickets()
-    }, [currentScoreCard, match.id]);
+    }, [currentScoreCard, match.public_id]);
 
     if (isLoading) {
         return (

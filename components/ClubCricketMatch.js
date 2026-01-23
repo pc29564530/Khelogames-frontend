@@ -65,10 +65,10 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
                 },
             });
 
-            if (!response.data) {
+            if (!response.data.data) {
                 setMatches([]);
             } else {
-                setMatches(response.data);
+                setMatches(response.data.data);
             }
         } catch (err) {
             console.log("unable to get the match by teams ", err);

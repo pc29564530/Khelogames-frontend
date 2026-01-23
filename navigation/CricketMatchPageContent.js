@@ -46,7 +46,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                             />
                         )}
                     </TopTab.Screen>
-                    {match.status_code !== "not_started" && (
+                    {match.status_code === "in_progress" && (
                         <TopTab.Screen name="Live">
                             {() => (
                                 <CricketLive

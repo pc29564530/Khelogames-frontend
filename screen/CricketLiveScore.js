@@ -77,7 +77,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const awayTeamID = match?.awayTeam?.id;
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
-    const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;    
+    const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;
+
+    // Get current fielders (bowling team players)
+    const currentFielder = batTeam === match.homeTeam.public_id ? awayPlayer : homePlayer;
+
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
@@ -134,7 +138,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 dispatch(setCurrentInningNumber(item.data.inning.inning_number))
                 dispatch(setInningStatus(item.data.inning.inning_status, item.inning.inning_number))
             } catch (err) {
-                const backendError = err.response.data.error.fields;
+                const backendError = err?.response?.data?.error?.fields;
                 setError({
                     global: "Unable to get current inning",
                     fields: backendError,
@@ -189,7 +193,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
 
     const fetchCurrentBatsman = async () => {
         try {
-            const authToken = AsyncStorage.getItem("AccessToken");
+            const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 match_public_id: match.public_id,
                 team_public_id: batTeam,
@@ -225,7 +229,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
 
     const fetchCurrentBowler = async () => {
         try {
-            const authToken = AsyncStorage.getItem("AccessToken");
+            const authToken = await AsyncStorage.getItem("AccessToken");
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCurrentBowler`, {
                 params:{
                     match_public_id: match.public_id,
@@ -277,7 +281,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 dispatch(setBowlerScore(item.data.bowler));
                 dispatch(setInningStatus("completed", currentInningNumber));
             } catch (err) {
-                const backendError = err.response.data.error.fields;
+                const backendError = err?.response?.data?.error?.fields;
                 setError({
                     global: "Unable to end inning",
                     fields: backendError,
@@ -293,7 +297,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     if(match.innings?.[0].score.score > match.innings?.[1].score.score){
                         winningTeam = match.innings?.[0].team.public_id;
                     } else if(match.innings?.[0].score.score < match.innings?.[1].score.score){
-                        winningTeam = match.innings?.[1].team.public;
+                        winningTeam = match.innings?.[1].team.public_id;
                     }
                 }
                 const data = {
@@ -311,52 +315,6 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 console.error("Failed to end match: ", err);
             }
         }
-
-        useEffect(() => {
-            const fetchHomePlayers = async () => {
-                try {
-                    const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${match.homeTeam.public_id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    const item = response.data;
-                    
-                    dispatch(getHomePlayer(item.data || []));
-                } catch (err) {
-                    const backendError = err?.response?.data?.error?.fields;
-                    setError({
-                        global: "Unable to get team player",
-                        fields: backendError,
-                    })
-                    console.error("unable to fetch the team player: ", err);
-                }
-            }
-            const fetchAwayPlayers = async () => {
-                try {
-                    const authToken = await AsyncStorage.getItem('AccessToken');
-                    const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${ match.awayTeam.public_id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    const item = response.data;
-                    dispatch(getAwayPlayer(item.data || []));
-                } catch (err) {
-                    const backendError = err?.response?.data?.error?.fields;
-                    setError({
-                        global: "Unable to get team player",
-                        fields: backendError,
-                    })
-                    console.error("unable to fetch the team player: ", err);
-                }
-            }
-            fetchHomePlayers();
-            fetchAwayPlayers();
-        }, [match.public_id]);
 
         useEffect(() => {
             if(inningStatus === "completed"){
@@ -417,27 +375,14 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             const matchPublicID = match.public_id;
             await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
         } catch (err) {
+            setError({
+                global: "Unable to start next inning",
+                backendError: {},
+            })
             console.error("Failed to start next inning: ", err);
             dispatch(setCurrentInningNumber(currentInningNumber-1))
         }
     }
-
-    const currentFielder = homeTeamPublicID !== batTeam
-    ? homePlayer?.filter((player) => {
-        const currentField = !bowling?.innings[currentInningNumber]?.some(
-            (bowler) => bowler?.is_current_bowler === true && bowler?.player.id === player.id
-        )
-        return currentField;
-    }
-    ) || []
-    : awayPlayer?.filter((player) => 
-        {
-            const currentField = !bowling?.innings[currentInningNumber]?.some(
-                (bowler) => bowler?.is_current_bowler === true && bowler?.player.id === player.id
-            )
-            return currentField; 
-        } 
-     ) || [];
 
     const handleSelectBowler = () => {
         if (selectedBowlerType === "existingBowler"){
@@ -718,7 +663,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </Pressable>
                     </View>
                </View>
-               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInning={currentInning}/>
+               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber}/>
             </>
             ) : (
                     <View style={tailwind`p-1`}>
@@ -827,16 +772,16 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                             <Text style={tailwind`text-lg font-semibold mb-3 text-center`}>Select Fielder</Text>
                             <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
                                 {currentFielder?.map((item, index) => (
-                                    <Pressable 
-                                        key={index} 
+                                    <Pressable
+                                        key={index}
                                         style={tailwind`p-3 border-b border-gray-200`}
                                         onPress={() => {
                                             setSelectedFielder(item);
                                             setIsFielder(false);
                                             setIsModalBatsmanStrikeChange(true);
                                         }}
-                                    >   
-                                        <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.player_name}</Text>
+                                    >
+                                        <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
@@ -901,7 +846,7 @@ const InningActionModal = ({
     : null;
 
   const handleNextBattingTeam = () => {
-    if(batTeam === match.homteTeam.public_id){
+    if(batTeam === match.homeTeam.public_id){
         dispatch(setBatTeam(match.awayTeam.public_id));
     } else {
         dispatch(setBatTeam(match.homeTeam.public_id));
