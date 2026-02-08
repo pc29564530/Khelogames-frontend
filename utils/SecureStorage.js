@@ -1,10 +1,8 @@
 import * as Keychain from 'react-native-keychain';
 
-/**
- * Secure Storage Service
- * Uses Android Keystore (and iOS Keychain when available)
- * Stores sensitive data like refresh tokens securely
- */
+// Secure Storage Service
+// Uses Android Keystore (and iOS Keychain when available)
+// Stores sensitive data like refresh tokens securely
 
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const REFRESH_TOKEN_EXPIRES_AT_KEY = 'refresh_token_expires_at';
@@ -15,7 +13,7 @@ const ACCESS_TOKEN_EXPIRES_AT_KEY = 'access_token_expires_at';
 export const storeAccessToken = async (accessToken) => {
   try {
     if (!accessToken) {
-      console.warn('⚠️ Attempted to store empty access token');
+      console.warn('Attempted to store empty access token');
       return false;
     }
 
@@ -35,7 +33,7 @@ export const storeAccessToken = async (accessToken) => {
     }
     return false;
   } catch (error) {
-    console.error('❌ Error storing access token in Keystore:', error);
+    console.error(' Error storing access token in Keystore:', error);
     return false;
   }
 }
@@ -44,7 +42,7 @@ export const storeAccessToken = async (accessToken) => {
 export const storeAccessTokenExpiresAt = async (expiresAt) => {
   try {
     if (!expiresAt) {
-      console.warn('⚠️ Attempted to store empty expiration time');
+      console.warn('Attempted to store empty expiration time');
       return false;
     }
 
@@ -59,12 +57,12 @@ export const storeAccessTokenExpiresAt = async (expiresAt) => {
     );
 
     if (result) {
-      console.log('✅ Access token expiration stored securely');
+      console.log('Access token expiration stored securely');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('❌ Error storing expiration in Keystore:', error);
+    console.error(' Error storing expiration in Keystore:', error);
     return false;
   }
 };
@@ -74,7 +72,7 @@ export const storeRefreshToken = async (refreshToken) => {
   try {
     console.log("Refresh token: ", refreshToken)
     if (!refreshToken) {
-      console.warn('⚠️ Attempted to store empty refresh token');
+      console.warn('Attempted to store empty refresh token');
       return false;
     }
 
@@ -88,12 +86,12 @@ export const storeRefreshToken = async (refreshToken) => {
     );
 
     if (result) {
-      console.log('✅ Refresh token stored securely in Keystore');
+      console.log('Refresh token stored securely in Keystore');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('❌ Error storing refresh token in Keystore:', error);
+    console.error('Error storing refresh token in Keystore:', error);
     return false;
   }
 };
@@ -106,12 +104,12 @@ export const getRefreshToken = async () => {
     });
 
     if (credentials && credentials.password) {
-      console.log('✅ Refresh token retrieved from Keystore');
+      console.log('Refresh token retrieved from Keystore');
       return credentials.password;
     }
     return null;
   } catch (error) {
-    console.error('❌ Error retrieving refresh token from Keystore:', error);
+    console.error(' Error retrieving refresh token from Keystore:', error);
     return null;
   }
 };
@@ -120,7 +118,7 @@ export const getRefreshToken = async () => {
 export const storeRefreshTokenExpiresAt = async (expiresAt) => {
   try {
     if (!expiresAt) {
-      console.warn('⚠️ Attempted to store empty expiration time');
+      console.warn('Attempted to store empty expiration time');
       return false;
     }
 
@@ -135,12 +133,12 @@ export const storeRefreshTokenExpiresAt = async (expiresAt) => {
     );
 
     if (result) {
-      console.log('✅ Refresh token expiration stored securely');
+      console.log('Refresh token expiration stored securely');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('❌ Error storing expiration in Keystore:', error);
+    console.error(' Error storing expiration in Keystore:', error);
     return false;
   }
 };
@@ -158,7 +156,7 @@ export const getRefreshTokenExpiresAt = async () => {
     }
     return null;
   } catch (error) {
-    console.error('❌ Error retrieving expiration from Keystore:', error);
+    console.error(' Error retrieving expiration from Keystore:', error);
     return null;
   }
 };
@@ -176,12 +174,12 @@ export const removeRefreshToken = async () => {
     });
 
     if (result) {
-      console.log('✅ Refresh token removed from Keystore');
+      console.log('Refresh token removed from Keystore');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('❌ Error removing refresh token from Keystore:', error);
+    console.error(' Error removing refresh token from Keystore:', error);
     return false;
   }
 };
@@ -192,7 +190,48 @@ export const hasRefreshToken = async () => {
     const token = await getRefreshToken();
     return token !== null && token.length > 0;
   } catch (error) {
-    console.error('❌ Error checking refresh token:', error);
+    console.error(' Error checking refresh token:', error);
+    return false;
+  }
+};
+
+// Retrieve access token from Android Keystore
+export const getAccessToken = async () => {
+  try {
+    const credentials = await Keychain.getGenericPassword({
+      service: ACCESS_TOKEN_KEY,
+    });
+
+    if (credentials && credentials.password) {
+      console.log('Access token retrieved from Keystore');
+      return credentials.password;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving access token from Keystore:', error);
+    return null;
+  }
+};
+
+// Remove access token and its expiration from Keystore
+export const removeAccessToken = async () => {
+  try {
+    const result = await Keychain.resetGenericPassword({
+      service: ACCESS_TOKEN_KEY,
+    });
+
+    // Also remove access token expiration
+    await Keychain.resetGenericPassword({
+      service: ACCESS_TOKEN_EXPIRES_AT_KEY,
+    });
+
+    if (result) {
+      console.log('Access token removed from Keystore');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error removing access token from Keystore:', error);
     return false;
   }
 };
@@ -213,10 +252,10 @@ export const clearSecureStorage = async () => {
   try {
     await removeRefreshToken();
     await removeAccessToken();
-    console.log('✅ Secure storage cleared');
+    console.log('Secure storage cleared');
     return true;
   } catch (error) {
-    console.error('❌ Error clearing secure storage:', error);
+    console.error(' Error clexaring secure storage:', error);
     return false;
   }
 };

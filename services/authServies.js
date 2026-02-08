@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {setAuthenticated, setUser, logout} from '../redux/actions/actions';
 import {persistor} from '../redux/store';
 import { clearSecureStorage, removeRefreshToken, storeRefreshToken, storeRefreshTokenExpiresAt } from "../utils/SecureStorage";
+import { logSilentError } from "../utils/errorHandler";
 
 export const loginServies = async ({ username, password, dispatch, isAuthenticated }) => {
     try {
@@ -18,9 +19,6 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(item.user));
     } catch (err) {
-        alert("Check username or password which is incorrect");
-        console.error("Unable to login:", err);
-        throw err; 
     }
 };
 
@@ -30,13 +28,12 @@ export const logoutServies = async ({dispatch, navigation}) => {
         await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`);
         dispatch(logout());
         await AsyncStorage.removeItem('AccessToken');
-        await AsyncStorage.removeItem('UserPulbicID');
+        await AsyncStorage.removeItem('UserPublicID');
         await AsyncStorage.removeItem("Role");
         await clearSecureStorage();
         await persistor.purge();
         navigation.navigate("SignIn");
       } catch (err) {
-        alert("Failed to logout");
-        console.log('Failed to logout', err);
+        logSilentError(err, {action: 'logout'});
       }
 }

@@ -53,8 +53,20 @@ export default function MainNavigation() {
     const[loading, setLoading] = useState(true)
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
+    // When isAuthenticated flips to false (session expired / logout),
+    // reset the navigation stack so SignIn is shown immediately
+    // without requiring a manual app refresh.
     useEffect(() => {
-        
+        if (!loading && isAuthenticated === false && navigationRef.isReady()) {
+            navigationRef.reset({
+                index: 0,
+                routes: [{ name: 'SignIn' }],
+            });
+        }
+    }, [isAuthenticated, loading]);
+
+    useEffect(() => {
+
         const checkAuthStatus = async () => {
             try {
                 const refreshToken = await getRefreshToken();
@@ -101,12 +113,6 @@ export default function MainNavigation() {
                 <ActivityIndicator size="large" color="white"/>
             </View>
         );
-    }
-
-    if(loading) {
-        <View style={tailwind`flex-1 justify-evenly items-center`}>
-            <ActivityIndicator size="large" color="white"/>
-        </View>
     }
 
     return(
