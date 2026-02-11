@@ -147,8 +147,8 @@ const matchesData = (item, ind, navigation, tournament) => {
 
     const isLive = item?.status === "live";
     const isFinished = item?.status === "finished";
-    const homeTeamName = item?.home_team?.name || 'TBA';
-    const awayTeamName = item?.away_team?.name || 'TBA';
+    const homeTeamName = item?.homeTeam?.name || 'TBA';
+    const awayTeamName = item?.awayTeam?.name || 'TBA';
 
     return (
         <Pressable
@@ -167,9 +167,9 @@ const matchesData = (item, ind, navigation, tournament) => {
                 <View style={tailwind`flex-1 py-3 pl-4 pr-3`}>
                     {/* Home team row */}
                     <View style={tailwind`flex-row items-center mb-2.5`}>
-                        {item?.home_team?.media_url ? (
+                        {item?.homeTeam?.media_url ? (
                             <Image
-                                source={{ uri: item.home_team.media_url }}
+                                source={{ uri: item.homeTeam.media_url }}
                                 style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
                             />
                         ) : (
@@ -182,10 +182,10 @@ const matchesData = (item, ind, navigation, tournament) => {
                         <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
                             {homeTeamName}
                         </Text>
-                        {item?.home_score && (
+                        {item?.homeScore && (
                             <View style={tailwind`ml-2`}>
                                 <Text style={tailwind`text-sm font-bold text-gray-900`}>
-                                    {item?.home_score?.goals}
+                                    {item?.homeScore?.goals}
                                 </Text>
                             </View>
                         )}
@@ -193,9 +193,9 @@ const matchesData = (item, ind, navigation, tournament) => {
 
                     {/* Away team row */}
                     <View style={tailwind`flex-row items-center`}>
-                        {item?.away_team?.media_url ? (
+                        {item?.awayTeam?.media_url ? (
                             <Image
-                                source={{ uri: item.away_team.media_url }}
+                                source={{ uri: item.awayTeam.media_url }}
                                 style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
                             />
                         ) : (
@@ -208,10 +208,10 @@ const matchesData = (item, ind, navigation, tournament) => {
                         <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
                             {awayTeamName}
                         </Text>
-                        {item?.away_score && (
+                        {item?.awayScore && (
                             <View style={tailwind`ml-2`}>
                                 <Text style={tailwind`text-sm font-bold text-gray-900`}>
-                                    {item?.away_score?.goals}
+                                    {item?.awayScore?.goals}
                                 </Text>
                             </View>
                         )}
