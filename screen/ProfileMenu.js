@@ -47,7 +47,6 @@ function ProfileMenu() {
       const response = await axios.get(`${AUTH_URL}/getProfile/${authPublicID}`);
       dispatch(getProfile(response.data.data));
       dispatch(setAuthProfilePublicID(response.data.data.public_id))
-      // Clear errors on success
       setError({ global: null, fields: {} });
     } catch (err) {
       const backendErrors = err?.response?.data?.error?.fields || {};
@@ -65,26 +64,16 @@ function ProfileMenu() {
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-
       const fetchFollowerCount = async () => {
-        const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        setFollowerCount(response.data.length);
+        const response = await axiosInstance.get(`${BASE_URL}/getFollower`);
+        const item = response.data;
+        setFollowerCount(item.data.length);
       };
 
       const fetchFollowingCount = async () => {
-        const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        setFollowingCount(response.data.length);
+        const response = await axiosInstance.get(`${BASE_URL}/getFollowing`);
+        const item = response.data;
+        setFollowingCount(item.data.length);
       };
 
       fetchFollowerCount();
@@ -95,20 +84,13 @@ function ProfileMenu() {
   }, [axiosInstance]);
 
   const toggleMyCommunity = async () => {
-    // If already showing, just collapse
     if (showMyCommunity) {
       setShowMyCommunity(false);
       return;
     }
 
     try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`);
       setMyCommunityData(response.data || []);
       setShowMyCommunity(true);
       // Clear any previous errors
@@ -120,13 +102,12 @@ function ProfileMenu() {
         fields: backendErrors,
       })
       console.error("Unable to get community: ", err);
-      // Don't show the community section if there's an error
       setShowMyCommunity(false);
     }
   };
 
   const handleLogout = () => {
-    logoutServies({ dispatch, navigation });
+    logoutServies({ dispatch });
   };
 
   const handleNavigation = (screen) => {
@@ -138,94 +119,112 @@ function ProfileMenu() {
   };
 
   return (
-    <View style={tailwind`flex-1`}>
-      {/* Global Error Banner - Big Tech Pattern */}
-      {error?.global && (
-        <View style={tailwind`bg-red-50 border-b border-red-200 p-4`}>
+    <View style={tailwind`flex-1 bg-white`}>
+      {/* Error Banner */}
+      {/* {error?.global && (
+        <View style={tailwind`bg-red-50 border-b border-red-200 px-4 py-3`}>
           <View style={tailwind`flex-row items-center justify-between`}>
             <View style={tailwind`flex-1 flex-row items-center`}>
-              <MaterialIcons name="error-outline" size={20} color="#DC2626" />
-              <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>
-                {error?.global}
-              </Text>
+              <MaterialIcons name="error-outline" size={18} color="#DC2626" />
+              <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>{error.global}</Text>
             </View>
-            <Pressable onPress={fetchProfileData} style={tailwind`ml-2 bg-red-600 px-3 py-1 rounded`}>
-              <Text style={tailwind`text-white text-sm font-semibold`}>Retry</Text>
+            <Pressable onPress={fetchProfileData} style={tailwind`ml-2 bg-red-500 px-3 py-1.5 rounded-lg`}>
+              <Text style={tailwind`text-white text-xs font-semibold`}>Retry</Text>
             </Pressable>
           </View>
         </View>
-      )}
+      )} */}
 
-      <View style={tailwind`mb-5 items-center bg-red-400 pt-4 pb-2`}>
+      {/* Profile Header */}
+      <View style={tailwind`items-center bg-red-400 pt-14 pb-8 rounded-b-3xl`}>
         {profile?.avatar_url ? (
-          <Image style={tailwind`w-28 h-28 mb-5 rounded-full`} source={{ uri: profile.avatar_url }} />
+          <Image style={tailwind`w-20 h-20 rounded-full border-3 border-white/30`} source={{ uri: profile.avatar_url }} />
         ) : (
-          <View style={tailwind`w-28 h-28 rounded-full bg-white items-center justify-center`}>
-            <Text style={tailwind`text-red-500 text-4xl`}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
+          <View style={tailwind`w-20 h-20 rounded-full bg-white/20 items-center justify-center`}>
+            <Text style={tailwind`text-white text-2xl font-bold`}>{profile?.full_name?.charAt(0)?.toUpperCase()}</Text>
           </View>
         )}
-        <Text style={tailwind`pt-5 text-2xl font-bold text-white`}>{profile?.full_name || 'Loading...'}</Text>
-        <Text style={tailwind`text-xl text-white`}>@{profile?.username || '...'}</Text>
-        <View style={tailwind`flex-row justify-center mt-5`}>
-          <Text style={tailwind`text-lg text-white`}>{followerCount} Followers</Text>
-          <Text style={tailwind`text-lg text-white mx-2`}>|</Text>
-          <Text style={tailwind`text-lg text-white`}>{followingCount} Following</Text>
+        <Text style={tailwind`mt-3 text-lg font-bold text-white`}>{profile?.full_name || 'Loading...'}</Text>
+        <Text style={tailwind`text-white/100 text-sm mt-0.5`}>@{profile?.username || '...'}</Text>
+        <View style={tailwind`flex-row mt-5 bg-white/15 rounded-2xl px-6 py-3`}>
+          <Pressable style={tailwind`items-center px-4`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>{followerCount}</Text>
+            <Text style={tailwind`text-white/100 text-sm mt-0.5`}>Followers</Text>
+          </Pressable>
+          <View style={tailwind`w-px bg-white/60 mx-2`} />
+          <Pressable style={tailwind`items-center px-4`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>{followingCount}</Text>
+            <Text style={tailwind`text-white/100 text-sm mt-0.5`}>Following</Text>
+          </Pressable>
         </View>
       </View>
-      <ScrollView>
-        <View style={tailwind`mt-5 p-4`}>
-          <Pressable onPress={() => navigation.navigate('Profile', {profilePublicID: profile.public_id})} style={tailwind`flex-row items-center py-2`}>
-            <FontAwesome name="user" size={24} color="#F87171" />
-            <Text style={tailwind`text-2xl text-black pl-4`}>Profile</Text>
+
+      {/* Menu */}
+      <ScrollView style={tailwind`flex-1 bg-gray-50`}>
+        <View style={tailwind`bg-white mx-4 mt-4 rounded-2xl overflow-hidden`} >
+          {/* Menu Items */}
+          <Pressable onPress={() => navigation.navigate('Profile', {profilePublicID: profile.public_id})} style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-50`}>
+            <MaterialIcons name="person-outline" size={22} color="#374151" />
+            <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Profile</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
           </Pressable>
 
-          <Pressable onPress={() => handleNavigation('Club')} style={tailwind`flex-row items-center py-2`}>
-            <AntDesign name="team" size={24} color="#F87171" />
-            <Text style={tailwind`text-2xl text-black pl-4`}>Team</Text>
+          <Pressable onPress={() => handleNavigation('Club')} style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-50`}>
+            <MaterialIcons name="groups" size={22} color="#374151" />
+            <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Team</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
           </Pressable>
 
-          <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-2`}>
-            <MaterialIcons name="connect-without-contact" size={25} color="#F87171"/>
-            <Text style={tailwind`text-2xl text-black pl-4`}>Follow</Text>
+          <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-4 px-4`}>
+            <MaterialIcons name="people-outline" size={22} color="#374151" />
+            <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Connections</Text>
+            <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
           </Pressable>
         </View>
 
-        <View style={tailwind`mt-5 p-4`}>
-          <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between`}>
-            <Text style={tailwind`text-2xl font-bold text-black`}>My Community</Text>
-            <FontAwesome name={showMyCommunity ? 'angle-up' : 'angle-down'} size={24} color="#F87171" />
+        {/* My Community Section */}
+        <View style={tailwind`bg-white mx-4 mt-3 rounded-2xl overflow-hidden`}>
+          <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between py-4 px-4`}>
+            <View style={tailwind`flex-row items-center`}>
+              <MaterialIcons name="forum" size={22} color="#374151" />
+              <Text style={tailwind`text-sm font-medium text-gray-900 ml-3`}>My Communities</Text>
+            </View>
+            <MaterialIcons name={showMyCommunity ? 'expand-less' : 'expand-more'} size={22} color="#9CA3AF" />
           </Pressable>
 
           {showMyCommunity && (
-            <ScrollView style={tailwind`mt-5`}>
+            <View style={tailwind`border-t border-gray-50`}>
               {myCommunityData.length > 0 ? (
                 myCommunityData.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center mb-2 gap-2`}>
+                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center py-3 px-4 border-b border-gray-50`}>
                     {item?.media_url ? (
-                      <Image source="" style={tailwind`h-12 w-12 bg-red-400 rounded-lg`} />
-                    ):(
-                      <View style={tailwind`h-10 w-10 bg-red-400 rounded-full items-center justify-center`}>
-                        <Text style={tailwind`text-lg text-white`}>{item.name.charAt(0).toUpperCase()}</Text>
+                      <Image source={{ uri: item.media_url }} style={tailwind`h-9 w-9 rounded-full bg-gray-100`} />
+                    ) : (
+                      <View style={tailwind`h-9 w-9 rounded-full bg-red-400 items-center justify-center`}>
+                        <Text style={tailwind`text-xs text-white font-bold`}>{item.name.charAt(0).toUpperCase()}</Text>
                       </View>
                     )}
-                    <Text style={tailwind`text-xl text-black`}>{item.name}</Text>
+                    <Text style={tailwind`text-sm text-gray-800 ml-3 font-medium flex-1`}>{item.name}</Text>
+                    <MaterialIcons name="chevron-right" size={18} color="#D1D5DB" />
                   </Pressable>
                 ))
               ) : (
-                <View style={tailwind`items-center py-8`}>
-                  <MaterialIcons name="group-off" size={48} color="#D1D5DB" />
-                  <Text style={tailwind`text-gray-500 mt-2 text-center`}>
+                <View style={tailwind`items-center py-8 px-4`}>
+                  <Text style={tailwind`text-gray-400 text-center text-xs`}>
                     No communities yet.{'\n'}Join or create one to get started!
                   </Text>
                 </View>
               )}
-            </ScrollView>
+            </View>
           )}
         </View>
-        <View style={tailwind`mt-10 items-center`}>
-          <TouchableOpacity onPress={() => handleLogout()} style={tailwind`bg-red-400 p-4 rounded-xl w-40 items-center`}>
-            <Text style={tailwind`text-white text-lg font-medium`}>Logout</Text>
-          </TouchableOpacity>
+
+        {/* Logout */}
+        <View style={tailwind`mx-4 mt-3 mb-8`}>
+          <Pressable onPress={handleLogout} style={tailwind`flex-row items-center justify-center py-3.5 bg-white rounded-2xl`}>
+            <MaterialIcons name="logout" size={18} color="#f87171" />
+            <Text style={tailwind`text-red-400 text-sm font-semibold ml-2`}>Log Out</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>

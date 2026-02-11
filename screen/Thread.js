@@ -6,6 +6,7 @@ import ThreadItem from '../components/ThreadItems';
 import { handleLikes, handleThreadComment, handleUser } from '../utils/ThreadUtils';
 import {getAllThreadServices} from '../services/threadsServices';
 import { handleInlineError } from '../utils/errorHandler';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { setThreads } from '../redux/actions/actions';
 
 const Thread = () => {
@@ -26,7 +27,10 @@ const Thread = () => {
             const threadData = await getAllThreadServices();
             const item = threadData.data;
             if(item.success && item.data.length === 0) {
-                //Added ui when no thread is added
+                setError({
+                    global: null,
+                    fields: {},
+                });
             }
             dispatch(setThreads(item || []))
         } catch (err) {
@@ -43,36 +47,35 @@ const Thread = () => {
     if (isLoading && threads.length === 0) {
         return (
         <View style={tailwind`flex-1 items-center justify-center bg-white`}>
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#f87171" />
         </View>
         );
     }
 
-    // if (error && threads.length === 0) {
-    //     return (
-    //         <View style={tailwind`flex-1 items-center justify-center bg-white px-6`}>
-    //             <Text style={tailwind`text-6xl mb-4`}>⚠️</Text>
-    //             <Text style={tailwind`text-lg font-semibold mb-2`}>
-    //             Something went wrong
-    //             </Text>
-    //             <Text style={tailwind`text-gray-500 text-sm text-center mb-6`}>
-    //             {error}
-    //             </Text>
-    //             <TouchableOpacity
-    //             onPress={fetchData}
-    //             style={tailwind`bg-orange-500 px-6 py-3 rounded-lg`}
-    //             >
-    //             <Text style={tailwind`text-white font-semibold`}>Try Again</Text>
-    //             </TouchableOpacity>
-    //         </View>
-    //         );
-    // }
+    if (error.global && threads.length === 0) {
+        return (
+            <View style={tailwind`flex-1 items-center justify-center bg-white px-8`}>
+                <MaterialIcons name="wifi-off" size={40} color="#D1D5DB" />
+                <Text style={tailwind`text-base font-semibold text-gray-900 mt-4 mb-1`}>Something went wrong</Text>
+                <Text style={tailwind`text-gray-400 text-sm text-center mb-6`}>{error.global}</Text>
+                <TouchableOpacity onPress={fetchData} style={tailwind`bg-red-400 px-8 py-3 rounded-full`}>
+                    <Text style={tailwind`text-white text-sm font-semibold`}>Try Again</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     return (
         <View style={tailwind`flex-1 bg-white`} vertical={true}>
+            {threads.length === 0 && !error.global && (
+                <View style={tailwind`flex-1 items-center justify-center py-20`}>
+                    <MaterialIcons name="chat-bubble-outline" size={40} color="#D1D5DB" />
+                    <Text style={tailwind`text-gray-400 mt-4 text-center text-sm`}>No posts yet.{'\n'}Be the first to share something!</Text>
+                </View>
+            )}
             {error.global && threads.length === 0 && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
+                <View style={tailwind`mx-4 mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl`}>
+                    <Text style={tailwind`text-red-400 text-sm`}>
                         {error.global}
                     </Text>
                 </View>

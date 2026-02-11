@@ -19,21 +19,22 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         dispatch(setAuthenticated(!isAuthenticated));
         dispatch(setUser(item.user));
     } catch (err) {
+      await AsyncStorage.clear();
+      dispatch(setAuthenticated(false));
+      logSilentError(err, {action: 'login'});
     }
 };
 
-export const logoutServies = async ({dispatch, navigation}) => {
+export const logoutServies = async ({dispatch}) => {
     try {
         const userPublicID = await AsyncStorage.getItem('UserPublicID');
         await axios.delete(`${AUTH_URL}/removeSession/${userPublicID}`);
         dispatch(logout());
-        await AsyncStorage.removeItem('AccessToken');
-        await AsyncStorage.removeItem('UserPublicID');
-        await AsyncStorage.removeItem("Role");
+        await AsyncStorage.clear();
+        dispatch(setAuthenticated(false));
         await clearSecureStorage();
         await persistor.purge();
-        navigation.navigate("SignIn");
-      } catch (err) {
+    } catch (err) {
         logSilentError(err, {action: 'logout'});
-      }
+    }
 }

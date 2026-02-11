@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Keychain from 'react-native-keychain';
 
 // Secure Storage Service
@@ -236,10 +237,10 @@ export const removeAccessToken = async () => {
   }
 };
 
-// Check if access token exists in Keystore
+// Check if access token exists
 export const hasAccessToken = async () => {
   try {
-    const token = await getAccessToken();
+    const token = await AsyncStorage.getItem('AccessToken');
     return token !== null && token.length > 0;
   } catch (error) {
     console.error('Error checking access token: ', error);
@@ -251,7 +252,7 @@ export const hasAccessToken = async () => {
 export const clearSecureStorage = async () => {
   try {
     await removeRefreshToken();
-    await removeAccessToken();
+    await AsyncStorage.clear();
     console.log('Secure storage cleared');
     return true;
   } catch (error) {

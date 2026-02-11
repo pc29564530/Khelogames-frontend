@@ -10,6 +10,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { getTeamPlayers } from '../redux/actions/actions';
 const positions = require('../assets/position.json');
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
+import { validateFootballLineUp } from '../utils/validation/footballLineupValidation';
 
 //TODO: Squad selection should display the current squad selected
 const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) => {
@@ -144,6 +145,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           },
         }
       );
+      console.log("Squad added successfully: ", response.data);
       setCurrentSquad(response.data.data || []);
     } catch (err) {
       setError({ global: "Unable to create squad for match", fields: err?.response?.data?.error?.fields || {} });
@@ -228,35 +230,27 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     }
     if(currentTeamPlayer === homeTeamPublicID && match?.homeTeam?.user_id === authUser?.id ){
       return (
-        <View style={tailwind`mb-2 gap-4 p-2`}>
-          <Pressable
-            style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
-            onPress={() => {
-              setIsPlayerModalVisible(true);
-            }}
-          >
-            <View style={tailwind`flex-row items-center`}>
-              <MaterialIcons name="add" size={24} color="gray" />
-              <Text style={tailwind`text-lg`}>Select Squad</Text>
-            </View>
-          </Pressable>
-        </View>
+        <Pressable
+          style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
+          onPress={() => setIsPlayerModalVisible(true)}
+        >
+          <MaterialIcons name="add" size={20} color="white" />
+          <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
+            Select Squad
+          </Text>
+        </Pressable>
       )
     } else if(currentTeamPlayer === awayTeamPublicID && match?.awayTeam?.user_id === authUser?.id ){
       return (
-        <View style={tailwind`mb-2 gap-4 p-2`}>
-          <Pressable
-            style={tailwind`rounded-md shadow-lg bg-white p-4 items-center`}
-            onPress={() => {
-              setIsPlayerModalVisible(true);
-            }}
-          >
-            <View style={tailwind`flex-row items-center`}>
-              <MaterialIcons name="add" size={24} color="gray" />
-              <Text style={tailwind`text-lg`}>Select Squad</Text>
-            </View>
-          </Pressable>
-        </View>
+        <Pressable
+          style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
+          onPress={() => setIsPlayerModalVisible(true)}
+        >
+          <MaterialIcons name="add" size={20} color="white" />
+          <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
+            Select Squad
+          </Text>
+        </Pressable>
       )
     }
     return null;
@@ -274,34 +268,38 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
         }}
         showsVerticalScrollIndicator={false}
     >
-      <Animated.View style={[contentStyle, tailwind`bg-white shadow-lg w-full px-2 mb-2`]}>
+      <Animated.View style={[contentStyle, tailwind`bg-white w-full px-4 py-3 mb-2`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}]}>
       {/* Team switcher */}
-      <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
+      <View style={tailwind`flex-row mb-2 items-center justify-between gap-2`}>
         <Pressable
-          onPress={() => {
-            toggleTeam(homeTeamPublicID);
-          }}
+          onPress={() => toggleTeam(homeTeamPublicID)}
           style={[
-            tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+            tailwind`flex-1 rounded-xl items-center py-3 border`,
             homeTeamPublicID === currentTeamPlayer
-              ? tailwind`bg-red-400`
-              : tailwind`bg-white`,
+              ? tailwind`bg-red-400 border-red-400`
+              : tailwind`bg-white border-gray-200`,
           ]}
         >
-          <Text style={tailwind`text-lg font-bold`}>
+          <Text style={[
+            tailwind`text-sm font-semibold`,
+            homeTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+          ]}>
             {match?.homeTeam?.name}
           </Text>
         </Pressable>
         <Pressable
           onPress={() => toggleTeam(awayTeamPublicID)}
           style={[
-            tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+            tailwind`flex-1 rounded-xl items-center py-3 border`,
             awayTeamPublicID === currentTeamPlayer
-              ? tailwind`bg-red-400`
-              : tailwind`bg-white`,
+              ? tailwind`bg-red-400 border-red-400`
+              : tailwind`bg-white border-gray-200`,
           ]}
         >
-          <Text style={tailwind`text-lg font-bold`}>
+          <Text style={[
+            tailwind`text-sm font-semibold`,
+            awayTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+          ]}>
             {match?.awayTeam?.name}
           </Text>
         </Pressable>
@@ -312,39 +310,51 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       </Animated.View>
       {/* Current Lineup */}
       {error.global && currentLineUp.length === 0 && (
-        <Text style={tailwind`text-red-600 text-center mt-4`}>
-          {error.global}
-        </Text>
+        <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
+          <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
+          <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+            No Squad Selected
+          </Text>
+          <Text style={tailwind`text-gray-400 text-xs text-center`}>
+            {error.global}
+          </Text>
+        </View>
       )}
       {currentLineUp.length > 0 && (
-        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4 mx-1`}>
-          <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>
-            Current Squad
-          </Text>
+        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
+          <View style={tailwind`p-4 border-b border-gray-100`}>
+            <Text style={tailwind`text-base font-bold text-gray-900`}>
+              Starting XI
+            </Text>
+          </View>
           {currentLineUp?.map((itm, index) => (
-            <View key={index} style={tailwind`flex-row items-center mb-4 gap-2`}>
-              {item?.player?.media_url ? (
+            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+              {itm?.player?.media_url ? (
                   <Image
                     source={{ uri: itm.player.media_url }}
-                    style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                    style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
                   />
               ):(
-                <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center`}>
-                  <Text>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
+                  <Text style={tailwind`text-red-400 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
                 </View>
               )}
-              <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-base font-semibold text-gray-900`}>
+              <View style={tailwind`flex-1 ml-3`}>
+                <Text style={tailwind`text-sm font-semibold text-gray-900`}>
                   {itm.player.name}
                 </Text>
-                <View style={tailwind`flex-row items-center gap-4 mt-1`}>
-                  <Text style={tailwind`text-sm text-gray-600`}>
+                <View style={tailwind`flex-row items-center mt-0.5`}>
+                  <Text style={tailwind`text-xs text-gray-400`}>
                     {selectPosition(itm.player.positions)}
                   </Text>
-                  <Text style={tailwind`text-sm text-gray-600`}>•</Text>
-                  <Text style={tailwind`text-sm text-gray-600`}>
-                    {itm.player.country}
-                  </Text>
+                  {itm.player.country && (
+                    <>
+                      <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
+                      <Text style={tailwind`text-xs text-gray-400`}>
+                        {itm.player.country}
+                      </Text>
+                    </>
+                  )}
                 </View>
               </View>
             </View>
@@ -354,28 +364,40 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
       {/* Substitutions */}
       {substitutionPlayer.length > 0 && (
-        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
-          <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>
-            Substitution
-          </Text>
+        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
+          <View style={tailwind`p-4 border-b border-gray-100`}>
+            <Text style={tailwind`text-base font-bold text-gray-900`}>
+              Substitutes
+            </Text>
+          </View>
           {substitutionPlayer.map((itm, index) => (
-            <View key={index} style={tailwind`flex-row items-center mb-4`}>
-              <Image
-                source={{ uri: itm.avatarUrl }}
-                style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
-              />
-              <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-base font-semibold text-gray-900`}>
-                  {itm.name}
+            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+              {itm?.player?.media_url ? (
+                <Image
+                  source={{ uri: itm.player.media_url }}
+                  style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                />
+              ):(
+                <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
+                  <Text style={tailwind`text-gray-500 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                </View>
+              )}
+              <View style={tailwind`flex-1 ml-3`}>
+                <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                  {itm.player.name}
                 </Text>
-                <View style={tailwind`flex-row items-center gap-4 mt-1`}>
-                  <Text style={tailwind`text-sm text-gray-600`}>
-                    {selectPosition(itm.position)}
+                <View style={tailwind`flex-row items-center mt-0.5`}>
+                  <Text style={tailwind`text-xs text-gray-400`}>
+                    {selectPosition(itm.player.positions)}
                   </Text>
-                  <Text style={tailwind`text-sm text-gray-600`}>•</Text>
-                  <Text style={tailwind`text-sm text-gray-600`}>
-                    {itm.country}
-                  </Text>
+                  {itm.player.country && (
+                    <>
+                      <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
+                      <Text style={tailwind`text-xs text-gray-400`}>
+                        {itm.player.country}
+                      </Text>
+                    </>
+                  )}
                 </View>
               </View>
             </View>
@@ -404,84 +426,96 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
               </View>
 
               {/* Player list */}
-              <ScrollView contentContainerStyle={tailwind`gap-3 pb-4`}>
-                {players.map((itm, index) => (
-                  <View
-                    key={index}
-                    style={tailwind`flex-row items-center p-3 bg-gray-100 rounded-xl shadow-sm`}
-                  >
-                    <Image
-                      source={{ uri: itm.avatarUrl || 'https://via.placeholder.com/40' }}
-                      style={tailwind`w-10 h-10 rounded-full mr-3 bg-gray-300`}
-                    />
-                    <View style={tailwind`flex-1`}>
-                      <Text style={tailwind`text-base font-semibold`}>
-                        {itm.name}
-                      </Text>
-                      <View style={tailwind`flex-row items-center gap-3`}>
-                        <Text style={tailwind`text-sm text-gray-500`}>
-                          {selectPosition(itm.position)}
+              <ScrollView contentContainerStyle={tailwind`pb-20 pt-2`}>
+                {players.map((itm, index) => {
+                  const isSelected = selectedSquad?.some((p) => p.public_id === itm.public_id);
+                  return (
+                    <View
+                      key={index}
+                      style={[
+                        tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`,
+                        isSelected && tailwind`bg-green-50`
+                      ]}
+                    >
+                      {itm?.media_url ? (
+                        <Image
+                          source={{ uri: itm.media_url }}
+                          style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                        />
+                      ):(
+                        <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
+                          <Text style={tailwind`text-gray-500 font-semibold`}>
+                            {itm.name.charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={tailwind`flex-1 ml-3`}>
+                        <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                          {itm.name}
                         </Text>
-                        <Text style={tailwind`text-sm text-gray-500`}>
-                          {itm.country}
-                        </Text>
+                        <View style={tailwind`flex-row items-center mt-0.5`}>
+                          <Text style={tailwind`text-xs text-gray-400`}>
+                            {selectPosition(itm.position)}
+                          </Text>
+                          {itm.country && (
+                            <>
+                              <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
+                              <Text style={tailwind`text-xs text-gray-400`}>
+                                {itm.country}
+                              </Text>
+                            </>
+                          )}
+                        </View>
                       </View>
+
+                      {/* Substitute Toggle */}
+                      <View style={tailwind`items-center mr-3`}>
+                        <Text style={tailwind`text-xs text-gray-400 mb-1`}>Sub</Text>
+                        <Switch
+                          value={isSubstituted.includes(itm.public_id)}
+                          disabled={!isSelected}
+                          onValueChange={(value) => {
+                            if (value) {
+                              setIsSubstituted((prev) =>prev.includes(itm.public_id) ? prev : [...prev, itm.public_id]);
+                            } else {
+                              setIsSubstituted((prev) => prev.filter((pid) => pid !== itm.public_id));
+                            }
+                          }}
+                          trackColor={{ false: '#E5E7EB', true: '#FCA5A5' }}
+                          thumbColor={isSubstituted.includes(itm.public_id) ? '#f87171' : '#f4f3f4'}
+                          style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                        />
+                      </View>
+
+                      {/* Selection Button */}
+                      <Pressable onPress={() => togglePlayerSelection(itm)}>
+                        <AntDesign
+                          name={isSelected ? 'checkcircle' : 'pluscircleo'}
+                          size={24}
+                          color={isSelected ? '#10B981' : '#D1D5DB'}
+                        />
+                      </Pressable>
                     </View>
-                    <Pressable onPress={() => togglePlayerSelection(itm)}>
-                      <AntDesign
-                        name={
-                          selectedSquad?.some(
-                            (p) => p.public_id === itm.public_id
-                          )
-                            ? 'checkcircle'
-                            : 'pluscircleo'
-                        }
-                        size={22}
-                        color={
-                          selectedSquad?.some((p) => p.id === itm.id)
-                            ? 'green'
-                            : 'gray'
-                        }
-                      />
-                    </Pressable>
-                    <View>
-                      <Switch
-                        value={isSubstituted.includes(itm.public_id)}
-                        disabled={
-                          !selectedSquad.some((p) => p.public_id === itm.public_id)
-                        }
-                        onValueChange={(value) => {
-                          if (value) {
-                            setIsSubstituted((prev) => {
-                              prev.includes(itm.public_id) ? prev : [...prev, itm.public_id]
-                            });
-                          } else {
-                            setIsSubstituted((prev) =>
-                              prev.filter((pid) => pid !== itm.public_id)
-                            );
-                          }
-                        }}
-                        trackColor={{ false: '#ccc', true: '#34D399' }}
-                        thumbColor={
-                          isSubstituted.includes(itm.public_id)
-                            ? '#10B981'
-                            : '#f4f3f4'
-                        }
-                      />
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </ScrollView>
 
-              {/* Submit */}
-              <Pressable
-                onPress={() => handleSelectSquad()}
-                style={tailwind`mt-4 bg-green-600 py-3 rounded-xl items-center`}
-              >
-                <Text style={tailwind`text-white text-base font-semibold`}>
-                  Add to Squad
-                </Text>
-              </Pressable>
+              {/* Submit Button */}
+              <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100`}>
+                <Pressable
+                  onPress={handleSelectSquad}
+                  disabled={selectedSquad.length === 0 || loading}
+                  style={[
+                    tailwind`py-3.5 rounded-xl items-center`,
+                    selectedSquad.length === 0 || loading ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
+                    {shadowColor: '#f87171', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3}
+                  ]}
+                >
+                  <Text style={tailwind`text-white text-base font-semibold`}>
+                    {loading ? 'Saving...' : selectedSquad.length > 0 ? `Add ${selectedSquad.length} Player(s)` : 'Select Players'}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </Modal>

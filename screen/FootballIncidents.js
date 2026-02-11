@@ -189,8 +189,6 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
                 });
                 const item = incidentsResponse.data.data[1].incidents;
-                //console.log("Football Incidents: ", item)
-                if(item.length === 0 )
                 if(item){
                     dispatch(getFootballIncidents(item));
                 } else {

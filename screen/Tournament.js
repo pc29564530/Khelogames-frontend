@@ -24,7 +24,7 @@ import { validateTournamentField } from '../utils/validation/tournamentValidatio
 const Tournament = () => {
   const navigation = useNavigation();
   const [currentRole, setCurrentRole] = useState('');
-  const [typeFilter, setTypeFilter] = useState('international');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCountryPicker, setIsCountryPicker] = useState(false);
   const [typeFilterModal, setTypeFilterModal] = useState(false);
@@ -192,13 +192,8 @@ const Tournament = () => {
 
         console.log("Fetching tournaments by location:", params);
 
-        const authToken = await AsyncStorage.getItem("AccessToken");
         const res = await axiosInstance.get(`${BASE_URL}/${game.name}/get-tournament-by-location`, {
-          params: params,  // Correct: query parameters go inside config object
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
+          params: params,
         });
 
         console.log(" Nearby tournaments fetched:", res.data);
@@ -221,61 +216,59 @@ const Tournament = () => {
         ? new Date(item.start_timestamp * 1000).toLocaleDateString()
         : "TBD";
 
-        // Status badge colors
-        let statusColor = tailwind`bg-gray-200 text-gray-700`;
-        if (item.status === "live") statusColor = tailwind`bg-green-100 text-green-700`;
-        else if (item.status === "finished") statusColor = tailwind`bg-red-100 text-red-700`;
-        else if (item.status === "not_started") statusColor = tailwind`bg-yellow-100 text-yellow-700`;
+        // Status indicator
+        const isLive = item.status === "live";
+        const isFinished = item.status === "finished";
 
         return (
             <Pressable
-                style={tailwind`bg-white rounded-xl p-4 mb-[2%] shadow-md`}
+                style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}
                 onPress={() => handleTournamentPage(item)}
             >
-                <View style={tailwind`flex-row items-center`}>
-                {/* Icon */}
-                <FontAwesome
-                    name="trophy"
-                    size={32}
-                    color="gold"
-                    style={tailwind`mr-4`}
-                />
+                {/* Top accent line for live matches */}
+                {isLive && <View style={tailwind`h-0.5 bg-red-400`} />}
 
-                {/* Main Info */}
-                <View style={tailwind`flex-1`}>
-                    <Text style={tailwind`text-lg font-bold text-gray-900`}>
-                    {item.name}
-                    </Text>
-
-                    {/* Level + Season + Country */}
-                    <View style={tailwind`flex-row flex-wrap mt-1`}>
-                    {item.season && (
-                        <Text style={tailwind`text-sm text-gray-600 mr-2`}>
-                        Season {item.season}
-                        </Text>
-                    )}
-                    {item.country && (
-                        <Text style={tailwind`text-sm text-gray-600`}>
-                        {item.country}
-                        </Text>
-                    )}
-                    </View>
-                </View>
-
-                    {/* Status Badge */}
-                    <View style={tailwind`items-center`}>
-                        <View
-                            style={[
-                            tailwind`px-3 py-1 ml-2`,
-                            statusColor,
-                            ]}
-                        >
-                            <Text style={tailwind`text-xs font-semibold capitalize`}>
-                                {item.status || "not_started"}
-                            </Text>
+                <View style={tailwind`p-4`}>
+                    <View style={tailwind`flex-row items-center`}>
+                        {/* Trophy icon in circle */}
+                        <View style={tailwind`w-12 h-12 rounded-full bg-gray-50 items-center justify-center mr-3`}>
+                            <FontAwesome name="trophy" size={20} color={isLive ? "#f87171" : "#9CA3AF"} />
                         </View>
-                        <View>
-                            <Text style={tailwind`text-sm text-gray-500`}>
+
+                        {/* Main Info */}
+                        <View style={tailwind`flex-1`}>
+                            <Text style={tailwind`text-base font-bold text-gray-900`} numberOfLines={1}>
+                                {item.name}
+                            </Text>
+                            <View style={tailwind`flex-row items-center mt-0.5`}>
+                                {item.season && (
+                                    <Text style={tailwind`text-xs text-gray-400 mr-2`}>
+                                        Season {item.season}
+                                    </Text>
+                                )}
+                                {/* {item.country && (
+                                    <>
+                                        <Text style={tailwind`text-gray-300 text-xs`}>&middot;</Text>
+                                        <Text style={tailwind`text-xs text-gray-400 ml-2`}>
+                                            {item.country}
+                                        </Text>
+                                    </>
+                                )} */}
+                            </View>
+                        </View>
+
+                        {/* Status + Date right aligned */}
+                        <View style={tailwind`items-end ml-2`}>
+                            <View style={tailwind`flex-row items-center`}>
+                                {isLive && <View style={tailwind`w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5`} />}
+                                <Text style={[
+                                    tailwind`text-xs font-semibold capitalize`,
+                                    isLive ? tailwind`text-red-400` : tailwind`text-gray-400`
+                                ]}>
+                                    {item.status === "not_started" ? "Upcoming" : item.status || "Upcoming"}
+                                </Text>
+                            </View>
+                            <Text style={tailwind`text-xs text-gray-400 mt-1 font-semibold`}>
                                 {startDate}
                             </Text>
                         </View>
@@ -441,96 +434,98 @@ const Tournament = () => {
                 },
             ]}>
             {/* Sports selector */}
-                <View style={tailwind`flex-row mt-[2%] items-center`}>
+                <View style={tailwind`flex-row mt-1 items-center border-b border-gray-100`}>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         ref={scrollViewRef}
-                        contentContainerStyle={tailwind`flex-row px-2`}
-                    > 
+                        contentContainerStyle={tailwind`flex-row px-4`}
+                    >
                         {games?.length > 0 ? (
                             games.map((item, index) => (
                                 <Pressable
                                 key={index}
                                 style={[
-                                    tailwind`px-4 py-2 rounded-full mr-2 shadow-md`,
-                                    selectedSport.id === item.id ? tailwind`bg-orange-500` : tailwind`bg-gray-200`,
+                                    tailwind`px-4 py-3 mr-1`,
+                                    selectedSport.id === item.id && {borderBottomWidth: 2, borderBottomColor: '#f87171'},
                                 ]}
                                 onPress={() => handleSport(item)}
                                 >
                                 <Text
                                     style={[
-                                    tailwind`font-semibold`,
-                                    selectedSport.id === item.id ? tailwind`text-white` : tailwind`text-gray-700`,
+                                    tailwind`text-sm`,
+                                    selectedSport.id === item.id ? tailwind`text-gray-900 font-bold` : tailwind`text-gray-400 font-medium`,
                                     ]}
                                 >
-                                    {item.name}
+                                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
                                 </Text>
                                 </Pressable>
                             ))
                         ) : (
-                            <View style={tailwind`px-4 py-2`}>
-                                <Text style={tailwind`text-gray-500 text-sm`}>Loading sports...</Text>
+                            <View style={tailwind`px-4 py-3`}>
+                                <Text style={tailwind`text-gray-400 text-sm`}>Loading...</Text>
                             </View>
                         )}
                     </ScrollView>
-                    <Pressable onPress={scrollRight} style={tailwind`justify-center ml-2`}>
-                        <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
-                    </Pressable>
                 </View>
 
-                {/* Filter section */}
-                <View style={tailwind`flex-row mt-6 items-center px-1`}>
-                    <Text style={tailwind`text-lg font-bold mr-3`}>Filters:</Text>
+                {/* Filter row - subtle outline buttons like Airbnb */}
+                <View style={tailwind`flex-row mt-3 items-center px-4`}>
                     <Pressable
-                        style={tailwind`px-4 py-2 rounded-full bg-blue-500 mr-2`}
+                        style={[
+                            tailwind`flex-row items-center px-3.5 py-2 rounded-lg border mr-2`,
+                            typeFilter !== 'all' ? tailwind`border-red-400 bg-red-400` : tailwind`border-gray-200 bg-white`
+                        ]}
                         onPress={() => setTypeFilterModal(true)}
                     >
-                        <Text style={tailwind`text-white`}>Categories</Text>
+                        <MaterialIcons name="filter-list" size={16} color={typeFilter !== 'all' ? "white" : "#9CA3AF"} />
+                        <Text style={[
+                            tailwind`text-sm ml-1.5`,
+                            typeFilter !== 'all' ? tailwind`text-white font-medium` : tailwind`text-gray-500`
+                        ]}>{typeFilter !== 'all' ? typeFilter : 'Category'}</Text>
+                        {typeFilter !== 'all' && (
+                            <Pressable onPress={() => setTypeFilter('all')} hitSlop={10} style={tailwind`ml-2`}>
+                                <MaterialIcons name="close" size={14} color="white" />
+                            </Pressable>
+                        )}
                     </Pressable>
                     <Pressable
-                        style={tailwind`px-4 py-2 rounded-full bg-blue-500`}
+                        style={[
+                            tailwind`flex-row items-center px-3.5 py-2 rounded-lg border`,
+                            statusFilter !== 'all' ? tailwind`border-red-400 bg-red-400` : tailwind`border-gray-200 bg-white`
+                        ]}
                         onPress={() => setStatusFilterModal(true)}
                     >
-                        <Text style={tailwind`text-white`}>Status</Text>
+                        <MaterialIcons name="schedule" size={16} color={statusFilter !== 'all' ? "white" : "#9CA3AF"} />
+                        <Text style={[
+                            tailwind`text-sm ml-1.5`,
+                            statusFilter !== 'all' ? tailwind`text-white font-medium` : tailwind`text-gray-500`
+                        ]}>{statusFilter !== 'all' ? statusFilter : 'Status'}</Text>
+                        {statusFilter !== 'all' && (
+                            <Pressable onPress={() => setStatusFilter('all')} hitSlop={10} style={tailwind`ml-2`}>
+                                <MaterialIcons name="close" size={14} color="white" />
+                            </Pressable>
+                        )}
                     </Pressable>
                 </View>
-
-                {/* Active filter chips */}
-                {(typeFilter !== 'all' || statusFilter !== 'all') && (
-                <View style={tailwind`flex-row flex-wrap mt-3 px-4`}>
-                    {typeFilter !== 'all' && (
-                        <View style={tailwind`flex-row items-center bg-orange-100 px-3 py-1 rounded-full mr-2 mb-2`}>
-                            <Text style={tailwind`text-orange-600 mr-2`}>{typeFilter}</Text>
-                            <Pressable onPress={() => setTypeFilter('all')}>
-                            <FontAwesome name="close" size={14} color="black" />
-                            </Pressable>
-                        </View>
-                    )}
-                    {statusFilter !== 'all' && (
-                        <View style={tailwind`flex-row items-center bg-green-100 px-3 py-1 rounded-full mr-2 mb-2`}>
-                            <Text style={tailwind`text-green-600 mr-2`}>{statusFilter}</Text>
-                            <Pressable onPress={() => setStatusFilter('all')}>
-                            <FontAwesome name="close" size={14} color="black" />
-                            </Pressable>
-                        </View>
-                    )}
-                </View>
-                )}
             </Animated.View>
         </View>
 
         {/* Inline Error Display */}
         {!loading && error.global && (
-          <View style={tailwind`mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg`}>
-            <Text style={tailwind`text-red-600 text-sm mb-2`}>
+          <View style={tailwind`mx-4 mt-28 p-4 bg-white rounded-2xl items-center`}>
+            <MaterialIcons name="wifi-off" size={32} color="#D1D5DB" />
+            <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+              Connection issue
+            </Text>
+            <Text style={tailwind`text-gray-400 text-xs text-center mb-4`}>
               {error.global}
             </Text>
             <Pressable
               onPress={() => dispatch(setGame(game))}
-              style={tailwind`self-start px-4 py-2 bg-red-100 rounded`}
+              style={tailwind`px-6 py-2.5 bg-red-400 rounded-full`}
             >
-              <Text style={tailwind`text-red-700`}>Retry</Text>
+              <Text style={tailwind`text-white text-sm font-semibold`}>Try Again</Text>
             </Pressable>
           </View>
         )}
@@ -542,34 +537,35 @@ const Tournament = () => {
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             contentContainerStyle={{
-              paddingTop: (typeFilter !== 'all' || statusFilter !== 'all') ? 170 : 120, // push down so content starts below header
+              paddingTop: (typeFilter !== 'all' || statusFilter !== 'all') ? 170 : 120,
               paddingBottom: 50,
             }}
 
         />
 
       {/* Floating Action Button */}
-      <View style={tailwind`absolute bottom-10 right-6`}>
+      <View style={tailwind`absolute bottom-14 right-5`}>
         <Pressable
-          style={tailwind`p-4 bg-red-400 rounded-full shadow-xl mb-[4%]`}
+          style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
           onPress={() => navigation.navigate('CreateTournament')}
         >
-          <MaterialIcons name="add" size={28} color="white" />
+          <MaterialIcons name="add" size={24} color="white" />
         </Pressable>
       </View>
 
       {/* Type Filter Modal */}
-      <Modal transparent={true} animationType="fade" visible={typeFilterModal} onRequestClose={() => setTypeFilterModal(false)}>
+      <Modal transparent={true} animationType="slide" visible={typeFilterModal} onRequestClose={() => setTypeFilterModal(false)}>
         <Pressable
           onPress={() => setTypeFilterModal(false)}
-          style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}
+          style={tailwind`flex-1 justify-end bg-black/40`}
         >
-          <View style={tailwind`bg-white rounded-2xl p-6 w-3/4`}>
-            <Text style={tailwind`text-lg font-bold text-gray-800 mb-4 text-center`}>Select Category</Text>
+          <View style={tailwind`bg-white rounded-t-3xl pt-2 pb-8`}>
+            <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
+            <Text style={tailwind`text-base font-bold text-gray-900 px-6 mb-3`}>Category</Text>
             {['international', 'country', 'nearby'].map((val) => (
               <Pressable
                 key={val}
-                style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                style={tailwind`flex-row items-center px-6 py-4 border-b border-gray-50`}
                 onPress={() => {
                   setTypeFilter(val);
                   setTypeFilterModal(false);
@@ -580,7 +576,11 @@ const Tournament = () => {
                   };
                 }}
               >
-                <Text style={tailwind`text-lg text-gray-800 capitalize`}>{val}</Text>
+                <MaterialIcons
+                  name={val === 'international' ? 'public' : val === 'country' ? 'flag' : 'near-me'}
+                  size={20} color="#9CA3AF" />
+                <Text style={tailwind`text-base text-gray-800 ml-4 capitalize`}>{val}</Text>
+                {typeFilter === val && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
               </Pressable>
             ))}
           </View>
@@ -588,27 +588,30 @@ const Tournament = () => {
       </Modal>
 
       {/* Status Filter Modal */}
-      <Modal transparent={true} animationType="fade" visible={statusFilterModal} onRequestClose={() => setStatusFilterModal(false)}>
+      <Modal transparent={true} animationType="slide" visible={statusFilterModal} onRequestClose={() => setStatusFilterModal(false)}>
         <Pressable
           onPress={() => setStatusFilterModal(false)}
-          style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}
+          style={tailwind`flex-1 justify-end bg-black/40`}
         >
-          <View style={tailwind`bg-white rounded-2xl p-6 w-3/4`}>
-            <Text style={tailwind`text-lg font-bold text-gray-800 mb-4 text-center`}>Select Status</Text>
+          <View style={tailwind`bg-white rounded-t-3xl pt-2 pb-8`}>
+            <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
+            <Text style={tailwind`text-base font-bold text-gray-900 px-6 mb-3`}>Status</Text>
             {[
-              { label: 'All', value: 'all' },
-              { label: 'Upcoming', value: 'not_started' },
-              { label: 'Live', value: 'live' },
+              { label: 'All', value: 'all', icon: 'list' },
+              { label: 'Upcoming', value: 'not_started', icon: 'schedule' },
+              { label: 'Live', value: 'live', icon: 'fiber-manual-record' },
             ].map((opt) => (
               <Pressable
                 key={opt.value}
-                style={tailwind`p-4 bg-gray-100 rounded-lg mb-3`}
+                style={tailwind`flex-row items-center px-6 py-4 border-b border-gray-50`}
                 onPress={() => {
                   setStatusFilter(opt.value);
                   setStatusFilterModal(false);
                 }}
               >
-                <Text style={tailwind`text-lg text-gray-800`}>{opt.label}</Text>
+                <MaterialIcons name={opt.icon} size={20} color={opt.value === 'live' ? '#f87171' : '#9CA3AF'} />
+                <Text style={tailwind`text-base text-gray-800 ml-4`}>{opt.label}</Text>
+                {statusFilter === opt.value && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
               </Pressable>
             ))}
           </View>

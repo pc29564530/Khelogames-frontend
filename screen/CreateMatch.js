@@ -130,7 +130,7 @@ const CreateMatch = ({ route }) => {
         };
         
         const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch`, fixture,{
+        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/createTournamentMatch/${tournament.public_id}`, fixture,{
           headers: {
             'Authorization': `bearer ${authToken}`,
             'Content-Type': 'application/json',
@@ -214,12 +214,7 @@ const CreateMatch = ({ route }) => {
           const cityName = data.city || data.locality || '';
           const stateName = data.principalSubdivision || '';
           const countryName = data.countryName || '';
-          
-          // setCity(cityName);
-          // setState(stateName);
-          // setCountry(countryName);
-          console.log("Address set: ", cityName, stateName, countryName);
-          fetchTournamentByNearBy({cityName, stateName, countryName})
+      
         }
       } catch (err) {
         console.error("BigDataCloud geocoding failed: ", err.message);

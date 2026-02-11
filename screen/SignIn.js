@@ -41,6 +41,15 @@ function SignIn() {
   /* ---------------- INPUT HANDLER ---------------- */
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (error.fields[field]) {
+      setError(prev => ({
+        ...prev,
+        fields: { ...prev.fields, [field]: '' },
+      }));
+    }
+    if (error.global) {
+      setError(prev => ({ ...prev, global: null }));
+    }
   };
 
   /* ---------------- EMAIL SIGN IN ---------------- */
@@ -53,7 +62,6 @@ function SignIn() {
 
     try {
       setLoading(true);
-
       const res = await authAxiosInstance.post(
         `${AUTH_URL}/google/createEmailSignIn`,
         {
@@ -80,7 +88,7 @@ function SignIn() {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [{ name: 'DrawerNavigation' }],
       });
 
     } catch (err) {
@@ -125,7 +133,7 @@ function SignIn() {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [{ name: 'DrawerNavigation' }],
       });
 
     } catch (err) {

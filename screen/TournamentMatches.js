@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
-    const [isModalVisible, setIsModalVisible] = useState(false);
     const entities = useSelector(state => state.tournamentEntities.tournamentEntities)
     const navigation = useNavigation();
     
@@ -44,11 +43,11 @@ const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeigh
     };
 
     useEffect(() => {
-        console.log("TournamentMatches teams updated: ", entities);
+        console.log("Tournament matches entities updated: ", entities);
     }, [entities]);
 
     return (
-        <View style={tailwind`flex-1 bg-gray-100`}>
+        <View style={tailwind`flex-1 bg-white`}>
                 <View style={tailwind`bg-white p-4 py-4`}>
                     <Pressable
                         onPress={() => navigation.navigate("CreateMatch", {tournament:tournament, entities:entities})}

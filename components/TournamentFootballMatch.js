@@ -144,85 +144,102 @@ const matchesData = (item, ind, navigation, tournament) => {
     const handleFootballMatchPage = (item) => {
         navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, tournament: tournament});
     }
+
+    const isLive = item?.status === "live";
+    const isFinished = item?.status === "finished";
+    const homeTeamName = item?.home_team?.name || 'TBA';
+    const awayTeamName = item?.away_team?.name || 'TBA';
+
     return (
         <Pressable
             key={ind}
-            style={tailwind`mb-4 p-8 bg-white rounded-2xl shadow`}
+            style={[
+                tailwind`mb-2 bg-white rounded-xl overflow-hidden`,
+                {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1}
+            ]}
             onPress={() => handleFootballMatchPage(item)}
         >
-            <View style={tailwind`flex-row justify-between items-center`}>
-                <View>
-                <View style={tailwind`flex-row items-center mb-1`}>
-                    {item.homeTeam?.media_url ? (
-                        <Image
-                            source={{ uri: item.homeTeam?.media_url }}
-                            style={tailwind`w-6 h-6 rounded-full bg-gray-200`}
-                        />
-                    ): (
-                        <View style={tailwind`w-6 h-6 rounded-full bg-gray-200`}>
-                            <Text>{item.homeTeam?.media_url.charAt(0).toUpperCase()}</Text>
-                        </View>
-                    )}
-                    <Text
-                        style={tailwind`ml-2 text-sm font-semibold text-gray-900`}
-                        numberOfLines={1}
-                    >
-                        {item.homeTeam?.name}
-                    </Text>
-                </View>
-                <View style={tailwind`flex-row items-center`}>
-                    {item.homeTeam?.media_url ? (
-                        <Image
-                            source={{ uri: item.awayTeam?.media_url }}
-                            style={tailwind`w-6 h-6 rounded-full bg-gray-200`}
-                        />
-                    ): (
-                        <View style={tailwind`w-6 h-6 rounded-full bg-gray-200`}>
-                            <Text>{item.awayTeam?.media_url.charAt(0).toUpperCase()}</Text>
-                        </View>
-                    )}
-                    <Text
-                        style={tailwind`ml-2 text-sm font-semibold text-gray-900`}
-                        numberOfLines={1}
-                    >
-                    {item.awayTeam?.name}
-                    </Text>
-                </View>
-                </View>
-                <View style={tailwind`flex-row items-center`}>
-                    {/* Score Column */}
-                    {item.status_code !== "not_started" && (
-                        <View style={tailwind`items-center mr-4`}>
-                        <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-                            {item?.homeScore?.goals || '0'}
-                        </Text>
-                        <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-                            {item?.awayScore?.goals || '0'}
-                        </Text>
-                        </View>
-                    )}
+            {/* Live accent bar */}
+            {isLive && <View style={tailwind`h-0.5 bg-red-400`} />}
 
-                    {/* Vertical Divider */}
-                    <View style={tailwind`w-px h-12 bg-gray-300 mx-3`} />
-
-                    {/* Match Info Column */}
-                    <View style={tailwind`items-start`}>
-                        <Text style={tailwind`text-sm text-gray-700`}>
-                        {formatToDDMMYY(convertToISOString(item.startTimeStamp))}
-                        </Text>
-                        {item.status_code !== "not_started" ? (
-                        <Text style={tailwind`text-sm font-medium text-gray-800`}>
-                            {item.status_code}
-                        </Text>
+            <View style={tailwind`flex-row`}>
+                {/* Teams + Scores */}
+                <View style={tailwind`flex-1 py-3 pl-4 pr-3`}>
+                    {/* Home team row */}
+                    <View style={tailwind`flex-row items-center mb-2.5`}>
+                        {item?.home_team?.media_url ? (
+                            <Image
+                                source={{ uri: item.home_team.media_url }}
+                                style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
+                            />
                         ) : (
-                        <Text style={tailwind`text-sm font-medium text-gray-800`}>
-                            {formattedTime(convertToISOString(item.startTimeStamp))}
+                            <View style={tailwind`w-7 h-7 rounded-full bg-gray-100 items-center justify-center`}>
+                                <Text style={tailwind`text-xs font-bold text-gray-400`}>
+                                    {homeTeamName.charAt(0).toUpperCase()}
+                                </Text>
+                            </View>
+                        )}
+                        <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
+                            {homeTeamName}
                         </Text>
+                        {item?.home_score && (
+                            <View style={tailwind`ml-2`}>
+                                <Text style={tailwind`text-sm font-bold text-gray-900`}>
+                                    {item?.home_score?.goals}
+                                </Text>
+                            </View>
                         )}
                     </View>
-                    </View>
 
-                </View> 
+                    {/* Away team row */}
+                    <View style={tailwind`flex-row items-center`}>
+                        {item?.away_team?.media_url ? (
+                            <Image
+                                source={{ uri: item.away_team.media_url }}
+                                style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
+                            />
+                        ) : (
+                            <View style={tailwind`w-7 h-7 rounded-full bg-gray-100 items-center justify-center`}>
+                                <Text style={tailwind`text-xs font-bold text-gray-400`}>
+                                    {awayTeamName.charAt(0).toUpperCase()}
+                                </Text>
+                            </View>
+                        )}
+                        <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
+                            {awayTeamName}
+                        </Text>
+                        {item?.away_score && (
+                            <View style={tailwind`ml-2`}>
+                                <Text style={tailwind`text-sm font-bold text-gray-900`}>
+                                    {item?.away_score?.goals}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Vertical divider */}
+                <View style={tailwind`w-px bg-gray-100 my-3`} />
+
+                {/* Date + Status */}
+                <View style={tailwind`w-20 items-center justify-center py-3`}>
+                    <Text style={tailwind`text-xs text-gray-400`}>
+                        {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
+                    </Text>
+                    {item?.status_code !== "not_started" && item?.status_code !== "finished" ? (
+                        <Text style={[
+                            tailwind`text-xs font-semibold mt-1 capitalize`,
+                            isLive ? tailwind`text-red-400` : tailwind`text-gray-400`
+                        ]}>
+                            {item?.status_code}
+                        </Text>
+                    ) : (
+                        <Text style={tailwind`text-xs text-gray-900 font-medium mt-1`}>
+                            {formattedTime(convertToISOString(item?.start_timestamp))}
+                        </Text>
+                    )}
+                </View>
+            </View>
         </Pressable>
     )
 }

@@ -30,6 +30,11 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
     const [authUser, setAuthUser] = useState(null);
     const [searchText, setSearchText] = useState('');
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+    const [loading, setLoading] = useState(false);
 
     //checking for auth user
     useEffect(() => {
@@ -92,6 +97,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     useEffect(() => {
         const fetchPlayers = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsMemberFunc/${currentTeamPlayer}`, {
                     headers: {
@@ -99,9 +105,15 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         'Content-Type': 'application/json',
                     },
                 });
-                dispatch(getTeamPlayers(response.data || []));
+                dispatch(getTeamPlayers(response.data.data || []));
             } catch (err) {
+                setError({
+                    global: "Unable to fetch team players",
+                    fields: err?.response?.data?.error?.fields || {},
+                })
                 console.error("unable to fetch the team player: ", err);
+            } finally {
+                setLoading(false);
             }
         }
         fetchPlayers();
@@ -121,6 +133,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     useEffect(() => {
         const fetchSquad = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
                     params:{
@@ -132,9 +145,15 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         'Content-Type': 'application/json',
                     },
                 })
-                dispatch(getCricketMatchSquad(response.data || []));
+                dispatch(getCricketMatchSquad(response.data.data || []));
             } catch (err) {
+                setError({
+                    global: "Unable to fetch team squad",
+                    fields: err?.response?.data?.error?.fields || {},
+                })
                 console.error("failed to fetch cricket_squad: ", err);
+            } finally {
+                setLoading(false);
             }
         }
         fetchSquad();
@@ -142,6 +161,9 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
 
     const handleSelectSquad = async () => {
         try {
+            setLoading(true);
+            setError({ global: null, fields: {} });
+
             var data={
                 match_public_id: match.public_id,
                 team_public_id: homeTeamPublicID === currentTeamPlayer ? homeTeamPublicID : awayTeamPublicID,
@@ -154,10 +176,17 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                     'Content-Type': 'application/json',
                 },
             })
-            dispatch(setCricketMatchSquad(response.data || []));
-            
+            dispatch(setCricketMatchSquad(response.data.data || []));
+            setIsPlayerModalVisible(false);
+            setSelectedSquad([]);
         } catch (err) {
+            setError({
+                global: "Unable to add squad to match",
+                fields: err?.response?.data?.error?.fields || {},
+            })
             console.error("Failed to create the squad for match: ", err)
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -168,27 +197,29 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
             return (
                 <View style={tailwind`flex-1`}>
                     {currentPlayingXI.length > 0 && (
-                        <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
-                            <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>Playing XI</Text>
+                        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
+                            <View style={tailwind`p-4 border-b border-gray-100`}>
+                                <Text style={tailwind`text-base font-bold text-gray-900`}>Playing XI</Text>
+                            </View>
                             {currentPlayingXI.map((itm, index) => (
-                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
                                 {itm?.player?.media_url ? (
                                     <Image
                                         source={{ uri: itm.player.media_url }}
-                                        style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
                                     />
                                 ):(
-                                    <View style={tailwind`w-12 h-12 rounded-full bg-red-200 items-center justify-center`}>
-                                        <Text style={tailwind`text-white`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                                    <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
+                                        <Text style={tailwind`text-red-400 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
                                     </View>
                                 )}
-                                <View style={tailwind`px-2`}>
-                                    <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                <View style={tailwind`flex-1 ml-3`}>
+                                    <Text style={tailwind`text-sm font-semibold text-gray-900`}>
                                         {itm.player.name}
                                     </Text>
-                                    <View style={tailwind`flex-row items-center`}>
-                                        <Text style={tailwind`text-sm text-gray-600`}>
-                                            {itm.player.positions}
+                                    <View style={tailwind`flex-row items-center mt-0.5`}>
+                                        <Text style={tailwind`text-xs text-gray-400`}>
+                                            {selectPosition(itm.player.positions)}
                                         </Text>
                                     </View>
                                 </View>
@@ -198,27 +229,29 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                     )}
 
                     {currentOnBench.length > 0 && (
-                    <View style={tailwind`rounded-2xl bg-white p-4 shadow-lg mb-4`}>
-                        <Text style={tailwind`text-xl font-bold mb-4 text-gray-800`}>On Bench</Text>
+                    <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
+                        <View style={tailwind`p-4 border-b border-gray-100`}>
+                            <Text style={tailwind`text-base font-bold text-gray-900`}>On Bench</Text>
+                        </View>
 
                         {currentOnBench.map((item, index) => (
-                            <View key={index} style={tailwind`flex-row items-center mb-4`}>
+                            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
                                 {item?.player?.media_url ? (
                                     <Image
                                         source={{ uri: item.player.media_url }}
-                                        style={tailwind`w-12 h-12 rounded-full bg-gray-200 mr-4`}
+                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
                                     />
                                 ):(
-                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center`}>
-                                    <Text>{item.player.name.charAt(0).toUpperCase()}</Text>
+                                    <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
+                                        <Text style={tailwind`text-gray-500 font-semibold`}>{item.player.name.charAt(0).toUpperCase()}</Text>
                                     </View>
                                 )}
-                                <View style={tailwind`flex-1`}>
-                                    <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                                <View style={tailwind`flex-1 ml-3`}>
+                                    <Text style={tailwind`text-sm font-semibold text-gray-900`}>
                                         {item.player.name}
                                     </Text>
-                                    <View style={tailwind`flex-row items-center gap-4 mt-1`}>
-                                        <Text style={tailwind`text-sm text-gray-600`}>
+                                    <View style={tailwind`flex-row items-center mt-0.5`}>
+                                        <Text style={tailwind`text-xs text-gray-400`}>
                                         {selectPosition(item.player.positions)}
                                         </Text>
                                     </View>
@@ -226,7 +259,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             </View>
                         ))}
                     </View>
-                    )}  
+                    )}
                 </View>
             );
         }
@@ -245,26 +278,26 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
         if(!authUser){
           return null;
         }
-        if(currentTeamPlayer === homeTeamPublicID && match.homeTeam.user_id === authUser.id ){
+        if(currentTeamPlayer === homeTeamPublicID){
           return (
               <Pressable
-                    style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400 mb-2`}
+                    style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
                     onPress={() => setIsPlayerModalVisible(true)}
                 >
-                    <MaterialIcons name="add" size={22} color="white" />
-                    <Text style={tailwind`ml-2 text-white text-base font-semibold`}>
+                    <MaterialIcons name="add" size={20} color="white" />
+                    <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
                         Select Squad
                     </Text>
                 </Pressable>
           )
-        } else if(currentTeamPlayer === awayTeamPublicID && match.awayTeam.user_id === authUser.id ){
+        } else if(currentTeamPlayer === awayTeamPublicID ){
           return (
                 <Pressable
-                    style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400 mb-2`}
+                    style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
                     onPress={() => setIsPlayerModalVisible(true)}
                 >
-                    <MaterialIcons name="add" size={22} color="white" />
-                    <Text style={tailwind`ml-2 text-white text-base font-semibold`}>
+                    <MaterialIcons name="add" size={20} color="white" />
+                    <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
                         Select Squad
                     </Text>
                 </Pressable>
@@ -285,34 +318,38 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                     minHeight: sHeight + 100
                 }}
             >
-                    <Animated.View style={[tailwind`bg-white shadow-lg w-full px-2`, contentStyle]}>
+                    <Animated.View style={[tailwind`bg-white w-full px-4 py-3 mb-2`, contentStyle, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}]}>
                         {/* Team switcher */}
-                        <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2 `}>
+                        <View style={tailwind`flex-row mb-2 items-center justify-between gap-2`}>
                             <Pressable
-                            onPress={() => {
-                                toggleTeam(homeTeamPublicID);
-                            }}
+                            onPress={() => toggleTeam(homeTeamPublicID)}
                             style={[
-                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                tailwind`flex-1 rounded-xl items-center py-3 border`,
                                 homeTeamPublicID === currentTeamPlayer
-                                ? tailwind`bg-red-400`
-                                : tailwind`bg-white`,
+                                ? tailwind`bg-red-400 border-red-400`
+                                : tailwind`bg-white border-gray-200`,
                             ]}
                             >
-                            <Text style={tailwind`text-lg font-bold`}>
+                            <Text style={[
+                                tailwind`text-sm font-semibold`,
+                                homeTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+                            ]}>
                                 {match?.homeTeam?.name}
                             </Text>
                             </Pressable>
                             <Pressable
                             onPress={() => toggleTeam(awayTeamPublicID)}
                             style={[
-                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                tailwind`flex-1 rounded-xl items-center py-3 border`,
                                 awayTeamPublicID === currentTeamPlayer
-                                ? tailwind`bg-red-400`
-                                : tailwind`bg-white`,
+                                ? tailwind`bg-red-400 border-red-400`
+                                : tailwind`bg-white border-gray-200`,
                             ]}
                             >
-                            <Text style={tailwind`text-lg font-bold`}>
+                            <Text style={[
+                                tailwind`text-sm font-semibold`,
+                                awayTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+                            ]}>
                                 {match?.awayTeam?.name}
                             </Text>
                             </Pressable>
@@ -320,6 +357,19 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         {/* Squad selector */}
                         <AddTeamPlayerButton />
                     </Animated.View>
+
+                {/* Error Display */}
+                {error.global && currentPlayingXI.length === 0 && currentOnBench.length === 0 && (
+                    <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
+                        <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
+                        <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+                            No Squad Selected
+                        </Text>
+                        <Text style={tailwind`text-gray-400 text-xs text-center`}>
+                            {error.global}
+                        </Text>
+                    </View>
+                )}
 
                 <View style={tailwind`flex-row justify-center items-start p-2`}>
                         {renderPlayers()}
@@ -341,6 +391,16 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             <AntDesign name="closecircle" size={26} color="black" />
                           </Pressable>
                         </View>
+
+                        {/* Search Player */}
+                        <View>
+                            <TextInput
+                                style={tailwind`bg-gray-100 rounded-lg px-4 py-2 mb-3 mt-2`}
+                                placeholder="Search players..."
+                                value={searchText}
+                                onChangeText={setSearchText}
+                            />
+                        </View>
                   
                         {/* Player List */}
                         <FlatList
@@ -351,65 +411,71 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                           )}
                           keyExtractor={(item) => item.public_id}
                           showsVerticalScrollIndicator={false}
-                          contentContainerStyle={tailwind`pb-20`}
+                          contentContainerStyle={tailwind`pb-20 pt-2`}
                           renderItem={({ item }) => {
                             const isSelected = selectedSquad?.some((p) => p.public_id === item.public_id);
-                  
+
                             return (
                               <View
-                                style={tailwind.style(
-                                  `flex-row items-center p-3 rounded-xl mb-3`,
-                                  isSelected ? "bg-green-50 border-green-400" : "bg-gray-50 border-gray-200"
-                                )}
+                                style={[
+                                  tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`,
+                                  isSelected && tailwind`bg-green-50`
+                                ]}
                               >
                                 {item.media_url ? (
                                     <Image
                                         source={{ uri: item.media_url }}
-                                        style={tailwind`w-12 h-12 rounded-full mr-3 bg-gray-300`}
+                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
                                   />
                                 ):(
-                                    <View style={tailwind`w-12 h-12 rounded-full items-center justify-center bg-gray-300`}>
-                                        <Text style={tailwind`text-white`}>
+                                    <View style={tailwind`w-11 h-11 rounded-full items-center justify-center bg-gray-100`}>
+                                        <Text style={tailwind`text-gray-500 font-semibold`}>
                                             {item.name.charAt(0).toUpperCase()}
                                         </Text>
                                     </View>
                                 )}
-                  
-                                <View style={tailwind`flex-1 px-2`}>
-                                  <Text style={tailwind`text-base font-semibold`}>{item.name}</Text>
-                                  <View style={tailwind`flex-row items-center gap-2`}>
-                                    <Text style={tailwind`text-sm text-gray-500`}>
+
+                                <View style={tailwind`flex-1 ml-3`}>
+                                  <Text style={tailwind`text-sm font-semibold text-gray-900`}>{item.name}</Text>
+                                  <View style={tailwind`flex-row items-center mt-0.5`}>
+                                    <Text style={tailwind`text-xs text-gray-400`}>
                                       {selectPosition(item.position)}
                                     </Text>
-                                    <Text style={tailwind`text-sm text-gray-500`}>{item.country}</Text>
+                                    {item.country && (
+                                      <>
+                                        <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
+                                        <Text style={tailwind`text-xs text-gray-400`}>{item.country}</Text>
+                                      </>
+                                    )}
                                   </View>
                                 </View>
-                  
+
                                 {/* Bench Toggle */}
                                 <View style={tailwind`items-center mr-3`}>
-                                  <Text style={tailwind`text-xs text-gray-500`}>Bench</Text>
+                                  <Text style={tailwind`text-xs text-gray-400 mb-1`}>Bench</Text>
                                   <Switch
                                         value={isSelected ? selectedSquad.find(p => p.public_id === item.public_id)?.on_bench : false}
                                         onValueChange={(value) => {
-                                            if (!isSelected) return; // don’t allow bench toggle if not selected
+                                            if (!isSelected) return;
                                             setSelectedSquad(prev =>
                                             prev.map(p =>
                                                 p.public_id === item.public_id ? { ...p, on_bench: value } : p
                                             )
                                             );
                                         }}
-                                        disabled={!isSelected}  // Disable switch until player is selected
-                                        trackColor={{ false: "#ccc", true: "#34D399" }}
-                                        thumbColor={isSelected && selectedSquad.find(p => p.public_id === item.public_id)?.on_bench ? "#10B981" : "#f4f3f4"}
+                                        disabled={!isSelected}
+                                        trackColor={{ false: "#E5E7EB", true: "#FCA5A5" }}
+                                        thumbColor={isSelected && selectedSquad.find(p => p.public_id === item.public_id)?.on_bench ? "#f87171" : "#f4f3f4"}
+                                        style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                     />
                                 </View>
-                  
+
                                 {/* Selection Button */}
                                 <Pressable onPress={() => togglePlayerSelection(item)}>
                                   <AntDesign
                                     name={isSelected ? "checkcircle" : "pluscircleo"}
                                     size={24}
-                                    color={isSelected ? "green" : "gray"}
+                                    color={isSelected ? "#10B981" : "#D1D5DB"}
                                   />
                                 </Pressable>
                               </View>
@@ -418,18 +484,26 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         />
                   
                         {/* Submit Button */}
-                        <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200`}>
+                        <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100`}>
+                          {error.global && (
+                            <View style={tailwind`mb-2 p-2 bg-red-50 rounded-lg`}>
+                              <Text style={tailwind`text-red-600 text-xs text-center`}>
+                                {error.global}
+                              </Text>
+                            </View>
+                          )}
                           <Pressable
                             onPress={handleSelectSquad}
-                            disabled={selectedSquad.length === 0}
-                            style={tailwind.style(
-                              `py-3 rounded-xl items-center`,
-                              selectedSquad.length === 0 ? "bg-gray-400" : "bg-green-600"
-                            )}
+                            disabled={selectedSquad.length === 0 || loading}
+                            style={[
+                              tailwind`py-3.5 rounded-xl items-center`,
+                              selectedSquad.length === 0 || loading ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
+                              {shadowColor: '#f87171', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3}
+                            ]}
                           >
                             <Text style={tailwind`text-white text-base font-semibold`}>
-                              {selectedSquad.length > 0
-                                ? `Add ${selectedSquad.length} Player(s) to Squad`
+                              {loading ? 'Saving...' : selectedSquad.length > 0
+                                ? `Add ${selectedSquad.length} Player(s)`
                                 : "Select Players"}
                             </Text>
                           </Pressable>

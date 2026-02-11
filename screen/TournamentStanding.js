@@ -25,6 +25,7 @@ import { addTeamToGroup, setStandings, setGroups } from '../redux/actions/action
 import TournamentParticipants from './TournamentParticipants';
 import { getTournamentStandings } from '../services/tournamentServices';
 import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Extrapolation, interpolate} from 'react-native-reanimated';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -76,8 +77,9 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
 
   // Focus effect for data fetching
   useFocusEffect(
-    React.useCallback(() => {
-      fetchAllGroups({ axiosInstance: axiosInstance, dispatch: dispatch });
+    React.useCallback(async () => {
+      const response = await fetchAllGroups();
+      dispatch(setGroups(response))
     }, [axiosInstance])
   );
 
@@ -146,10 +148,14 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
     getGroup()
   }, []);
 
-  // Group selection handler
+  // Group selection handler (tap again to deselect)
   const handleGroupSelect = (item) => {
-    setSelectedGroup(item);
-    setIsModalGroupVisible(false);
+    if (selectedGroup?.id === item.id) {
+      setSelectedGroup(null);
+    } else {
+      setSelectedGroup(item);
+      setIsModalGroupVisible(false);
+    }
   };
 
   // Team toggle handler with validation
@@ -281,59 +287,83 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
   });
 
   // Render participant item with enhanced UI
-  const renderTeamItem = ({ item }) => (
-    <Pressable
-      onPress={() => handleTeamToggle(item.entity)}
-      style={[
-        tailwind`p-4border-b border-gray-100 flex-row justify-between items-center`,
-        selectedTeams.some(t => t.id === item.entity.id) && tailwind`bg-blue-50`
-      ]}
-    >
-      <View style={tailwind`flex-1`}>
-        <Text style={[
-          tailwind`text-lg font-medium`,
-          selectedTeams.some(t => t.id === item.entity.id) ? tailwind`text-blue-600` : tailwind`text-gray-800`
-        ]}>
-          {item.entity.name}
-        </Text>
-        <Text style={tailwind`text-sm text-gray-500 mt-1`}>
-          {item.entity.category || 'No category'} • {item.entity.players_count || 0} players
-        </Text>
-      </View>
-      <CheckBox
-        value={selectedTeams.some(t => t.id === item.entity.id)}
-        onValueChange={() => handleTeamToggle(item)}
-        tintColors={{ true: '#3B82F6', false: '#D1D5DB' }}
-      />
-    </Pressable>
-  );
+  const renderTeamItem = ({ item }) => {
+    const isSelected = selectedTeams.some(t => t.id === item.entity.id);
+    return (
+      <Pressable
+        onPress={() => handleTeamToggle(item.entity)}
+        style={[
+          tailwind`p-4 border-b border-gray-50 flex-row justify-between items-center`,
+          isSelected && tailwind`bg-red-50`
+        ]}
+      >
+        <View style={tailwind`flex-row items-center flex-1`}>
+          <View style={[
+            tailwind`w-8 h-8 rounded-full items-center justify-center mr-3`,
+            isSelected ? tailwind`bg-red-400` : tailwind`bg-gray-100`
+          ]}>
+            <Text style={[
+              tailwind`text-xs font-bold`,
+              isSelected ? tailwind`text-white` : tailwind`text-gray-400`
+            ]}>
+              {item.entity.name?.charAt(0)?.toUpperCase() || '?'}
+            </Text>
+          </View>
+          <View style={tailwind`flex-1`}>
+            <Text style={[
+              tailwind`text-sm font-medium`,
+              isSelected ? tailwind`text-red-400` : tailwind`text-gray-900`
+            ]}>
+              {item.entity.name}
+            </Text>
+            <Text style={tailwind`text-xs text-gray-400 mt-0.5`}>
+              {item.entity.category || 'No category'} • {item.entity.players_count || 0} players
+            </Text>
+          </View>
+        </View>
+        <CheckBox
+          value={isSelected}
+          onValueChange={() => handleTeamToggle(item)}
+          tintColors={{ true: '#f87171', false: '#D1D5DB' }}
+        />
+      </Pressable>
+    );
+  };
 
   // Render group item
-  const renderGroupItem = ({ item }) => (
-    <Pressable
-      onPress={() => handleGroupSelect(item)}
-      style={[
-        tailwind`p-4 border-b border-gray-100 flex-row justify-between items-center`,
-        selectedGroup?.id === item.id && tailwind`bg-green-50`
-      ]}
-    >
-      <View style={tailwind`flex-1`}>
-        <Text style={tailwind`text-lg font-medium text-gray-800`}>{item.name}</Text>
-        <Text style={tailwind`text-sm text-gray-500 mt-1`}>
-          Capacity: {item.strength || 'Not set'} teams
-        </Text>
-      </View>
-      {selectedGroup?.id === item.id && (
-        <View style={tailwind`w-3 h-3 bg-green-500 rounded-full`} />
-      )}
-    </Pressable>
-  );
+  const renderGroupItem = ({ item }) => {
+    const isSelected = selectedGroup?.id === item.id;
+    return (
+      <Pressable
+        onPress={() => handleGroupSelect(item)}
+        style={[
+          tailwind`p-4 border-b border-gray-50 flex-row justify-between items-center`,
+          isSelected && tailwind`bg-red-50`
+        ]}
+      >
+        <View style={tailwind`flex-1`}>
+          <Text style={[
+            tailwind`text-base font-medium`,
+            isSelected ? tailwind`text-red-400` : tailwind`text-gray-800`
+          ]}>{item.name}</Text>
+          <Text style={tailwind`text-xs text-gray-400 mt-0.5`}>
+            {isSelected ? 'Tap to deselect' : `Capacity: ${item.strength || 'Not set'} teams`}
+          </Text>
+        </View>
+        {isSelected ? (
+          <MaterialIcon name="close" size={20} color="#f87171" />
+        ) : (
+          <MaterialIcon name="radio-button-unchecked" size={20} color="#d1d5db" />
+        )}
+      </Pressable>
+    );
+  };
 
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="red" />
-        <Text style={{ marginTop: 10 }}>Loading Standings...</Text>
+        <ActivityIndicator size="large" color="#f87171" />
+        <Text style={tailwind`mt-3`}>Loading Standings...</Text>
       </View>
     );
   }
@@ -359,16 +389,21 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         <View style={tailwind`bg-white p-2`}>
           <Pressable
             onPress={() => setIsCreateStandingVisible(true)}
-            style={tailwind`bg-blue-600 p-4 rounded-xl flex-row justify-center items-center shadow-lg`}
+            style={[
+              tailwind`bg-red-400 p-4 rounded-xl flex-row justify-center items-center`,
+              {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3}
+            ]}
           >
-            <Text style={tailwind`text-white text-lg font-semibold`}>
-              ⚡ Create Standing
+            <MaterialIcon name="add-circle-outline" size={22} color="#fff" />
+            <Text style={tailwind`text-white text-base font-semibold ml-2`}>
+              Create Standing
             </Text>
           </Pressable>
         </View>
         {error?.global && standings.length === 0 && (
-            <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                <Text style={tailwind`text-red-700 text-sm`}>
+            <View style={tailwind`mx-3 mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl flex-row items-center`}>
+                <MaterialIcon name="error-outline" size={18} color="#f87171" />
+                <Text style={tailwind`text-gray-600 text-sm ml-2 flex-1`}>
                     {error?.global}
                 </Text>
             </View>
@@ -378,15 +413,22 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         <View style={tailwind`p-2`}>
           {loading ? (
             <View style={tailwind`bg-white rounded-xl p-8 items-center shadow-sm`}>
-              <ActivityIndicator size="large" color="#3B82F6" />
-              <Text style={tailwind`text-gray-600 mt-4`}>Loading standings...</Text>
+              <ActivityIndicator size="large" color="#f87171" />
+              <Text style={tailwind`text-gray-500 mt-4`}>Loading standings...</Text>
             </View>
           ) : standings?.length > 0 ? (
             standings.filter(group => group.group_name)
                 .map((group, index) => (
-                    <View key={index} style={tailwind`mb-2 rounded-l shadow-lg bg-white p-2`}>
-                        <View style={tailwind``}>
-                            <Text style={tailwind`text-black text-lg font-bold`}>
+                    <View
+                      key={index}
+                      style={[
+                        tailwind`mb-3 rounded-2xl bg-white overflow-hidden`,
+                        {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1}
+                      ]}
+                    >
+                        <View style={tailwind`px-4 pt-3 pb-2 flex-row items-center`}>
+                            <View style={tailwind`w-1 h-5 bg-red-400 rounded-full mr-2.5`} />
+                            <Text style={tailwind`text-gray-900 text-base font-bold`}>
                                 {group.group_name}
                             </Text>
                         </View>
@@ -395,12 +437,17 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                 ))
 
           ) : (
-            <View style={tailwind`bg-white rounded-xl p-12 items-center shadow-sm`}>
-              <Text style={tailwind`text-6xl mb-4`}>📊</Text>
-              <Text style={tailwind`text-xl font-semibold text-gray-800 mb-2`}>
+            <View style={[
+              tailwind`bg-white rounded-2xl p-12 items-center`,
+              {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1}
+            ]}>
+              <View style={tailwind`w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-4`}>
+                <MaterialIcon name="leaderboard" size={32} color="#d1d5db" />
+              </View>
+              <Text style={tailwind`text-lg font-semibold text-gray-900 mb-1`}>
                 No Standings Yet
               </Text>
-              <Text style={tailwind`text-gray-500 text-center`}>
+              <Text style={tailwind`text-sm text-gray-400 text-center`}>
                 Create your first tournament standing to get started
               </Text>
             </View>
@@ -417,8 +464,9 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         >
           <View style={tailwind`flex-1 justify-end bg-black/50`}>
             <View style={tailwind`bg-white rounded-t-3xl p-6`}>
+              <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
               <View style={tailwind`flex-row justify-between items-center mb-6`}>
-                <Text style={tailwind`text-2xl font-bold text-gray-900`}>
+                <Text style={tailwind`text-xl font-bold text-gray-900`}>
                   Create Standing
                 </Text>
                 <Pressable
@@ -433,24 +481,26 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                 <View style={tailwind`gap-4`}>
                   {/* Selected Group Display */}
                   {selectedGroup && (
-                    <View style={tailwind`bg-green-50 p-4 rounded-xl border border-green-200`}>
-                      <Text style={tailwind`text-green-800 font-medium`}>
-                        Selected Group: {selectedGroup.name}
+                    <View style={tailwind`bg-red-50 p-4 rounded-xl border border-red-100 flex-row items-center`}>
+                      <MaterialIcon name="check-circle" size={18} color="#f87171" />
+                      <Text style={tailwind`text-gray-700 font-medium ml-2`}>
+                        Selected: <Text style={tailwind`text-red-400 font-bold`}>{selectedGroup.name}</Text>
                       </Text>
                     </View>
                   )}
 
                   {/* Action Buttons */}
-                  <View style={tailwind`flex-row gap-4`}>
+                  <View style={tailwind`flex-row gap-3`}>
                     <Pressable
                       onPress={() => setIsModalGroupVisible(true)}
-                      style={tailwind`flex-1 p-4 bg-blue-600 rounded-xl items-center`}
+                      style={tailwind`flex-1 p-4 bg-red-400 rounded-xl items-center flex-row justify-center`}
                     >
-                      <Text style={tailwind`text-white font-semibold text-lg`}>
-                        📁 Select Group
+                      <MaterialIcon name="folder-open" size={20} color="#fff" />
+                      <Text style={tailwind`text-white font-semibold text-base ml-2`}>
+                        Select Group
                       </Text>
                     </Pressable>
-                    
+
                     <Pressable
                       onPress={() => {
                         if (selectedGroup) {
@@ -460,15 +510,19 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                         }
                       }}
                       style={[
-                        tailwind`flex-1 p-4 rounded-xl items-center`,
-                        selectedGroup 
-                          ? tailwind`bg-green-600` 
-                          : tailwind`bg-gray-300`
+                        tailwind`flex-1 p-4 rounded-xl items-center flex-row justify-center`,
+                        selectedGroup
+                          ? tailwind`bg-gray-900`
+                          : tailwind`bg-gray-200`
                       ]}
                       disabled={!selectedGroup}
                     >
-                      <Text style={tailwind`text-white font-semibold text-lg`}>
-                        👥 Add Teams
+                      <MaterialIcon name="group-add" size={20} color={selectedGroup ? "#fff" : "#9ca3af"} />
+                      <Text style={[
+                        tailwind`font-semibold text-base ml-2`,
+                        selectedGroup ? tailwind`text-white` : tailwind`text-gray-400`
+                      ]}>
+                        Add Teams
                       </Text>
                     </Pressable>
                   </View>
@@ -488,16 +542,17 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         >
           <View style={tailwind`flex-1 justify-end bg-black/50`}>
             <View style={tailwind`bg-white rounded-t-3xl h-96`}>
-              <View style={tailwind`p-6 border-b border-gray-200`}>
+              <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mt-3`} />
+              <View style={tailwind`p-6 border-b border-gray-100`}>
                 <View style={tailwind`flex-row justify-between items-center mb-4`}>
                   <Text style={tailwind`text-xl font-bold text-gray-900`}>
                     Select Group
                   </Text>
                   <Pressable
                     onPress={() => setCreateGroupMode(!createGroupMode)}
-                    style={tailwind`px-3 py-1 bg-blue-100 rounded-full`}
+                    style={tailwind`px-3 py-1.5 bg-red-50 rounded-full`}
                   >
-                    <Text style={tailwind`text-blue-600 font-medium text-sm`}>
+                    <Text style={tailwind`text-red-400 font-medium text-sm`}>
                       {createGroupMode ? 'Cancel' : '+ New'}
                     </Text>
                   </Pressable>
@@ -510,23 +565,21 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                       placeholder="Enter group name"
                       value={newGroupName}
                       onChangeText={setNewGroupName}
-                      style={tailwind`border border-gray-300 rounded-lg p-3`}
+                      style={tailwind`bg-gray-100 rounded-xl p-3 text-sm text-gray-900`}
+                      placeholderTextColor="#9ca3af"
                     />
-                    <View style={tailwind`flex-row gap-2`}>
-                      <Pressable
-                        onPress={handleCreateGroup}
-                        disabled={loading}
-                        style={tailwind`flex-1 p-3 bg-green-600 rounded-lg items-center`}
-                      >
-                        <Text style={tailwind`text-white font-medium`}>
-                          {loading ? 'Creating...' : 'Create Group'}
-                        </Text>
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      onPress={handleCreateGroup}
+                      disabled={loading}
+                      style={tailwind`p-3 bg-red-400 rounded-xl items-center`}
+                    >
+                      <Text style={tailwind`text-white font-medium`}>
+                        {loading ? 'Creating...' : 'Create Group'}
+                      </Text>
+                    </Pressable>
                   </View>
                 )}
               </View>
-
               <FlatList
                 data={groups}
                 keyExtractor={(item) => item.id.toString()}
@@ -541,9 +594,9 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
 
               <Pressable
                 onPress={() => setIsModalGroupVisible(false)}
-                style={tailwind`p-4 bg-gray-100 items-center`}
+                style={tailwind`p-4 items-center border-t border-gray-100`}
               >
-                <Text style={tailwind`text-gray-600 font-medium`}>Close</Text>
+                <Text style={tailwind`text-gray-500 font-medium`}>Close</Text>
               </Pressable>
             </View>
           </View>
@@ -559,19 +612,24 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         >
           <View style={tailwind`flex-1 justify-end bg-black/50`}>
             <View style={tailwind`bg-white rounded-t-3xl h-5/6`}>
+              <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mt-3`} />
               {/* Header */}
-              <View style={tailwind`p-6 border-b border-gray-200`}>
+              <View style={tailwind`p-6 border-b border-gray-100`}>
                 <Text style={tailwind`text-xl font-bold text-gray-900 mb-2`}>
                   Add Teams to {selectedGroup?.name}
                 </Text>
                 
                 {/* Search Bar */}
-                <TextInput
-                  placeholder="Search teams..."
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  style={tailwind`border border-gray-300 rounded-lg p-3 mb-3`}
-                />
+                <View style={tailwind`bg-gray-100 rounded-xl flex-row items-center px-3 mb-3`}>
+                  <MaterialIcon name="search" size={20} color="#9ca3af" />
+                  <TextInput
+                    placeholder="Search teams..."
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    style={tailwind`flex-1 p-3 text-sm text-gray-900`}
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
 
                 {/* Bulk Actions */}
                 <View style={tailwind`flex-row justify-between items-center`}>
@@ -581,17 +639,17 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                   <View style={tailwind`flex-row gap-2`}>
                     <Pressable
                       onPress={() => handleBulkSelect(true)}
-                      style={tailwind`px-3 py-1 bg-blue-100 rounded`}
+                      style={tailwind`px-3 py-1.5 bg-red-50 rounded-full`}
                     >
-                      <Text style={tailwind`text-blue-600 text-xs font-medium`}>
+                      <Text style={tailwind`text-red-400 text-xs font-medium`}>
                         Select All
                       </Text>
                     </Pressable>
                     <Pressable
                       onPress={() => handleBulkSelect(false)}
-                      style={tailwind`px-3 py-1 bg-gray-100 rounded`}
+                      style={tailwind`px-3 py-1.5 bg-gray-100 rounded-full`}
                     >
-                      <Text style={tailwind`text-gray-600 text-xs font-medium`}>
+                      <Text style={tailwind`text-gray-500 text-xs font-medium`}>
                         Clear All
                       </Text>
                     </Pressable>
@@ -622,13 +680,18 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                   style={[
                     tailwind`p-4 rounded-xl items-center`,
                     (loading || selectedTeams.length === 0)
-                      ? tailwind`bg-gray-300`
-                      : tailwind`bg-blue-600`
+                      ? tailwind`bg-gray-200`
+                      : tailwind`bg-red-400`
                   ]}
                 >
-                  <Text style={tailwind`text-white font-semibold text-lg`}>
-                    {loading 
-                      ? 'Adding Teams...' 
+                  <Text style={[
+                    tailwind`font-semibold text-base`,
+                    (loading || selectedTeams.length === 0)
+                      ? tailwind`text-gray-400`
+                      : tailwind`text-white`
+                  ]}>
+                    {loading
+                      ? 'Adding Teams...'
                       : `Add ${selectedTeams.length} Team${selectedTeams.length !== 1 ? 's' : ''}`
                     }
                   </Text>

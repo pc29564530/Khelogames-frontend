@@ -145,7 +145,8 @@ const TournamentPage = ({ route }) => {
           >
             <Pressable
               onPress={() => navigation.goBack()}
-              style={tailwind`absolute left-2 top-3`}
+              style={tailwind`absolute left-3 top-2 p-1.5`}
+              hitSlop={12}
             >
               <MaterialIcons name="arrow-back" size={22} color="white" />
             </Pressable>
@@ -153,7 +154,7 @@ const TournamentPage = ({ route }) => {
             {/* Trophy + Title animated separately */}
             <View style={tailwind`items-center`}>
               <Animated.View style={trophyStyle}>
-                <FontAwesome name="trophy" size={56} color="gold" />
+                <FontAwesome name="trophy" size={56} color="white" />
               </Animated.View>
               <Animated.View style={titleStyle}>
                 <Text style={tailwind`text-xl text-white`}>
@@ -164,7 +165,8 @@ const TournamentPage = ({ route }) => {
             {(currentRole === "admin" || currentRole === "manager") && (
                 <Pressable
                   onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
-                  style={tailwind`absolute right-3 top-3`}
+                  style={tailwind`absolute right-3 top-2 p-1.5`}
+                  hitSlop={12}
                 >
                   <MaterialIcons name="settings" size={22} color="white" />
                 </Pressable>

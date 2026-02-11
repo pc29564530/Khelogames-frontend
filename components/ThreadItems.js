@@ -20,70 +20,55 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
   }
   return (
     <Pressable onPress={() => navigation.navigate("ThreadComment", item={item} )} style={tailwind`bg-white mb-2 shadow-lg`}>
-      <View>
-        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => handleUser({profilePublicID: item?.profile?.public_id, navigation})}>
-          {item?.profile?.avatar_url ? (
-            <Image source={{ uri: item?.profile?.avatar_url }} style={tailwind`w-12 h-12 aspect-w-1 aspect-h-1 rounded-full bg-red-400`} />
-          ) : (
-            <View style={tailwind`w-12 h-12 rounded-12 bg-red-400 items-center justify-center`}>
-              <Text style={tailwind`text-white text-6x3`}>
-                NA
-              </Text>
-            </View>
-          )}
-          <View style={tailwind`ml-3`}>
-            <View>
-              <Text style={tailwind`font-bold text-black`}>{item && item.profile.full_name ? item.profile.full_name : ''}</Text>
-            </View>
-            <View style={tailwind`flex-row gap-1`}>
-              <Text style={tailwind`text-black`}>@{item.profile.username}</Text>
-              <Text style={tailwind`text-black`}>-</Text>
-              <Text style={tailwind`text-black`}>{formattedDate(item.created_at)}</Text>
-              <Text style={tailwind`text-black`}>{formattedTime(item.created_at)}</Text>
-            </View>
+      <Pressable style={tailwind`flex-row items-center px-4 pt-3 pb-2`} onPress={() => handleUser({profilePublicID: item?.profile?.public_id, navigation})}>
+        {item?.profile?.avatar_url ? (
+          <Image source={{ uri: item.profile.avatar_url }} style={tailwind`w-11 h-11 rounded-full bg-gray-200`} />
+        ) : (
+          <View style={tailwind`w-11 h-11 rounded-full bg-red-400 items-center justify-center`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>
+              {item?.profile?.full_name?.charAt(0)?.toUpperCase() || '?'}
+            </Text>
           </View>
+        )}
+        <View style={tailwind`ml-3 flex-1`}>
+          <Text style={tailwind`font-bold text-black text-sm`}>{item?.profile?.full_name || ''}</Text>
+          <View style={tailwind`flex-row items-center`}>
+            <Text style={tailwind`text-gray-500 text-xs`}>@{item.profile.username}</Text>
+            <Text style={tailwind`text-gray-300 text-xs mx-1`}>&middot;</Text>
+            <Text style={tailwind`text-gray-500 text-xs`}>{formattedDate(item.created_at)}</Text>
+          </View>
+        </View>
+      </Pressable>
 
-        </Pressable>
-      </View>
-      <Text style={tailwind`text-black p-3 pl-2`}>{item.content}</Text>
+      {/* Content */}
+      <Text style={tailwind`text-black text-sm px-4 pb-3 leading-5`}>{item.content}</Text>
+
+      {/* Media */}
       {item.media_type === 'image/jpg' && (
-        <Image style={tailwind`w-full h-80 aspect-w-1 aspect-h-1`} source={{ uri: item.media_url }} />
+        <Image style={tailwind`w-full h-80`} source={{ uri: item.media_url }} resizeMode="cover" />
       )}
       {item.media_type === 'video/mp4' && (
-        <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} onFullscreenPlayerWillPresent={() => {handleFullScreen()}} onVolumeChange={()=>{handleVolume()}} resizeMode='cover'/>
+        <Video style={tailwind`w-full h-80`} source={{ uri: item.media_url }} controls={true} resizeMode='cover'/>
       )}
-      <View style={tailwind`p-2`}>
-        <Text style={tailwind`text-black`}>{item.like_count} Likes</Text>
+
+      {/* Engagement stats */}
+      <View style={tailwind`px-4 py-2`}>
+        <Text style={tailwind`text-gray-500 text-xs`}>{item.like_count} likes</Text>
       </View>
-      <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
-      <View style={tailwind`flex-row justify-evenly gap-50 mb-2`}>
-        <Pressable style={tailwind`items-center`} onPress={() => handleLikes({threadPublicID: item.public_id, dispatch, axiosInstance})}>
-          <FontAwesome
-            name="thumbs-o-up"
-            color="black"
-            size={20}
-          />
-          <Text style={tailwind`text-black`}>Like</Text>
+
+      {/* Divider */}
+      <View style={tailwind`h-px bg-gray-100 mx-4`} />
+
+      {/* Action buttons */}
+      <View style={tailwind`flex-row justify-around py-2`}>
+        <Pressable style={tailwind`flex-row items-center px-4 py-1`} onPress={() => handleLikes({threadPublicID: item.public_id, dispatch, axiosInstance})}>
+          <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
+          <Text style={tailwind`text-gray-500 text-xs ml-2`}>Like</Text>
         </Pressable>
-        {handleComment ? (
-          <Pressable style={tailwind`items-center`} onPress={handleComment}>
-            <FontAwesome
-              name="comment-o"
-              color="white"
-              size={20}
-            />
-            <Text style={tailwind`text-black`}>Comment</Text>
-          </Pressable>
-        ):(
-        <Pressable style={tailwind`items-center`} onPress={() => handleThreadComment({item, threadPublicID: item.public_id,  navigation})}>
-          <FontAwesome
-            name="comment-o"
-            color="black"
-            size={20}
-          />
-          <Text style={tailwind`text-black`}>Comment</Text>
+        <Pressable style={tailwind`flex-row items-center px-4 py-1`} onPress={handleComment ? handleComment : () => handleThreadComment({item, threadPublicID: item.public_id, navigation})}>
+          <FontAwesome name="comment-o" color="#6B7280" size={18} />
+          <Text style={tailwind`text-gray-500 text-xs ml-2`}>Comment</Text>
         </Pressable>
-        )}
       </View>
     </Pressable>
   );

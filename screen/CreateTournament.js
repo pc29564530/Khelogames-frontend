@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import { useNavigation } from '@react-navigation/native';
@@ -140,16 +141,9 @@ const CreateTournament = () => {
                 country: country,
             };
 
-            const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.post(
             `${BASE_URL}/${game.name}/createTournament`,
-            data,
-            {
-                headers: {
-                "Authorization": `Bearer ${authToken}`,
-                "Content-Type": "application/json",
-                },
-            }
+            data
             );
 
 
@@ -195,7 +189,7 @@ const CreateTournament = () => {
       headerLeft: ()=> (
         <View style={tailwind`flex-row items-center items-start justify-between gap-2 p-2`}>
             <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
-            <FontAwesome name="trophy" size={24} color="gold" />
+            <FontAwesome name="trophy" size={24} color="white" />
             <View style={tailwind`items-center`}>
                 <Text style={tailwind`text-xl text-white`}>Create Tournament</Text>
             </View>
@@ -216,163 +210,167 @@ const CreateTournament = () => {
       };
 
     return (
-        <ScrollView style={tailwind`flex-1 bg-gray-50 px-6 py-4`}>
+        <ScrollView style={tailwind`flex-1 bg-gray-50`} contentContainerStyle={tailwind`px-5 py-5 pb-12`}>
             {error?.global && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
-                        *{error?.global}
-                    </Text>
-                </View> 
-            )}
-            <View style={tailwind`mb-4`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Tournament Name*
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={name}
-                onChangeText={setName}
-                placeholder="Enter your tournament name"
-                placeholderTextColor="#9CA3AF"
-              />
-              {(error?.fields?.name || error?.fields?.tournamentName) && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.name || error?.fields.tournamentName}
-                </Text>
-              )}
-            </View>
-            <View style={tailwind`mb-4`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                City *
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={city}
-                onChangeText={setCity}
-                placeholder="Enter your city"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields.city && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.city}
-                </Text>
-              )}
-            </View>
-            <View style={tailwind`mb-4`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                State *
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={state}
-                onChangeText={setState}
-                placeholder="Enter your state"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields.state && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.state}
-                </Text>
-              )}
-            </View>
-            <View style={tailwind`mb-4`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Country *
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={country}
-                onChangeText={setCountry}
-                placeholder="Enter your full name"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields.country && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.country}
-                </Text>
-              )}
-            </View>
-            {/* Date Picker */}
-            <View>
-              <Pressable
-                    onPress={() => setIsDurationVisible(true)}
-                    style={tailwind`flex-row justify-between items-center border border-gray-300 p-4 bg-white rounded-md shadow-md mb-2`}
-                >
-                    <Text style={tailwind`text-gray-600 text-lg`}>
-                        {startTimestamp ? startTimestamp: 'Select Start Date'}
-                    </Text>
-                    <AntDesign name="calendar" size={20} color="gray" />
-                </Pressable>
-                {(error?.fields.startOn || error?.fields.start_timestamp) && (
-                    <Text style={tailwind`text-red-500 text-sm mb-4`}>
-                        *{error.fields.start_timestamp || error?.fields.startOn}
-                    </Text>
-                )}
-            </View>
-
-            <View style={tailwind`mb-2`}>
-                <Text style={tailwind`text-lg text-gray-700 mb-2`}>Stage</Text>
-                <View style={tailwind`flex-row justify-between`}>
-                    {Stages.map((item, index) => (
-                    <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-md bg-white`, stage===item?tailwind`bg-red-400`:tailwind`bg-white`]}>
-                        <Text style={tailwind`text-black text-center`}>{item}</Text>
-                    </Pressable>
-                    ))}
+                <View style={tailwind`mb-4 p-3.5 bg-white rounded-xl border border-gray-100`}>
+                    <View style={tailwind`flex-row items-center`}>
+                        <MaterialIcons name="error-outline" size={18} color="#f87171" />
+                        <Text style={tailwind`text-red-400 text-sm ml-2 flex-1`}>
+                            {error?.global}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-            {error?.fields.stage && (
-                <Text style={tailwind`text-red-500 text-sm mb-4`}>
-                    *{error.fields.stage}
-                </Text>
-            )}
-            {/* Select Group Count */}
-            {(stage === "group" || stage === "league") && (
-                <TextInput
-                    style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
-                    placeholder="Group Count"
-                    keyboardType='numeric'
-                    placeholderTextColor="gray"
-                    value={groupCount}
-                    onChangeText={setGroupCount}
-                />
-            ) }
-            {error?.fields.groupCount && (
-                <Text style={tailwind`text-red-500 text-sm mb-4`}>
-                    *{error.fields.groupCount}
-                </Text>
             )}
 
-            {/* Max Team Per Group */}
-            {(stage === "Group" || stage === "League") && (
-                <TextInput
-                    style={tailwind`border p-4 text-lg rounded-md bg-white border-gray-300 shadow-md mb-4`}
-                    placeholder="Max Team Per Group"
-                    keyboardType='numeric'
-                    placeholderTextColor="gray"
-                    value={maxTeamGroup}
-                    onChangeText={setMaxGroupTeam}
-                />
-            )}
-            {stage === "Group" && error?.fields.maxTeamGroup && (
-                <Text style={tailwind`text-red-500 text-sm mb-4`}>
-                    *{error.fields.maxTeamGroup}
-                </Text>
-            )}
-            <View style={tailwind`border flex-row rounded-md bg-white border-gray-300 shadow-md mb-4 p-2`}>
-                <Text style={tailwind`ml-2 text-lg text-black-200 text-lg`}>Has Knockout Stage: </Text>
-                <View style={tailwind`flex-row items-center mb-2`}>
-                    <CheckBox
-                        value={isKnockout === true}
-                        onValueChange={() => {setIsKnockout(true)}}
+            {/* Form card */}
+            <View style={tailwind`bg-white rounded-2xl p-5 mb-4`}>
+                <View style={tailwind`mb-5`}>
+                  <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>
+                    Tournament Name
+                  </Text>
+                  <TextInput
+                    style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="e.g. Premier League 2025"
+                    placeholderTextColor="#D1D5DB"
+                  />
+                  {(error?.fields?.name || error?.fields?.tournamentName) && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1.5`}>
+                      {error.fields.name || error?.fields.tournamentName}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Location row */}
+                <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Location</Text>
+                <View style={tailwind`flex-row mb-5`}>
+                  <View style={tailwind`flex-1 mr-2`}>
+                    <TextInput
+                      style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                      value={city}
+                      onChangeText={setCity}
+                      placeholder="City"
+                      placeholderTextColor="#D1D5DB"
                     />
+                    {error?.fields.city && (
+                      <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.city}</Text>
+                    )}
+                  </View>
+                  <View style={tailwind`flex-1`}>
+                    <TextInput
+                      style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                      value={state}
+                      onChangeText={setState}
+                      placeholder="State"
+                      placeholderTextColor="#D1D5DB"
+                    />
+                    {error?.fields.state && (
+                      <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.state}</Text>
+                    )}
+                  </View>
                 </View>
+                <View style={tailwind`mb-5`}>
+                  <TextInput
+                    style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                    value={country}
+                    onChangeText={setCountry}
+                    placeholder="Country"
+                    placeholderTextColor="#D1D5DB"
+                  />
+                  {error?.fields.country && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.country}</Text>
+                  )}
+                </View>
+
+                {/* Date Picker */}
+                <View style={tailwind`mb-5`}>
+                  <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Start Date</Text>
+                  <Pressable
+                        onPress={() => setIsDurationVisible(true)}
+                        style={tailwind`flex-row justify-between items-center py-3 px-4 bg-gray-50 rounded-xl`}
+                    >
+                        <Text style={startTimestamp ? tailwind`text-gray-900 text-sm` : tailwind`text-gray-300 text-sm`}>
+                            {startTimestamp ? startTimestamp : 'Select date & time'}
+                        </Text>
+                        <MaterialIcons name="calendar-today" size={18} color="#9CA3AF" />
+                    </Pressable>
+                    {(error?.fields.startOn || error?.fields.start_timestamp) && (
+                        <Text style={tailwind`text-red-400 text-xs mt-1.5`}>
+                            {error.fields.start_timestamp || error?.fields.startOn}
+                        </Text>
+                    )}
+                </View>
+
+                {/* Stage selector */}
+                <View style={tailwind`mb-5`}>
+                    <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Stage</Text>
+                    <View style={tailwind`flex-row bg-gray-50 rounded-xl p-1`}>
+                        {Stages.map((item, index) => (
+                        <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-2.5 rounded-lg`, stage===item && tailwind`bg-red-400`]}>
+                            <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:tailwind`text-gray-400`]}>{item}</Text>
+                        </Pressable>
+                        ))}
+                    </View>
+                    {error?.fields.stage && (
+                        <Text style={tailwind`text-red-400 text-xs mt-1.5`}>
+                            {error.fields.stage}
+                        </Text>
+                    )}
+                </View>
+
+                {/* Group Count */}
+                {(stage === "group" || stage === "league" || stage === "Group" || stage === "League") && (
+                    <View style={tailwind`mb-5`}>
+                        <TextInput
+                            style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                            placeholder="Group Count"
+                            keyboardType='numeric'
+                            placeholderTextColor="#D1D5DB"
+                            value={groupCount}
+                            onChangeText={setGroupCount}
+                        />
+                        {error?.fields.groupCount && (
+                            <Text style={tailwind`text-red-400 text-xs mt-1.5`}>{error.fields.groupCount}</Text>
+                        )}
+                    </View>
+                )}
+
+                {/* Max Team Per Group */}
+                {(stage === "Group" || stage === "League") && (
+                    <View style={tailwind`mb-5`}>
+                        <TextInput
+                            style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                            placeholder="Max Team Per Group"
+                            keyboardType='numeric'
+                            placeholderTextColor="#D1D5DB"
+                            value={maxTeamGroup}
+                            onChangeText={setMaxGroupTeam}
+                        />
+                        {stage === "Group" && error?.fields.maxTeamGroup && (
+                            <Text style={tailwind`text-red-400 text-xs mt-1.5`}>{error.fields.maxTeamGroup}</Text>
+                        )}
+                    </View>
+                )}
+
+                {/* Knockout toggle */}
+                <Pressable
+                    onPress={() => setIsKnockout(!isKnockout)}
+                    style={tailwind`flex-row items-center justify-between py-3 px-4 bg-gray-50 rounded-xl mb-2`}
+                >
+                    <Text style={tailwind`text-sm text-gray-900`}>Has Knockout Stage</Text>
+                    <View style={[tailwind`w-11 h-6 rounded-full justify-center px-0.5`, isKnockout ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}>
+                        <View style={[tailwind`w-5 h-5 rounded-full bg-white`, isKnockout && tailwind`self-end`]} />
+                    </View>
+                </Pressable>
             </View>
+
             {/* Submit Button */}
             <Pressable
-                style={tailwind`bg-red-400 py-3 rounded-md bg-white items-center shadow-md border border-gray-300 `}
+                style={[tailwind`py-4 rounded-2xl items-center bg-red-400`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4}]}
                 onPress={() => handleCreateTournament()}
             >
-                <Text style={tailwind`text-black-200 text-lg font-semibold`}>
+                <Text style={tailwind`text-white text-base font-semibold`}>
                     Create Tournament
                 </Text>
             </Pressable>
