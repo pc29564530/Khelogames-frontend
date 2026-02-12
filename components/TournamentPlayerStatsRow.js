@@ -4,41 +4,94 @@ import { View, Text, Image } from 'react-native';
 import tailwind from 'twrnc';
 import TournamentPlayerStatsModal from './modals/cricket/TournamentStats';
 
-const TournamentPlayerStatsRow = ({ player, type }) => {
+const TournamentPlayerStatsRow = ({ player, type, rank }) => {
+  const getStatDisplay = () => {
+    const value = player.stat_value;
+    switch(type) {
+      case 'mostRuns':
+        return `${value} Runs`; 
+      case 'highestRuns':
+        return `${value} Runs`;
+      case 'battingStrike':
+        return `${value} SR`;
+      case 'battingAverage':
+        return `${value} Avg`;
+      case 'bowlingEconomy':
+        return `${value} Econ`;
+      case 'bowlingAverage':
+        return `${value} Avg`;
+      case 'bowlingStrike':
+        return `${value} SR`;
+      case 'fiveWicketsHaul':
+        return `${value} 5W Hauls`;
+      case 'mostWickets':
+        return `${value} Wickets`;
+      case 'mostGoals':
+        return `${value} Goals`;
+      case 'mostSixes':
+        return `${value} Sixes`;
+      case 'mostFours':
+        return `${value} Fours`;
+      case 'mostFifties':
+        return `${value} Fifties`;
+      case 'mostHundreds':
+        return `${value} Hundreds`;
+      case 'mostYellowCards':
+        return value;
+      case 'mostRedCards':
+        return value;
+      default:
+        return value;
+    }
+  };
+
+  const getRankStyle = () => {
+    switch(rank) {
+      case 1:
+        return 'bg-yellow-100 text-yellow-700';
+      case 2:
+        return 'bg-gray-200 text-gray-700';
+      case 3:
+        return 'bg-orange-100 text-orange-700';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
   return (
     <View
       key={player.id}
-      style={tailwind`flex-row justify-between players-center py-3 border-b border-gray-200`}>
-      <View style={tailwind`flex-row players-center`}>
-        <Image
-          source={{ uri: player.image || 'https://via.placeholder.com/40' }}
-          style={tailwind`h-10 w-10 rounded-full bg-gray-200 mr-3`}
-        />
-        <View>
-          <Text style={tailwind`font-semibold text-base text-black`}>
-            {player.player_name}
+      style={tailwind`flex-row justify-between items-center py-3 border-b border-gray-100 last:border-b-0`}>
+      <View style={tailwind`flex-row items-center flex-1`}>
+        {rank && (
+          <View style={tailwind`w-6 h-6 rounded-full ${getRankStyle()} items-center justify-center mr-2`}>
+            <Text style={tailwind`text-xs font-bold`}>{rank}</Text>
+          </View>
+        )}
+        <View style={tailwind`w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-3`}>
+          {player.image ? (
+            <Image
+              source={{ uri: player.image }}
+              style={tailwind`w-10 h-10 rounded-full`}
+            />
+          ) : (
+            <Text style={tailwind`text-gray-600 font-bold`}>
+              {player.player_name?.charAt(0).toUpperCase() || '?'}
+            </Text>
+          )}
+        </View>
+        <View style={tailwind`flex-1`}>
+          <Text style={tailwind`font-semibold text-base text-gray-900`} numberOfLines={1}>
+            {player.player_name || 'Unknown Player'}
           </Text>
-          <Text style={tailwind`text-xs text-gray-500`}>{player.team_name}</Text>
+          <Text style={tailwind`text-xs text-gray-500 mt-0.5`} numberOfLines={1}>
+            {player.team_name || 'No Team'}
+          </Text>
         </View>
       </View>
-      <Text style={tailwind`text-base font-bold text-black`}>
-            {type === 'mostRuns' && `${player.stat_value} Runs`}
-            {type === 'highestRuns' && `${player.stat_value} Runs`}
-            {type === 'battingStrike' && `${player.stat_value}`}
-            {type === 'battingAverage' && `${player.stat_value}`}
-            {type === 'mostSixes' && `${player.stat_value} Sixes`}
-            {type === 'mostFours' && `${player.stat_value} Fours`}
-            {type === 'mostFifties' && `${player.stat_value} Fifties`}
-            {type === 'mostHundreds' && `${player.stat_value} Hundreds`}
-            {type === 'mostWickets' && `${player.stat_value}`}
-            {type === 'bowlingEconomy' && `${player.stat_value}`}
-            {type === 'bowlingAverage' && `${player.stat_value}`}
-            {type === 'bowlingStrike' && `${player.stat_value}`}
-            {type === 'fiveWicketsHaul' && `${player.stat_value}`}
-            {type === 'mostGoals' && `${player.stat_value}`}
-            {type === 'mostYellowCard' && `${player.stat_value}`}
-            {type === 'mostRedCard' && `${player.stat_value}`}
-        </Text>
+      <Text style={tailwind`text-base font-bold text-gray-900 ml-2`}>
+        {getStatDisplay()}
+      </Text>
     </View>
   );
 };

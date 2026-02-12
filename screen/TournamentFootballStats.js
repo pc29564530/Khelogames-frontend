@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, Image, FlatList, Dimensions} from 'react-native';
+import {View, Text, Pressable, Image, FlatList, Dimensions, ActivityIndicator} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import axiosInstance from './axios_config';
@@ -15,7 +15,8 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
     const [mostGoals, setMostGoals] = useState(null);
     const [mostYellowCards, setMostYellowCards] = useState(null);
     const [mostRedCards, setMostRedCards] = useState(null);
-    
+
+    const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const [modalData, setModalData] = useState(null);
@@ -49,6 +50,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
     useEffect(() => {
         const fetchGoals = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken");
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
                     headers: { 
@@ -64,11 +66,14 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                     fields: backendErrors,
                 })
                 console.log("Failed to fetch most goals: ", err);
+            } finally {
+                setLoading(false);
             }
         }
 
         const fetchYellowCards = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const data = {
                     tournament_id: tournament.id
@@ -79,7 +84,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                         'content-type': 'application/json'
                     }
                 })
-                setMostYellowCards(response.data || []);
+                setMostYellowCards(response.data.data || []);
             } catch (err) {
                 const backendErrors = err?.response?.data?.error.fields;
                 setError({
@@ -87,6 +92,8 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                     fields: backendErrors,
                 })
                 console.log("Failed to fetch yellow cards: ", err);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -110,6 +117,8 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                     fields: backendErrors,
                 })
                 console.error("Failed to fetch red cards: ", err);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -118,107 +127,104 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
         fetchRedCard();
     }, []);
 
+    // Helper to render stat card
+    const renderStatCard = (title, data, type) => {
+        const topPlayers = data?.length === 1 ? data?.slice(0,1) : [];
+
+        return (
+            <View style={tailwind`bg-white rounded-xl shadow-sm p-4 mb-3 mx-4`}>
+                <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                    <View style={tailwind`flex-row items-center`}>
+                        <Text style={tailwind`text-lg font-bold text-gray-900`}>
+                            {title}
+                        </Text>
+                    </View>
+                    {data && data.length > 0 && (
+                        <Pressable
+                            onPress={() => {
+                                setModalData(data);
+                                setModalTitle(title);
+                                setModalType(type);
+                                setModalVisible(true);
+                            }}
+                            style={tailwind`bg-gray-100 rounded-full px-3 py-2 flex-row items-center`}
+                        >
+                            <Text style={tailwind`text-gray-700 text-xs font-semibold mr-1`}>
+                                View All
+                            </Text>
+                            <AntDesign name="right" size={12} color="#374151" />
+                        </Pressable>
+                    )}
+                </View>
+
+                {loading ? (
+                    <View style={tailwind`py-8 items-center`}>
+                        <ActivityIndicator size="small" color="#EF4444" />
+                    </View>
+                ) : !data || data.length === 0 ? (
+                    <View style={tailwind`py-8 items-center`}>
+                        <Text style={tailwind`text-gray-400 text-sm`}>No data available</Text>
+                    </View>
+                ) : (
+                    <>
+                        <FlatList
+                            data={topPlayers}
+                            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+                            renderItem={({item, index}) => (
+                                <TournamentPlayerStatsRow
+                                    player={item}
+                                    type={type}
+                                    rank={index + 1}
+                                />
+                            )}
+                            scrollEnabled={false}
+                        />
+                    </>
+                )}
+            </View>
+        );
+    };
+
     return (
-        <View style={tailwind`flex-1 mb-4`}>
+        <View style={tailwind`flex-1`}>
             {error.global && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                <View style={tailwind`mx-4 mt-3 mb-3 p-3 bg-red-50 border border-red-200 rounded-lg`}>
                     <Text style={tailwind`text-red-700 text-sm`}>
                         {error?.global}
                     </Text>
                 </View>
             )}
-            {/* TODO: Check for start time stamp display the ui according to it. */}
-            {tournament.start_timestamp === currentDate && (
-                <></>
-            )}
-            <Animated.ScrollView 
+
+            <Animated.ScrollView
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 style={tailwind`flex-1`}
-                contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
+                contentContainerStyle={{paddingTop: 16, paddingBottom: 100, minHeight: sHeight + 100}}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                    <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                        <Text style={tailwind`text-lg font-semibold text-black`}>
-                            Most Goals
-                        </Text>
-                        <Pressable
-                            onPress={() => {
-                                setModalData(mostGoals);
-                                setModalTitle("Most Goals");
-                                setModalType("mostGoals");
-                                setModalVisible(true);
-                            }}>
-                            <AntDesign name="down" size={20} color="gray" />
-                        </Pressable>
+                {loading && !mostGoals && !mostYellowCards && !mostRedCards ? (
+                    <View style={tailwind`py-20 items-center`}>
+                        <ActivityIndicator size="large" color="#EF4444" />
+                        <Text style={tailwind`text-gray-500 mt-3`}>Loading stats...</Text>
                     </View>
-                    <FlatList
-                        data={showAll ? mostGoals : (mostGoals?.length >= 2 ? mostGoals?.slice(0,1) : [])}
-                        keyExtractor={item => item.id}
-                        renderItem={({item}) => (
-                            <TournamentPlayerStatsRow player={item} type={"mostGoals"}/>
-                        )}
-                    />
-                </View>
+                ) : (
+                    <>
+                        {renderStatCard("Most Goals", mostGoals, "mostGoals")}
+                        {renderStatCard("Most Yellow Cards", mostYellowCards, "mostYellowCards")}
+                        {renderStatCard("Most Red Cards", mostRedCards, "mostRedCards",)}
+                    </>
+                )}
+            </Animated.ScrollView>
 
-                {/* Section: Highest Runs */}
-                <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                    <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                        <Text style={tailwind`text-lg font-semibold text-black`}>
-                            Most Yellow Cards
-                        </Text>
-                        <Pressable
-                            onPress={() => {
-                                setModalData(mostYellowCards);
-                                setModalTitle("Most Yellow Cards");
-                                setModalType("mostYellowCards");
-                                setModalVisible(true);
-                            }}>
-                            <AntDesign name="down" size={20} color="gray" />
-                        </Pressable>
-                    </View>
-                    <FlatList
-                        data={showAll ? mostYellowCards : (mostYellowCards?.length >= 2 ? mostYellowCards?.slice(0,1) : [])}
-                        keyExtractor={item => item.id}
-                        renderItem={({item}) => (
-                            <TournamentPlayerStatsRow player={item} type={"mostYellowCards"}/>
-                        )}
-                    />
-                </View>
-                {/* Section: Most Sixes */}
-                <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                    <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                        <Text style={tailwind`text-lg font-semibold text-black`}>
-                            Most Red Cards
-                        </Text>
-                        <Pressable
-                            onPress={() => {
-                                setModalData(mostRedCards);
-                                setModalTitle("Most Red Cards");
-                                setModalType("mostRedCards");
-                                setModalVisible(true);
-                            }}>
-                            <AntDesign name="down" size={20} color="gray" />
-                        </Pressable>
-                    </View>
-                    <FlatList
-                        data={showAll ? mostRedCards : (mostRedCards?.length >= 2 ? mostRedCards?.slice(0,1) : [])}
-                        keyExtractor={item => item.id}
-                        renderItem={({item}) => (
-                            <TournamentPlayerStatsRow player={item} type={"mostRedCards"}/>
-                        )}
-                    />
-                </View>
-
-                { modalVisible && (<TournamentPlayerStatsModal
+            {modalVisible && (
+                <TournamentPlayerStatsModal
                     visible={modalVisible}
                     onClose={() => setModalVisible(false)}
                     title={modalTitle}
                     data={modalData}
                     type={modalType}
-                />)}
-            </Animated.ScrollView>
+                />
+            )}
         </View>
     );
 };

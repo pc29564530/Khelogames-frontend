@@ -1,39 +1,48 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, Image, FlatList} from 'react-native';
+import {View, Text, Pressable, FlatList, Dimensions, ActivityIndicator} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
 import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector } from 'react-redux';
-import { ScrollView } from 'native-base';
 import TournamentPlayerStatsModal from '../components/modals/cricket/TournamentStats';
 import TournamentPlayerStatsRow from '../components/TournamentPlayerStatsRow';
 import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 
-
 const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) => {
     const [selectedTab, setSelectedTab] = useState('batting');
-    //in this we need to get the player score and the current team 
+
+    // Batting stats
     const [mostRuns, setMostRuns] = useState(null);
-    const [showAll, setShowAll] = useState(false);
     const [highestRuns, setHighestRuns] = useState(null);
     const [mostSixes, setMostSixes] = useState(null);
-    
-    const [modalVisible, setModalVisible] = useState(false);
-    const [modalData, setModalData] = useState(null);
-    const [modalTitle, setModalTitle] = useState('');
-    const [modalType, setModalType] = useState('');
     const [mostFours, setMostFours] = useState(null);
     const [mostFifties, setMostFifties] = useState(null);
     const [mostHundreds, setMostHundreds] = useState(null);
+    const [battingAverage, setBattingAverage] = useState(null);
+    const [battingStrike, setBattingStrike] = useState(null);
+
+    // Bowling stats
     const [mostWickets, setMostWickets] = useState(null);
     const [bowlingAverage, setBowlingAverage] = useState(null);
     const [bowlingStrike, setBowlingStrike] = useState(null);
     const [bowlingEconomy, setBowlingEconomy] = useState(null);
     const [fiveWicketsHaul, setFiveWicketsHaul] = useState(null);
-    const [battingAverage, setBattingAverage] = useState(null);
-    const [battingStrike, setBattingStrike] = useState(null);
+
+    // UI states
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalData, setModalData] = useState(null);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalType, setModalType] = useState('');
+    const [error, setError] = useState({
+        global: null,
+        fields: {},
+    });
+
+    const game = useSelector(state => state.sportReducers.game);
+    const {height: sHeight} = Dimensions.get("window");
 
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
@@ -44,281 +53,150 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                 parentScrollY.value = event.contentOffset.y
             }
         }
-    })
+    });
 
-    const game = useSelector(state => state.sportReducers.game);
     useEffect(() => {
-        const fetchMostRunsByPlayer = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostRuns/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostRuns(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most runs by players: ", err);
-            }
-        }
-
-        const fetchHighestRunsByPlayer = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentHighestRuns/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setHighestRuns(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch highest individual runs by players: ", err);
-            }
-        }
-
-        const fetchMostSixes = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostSixes/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostSixes(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most sixes by players: ", err);
-            }
-        }
-
-        const fetchMostFours = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFours/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostFours(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most sixes by players: ", err);
-            }
-        }
-
-        const fetchMostFifties = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostFifties/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostFifties(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most sixes by players: ", err);
-            }
-        }
-
-        const fetchMostHundreds = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostHundreds/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostHundreds(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most sixes by players: ", err);
-            }
-        }
-
-        const fetchBowlingWickets = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentMostWickets/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostWickets(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch most wickets by players: ", err);
-            }
-        }
-
-        const fetchBowlingEconomy = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingEconomy/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setBowlingEconomy(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch bowling economy by players: ", err);
-            }
-        }
-
-        const fetchBowlingAverage = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingAverage/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setBowlingAverage(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch bowling average by players: ", err);
-            }
-        }
-
-        const fetchBowlingStrike = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBowlingStrike/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setBowlingStrike(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch bowling strike by players: ", err);
-            }
-        }
-
-        const fetchBowlingFiveWicketHaul = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentFiveWicketsHaul/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setFiveWicketsHaul(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch bowling strike by players: ", err);
-            }
-        }
-
-        const fetchBattingAverage = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingAverage/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setBattingAverage(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch batting average: ", err);
-            }
-        }
-
-        const fetchBattingStrike = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketTournamentBattingStrike/${tournament.public_id}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setBattingStrike(response.data || []);
-            } catch (err) {
-                console.error("Failed to fetch batting strike: ", err);
-            }
-        }
-
-        fetchMostRunsByPlayer()
-        fetchHighestRunsByPlayer()
-        fetchMostSixes()
-        fetchMostFours()
-        fetchMostFifties()
-        fetchMostHundreds()
-        fetchBowlingWickets()
-        fetchBowlingEconomy()
-        fetchBowlingAverage()
-        fetchBowlingStrike()
-        fetchBowlingFiveWicketHaul()
-        fetchBattingAverage()
-        fetchBattingStrike()
+        fetchAllStats();
     }, []);
 
+    const fetchAllStats = async () => {
+        setLoading(true);
+        await Promise.all([
+            // Batting
+            fetchMostRunsByPlayer(),
+            fetchHighestRunsByPlayer(),
+            fetchMostSixes(),
+            fetchMostFours(),
+            fetchMostFifties(),
+            fetchMostHundreds(),
+            fetchBattingAverage(),
+            fetchBattingStrike(),
+            // Bowling
+            fetchBowlingWickets(),
+            fetchBowlingEconomy(),
+            fetchBowlingAverage(),
+            fetchBowlingStrike(),
+            fetchBowlingFiveWicketHaul()
+        ]);
+        setLoading(false);
+    };
+
+    const fetchStat = async (endpoint, setter, statName) => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/${endpoint}/${tournament.public_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'content-type': 'application/json'
+                }
+            });
+            // Handle both response.data and response.data.data formats
+            const data = response.data?.data || response.data || [];
+            setter(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error(`Failed to fetch ${statName}:`, err);
+            setter([]);
+        }
+    };
+
+    const fetchMostRunsByPlayer = () => fetchStat('getCricketTournamentMostRuns', setMostRuns, 'most runs');
+    const fetchHighestRunsByPlayer = () => fetchStat('getCricketTournamentHighestRuns', setHighestRuns, 'highest runs');
+    const fetchMostSixes = () => fetchStat('getCricketTournamentMostSixes', setMostSixes, 'most sixes');
+    const fetchMostFours = () => fetchStat('getCricketTournamentMostFours', setMostFours, 'most fours');
+    const fetchMostFifties = () => fetchStat('getCricketTournamentMostFifties', setMostFifties, 'most fifties');
+    const fetchMostHundreds = () => fetchStat('getCricketTournamentMostHundreds', setMostHundreds, 'most hundreds');
+    const fetchBattingAverage = () => fetchStat('getCricketTournamentBattingAverage', setBattingAverage, 'batting average');
+    const fetchBattingStrike = () => fetchStat('getCricketTournamentBattingStrike', setBattingStrike, 'batting strike');
+    const fetchBowlingWickets = () => fetchStat('getCricketTournamentMostWickets', setMostWickets, 'most wickets');
+    const fetchBowlingEconomy = () => fetchStat('getCricketTournamentBowlingEconomy', setBowlingEconomy, 'bowling economy');
+    const fetchBowlingAverage = () => fetchStat('getCricketTournamentBowlingAverage', setBowlingAverage, 'bowling average');
+    const fetchBowlingStrike = () => fetchStat('getCricketTournamentBowlingStrike', setBowlingStrike, 'bowling strike');
+    const fetchBowlingFiveWicketHaul = () => fetchStat('getCricketTournamentFiveWicketsHaul', setFiveWicketsHaul, 'five wickets haul');
+
+    // Helper to render stat card
+    const renderStatCard = (title, data, type) => {
+        const topPlayers = data?.slice(0, 1) || [];
+
+        return (
+            <View style={tailwind`bg-white rounded-xl shadow-sm p-4 mb-3 mx-4`}>
+                <View style={tailwind`flex-row justify-between items-center mb-3`}>
+                    <View style={tailwind`flex-row items-center`}>
+                        <Text style={tailwind`text-lg font-bold text-gray-900`}>
+                            {title}
+                        </Text>
+                    </View>
+                    {data && data.length > 0 && (
+                        <Pressable
+                            onPress={() => {
+                                setModalData(data);
+                                setModalTitle(title);
+                                setModalType(type);
+                                setModalVisible(true);
+                            }}
+                            style={tailwind`bg-gray-100 rounded-full px-3 py-2 flex-row items-center`}
+                        >
+                            <Text style={tailwind`text-gray-700 text-xs font-semibold mr-1`}>
+                                View All
+                            </Text>
+                            <AntDesign name="right" size={12} color="#374151" />
+                        </Pressable>
+                    )}
+                </View>
+
+                {loading ? (
+                    <View style={tailwind`py-8 items-center`}>
+                        <ActivityIndicator size="small" color="#EF4444" />
+                    </View>
+                ) : !data || data.length === 0 ? (
+                    <View style={tailwind`py-8 items-center`}>
+                        <Text style={tailwind`text-gray-400 text-sm`}>No data available</Text>
+                    </View>
+                ) : (
+                    <>
+                        <FlatList
+                            data={topPlayers}
+                            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+                            renderItem={({item, index}) => (
+                                <TournamentPlayerStatsRow
+                                    player={item}
+                                    type={type}
+                                    rank={index + 1}
+                                />
+                            )}
+                            scrollEnabled={false}
+                        />
+                    </>
+                )}
+            </View>
+        );
+    };
+
     return (
-        <Animated.ScrollView 
-            onScroll={handlerScroll}
-            contentContainerStyle={{marginTop: 10}}
-        >
+        <View style={tailwind`flex-1`}>
+            {error.global && (
+                <View style={tailwind`mx-4 mt-3 mb-3 p-3 bg-red-50 border border-red-200 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error?.global}
+                    </Text>
+                </View>
+            )}
+
             {/* Tab Buttons */}
-            <View style={tailwind`flex-row justify-around mb-4`}>
-                {['batting', 'bowling', 'fielding'].map(tab => (
+            <View style={tailwind`flex-row justify-around mb-4 px-4 pt-4`}>
+                {['batting', 'bowling'].map(tab => (
                     <Pressable
                         key={tab}
                         onPress={() => setSelectedTab(tab)}
-                        style={tailwind`px-5 py-2 rounded-full ${
+                        style={tailwind`flex-1 mx-1 px-5 py-3 rounded-xl ${
                             selectedTab === tab
-                                ? 'bg-black'
-                                : 'bg-white border border-gray-300'
+                                ? 'bg-red-500'
+                                : 'bg-white border border-gray-200'
                         }`}>
                         <Text
-                            style={tailwind`${
+                            style={tailwind`text-center font-semibold ${
                                 selectedTab === tab
-                                    ? 'text-white font-semibold'
-                                    : 'text-black'
+                                    ? 'text-white'
+                                    : 'text-gray-700'
                             }`}>
                             {tab.toUpperCase()}
                         </Text>
@@ -326,340 +204,56 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                 ))}
             </View>
 
-            {selectedTab.toLowerCase() === "batting"  && (
-                <>
-                    {/* Section: Most Runs */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Runs
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostRuns);
-                                    setModalTitle("Most Runs");
-                                    setModalType("mostRuns");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostRuns : (mostRuns?.length > 2 ? mostRuns?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostRuns"}/>
-                            )}
-                        />
+            <Animated.ScrollView
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                style={tailwind`flex-1`}
+                contentContainerStyle={{paddingTop: 8, paddingBottom: 100, minHeight: sHeight + 100}}
+                showsVerticalScrollIndicator={false}
+            >
+                {loading && !mostRuns && !mostWickets ? (
+                    <View style={tailwind`py-20 items-center`}>
+                        <ActivityIndicator size="large" color="#EF4444" />
+                        <Text style={tailwind`text-gray-500 mt-3`}>Loading stats...</Text>
                     </View>
+                ) : (
+                    <>
+                        {selectedTab === "batting" && (
+                            <>
+                                {renderStatCard("Most Runs", mostRuns, "mostRuns")}
+                                {renderStatCard("Highest Score", highestRuns, "highestRuns")}
+                                {renderStatCard("Most Sixes", mostSixes, "mostSixes")}
+                                {renderStatCard("Most Fours", mostFours, "mostFours", "")}
+                                {renderStatCard("Batting Average", battingAverage, "battingAverage")}
+                                {renderStatCard("Strike Rate", battingStrike, "battingStrike")}
+                                {renderStatCard("Most Fifties", mostFifties, "mostFifties")}
+                                {renderStatCard("Most Hundreds", mostHundreds, "mostHundreds")}
+                            </>
+                        )}
 
-                    {/* Section: Highest Runs */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Hightest Runs
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(highestRuns);
-                                    setModalTitle("Highest Runs");
-                                    setModalType("highestRuns");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? highestRuns : (highestRuns?.length > 2 ? highestRuns?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"highestRuns"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Most Sixes */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Sixes
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostSixes);
-                                    setModalTitle("Most Sixes");
-                                    setModalType("mostSixes");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostSixes : (mostSixes?.length > 2 ? mostSixes?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostSixes"}/>
-                            )}
-                        />
-                    </View>
+                        {selectedTab === "bowling" && (
+                            <>
+                                {renderStatCard("Most Wickets", mostWickets, "mostWickets")}
+                                {renderStatCard("Best Economy", bowlingEconomy, "bowlingEconomy")}
+                                {renderStatCard("Best Average", bowlingAverage, "bowlingAverage")}
+                                {renderStatCard("Best Strike Rate", bowlingStrike, "bowlingStrike")}
+                                {renderStatCard("5-Wicket Hauls", fiveWicketsHaul, "fiveWicketsHaul")}
+                            </>
+                        )}
+                    </>
+                )}
+            </Animated.ScrollView>
 
-                    {/* Section: Most Fours */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Fours
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostFours);
-                                    setModalTitle("Most Fours");
-                                    setModalType("mostFours");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostFours : (mostFours?.length > 2 ? mostFours?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostFours"}/>
-                            )}
-                        />
-                    </View>
-
-                    {/* Section: Batting Average */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Batting Average
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(battingAverage);
-                                    setModalTitle("Batting Average");
-                                    setModalType("battingAverage");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? battingAverage : (battingAverage?.length > 2 ? battingAverage?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"battingAverage"}/>
-                            )}
-                        />
-                    </View>
-
-                    {/* Section: Batting Strike */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Batting Strike
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(battingStrike);
-                                    setModalTitle("Batting Strike");
-                                    setModalType("battingStrike");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? battingStrike : (battingStrike?.length > 2 ? battingStrike?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"battingStrike"}/>
-                            )}
-                        />
-                    </View>
-
-                    {/* Section: Most Fifties */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Fifties
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostFifties);
-                                    setModalTitle("Most Fifties");
-                                    setModalType("mostFifties");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostFifties : (mostFifties?.length > 2 ? mostFifties?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostFifties"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Most Hundreds */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Hundreds
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostHundreds);
-                                    setModalTitle("Most Hundreds");
-                                    setModalType("mostHundreds");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostHundreds : (mostHundreds?.length > 2 ? mostHundreds?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostHundreds"}/>
-                            )}
-                        />
-                    </View>
-                </>
-            )}
-            {selectedTab === "bowling" && (
-                <>
-                    {/* Section: Most Wickets */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Most Wickets
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(mostWickets);
-                                    setModalTitle("Most Wickets");
-                                    setModalType("mostWickets");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? mostWickets : (mostWickets?.length > 2 ? mostWickets?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"mostWickets"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Best Economy Rate */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Best Economy Rate
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(bowlingEconomy);
-                                    setModalTitle("Best Economy");
-                                    setModalType("bowlingEconomy");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? bowlingEconomy : (bowlingEconomy?.length > 2 ? bowlingEconomy?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"bowlingEconomy"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Best Bowling Average */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Best Bowling Average
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setModalData(bowlingAverage);
-                                    setModalTitle("Average Rate");
-                                    setModalType("bowlingAverage");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? bowlingAverage : (bowlingAverage?.length > 2 ? bowlingAverage?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"bowlingAverage"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Best Strike Rate */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Best Strike Rate
-                            </Text>
-                           <Pressable
-                                onPress={() => {
-                                    setModalData(bowlingStrike);
-                                    setModalTitle("Best Strike Rate");
-                                    setModalType("bowlingStrike");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? bowlingStrike : (bowlingStrike?.length > 2 ? bowlingStrike?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"bowlingStrike"}/>
-                            )}
-                        />
-                    </View>
-                    {/* Section: Five Wicket Haul */}
-                    <View style={tailwind`bg-white rounded-2xl shadow p-4 mb-4`}>
-                        <View style={tailwind`flex-row justify-between items-center mb-3`}>
-                            <Text style={tailwind`text-lg font-semibold text-black`}>
-                                Five Wickets Haul
-                            </Text>
-                           <Pressable
-                                onPress={() => {
-                                    setModalData(fiveWicketsHaul);
-                                    setModalTitle("Five Wickets Haul");
-                                    setModalType("fiveWicketsHaul");
-                                    setModalVisible(true);
-                                }}>
-                                <AntDesign name="down" size={20} color="gray" />
-                            </Pressable>
-                        </View>
-                        <FlatList
-                            data={showAll ? fiveWicketsHaul : (fiveWicketsHaul?.length > 2 ? fiveWicketsHaul?.slice(0,1) : [])}
-                            keyExtractor={item => item.id}
-                            renderItem={({item}) => (
-                                <TournamentPlayerStatsRow player={item} type={"fiveWicketsHaul"}/>
-                            )}
-                        />
-                    </View>
-                </>
-            )}
-
-            { modalVisible && (<TournamentPlayerStatsModal
+            {modalVisible && (
+                <TournamentPlayerStatsModal
                     visible={modalVisible}
                     onClose={() => setModalVisible(false)}
                     title={modalTitle}
                     data={modalData}
                     type={modalType}
-                />)}
-        </Animated.ScrollView>
+                />
+            )}
+        </View>
     );
 };
 
