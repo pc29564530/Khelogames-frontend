@@ -49,52 +49,27 @@ const CreateTournament = () => {
 
 
     // Get location based on IP when screen is focused
+
     useFocusEffect(
-        React.useCallback(() => {
-            let isActive = true;
-            const getIPLocation = async () => {
-                try {
-                    console.log("Getting IP-based location...");
-                    // Try BigDataCloud API
-                    const response = await fetch('http://ip-api.com/json/', {
-                        method: 'GET',
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    console.log("IP location response status:", response);
-
-                    if (!isActive) return;
-
-                    const data = await response.json();
-                    console.log("IP location response:", data);
-
-                    if (data && data.status === 'success') {
-                        let cleanedRegion = data.regionName || data.region || '';
-
-                        // Remove common prefixes/suffixes to make region names cleaner
-                        cleanedRegion = cleanedRegion
-                            .replace(/^National Capital Territory of /i, '')
-                            .replace(/^Union Territory of /i, '')
-                            .replace(/^State of /i, '')
-                            .trim();
-
-                        setCity(data.city || '');
-                        setState(cleanedRegion);
-                        setCountry(data.country || '');
-                        console.log("✓ Location set:");
-                        console.log("  City:", data.city);
-                        console.log("  State:", cleanedRegion);
-                        console.log("  Country:", data.country);
+            React.useCallback(() => {
+                let isActive = true;
+    
+                const fetchIPLocation = async () => {
+                    const location = await getIPBasedLocation();
+                    if (isActive && location) {
+                        setCity(location.city);
+                        setState(location.state);
+                        setCountry(location.country);
                     }
-                } catch (err) {
-                    console.error("IP location failed:", err.message);
-                }
-            };
-            getIPLocation();
-            // Cleanup when screen loses focus
-            return () => {
-            isActive = false;
-            };
-        }, [city, state, country])
+                };
+    
+                fetchIPLocation();
+    
+                // Cleanup when screen loses focus
+                return () => {
+                    isActive = false;
+                };
+            }, [])
     );
     
     const handleCreateTournament = async () => {
@@ -183,19 +158,25 @@ const CreateTournament = () => {
 
 
     navigation.setOptions({
-      headerTitle:'',
-      headerStyle:tailwind`bg-red-400 shadow-lg`,
-      headerTintColor:'white',
-      headerLeft: ()=> (
-        <View style={tailwind`flex-row items-center items-start justify-between gap-2 p-2`}>
-            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
-            <FontAwesome name="trophy" size={24} color="white" />
-            <View style={tailwind`items-center`}>
-                <Text style={tailwind`text-xl text-white`}>Create Tournament</Text>
-            </View>
-        </View>
-      ),
-    })
+        headerTitle: () => (
+            <Text style={tailwind`text-xl font-bold text-white`}>Create Tournament</Text>
+        ),
+        headerStyle: {
+            backgroundColor: tailwind.color('red-400'),
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+        },
+        headerTintColor: 'white',
+        headerTitleAlign: 'center',
+        headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="white" />
+            </Pressable>
+        ),
+    });
 
     const modifyDateTime = (newDateTime) => {
         if (!newDateTime) {

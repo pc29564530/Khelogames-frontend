@@ -13,9 +13,9 @@ import { SelectMedia } from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTeams } from '../redux/actions/actions';
 import CountryPicker from 'react-native-country-picker-modal';
-import Geolocation from '@react-native-community/geolocation';
 import { validateTeamField, validateTeamForm } from '../utils/validation/teamValidation';
 import { handleInlineError } from '../utils/errorHandler';
+import { getIPBasedLocation, requestLocationPermission } from '../utils/locationService';
 
 const CreateClub = () => {
     const navigation = useNavigation();
@@ -32,7 +32,6 @@ const CreateClub = () => {
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-    const [locationBuffer, setLocationBuffer] = useState([]);
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -51,204 +50,33 @@ const CreateClub = () => {
         React.useCallback(() => {
             let isActive = true;
 
-            const getIPLocation = async () => {
-                try {
-                    console.log("Getting IP-based location...");
-
-                    // Try BigDataCloud API
-                    const response = await fetch('http://ip-api.com/json/', {
-                        method: 'GET',
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    console.log("IP location response status:", response);
-
-                    if (!isActive) return;
-
-                    const data = await response.json();
-                    console.log("IP location response:", data);
-
-                    if (data && data.status === 'success') {
-                        let cleanedRegion = data.regionName || data.region || '';
-
-                        // Remove common prefixes/suffixes to make region names cleaner
-                        cleanedRegion = cleanedRegion
-                            .replace(/^National Capital Territory of /i, '')
-                            .replace(/^Union Territory of /i, '')
-                            .replace(/^State of /i, '')
-                            .trim();
-
-                        setCity(data.city || '');
-                        setState(cleanedRegion);
-                        setCountry(data.country || '');
-                        console.log("✓ Location set:");
-                        console.log("  City:", data.city);
-                        console.log("  State:", cleanedRegion);
-                        console.log("  Country:", data.country);
-                    }
-                } catch (err) {
-                    console.error("IP location failed:", err.message);
+            const fetchIPLocation = async () => {
+                const location = await getIPBasedLocation();
+                if (isActive && location) {
+                    setCity(location.city);
+                    setState(location.state);
+                    setCountry(location.country);
                 }
             };
 
-            getIPLocation();
+            fetchIPLocation();
 
             // Cleanup when screen loses focus
             return () => {
-            isActive = false;
+                isActive = false;
             };
         }, [])
     );
 
-    const reverseGeocode = async (lat, lon) => {
-      console.log("Lat: ", lat)
-      console.log("Long: ", lon)
-      if (!lat || !lon) {
-        console.log("Skipping reverse geocode - coordinates are null");
-        return;
-      }
-
-      try {
-        // BigDataCloud Free API - No authentication required
-        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
-        
-        console.log("Fetching from BigDataCloud:", url);
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Reverse geocode result: ", data);
-        
-        if (data) {
-          const cityName = data.city || data.locality || '';
-          const stateName = data.principalSubdivision || '';
-          const countryName = data.countryName || '';
-          
-          setCity(cityName);
-          setState(stateName);
-          setCountry(countryName);
-          console.log("Address set: ", cityName, stateName, countryName);
-        }
-      } catch (err) {
-        console.error("BigDataCloud geocoding failed: ", err.message);
-      }
-    };
-
-    const getCurrentCoordinates = () => {
-        setIsLoadingLocation(true);
-        console.log("Getting match location...");
-
-        // First try with high accuracy
-        Geolocation.getCurrentPosition(
-            (position) => {
-            handlePositionSuccess(position);
-            },
-            (error) => {
-            console.error("High accuracy failed:", error);
-            // Fallback to lower accuracy
-            console.log("Trying with lower accuracy...");
-            Geolocation.getCurrentPosition(
-                (position) => {
-                handlePositionSuccess(position);
-                },
-                (finalError) => {
-                console.error("Final geolocation error:", finalError);
-                setIsLoadingLocation(false);
-                Alert.alert(
-                    'Location Error',
-                    `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
-                );
-                },
-                {
-                enableHighAccuracy: false, // Lower accuracy = faster
-                timeout: 15000,
-                maximumAge: 10000,
-                }
-            );
-            },
-            {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 10000,
-            distanceFilter: 0,
-            forceRequestLocation: true,
-            showLocationDialog: true,
-            }
-        );
-    };
-
-    const handlePositionSuccess = (position) => {
-        console.log("✓ SUCCESS - Position received:", position);
-
-        if (!position || !position.coords) {
-        setIsLoadingLocation(false);
-        Alert.alert('Location Error', 'Unable to get coordinates');
-        return;
-        }
-
-        const {latitude, longitude, accuracy} = position.coords;
-        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
-        reverseGeocode(latitude, longitude)
-
-        setLocationBuffer(prevBuffer => {
-        const newBuffer = [...prevBuffer, {latitude, longitude}];
-        if (newBuffer.length > 3) {
-            newBuffer.shift();
-        }
-
-        if (newBuffer.length >= 3) {
-            const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
-            const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
-            setLatitude(avgLat);
-            setLongitude(avgLng);
-            console.log("Avg location set:", avgLat, avgLng);
-            setIsLoadingLocation(false);
-        } else {
-            setLatitude(latitude);
-            setLongitude(longitude);
-            console.log("Initial location set:", latitude, longitude);
-            setIsLoadingLocation(false);
-        }
-
-        return newBuffer;
-        });
-    };
-
     const handleLocation = async () => {
-        console.log("Platform:", Platform.OS);
-        if (Platform.OS === "android") {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: 'Location Permission',
-                    message: 'We need access to your location to set the team location.',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                }
-            );
-            console.log("Granted:", granted);
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                getCurrentCoordinates();
-                return true;
-            } else {
-                Alert.alert(
-                    'Location Permission Denied',
-                    'You can still create a team without location.'
-                );
-                return false;
-            }
-        } else if (Platform.OS === "ios") {
-            getCurrentCoordinates();
-        }
+        await requestLocationPermission(
+            (coords) => {
+                setLatitude(coords.latitude);
+                setLongitude(coords.longitude);
+            },
+            null,
+            setIsLoadingLocation
+        );
     };
 
     const handleSubmit = async () => {
@@ -298,7 +126,7 @@ const CreateClub = () => {
                 }
             );
             const item = response.data || [];
-            dispatch(setTeams(item));
+            dispatch(setTeams(item.data));
             navigation.navigate('Club');
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
@@ -311,17 +139,29 @@ const CreateClub = () => {
     };
     
     navigation.setOptions({
-        headerTitle: '',
+        headerTitle: () => (
+            <Text style={tailwind`text-xl font-bold text-white`}>Create Team</Text>
+        ),
+        headerStyle: {
+            backgroundColor: tailwind.color('red-400'),
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+        },
+        headerTintColor: 'white',
+        headerTitleAlign: 'center',
         headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="white" />
             </Pressable>
         ),
     });
 
     return (
             <ScrollView
-                style={tailwind`flex-1 bg-gray-50`}
+                style={tailwind`flex-1 bg-gray-100`}
                 contentContainerStyle={tailwind`p-5`}
                 showsVerticalScrollIndicator={false}
             >   
@@ -333,7 +173,6 @@ const CreateClub = () => {
                     </View>
                 )}
                 {/* Header */}
-                <Text style={tailwind`text-3xl font-bold text-gray-800 mb-2`}>Create Team</Text>
                 <Text style={tailwind`text-base text-gray-500 mb-6`}>Fill in the details to create your team</Text>
 
                 {/* Team Logo */}

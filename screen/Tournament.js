@@ -131,7 +131,6 @@ const Tournament = () => {
         (typeFilter === 'all' || tournament.level === typeFilter) &&
         (statusFilter === 'all' || tournament.status_code === statusFilter)
     );
-
     setFilterTournaments(filtered || tournaments);
   }, [tournaments, game, typeFilter, statusFilter]);
 
@@ -167,9 +166,18 @@ const Tournament = () => {
         };
     });
 
+    const fetchIPLocation = async () => {
+          const location = await getIPBasedLocation();
+          if (location) {
+              setCity(location.city);
+              setState(location.state);
+              setCountry(location.country);
+              await fetchTournamentByNearBy({cityName: location.city, stateName: location.state, countryName: location.country})
+          }
+    };
+
     const fetchTournamentByNearBy = async ({cityName, stateName, countryName}) => {
       try {
-
         const formData = {
           city: cityName,
           state: stateName,
@@ -207,8 +215,7 @@ const Tournament = () => {
         });
         console.error(" Failed to fetch tournament by location:", err.response?.data || err.message);
       }
-    };
-
+  };
 
   const renderFilterTournament = ({item}) => {
     // Format date from timestamp
@@ -278,146 +285,6 @@ const Tournament = () => {
         );
     }
 
-    const reverseGeoCode = async (lat, lon) => {
-      console.log("Lat: ", lat)
-      console.log("Long: ", lon)
-      if (!lat || !lon) {
-        console.log("Skipping reverse geocode - coordinates are null");
-        return;
-      }
-
-      try {
-        // BigDataCloud Free API - No authentication required
-        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
-        
-        console.log("Fetching from BigDataCloud:", url);
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Reverse geocode result: ", data);
-        
-        if (data) {
-          const cityName = data.city || data.locality || '';
-          const stateName = data.principalSubdivision || '';
-          const countryName = data.countryName || '';
-          
-          setCity(cityName);
-          setState(stateName);
-          setCountry(countryName);
-          console.log("Address set: ", cityName, stateName, countryName);
-          fetchTournamentByNearBy({cityName, stateName, countryName})
-        }
-      } catch (err) {
-        console.error("BigDataCloud geocoding failed: ", err.message);
-      }
-    };
-
-
-    const getFastLocation = async () => {
-      return new Promise((resolve, reject) => {
-          Geolocation.getCurrentPosition(
-            (pos) => resolve(pos),
-            (err) => reject(err),
-            {
-              enableHighAccuracy: false,
-              timeout: 8000,
-              maximumAge: 60000,
-            }
-          )
-      })
-    }
-
-    const getPreciseLocation = async () => {
-      return new Promise((resolve, reject) => {
-        Geolocation.getCurrentPosition(
-          (pos) => resolve(pos),
-          (err) => reject(err),
-          {
-            enableHighAccuracy: true,
-            timeout: 25000,
-            maximumAge: 0,
-          }
-        )
-      });
-    }
-
-
-    const getCurrentCoordinates = async () => {
-      setIsLoadingLocation(true);
-      console.log("Getting location (robust)...");
-
-      const fastPos = await getFastLocation();
-      const { latitude: lat, longitude: lon } = fastPos.coords;
-      console.log("FAST location:", lat, lon);
-
-      setLatitude(lat);
-      setLongitude(lon);
-
-      await AsyncStorage.setItem("UserLatitude", lat.toString());
-      await AsyncStorage.setItem("UserLongitude", lon.toString());
-
-      reverseGeoCode(lat, lon); // quick nearby tournaments
-
-      setTimeout(async () => {
-        try {
-          const precisePos = await getPreciseLocation();
-          const {latitude: lat, longitude: lon} = precisePos.coords;
-          console.log("Precise location:", lat, lon);
-
-          setLatitude(lat);
-          setLongitude(lon);
-
-          await AsyncStorage.setItem("UserLatitude", lat.toString());
-          await AsyncStorage.setItem("UserLongitude", lon.toString());
-          reverseGeoCode(lat, lon)
-        } catch(err) {
-          console.error("Failed to get precise location: ", err)
-        }
-        setIsLoadingLocation(false);
-      }, 1500);
-    };
-
-    const handleLocation = async () => {
-        console.log("Platform: ", Platform.OS);
-        if (Platform.OS === "android") {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-              title: 'Location Permission',
-              message: 'We need access to your location provide better result for matches, tournament etc.',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            }
-          );
-          console.log("Granted: ", granted);
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            getCurrentCoordinates(); // This now handles both getting location AND updating server
-            return true;
-          } else {
-            Alert.alert(
-              'Location Permission Denied',
-              'You can still manually enter your city, state, and country.'
-            );
-            return false;
-          }
-        } else if (Platform.OS === "ios") {
-          // For iOS, request permission through Geolocation
-          getCurrentCoordinates();
-        }
-      };
-
-
   return (
     <View style={tailwind`flex-1 bg-gray-50`}>
         <View>
@@ -469,7 +336,7 @@ const Tournament = () => {
                     </ScrollView>
                 </View>
 
-                {/* Filter row - subtle outline buttons like Airbnb */}
+                {/* Filter row */}
                 <View style={tailwind`flex-row mt-3 items-center px-4`}>
                     <Pressable
                         style={[
@@ -540,7 +407,18 @@ const Tournament = () => {
               paddingTop: (typeFilter !== 'all' || statusFilter !== 'all') ? 170 : 120,
               paddingBottom: 50,
             }}
-
+            ListEmptyComponent={() => !loading && (
+                  <View style={tailwind`flex-1 justify-center items-center px-6`}>
+                    <MaterialIcons name="emoji-events" size={40} color="#D1D5DB" />
+                    <Text style={tailwind`text-gray-900 font-semibold mt-4 text-base`}>
+                      No Tournaments Found
+                    </Text>
+                    <Text style={tailwind`text-gray-400 text-sm text-center mt-2`}>
+                      create a new tournament.
+                    </Text>
+                  </View>
+                )
+            }
         />
 
       {/* Floating Action Button */}
@@ -572,7 +450,7 @@ const Tournament = () => {
                   if (val === 'country') {
                     setIsCountryPicker(true)
                   } else if(val === 'nearby') {
-                    handleLocation()
+                    fetchIPLocation()
                   };
                 }}
               >

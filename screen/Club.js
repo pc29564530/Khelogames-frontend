@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions, Image, FlatList, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -10,6 +10,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import {setGames, setGame, getTeams, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
+import { logSilentError } from '../utils/errorHandler';
 
 const Club = () => {
     const navigation = useNavigation();
@@ -21,7 +22,7 @@ const Club = () => {
     const [country, setCountry] = useState('');
     const [error, setError] = useState({global: null, fields:{}});
     const [loading, setLoading] = useState(false);
-    const [selectedSport, setSelectedSport] = useState("football");
+    const [selectedSport, setSelectedSport] = useState({ id: 1, name: 'football', min_players: 11 });
     const dispatch = useDispatch();
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
@@ -62,7 +63,7 @@ const Club = () => {
     useEffect(() => {
         const getClubData = async () => {
             try {
-                setLoading(false);
+                setLoading(true);
                 setError({
                     global: null,
                     fields: {},
@@ -83,7 +84,7 @@ const Club = () => {
             } catch (err) {
                 logSilentError(err);
                 setError({
-                    global: 'Unable to load teams',
+                    global: 'Unable to load teams. Please try again later.',
                     fields: {},
                 })
                 console.error("Unable to fetch all team: ", err);
@@ -137,60 +138,136 @@ const Club = () => {
     }
 
     const handleSport = (item) => {
-        setSelectedSport(item.name);
+        setSelectedSport(item);
         dispatch(setGame(item));
     }
 
-    console.log("Games: ", games)
+    const renderFilterTeams = ({ item }) => {
+        return (
+            <Pressable
+                onPress={() => handleClub(item)}
+                style={[
+                    tailwind`rounded-xl bg-white shadow-md mb-3 p-4 flex-row items-center`,
+                    { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }
+                ]}
+            >
+                <View style={[tailwind`rounded-full h-14 w-14 overflow-hidden items-center justify-center`, { backgroundColor: '#f3f4f6' }]}>
+                    {item.media_url ? (
+                        <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} resizeMode="cover" />
+                    ) : (
+                        <Text style={tailwind`text-red-400 text-2xl font-bold`}>{item?.name?.charAt(0).toUpperCase()}</Text>
+                    )}
+                </View>
+                <View style={tailwind`flex-1 ml-4`}>
+                    <Text style={tailwind`text-base font-bold text-gray-800`} numberOfLines={1}>{item.name}</Text>
+                    <View style={tailwind`flex-row items-center mt-1`}>
+                        <MaterialIcons name="location-on" size={14} color="#9ca3af" />
+                        <Text style={tailwind`text-sm text-gray-500 ml-1`} numberOfLines={1}>
+                            {item.country}
+                        </Text>
+                        <View style={tailwind`h-1 w-1 rounded-full bg-gray-400 mx-2`} />
+                        <Text style={tailwind`text-sm text-gray-500 capitalize`}>{game.name}</Text>
+                    </View>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
+            </Pressable>
+        )
+    }
 
-    return (
-        <View style={tailwind`flex-1 bg-gray-100`}>
-            <View style={tailwind`flex-row shadow-lg bg-white p-2`}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    ref={scrollViewRef}
-                    contentContainerStyle={tailwind`flex-row flex-wrap justify-center`}
+    const renderEmptyState = () => {
+        if (loading) {
+            return (
+                <View style={tailwind`flex-1 items-center justify-center py-20`}>
+                    <ActivityIndicator size="large" color="#f87171" />
+                    <Text style={tailwind`text-gray-500 mt-4 text-base`}>Loading teams...</Text>
+                </View>
+            );
+        }
+
+        if (error?.global) {
+            return (
+                <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
+                    <MaterialIcons name="error-outline" size={64} color="#9ca3af" />
+                    <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>Oops! Something went wrong</Text>
+                    <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>{error.global}</Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
+                <MaterialIcons name="sports-soccer" size={64} color="#9ca3af" />
+                <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>No Teams Yet</Text>
+                <Text style={tailwind`text-gray-500 text-sm mt-2 text-center mb-4`}>
+                    Create your first team to get started
+                </Text>
+                <Pressable
+                    onPress={() => navigation.navigate('CreateClub')}
+                    style={tailwind`bg-red-400 px-6 py-3 rounded-lg`}
                 >
-                    {games?.map((item, index) => (
-                        <Pressable key={index} style={[tailwind`border rounded-md p-2 mr-2 ml-2`, selectedSport === item.name ? tailwind`bg-orange-500` : tailwind`bg-orange-300`]} onPress={() => handleSport(item)}>
-                            <Text style={tailwind`text-white font-semibold`}>{item.name}</Text>
-                        </Pressable>
-                    ))}
-                </ScrollView>
-                <Pressable onPress={scrollRight} style={tailwind`justify-center ml-2`}>
-                    <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
+                    <Text style={tailwind`text-white font-semibold`}>Create Team</Text>
                 </Pressable>
             </View>
-            {error?.global && teams.length === 0 && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
-                        {error?.global}
-                    </Text>
-                </View>
-            )}
-            <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }}>
-                {teams.map((item, index) => (
-                    <View key={index} style={tailwind`mb-4`}>
-                        <Pressable onPress={() => handleClub(item)} style={tailwind`rounded-md w-full h-20 bg-white shadow-lg p-4 flex-row items-center`}>
-                            <View style={tailwind`rounded-full h-16 w-16 bg-gray-200 overflow-hidden`}>
-                                {item.media_url ? (
-                                    <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} />
-                                ) : (
-                                    <Text style={tailwind`text-black text-2xl py-4 font-bold text-center`}>{item?.name?.charAt(0).toUpperCase()}</Text>
-                                )}
+        );
+    };
+
+    return (
+        <View style={tailwind`flex-1 bg-gray-50`}>
+            {/* Sports Filter Section */}
+            <View style={tailwind`flex-row mt-1 items-center border-b border-gray-100`}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        ref={scrollViewRef}
+                        contentContainerStyle={tailwind`flex-row px-4`}
+                    >
+                        {games?.length > 0 ? (
+                            games.map((item, index) => (
+                                <Pressable
+                                key={index}
+                                style={[
+                                    tailwind`px-4 py-3 mr-1`,
+                                    selectedSport.id === item.id && {borderBottomWidth: 2, borderBottomColor: '#f87171'},
+                                ]}
+                                onPress={() => handleSport(item)}
+                                >
+                                <Text
+                                    style={[
+                                    tailwind`text-sm`,
+                                    selectedSport.id === item.id ? tailwind`text-gray-900 font-bold` : tailwind`text-gray-400 font-medium`,
+                                    ]}
+                                >
+                                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+                                </Text>
+                                </Pressable>
+                            ))
+                        ) : (
+                            <View style={tailwind`px-4 py-3`}>
+                                <Text style={tailwind`text-gray-400 text-sm`}>Loading...</Text>
                             </View>
-                            <View style={tailwind`ml-4`}>
-                                <Text style={tailwind`text-lg font-bold text-black`}>{item.name}</Text>
-                                <View style={tailwind`flex-row gap-2`}>
-                                    <Text style={tailwind`text-gray-600`}>{item.country}</Text>
-                                    <Text style={tailwind`text-gray-600`}>{game.name}</Text>
-                                </View>
-                            </View>
-                        </Pressable>
-                    </View>
-                ))}
-            </ScrollView>
+                        )}
+                    </ScrollView>
+            </View>
+
+            {/* Teams List */}
+            <FlatList
+                data={teams}
+                keyExtractor={(item, index) => item?.public_id ? item.public_id.toString() : index.toString()}
+                renderItem={renderFilterTeams}
+                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                ListEmptyComponent={renderEmptyState}
+                showsVerticalScrollIndicator={false}
+            />
+
+            {/* Floating Action Button */}
+            <View style={tailwind`absolute bottom-14 right-5`}>
+                <Pressable
+                style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
+                onPress={() => navigation.navigate('CreateClub')}
+                >
+                <MaterialIcons name="add" size={24} color="white" />
+                </Pressable>
+            </View>
         </View>
     );
 }

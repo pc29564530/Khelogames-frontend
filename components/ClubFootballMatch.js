@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal} from 'react-native';
+import { View, Text, Pressable, Image, Modal, ActivityIndicator, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
 import { useNavigation } from '@react-navigation/native';
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import {formattedDate, formattedTime} from '../utils/FormattedDateTime'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {formattedDate, formattedTime} from '../utils/FormattedDateTime';
 import { ScrollView } from 'react-native-gesture-handler';
 import {findTournamentByID} from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,13 +14,16 @@ import { getTournamentBySportAction, getTournamentByIdAction, getMatch } from '.
 import { getTournamentBySport } from '../services/tournamentServices';
 import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import { Dimensions } from 'react-native';
+import { logSilentError } from '../utils/errorHandler';
 
 const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHeader}) => {
     const [matches, setMatches] = useState([]);
+    const [allMatches, setAllMatches] = useState([]); // Store all matches
+    const [selectedTournament, setSelectedTournament] = useState(null);
     const [isDropDownVisible, setIsDropDownVisible] = useState(false);
-    
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({ global: null, fields: {} });
+
     const [currentRole, setCurrentRole] = useState('');
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -46,6 +49,9 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
 
     const fetchClubMatch = async () => {
         try {
+            setLoading(true);
+            setError({ global: null, fields: {} });
+
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/football/getMatchesByTeam/${teamData.public_id}`, {
                 headers: {
@@ -54,13 +60,25 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
                 },
             });
 
-            if (!response.data) {
+            console.log("matches by team response ", response.data);
+
+            if (!response.data.data) {
                 setMatches([]);
+                setAllMatches([]);
             } else {
-                setMatches(response.data.filter(item => item !== null));
+                const filteredData = response.data.data.filter(item => item !== null);
+                setMatches(filteredData);
+                setAllMatches(filteredData); // Store original data
             }
         } catch (err) {
+            logSilentError(err);
+            setError({
+                global: 'Unable to load matches. Please try again.',
+                fields: {},
+            });
             console.log("unable to get the matches by teams ", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -73,174 +91,271 @@ const ClubFootballMatch = ({teamData, parentScrollY, headerHeight, collapsedHead
     };
 
     const handleTournamentNavigate = async (tournamentItem) => {
-        navigation.navigate("TournamentPage", { tournament, currentRole });
+        const filterMatches = allMatches.filter((item) => item.tournament.public_id === tournamentItem.tournament.public_id);
+        console.log("Selected Tournament: ", tournamentItem.tournament.name, " Filtered Matches: ", filterMatches.length);
+        setMatches(filterMatches);
+        setIsDropDownVisible(false);
+    }
+
+    const handleResetFilter = () => {
+        console.log("selected tournament: ", selectedTournament)
+        setMatches(allMatches);
+        setSelectedTournament(null);
     }
 
     let tournamentsPublicID = new Set();
-    matches.map((item) => {
+    allMatches.map((item) => {
         tournamentsPublicID.add(item.tournament.public_id);
     })
 
+    const renderEmptyState = () => {
+        if (loading) {
+            return (
+                <View style={tailwind`flex-1 items-center justify-center py-20`}>
+                    <ActivityIndicator size="large" color="#f87171" />
+                    <Text style={tailwind`text-gray-500 mt-4 text-base`}>Loading matches...</Text>
+                </View>
+            );
+        }
+
+        if (error?.global) {
+            return (
+                <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
+                    <MaterialIcons name="error-outline" size={64} color="#9ca3af" />
+                    <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>
+                        Oops! Something went wrong
+                    </Text>
+                    <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
+                        {error.global}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
+                <MaterialIcons name="sports-soccer" size={64} color="#9ca3af" />
+                <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>
+                    No Matches Yet
+                </Text>
+                <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
+                    Matches will appear here once scheduled
+                </Text>
+            </View>
+        );
+    };
+
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={tailwind`flex-1 bg-white`}>
             <Animated.ScrollView
                 style={tailwind`flex-1 bg-gray-50`}
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
-                    paddingTop: 20,
+                    paddingTop: 12,
                     paddingBottom: 100,
                     minHeight: sHeight + 100,
                 }}
             >
-                <Pressable
-                    style={tailwind`border rounded-xl flex-row items-center justify-center bg-gray-100 shadow-sm mb-4 mt-2`}
-                    onPress={() => handleDropDown()}
-                >
-                    <Text style={tailwind`text-lg font-semibold text-gray-800`}>Tournaments</Text>
-                    <AntDesign name="down" size={14} color="black" />
-                </Pressable>
-                {matches?.length > 0 ? (
-                    matches.map((item, index) => (
-                        <Pressable key={index} style={tailwind`mb-1 p-1 bg-white rounded-lg shadow-md flex-row  justify-between `} onPress={() => handleMatchPage(item)}>
-                            <View>
-                                <Pressable onPress={() => handleTournamentPage(item?.tournament)} style={tailwind`p-1 flex flex-row justify-between`}>
-                                    <Text style={tailwind`text-6md`}>{item?.tournament?.name}</Text>
-                                    <AntDesign name="right" size={12} color="black" />
-                                </Pressable>
-                                <View style={tailwind`flex-row items-center justify-between `}>
-                                    <View style={tailwind`flex-row`}>
-                                        <View style={tailwind``}>
-                                            {item.awayTeam.media_url ? (
-                                                <Image 
-                                                    source={{ uri: item.awayTeam?.media_url }} 
-                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                                />
-                                            ):(
-                                                <View style={tailwind`w-6 h-6 bg-violet-200 rounded-full justify-center items-center mb-2`}>
-                                                    <Text>{item.awayTeam.name.charAt(0).toUpperCase()}</Text>
-                                                </View>
-                                            )}
-                                            {item.homeTeam.media_url ? (
-                                                <Image 
-                                                    source={{ uri: item.homeTeam?.media_url }} 
-                                                    style={tailwind`w-6 h-6 bg-violet-200 rounded-full mb-2`} 
-                                                />
-                                            ):(
-                                                <View style={tailwind`w-6 h-6 bg-violet-200 rounded-full items-center justify-center mb-2`}>
-                                                    <Text>{item.homeTeam.name.charAt(0).toUpperCase()}</Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                        <View style={tailwind``}>
-                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                {item.homeTeam?.name}
-                                            </Text>
-                                            <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                {item.awayTeam?.name}
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={tailwind`items-center justify-center flex-row`}>
-                                        <View style={tailwind`mb-2 flex-row items-center gap-4`}>
-                                                {item.status !== "not_started" && (
-                                                    <View>
-                                                    <View style={tailwind``}>
-                                                        {item.homeScore  && (
-                                                            <View style={tailwind``}>
-                                                                <View key={index} style={tailwind`flex-row ml-2`}>
-                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                                        {item.awayScore.goals}
-                                                                    </Text>
-                                                                    {item.awayScore?.penalty_shootout && (
-                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                                        ({item.awayScore.penalty_shootout})
-                                                                    </Text>
-                                                                    )}
-                                                                </View>
-                                                            </View>
-                                                        )}
-                                                        {item.awayScore && (
-                                                            <View style={tailwind``}>
-                                                                <View key={index} style={tailwind`flex-row ml-2`}>
-                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                                        {item.homeScore.goals}
-                                                                    </Text>
-                                                                    {item.homeScore?.penalty_shootout && (
-                                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}>
-                                                                        ({item.homeScore.penalty_shootout})
-                                                                    </Text>
-                                                                    )}
-                                                                </View>
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                    </View>
-                                                )}
-                                                <View style={tailwind`w-0.5 h-10 bg-gray-200`}/>
-                                                <View style={tailwind`mb-2 right`}>
-                                                    <Text style={tailwind`ml-2 text-lg text-gray-800`}> {formatToDDMMYY(convertToISOString(item.start_timestamp))}</Text>
-                                                    {item.status !== "not_started" ? (
-                                                        <Text style={tailwind`ml-2 text-md text-gray-800`}>{item.status_code}</Text>
-                                                    ):(
-                                                        <Text style={tailwind`ml-2 text-lg text-gray-800`}>{formattedTime(convertToISOString(item.start_timestamp))}</Text>
-                                                    )}
-                                                </View>
-                                        </View>
-                                    </View> 
-                                </View>
-                            </View>
-                        </Pressable>
-                    ))
-                ) : (
-                    <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
-                )}
-                {isDropDownVisible && (
-                    <Modal
-                        animationType="slide"
-                        transparent={true}
-                        visible={isDropDownVisible}
-                        onRequestClose = {() => setIsDropDownVisible(!isDropDownVisible)}
-                    >
+                {/* Tournament Filter Button */}
+                {matches.length > 0 && (
+                    <View style={tailwind`px-4 mb-3`}>
                         <Pressable
-                            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-                            onPress={() => setIsDropDownVisible(false)}
+                            style={tailwind`flex-row items-center justify-center py-3 rounded-lg bg-white border border-gray-200`}
+                            onPress={() => handleDropDown()}
                         >
-                            <View style={tailwind`bg-white rounded-t-2xl p-4 shadow-lg`}>
-                                <View style={tailwind`w-12 h-1.5 bg-gray-300 self-center rounded-full mb-3`} />
-                                <Text style={tailwind`text-xl font-bold text-gray-800 mb-4`}>
-                                    Select Tournament
-                                </Text>
-                                <ScrollView showsVerticalScrollIndicator={false}>
-                                    {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
-                                        const tournamentItem = matches.find(
-                                            (item) => item.tournament.public_id === tournamentPublicID
-                                        );
-                                        return (
-                                            <Pressable
-                                                key={index}
-                                                style={tailwind`flex-row items-center bg-gray-50 p-3 mb-3 rounded-xl shadow-sm active:bg-gray-100`}
-                                                onPress={() => handleTournamentNavigate(tournamentItem)}
-                                            >
-                                                <View style={tailwind`w-10 h-10 rounded-full bg-yellow-100 items-center justify-center mr-3`}>
-                                                    <FontAwesome name="trophy" size={20} color="gold" />
-                                                </View>
-                                                <Text style={tailwind`text-base font-medium text-gray-700`}>
-                                                    {tournamentItem?.tournament?.name}
-                                                </Text>
-                                            </Pressable>
-                                        );
-                                    })}
-                                </ScrollView>
-                            </View>
+                            <MaterialIcons name="filter-list" size={20} color="#6b7280" />
+                            <Text style={tailwind`text-gray-700 font-semibold ml-2`}>Filter by Tournament</Text>
+                            <MaterialIcons name="expand-more" size={20} color="#6b7280" style={tailwind`ml-1`} />
                         </Pressable>
-                    </Modal>
+                        {selectedTournament && (
+                            <Pressable
+                                style={tailwind`flex-row items-center justify-center py-3 rounded-lg bg-white border border-gray-200 mt-2`}
+                                onPress={() => handleResetFilter()}
+                            >
+                                <MaterialIcons name="close" size={20} color="#6b7280" />
+                                <Text style={tailwind`text-gray-700 font-semibold ml-2`}>{selectedTournament.name}</Text>
+                            </Pressable>
+                        )}
+                    </View>
+                )}
+
+                {/* Matches List */}
+                {loading || error?.global || matches.length === 0 ? (
+                    renderEmptyState()
+                ) : (
+                    <View style={tailwind`px-4`}>
+                        {matches.map((item, index) =>
+                            matchesData(item, index, navigation, item.tournament)
+                        )}
+                    </View>
                 )}
             </Animated.ScrollView>
+
+            {/* Tournament Filter Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isDropDownVisible}
+                onRequestClose={() => setIsDropDownVisible(false)}
+            >
+                <View style={tailwind`flex-1 justify-end bg-black/50`}>
+                    <Pressable
+                        style={tailwind`flex-1`}
+                        onPress={() => setIsDropDownVisible(false)}
+                    />
+                    <View style={tailwind`bg-white rounded-t-3xl`}>
+                        {/* Modal Header */}
+                        <View style={tailwind`flex-row items-center justify-between p-4 border-b border-gray-100`}>
+                            <Text style={tailwind`text-lg font-bold text-gray-900`}>Select Tournament</Text>
+                            <Pressable onPress={() => setIsDropDownVisible(false)}>
+                                <MaterialIcons name="close" size={24} color="#6b7280" />
+                            </Pressable>
+                        </View>
+
+                        {/* Tournament List */}
+                        <ScrollView
+                            style={tailwind`max-h-96`}
+                            contentContainerStyle={tailwind`p-4`}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            {[...tournamentsPublicID]?.map((tournamentPublicID, index) => {
+                                const tournamentItem = matches.find((item) => item.tournament.public_id === tournamentPublicID );
+                                return (
+                                    <Pressable
+                                        key={index}
+                                        style={tailwind`flex-row items-center bg-gray-50 p-4 mb-2 rounded-xl`}
+                                        onPress={() => {
+                                            setSelectedTournament(tournamentItem.tournament)
+                                            handleTournamentNavigate(tournamentItem)
+                                            setIsDropDownVisible(false);
+                                        }}
+                                    >
+                                        <View style={tailwind`w-10 h-10 rounded-full bg-yellow-100 items-center justify-center mr-3`}>
+                                            <MaterialIcons name="emoji-events" size={24} color="#f59e0b" />
+                                        </View>
+                                        <Text style={tailwind`text-base font-medium text-gray-800 flex-1`}>
+                                            {tournamentItem?.tournament?.name}
+                                        </Text>
+                                        <MaterialIcons name="chevron-right" size={20} color="#9ca3af" />
+                                    </Pressable>
+                                )
+                            })}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
 
-export default ClubFootballMatch;                                                                                                                                             
+const matchesData = (item, ind, navigation, tournament) => {
+    const handleFootballMatchPage = (item) => {
+        navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, tournament: tournament});
+    }
+
+    return (
+        <Pressable
+            key={ind}
+            style={[
+                tailwind`mb-3 bg-white rounded-xl overflow-hidden`,
+                {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}
+            ]}
+            onPress={() => handleFootballMatchPage(item)}
+        >   
+
+            {/* Tournament Header */}
+            <View style={tailwind`bg-gray-50 px-4 py-2 border-b border-gray-100`}>
+                <Text style={tailwind`text-gray-600 text-xs font-semibold`} numberOfLines={1}>
+                    {item?.tournament?.name || 'Tournament'}
+                </Text>
+            </View>
+
+            {/* Match Content */}
+            <View style={tailwind`p-4`}>
+                <View style={tailwind`flex-row items-center justify-between`}>
+                    {/* Teams */}
+                    <View style={tailwind`flex-1`}>
+                        {/* Home Team */}
+                        <View style={tailwind`flex-row items-center mb-3`}>
+                            <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                {item?.homeTeam?.media_url ? (
+                                    <Image
+                                        source={{ uri: item.homeTeam.media_url }}
+                                        style={tailwind`w-full h-full`}
+                                    />
+                                ) : (
+                                    <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                        {item?.homeTeam?.name?.charAt(0).toUpperCase()}
+                                    </Text>
+                                )}
+                            </View>
+                            <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                {item?.homeTeam?.name}
+                            </Text>
+                            {item?.status !== "not_started" && item?.homeScore && (
+                                <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                    {item.homeScore.goals}
+                                    {item.homeScore?.penalty_shootout && (
+                                        <Text style={tailwind`text-gray-500 text-md`}> ({item.homeScore.penalty_shootout})</Text>
+                                    )}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Away Team */}
+                        <View style={tailwind`flex-row items-center`}>
+                            <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                {item?.awayTeam?.media_url ? (
+                                    <Image
+                                        source={{ uri: item.awayTeam.media_url }}
+                                        style={tailwind`w-full h-full`}
+                                    />
+                                ) : (
+                                    <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                        {item?.awayTeam?.name?.charAt(0).toUpperCase()}
+                                    </Text>
+                                )}
+                            </View>
+                            <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                {item?.awayTeam?.name}
+                            </Text>
+                            {item?.status !== "not_started" && item?.awayScore && (
+                                <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                    {item.awayScore.goals}
+                                    {item.awayScore?.penalty_shootout && (
+                                        <Text style={tailwind`text-gray-500 text-sm`}> ({item.awayScore.penalty_shootout})</Text>
+                                    )}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                    
+                    {/* Vertical divider */}
+                    <View style={tailwind`w-px bg-gray-100 my-3`} />
+
+                    {/* Match Info */}
+                    <View style={tailwind`items-end ml-4`}>
+                        <Text style={tailwind`text-gray-600 text-xs font-semibold mb-1`}>
+                            {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
+                        </Text>
+                        {item?.status !== "not_started" ? (
+                            <View style={tailwind`px-2 py-1 rounded bg-gray-100`}>
+                                <Text style={tailwind`text-xs font-semibold capitalize`}>
+                                    {item?.status_code || item?.status}
+                                </Text>
+                            </View>
+                        ) : (
+                            <Text style={tailwind`text-gray-500 text-xs`}>
+                                {formattedTime(convertToISOString(item?.start_timestamp))}
+                            </Text>
+                        )}
+                    </View>
+                </View>
+            </View>
+        </Pressable>
+    )
+}
+
+export default ClubFootballMatch;

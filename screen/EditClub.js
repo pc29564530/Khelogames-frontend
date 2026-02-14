@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Pressable, TextInput, Image, ScrollView, Platform, PermissionsAndroid, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -11,7 +12,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { SelectMedia } from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTeams } from '../redux/actions/actions';
-import Geolocation from '@react-native-community/geolocation';
+import { getIPBasedLocation, requestLocationPermission } from '../utils/locationService';
 
 const EditClub = ({ route }) => {
     const navigation = useNavigation();
@@ -32,7 +33,6 @@ const EditClub = ({ route }) => {
     const [latitude, setLatitude] = useState(teamData.latitude ? parseFloat(teamData.latitude) : null);
     const [longitude, setLongitude] = useState(teamData.longitude ? parseFloat(teamData.longitude) : null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-    const [locationBuffer, setLocationBuffer] = useState([]);
 
     const handleMediaSelection = async () => {
         const { mediaURL, mediaType } = await SelectMedia(axiosInstance);
@@ -40,154 +40,41 @@ const EditClub = ({ route }) => {
         setMediaType(mediaType);
     };
 
-    const reverseGeocode = async (lat, lon) => {
-        console.log("Lat: ", lat);
-        console.log("Long: ", lon);
-        if (!lat || !lon) {
-            console.log("Skipping reverse geocode - coordinates are null");
-            return;
-        }
+    // Get location based on IP when screen is focused (only if not already set)
+    useFocusEffect(
+        React.useCallback(() => {
+            let isActive = true;
 
-        try {
-            const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+            const fetchIPLocation = async () => {
+                // Only fetch if location is not already set from teamData
+                if (!city && !state && !country) {
+                    const location = await getIPBasedLocation();
+                    if (isActive && location) {
+                        setCity(location.city);
+                        setState(location.state);
+                        setCountry(location.country);
+                    }
+                }
+            };
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
+            fetchIPLocation();
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            console.log("Reverse geocode result: ", data);
-
-            if (data) {
-                const cityName = data.city || data.locality || '';
-                const stateName = data.principalSubdivision || '';
-                const countryName = data.countryName || '';
-
-                setCity(cityName);
-                setState(stateName);
-                setCountry(countryName);
-                console.log("Address updated: ", cityName, stateName, countryName);
-            }
-        } catch (err) {
-            console.error("BigDataCloud geocoding failed: ", err.message);
-        }
-    };
-
-    const getCurrentCoordinates = () => {
-    setIsLoadingLocation(true);
-    console.log("Getting match location...");
-
-    // First try with high accuracy
-    Geolocation.getCurrentPosition(
-        (position) => {
-        handlePositionSuccess(position);
-        },
-        (error) => {
-        console.error("High accuracy failed:", error);
-        // Fallback to lower accuracy
-        console.log("Trying with lower accuracy...");
-        Geolocation.getCurrentPosition(
-            (position) => {
-            handlePositionSuccess(position);
-            },
-            (finalError) => {
-            console.error("Final geolocation error:", finalError);
-            setIsLoadingLocation(false);
-            Alert.alert(
-                'Location Error',
-                `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
-            );
-            },
-            {
-            enableHighAccuracy: false, // Lower accuracy = faster
-            timeout: 15000,
-            maximumAge: 10000,
-            }
-        );
-        },
-        {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 10000,
-        distanceFilter: 0,
-        forceRequestLocation: true,
-        showLocationDialog: true,
-        }
+            // Cleanup when screen loses focus
+            return () => {
+                isActive = false;
+            };
+        }, [])
     );
-    
-};
-
-    const handlePositionSuccess = (position) => {
-        console.log("✓ SUCCESS - Position received:", position);
-
-        if (!position || !position.coords) {
-        setIsLoadingLocation(false);
-        Alert.alert('Location Error', 'Unable to get coordinates');
-        return;
-        }
-
-        const {latitude, longitude, accuracy} = position.coords;
-        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
-        reverseGeocode(latitude, longitude)
-
-        setLocationBuffer(prevBuffer => {
-        const newBuffer = [...prevBuffer, {latitude, longitude}];
-        if (newBuffer.length > 3) {
-            newBuffer.shift();
-        }
-
-        if (newBuffer.length >= 3) {
-            const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
-            const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
-            setLatitude(avgLat);
-            setLongitude(avgLng);
-            console.log("Avg location set:", avgLat, avgLng);
-            setIsLoadingLocation(false);
-        } else {
-            setLatitude(latitude);
-            setLongitude(longitude);
-            console.log("Initial location set:", latitude, longitude);
-            setIsLoadingLocation(false);
-        }
-
-        return newBuffer;
-        });
-    };
 
     const handleLocation = async () => {
-        console.log("Platform:", Platform.OS);
-        if (Platform.OS === "android") {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: 'Location Permission',
-                    message: 'We need access to your location to update the team location.',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                }
-            );
-            console.log("Granted:", granted);
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                getCurrentCoordinates();
-                return true;
-            } else {
-                Alert.alert(
-                    'Location Permission Denied',
-                    'You can update the team without precise location.'
-                );
-                return false;
-            }
-        } else if (Platform.OS === "ios") {
-            getCurrentCoordinates();
-        }
+        await requestLocationPermission(
+            (coords) => {
+                setLatitude(coords.latitude);
+                setLongitude(coords.longitude);
+            },
+            null,
+            setIsLoadingLocation
+        );
     };
 
     const handleSubmit = async () => {
@@ -217,7 +104,6 @@ const EditClub = ({ route }) => {
                     },
                 }
             );
-            console.log("update team: ", response.data)
 
             Alert.alert('Success', 'Team updated successfully!');
             navigation.goBack();
@@ -228,14 +114,22 @@ const EditClub = ({ route }) => {
     };
 
     navigation.setOptions({
-        headerTitle: 'Edit Team',
+        headerTitle: () => (
+            <Text style={tailwind`text-xl font-bold text-white`}>Edit Team</Text>
+        ),
         headerStyle: {
             backgroundColor: tailwind.color('red-400'),
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
         },
         headerTintColor: 'white',
+        headerTitleAlign: 'center',
         headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="white" />
             </Pressable>
         ),
     });
@@ -247,7 +141,6 @@ const EditClub = ({ route }) => {
             showsVerticalScrollIndicator={false}
         >
             {/* Header */}
-            <Text style={tailwind`text-3xl font-bold text-gray-800 mb-2`}>Edit Team</Text>
             <Text style={tailwind`text-base text-gray-500 mb-6`}>Update your team details</Text>
 
             {/* Team Logo */}
