@@ -10,11 +10,10 @@ import { sportsServices } from '../services/sportsServices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
-import { formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
-import { convertToISOString } from '../utils/FormattedDateTime';
+import { formatToDDMMYY, formattedDate, formattedTime, convertToISOString, localToUTCTimestamp,  } from '../utils/FormattedDateTime';
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
-import Geolocation from '@react-native-community/geolocation';
+import { requestLocationPermission } from '../utils/locationService';
 
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
 
@@ -98,10 +97,36 @@ const renderScore = (item, game) => {
     return null;
 };
 
-const fomratDateToString = (date) => {
-    const selectedDateString = date.toString();
-    const selectDate = new Date(selectedDateString.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
-    return selectDate;
+const formatDatePickerToDate = (dateString) => {
+    if (!dateString) return new Date();
+    // dateString is in format "YYYY/MM/DD"
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return new Date();
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // months are 0-indexed
+    const day = parseInt(parts[2], 10);
+    // Create date at midnight local time
+    return new Date(year, month, day, 0, 0, 0, 0);
+};
+
+// Convert Date object to DatePicker string format (YYYY/MM/DD)
+const formatDateToDatePicker = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+};
+
+// Convert Date object to Unix timestamp in SECONDS (for backend)
+// This ensures we get the start of the selected day in LOCAL time
+const dateToUnixTimestamp = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    // Create a new date at midnight LOCAL time for the selected date
+    const localMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    return Math.floor(localMidnight.getTime() / 1000);
 };
 
 const Matches = () => {
@@ -110,15 +135,15 @@ const Matches = () => {
     const [error, setError] = useState({global: null, fields: {}});
     const [loading, setLoading] = useState(false);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-    const [locationBuffer, setLocationBuffer] = useState([]);
     const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const [permissionGranted, setPermissionGranted] = useState(null);
     const dispatch = useDispatch();
+    const today = new Date();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
-    
+
     const matches = useSelector((state) => state.matches.matches)
 
     useEffect(() => {
@@ -148,7 +173,7 @@ const Matches = () => {
 
     useEffect(() => {
         const today = new Date();
-        setSelectedDate(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+        setSelectedDate(today);
     }, []);
 
     useEffect(() => {
@@ -157,19 +182,24 @@ const Matches = () => {
                 setLoading(true);
                 setError({global: null, fields: {}});
                 const authToken = await AsyncStorage.getItem("AccessToken");
+                const timestamp = selectedDate;
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllMatches`, {
                     params: {
-                        start_timestamp: formattedDate(selectedDate)
+                        start_timestamp: timestamp
                     },
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 });
-                if(response.data.success && response.data.data.length === 0) {
-                    return emtpyStateUI();
+                console.log("Matches Response: ", response.data);
+
+                // Always dispatch matches (even if empty) to clear old data
+                if (response.data.success) {
+                    dispatch(getMatches(response.data.data || []));
+                } else {
+                    dispatch(getMatches([]));
                 }
-                dispatch(getMatches(response.data.data || []));
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields || {};
                 setError({
@@ -177,6 +207,7 @@ const Matches = () => {
                     fields: backendError,
                 })
                 console.error("unable to fetch the matchs by date and sport ", err);
+                dispatch(getMatches([])); // Clear matches on error
             } finally {
                 setLoading(false);
             }
@@ -219,16 +250,20 @@ const Matches = () => {
                         'Content-Type': 'application/json',
                     },
                 })
-                const item = response.data;
-                dispatch(getMatches(item))
-                
+                console.log("Live Matches Response: ", response.data);
+
+                // Handle different response structures
+                const matchesData = response.data?.data || response.data || [];
+                dispatch(getMatches(Array.isArray(matchesData) ? matchesData : []));
+
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields || {};
                 setError({
-                    global: "Unable to get matches",
+                    global: "Unable to get live matches",
                     fields: backendError,
                 })
                 console.error("Failed to get live matches: ", err);
+                dispatch(getMatches([])); // Clear matches on error
             } finally {
                 setLoading(false);
             }
@@ -241,9 +276,10 @@ const Matches = () => {
             setLoading(true);
             setError({global: null, fields: {}});
             const authToken = await AsyncStorage.getItem("AccessToken");
+            const timestamp = dateToUnixTimestamp(selectedDate);
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/get-matches-by-location`, {
                 params: {
-                    start_timestamp: fomratDateToString(selectedDate),
+                    start_timestamp: timestamp,
                     latitude: lat,
                     longitude: lng
                 },
@@ -253,92 +289,22 @@ const Matches = () => {
                 },
             });
             console.log("Matches Response by location: ", response.data);
-            dispatch(getMatches(response.data || []));
+
+            // Handle different response structures
+            const matchesData = response.data?.data || response.data || [];
+            dispatch(getMatches(Array.isArray(matchesData) ? matchesData : []));
+
         } catch (err) {
             const backendError = err?.response?.data?.error?.fields || {};
             setError({
-                global: "Unable to fetch nearby matches", 
+                global: "Unable to fetch nearby matches",
                 fields: backendError,
             })
             console.error("Failed to get the matches by location: ", err);
+            dispatch(getMatches([])); // Clear matches on error
         } finally {
             setLoading(false);
         }
-    };
-
-    const handlePositionSuccess = async (position) => {
-        console.log("✓ SUCCESS - Position received:", position);
-
-        if (!position || !position.coords) {
-            setIsLoadingLocation(false);
-            Alert.alert('Location Error', 'Unable to get coordinates');
-            return;
-        }
-
-        const {latitude, longitude, accuracy} = position.coords;
-        console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
-
-        setLocationBuffer(prevBuffer => {
-            const newBuffer = [...prevBuffer, {latitude, longitude}];
-            if (newBuffer.length > 3) {
-                newBuffer.shift();
-            }
-
-            if (newBuffer.length >= 3) {
-                const avgLat = newBuffer.reduce((sum, p) => sum + p.latitude, 0) / newBuffer.length;
-                const avgLng = newBuffer.reduce((sum, p) => sum + p.longitude, 0) / newBuffer.length;
-                console.log("Avg location set:", avgLat, avgLng);
-                fetchMatchesByLocation(avgLat, avgLng);
-            } else {
-                console.log("Initial location set:", latitude, longitude);
-                fetchMatchesByLocation(latitude, longitude);
-            }
-
-            return newBuffer;
-        });
-    };
-
-    const getCurrentCoordinates = async () => {
-        setIsLoadingLocation(true);
-        console.log("Getting match location...");
-
-        // First try with high accuracy
-        Geolocation.getCurrentPosition(
-            (position) => {
-                handlePositionSuccess(position);
-            },
-            (error) => {
-                console.error("High accuracy failed:", error);
-                // Fallback to lower accuracy
-                console.log("Trying with lower accuracy...");
-                Geolocation.getCurrentPosition(
-                    (position) => {
-                        handlePositionSuccess(position);
-                    },
-                    (finalError) => {
-                        console.error("Final geolocation error:", finalError);
-                        setIsLoadingLocation(false);
-                        Alert.alert(
-                            'Location Error',
-                            `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
-                        );
-                    },
-                    {
-                        enableHighAccuracy: false,
-                        timeout: 15000,
-                        maximumAge: 10000,
-                    }
-                );
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 20000,
-                maximumAge: 10000,
-                distanceFilter: 0,
-                forceRequestLocation: true,
-                showLocationDialog: true,
-            }
-        );
     };
 
     const handleLocation = async () => {
@@ -354,34 +320,20 @@ const Matches = () => {
             return;
         }
 
-        console.log("Platform:", Platform.OS);
-        if (Platform.OS === "android") {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: 'Location Permission',
-                    message: 'We need access to your location to find nearby matches.',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                }
-            );
-            console.log("Granted:", granted);
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        await requestLocationPermission(
+            (coords) => {
                 setPermissionGranted(true);
-                getCurrentCoordinates();
-                return true;
-            } else {
+                fetchMatchesByLocation(coords.latitude, coords.longitude);
+            },
+            () => {
                 setPermissionGranted(false);
                 Alert.alert(
                     'Location Permission Denied',
                     'Location permission is required to find nearby matches.'
                 );
-                return false;
-            }
-        } else if (Platform.OS === "ios") {
-            getCurrentCoordinates();
-        }
+            },
+            setIsLoadingLocation
+        );
     };
 
     const renderMatchCard = ({ item }) => {
@@ -389,69 +341,105 @@ const Matches = () => {
 
         return (
             <Pressable
+                style={[
+                    tailwind`mb-3 bg-white rounded-xl overflow-hidden`,
+                    {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}
+                ]}
                 onPress={() => checkSportForMatchPage(item, game)}
-                style={tailwind`mb-2 p-3 bg-white rounded-lg shadow-md`}
-            >
-                <View>
-                    <Pressable
-                        onPress={() => handleTournamentPage(item?.tournament)}
-                        style={tailwind`flex-row justify-between items-center mb-2`}
-                    >
-                        <Text style={tailwind`text-sm font-semibold`}>{item?.tournament?.name}</Text>
-                        <AntDesign name="right" size={12} color="black" />
-                    </Pressable>
+            >   
 
+                {/* Tournament Header */}
+                <View style={tailwind`bg-gray-50 px-4 py-2 border-b border-gray-100`}>
+                    <Text style={tailwind`text-gray-600 text-xs font-semibold`} numberOfLines={1}>
+                        {item?.tournament?.name || 'Tournament'}
+                    </Text>
+                    {/* <MaterialIcons name="right" size={12} color="#6b7280" style={tailwind`ml-1`} /> */}
+                </View>
+
+                {/* Match Content */}
+                <View style={tailwind`p-4`}>
                     <View style={tailwind`flex-row items-center justify-between`}>
-                        <View style={tailwind`flex-row flex-1`}>
-                            <View style={tailwind`mr-3`}>
-                                <Image
-                                    source={{ uri: item.homeTeam?.media_url }}
-                                    style={tailwind`w-8 h-8 bg-gray-200 rounded-full mb-2`}
-                                />
-                                <Image
-                                    source={{ uri: item.awayTeam?.media_url }}
-                                    style={tailwind`w-8 h-8 bg-gray-200 rounded-full`}
-                                />
+                        {/* Teams */}
+                        <View style={tailwind`flex-1`}>
+                            {/* Home Team */}
+                            <View style={tailwind`flex-row items-center mb-3`}>
+                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                    {item?.homeTeam?.media_url ? (
+                                        <Image
+                                            source={{ uri: item.homeTeam.media_url }}
+                                            style={tailwind`w-full h-full`}
+                                        />
+                                    ) : (
+                                        <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                            {item?.homeTeam?.name?.charAt(0).toUpperCase()}
+                                        </Text>
+                                    )}
+                                </View>
+                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                    {item?.homeTeam?.name}
+                                </Text>
+                                {item?.status !== "not_started" && item?.homeScore && (
+                                    <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                        {item.homeScore.goals}
+                                        {item.homeScore?.penalty_shootout && (
+                                            <Text style={tailwind`text-gray-500 text-md`}> ({item.homeScore.penalty_shootout})</Text>
+                                        )}
+                                    </Text>
+                                )}
                             </View>
-                            <View style={tailwind`flex-1 justify-center`}>
-                                <Text style={tailwind`text-base text-gray-800 mb-1`}>
-                                    {item.homeTeam?.name}
+
+                            {/* Away Team */}
+                            <View style={tailwind`flex-row items-center`}>
+                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                    {item?.awayTeam?.media_url ? (
+                                        <Image
+                                            source={{ uri: item.awayTeam.media_url }}
+                                            style={tailwind`w-full h-full`}
+                                        />
+                                    ) : (
+                                        <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                            {item?.awayTeam?.name?.charAt(0).toUpperCase()}
+                                        </Text>
+                                    )}
+                                </View>
+                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                    {item?.awayTeam?.name}
                                 </Text>
-                                <Text style={tailwind`text-base text-gray-800`}>
-                                    {item.awayTeam?.name}
-                                </Text>
+                                {item?.status !== "not_started" && item?.awayScore && (
+                                    <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                        {item.awayScore.goals}
+                                        {item.awayScore?.penalty_shootout && (
+                                            <Text style={tailwind`text-gray-500 text-sm`}> ({item.awayScore.penalty_shootout})</Text>
+                                        )}
+                                    </Text>
+                                )}
                             </View>
                         </View>
+                        
+                        {/* Vertical divider */}
+                        <View style={tailwind`w-px bg-gray-100 my-3`} />
 
-                        <View style={tailwind`flex-row items-center`}>
-                            {renderScore(item, game)}
-
-                            <View style={tailwind`w-0.5 h-12 bg-gray-300 mx-3`}/>
-
-                            <View style={tailwind`items-end`}>
-                                {isLive && (
-                                    <View style={tailwind`bg-red-600 px-2 py-1 rounded mb-1`}>
-                                        <Text style={tailwind`text-white text-xs font-bold`}>LIVE</Text>
-                                    </View>
-                                )}
-                                <Text style={tailwind`text-sm text-gray-600`}>
-                                    {formatToDDMMYY(convertToISOString(item.start_timestamp))}
+                        {/* Match Info */}
+                        <View style={tailwind`items-end ml-4`}>
+                            <Text style={tailwind`text-gray-600 text-xs font-semibold mb-1`}>
+                                {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
+                            </Text>
+                            {item?.status !== "not_started" ? (
+                                <View style={tailwind`px-2 py-1 rounded bg-gray-100`}>
+                                    <Text style={tailwind`text-xs font-semibold capitalize`}>
+                                        {item?.status_code || item?.status}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <Text style={tailwind`text-gray-500 text-xs`}>
+                                    {formattedTime(convertToISOString(item?.start_timestamp))}
                                 </Text>
-                                {item.status !== "not_started" ? (
-                                    <Text style={tailwind`text-sm font-semibold text-gray-800 mt-1`}>
-                                        {STATUS_LABELS[item.status_code] || item.status_code}
-                                    </Text>
-                                ) : (
-                                    <Text style={tailwind`text-sm text-gray-600 mt-1`}>
-                                        {formattedTime(convertToISOString(item.start_timestamp))}
-                                    </Text>
-                                )}
-                            </View>
+                            )}
                         </View>
                     </View>
                 </View>
-            </Pressable>
-        );
+        </Pressable>
+        )
     };
 
     if (loading && !matches.length) {
@@ -473,7 +461,7 @@ const Matches = () => {
                     >
                         <AntDesign name="calendar" size={25} color="black" />
                         <Text style={tailwind`ml-2 text-base text-black`}>
-                            {formattedDate(fomratDateToString(selectedDate))}
+                            {formattedDate(selectedDate)}
                         </Text>
                     </Pressable>
                     <Pressable
@@ -509,7 +497,7 @@ const Matches = () => {
                             key={index}
                             style={[
                                 tailwind`border rounded-lg px-4 py-2 mr-2`,
-                                selectedSport===item ? tailwind`bg-orange-400` : tailwind`bg-orange-200`
+                                selectedSport.name===item.name ? tailwind`bg-orange-400` : tailwind`bg-orange-200`
                             ]}
                             onPress={() => handleSport(item)}
                         >
@@ -571,24 +559,28 @@ const Matches = () => {
                 >
                     <Pressable
                         onPress={()=>setIsDatePickerVisible(false)}
-                        style={tailwind`flex-1 justify-center items-center bg-black/50`}
+                        style={tailwind`flex-1 justify-center p-2 bg-black/50`}
                     >
-                        <View style={tailwind`bg-white rounded-lg p-4 w-4/5`}>
-                            <DatePicker
-                                date={selectedDate}
-                                mode="date"
-                                onDateChange={setSelectedDate}
-                                onRequestClose={()=> setIsDatePickerVisible(false)}
-                            />
-                            <Pressable
-                                style={tailwind`mt-4 bg-orange-400 rounded-md p-3`}
-                                onPress={() => setIsDatePickerVisible(false)}
-                            >
-                                <Text style={tailwind`text-white text-center font-bold`}>
-                                    Confirm
-                                </Text>
-                            </Pressable>
-                        </View>
+                        <Pressable onPress={(e) => e.stopPropagation()}>
+                            <View style={tailwind`bg-white rounded-lg p-4`}>
+                                <DatePicker
+                                    date={formatDateToDatePicker(selectedDate)}
+                                    mode="calendar"
+                                    onDateChange={(dateString) => {
+                                        console.log("Date selected from picker: ", dateString);
+                                        setSelectedDate(formatDatePickerToDate(dateString));
+                                    }}
+                                />
+                                <Pressable
+                                    style={tailwind`mt-4 bg-orange-400 rounded-md p-3`}
+                                    onPress={() => setIsDatePickerVisible(false)}
+                                >
+                                    <Text style={tailwind`text-white text-center font-bold`}>
+                                        Confirm
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
                     </Pressable>
                 </Modal>
             )}
