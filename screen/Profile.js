@@ -74,13 +74,13 @@ function Profile({route}) {
   const fetchFollowerCount = async (targetPublicID) => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getFollower/${targetPublicID}`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowerCount/${targetPublicID}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         }
       });
-      setFollowerCount(response.data?.data?.length || 0);
+      setFollowerCount(response.data?.data || 0);
     } catch (err) {
       console.error("Unable to fetch follower count: ", err);
     }
@@ -88,16 +88,19 @@ function Profile({route}) {
 
   const fetchFollowingCount = async (targetPublicID) => {
     try {
+      setLoading(true);
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getFollowing/${targetPublicID}`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowingCount/${targetPublicID}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         }
       });
-      setFollowingCount(response.data?.data?.length || 0);
+      setFollowingCount(response.data?.data || 0);
     } catch (err) {
       console.error("Unable to fetch following count: ", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,12 +185,8 @@ const handleReduxUnFollow = async () => {
 
   const fetchProfileData = async () => {
     try {
-      console.log('Profile Public ID from route: ', profilePublicID);
-      console.log('Profile Public ID from store: ', profilePublicIDFromStore);
       const targetPublicID = profilePublicID || profilePublicIDFromStore
-      console.log('Fetching profile data for public ID: ', targetPublicID);
       const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${targetPublicID}`);
-      console.log('Profile data fetched successfully: ', response.data);
       dispatch(setCurrentProfile(response.data.data));
       setError({ global: null, fields: {} });
     } catch (err) {
@@ -204,46 +203,15 @@ const handleReduxUnFollow = async () => {
     fetchProfileData();
   }, [profilePublicID, profilePublicIDFromStore, dispatch]));
 
-  useEffect(() => {
-    if (currentProfile?.public_id) {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchFollowerCount(currentProfile.public_id);
       fetchFollowingCount(currentProfile.public_id);
-    }
-  }, [currentProfile?.public_id]);
-
-    useFocusEffect(
-      React.useCallback(() => {
-        // fetchFollowing();
-        // verifyUser();
-        // fetchData();
-        // fetchFollowerCount();
-        // fetchFollowingCount();
-        if(currentProfile?.public_id !== authProfile?.public_id) {
-          checkIsFollowingFunc();
-        }
-      }, [profilePublicID])
-    );
-
-  // useEffect(() => {
-  //   const fetchCounts = async () => {
-  //     const fetchFollowerCount = async () => {
-  //       const response = await axiosInstance.get(`${BASE_URL}/getFollower`);
-  //       const item = response.data;
-  //       setFollowerCount(item.data.length);
-  //     };
-
-  //     const fetchFollowingCount = async () => {
-  //       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`);
-  //       const item = response.data;
-  //       setFollowingCount(item.data.length);
-  //     };
-
-  //     fetchFollowerCount();
-  //     fetchFollowingCount();
-  //   };
-
-  //   fetchCounts();
-  // }, [axiosInstance]);
+      if(currentProfile?.public_id !== authProfile?.public_id) {
+        checkIsFollowingFunc();
+      }
+    }, [currentProfile?.public_id, authProfile?.public_id])
+  );
 
   const toggleMyCommunity = async () => {
     if (showMyCommunity) {
@@ -342,7 +310,7 @@ const handleReduxUnFollow = async () => {
 
           <Pressable onPress={() => navigation.navigate("PlayerProfile", {publicID: currentProfile?.public_id, from: "profile_menu"})}style={tailwind`flex-row items-center py-4 px-4`}>
               <FontAwesome name="soccer-ball-o" size={22} color="#374151" />
-              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>My Player</Text>
+              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Player Stats</Text>
               <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
           </Pressable>
           {authProfile.public_id === currentProfile.public_id && (
@@ -355,7 +323,7 @@ const handleReduxUnFollow = async () => {
 
           <Pressable onPress={() => navigation.navigate("MyThreads", {from: "profile" })} style={tailwind`flex-row items-center py-4 px-4 border-t border-gray-50`}>
               <AntDesign name="profile" size={22} color="#374151" />
-              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>My Posts</Text>
+              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Posts</Text>
               <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
           </Pressable>
         </View>
@@ -371,7 +339,7 @@ const handleReduxUnFollow = async () => {
           <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between py-4 px-4`}>
             <View style={tailwind`flex-row items-center`}>
               <MaterialIcons name="forum" size={22} color="#374151" />
-              <Text style={tailwind`text-sm font-medium text-gray-900 ml-3`}>My Communities</Text>
+              <Text style={tailwind`text-sm font-medium text-gray-900 ml-3`}>Communities</Text>
             </View>
             <MaterialIcons name={showMyCommunity ? 'expand-less' : 'expand-more'} size={22} color="#9CA3AF" />
           </Pressable>
@@ -505,7 +473,6 @@ const handleReduxUnFollow = async () => {
                     style={tailwind`flex-row items-center py-4 px-4`}
                     onPress={() => {
                       setMoreTabVisible(false);
-                      // Add report/block functionality
                     }}
                   >
                     <MaterialIcons name="report" size={20} color="#DC2626" />
