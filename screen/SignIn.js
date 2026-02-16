@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { authAxiosInstance } from './axios_config';
+import axiosInstance, { authAxiosInstance } from './axios_config';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import tailwind from 'twrnc';
 
-import { setAuthenticated, setUser } from '../redux/actions/actions';
+import { setAuthenticated, setAuthProfilePublicID, setUser, setAuthUserPublicID, setAuthProfile, setCurrentProfile, setAuthUser } from '../redux/actions/actions';
 import { AUTH_URL } from '../constants/ApiConstants';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { storeRefreshToken, storeRefreshTokenExpiresAt } from '../utils/SecureStorage';
@@ -80,11 +80,16 @@ function SignIn() {
         ['User', JSON.stringify(user)],
       ]);
 
+      const profileResponse = await authAxiosInstance.get(`${AUTH_URL}/getProfile/${user.public_id}`);
+      console.log("Profile Response: ", profileResponse.data);
       await storeRefreshToken(refreshToken);
       await storeRefreshTokenExpiresAt(refreshTokenExpiresAt);
-
+      dispatch(setAuthProfile(profileResponse.data.data));
+      dispatch(setCurrentProfile(profileResponse.data.data));
+      dispatch(setAuthProfilePublicID(profileResponse.data.data.public_id));
+      dispatch(setAuthUser(user));
+      dispatch(setAuthUserPublicID(user.public_id));
       dispatch(setAuthenticated(true));
-      dispatch(setUser(user));
 
       navigation.reset({
         index: 0,
@@ -127,9 +132,9 @@ function SignIn() {
 
       await storeRefreshToken(refreshToken);
       await storeRefreshTokenExpiresAt(refreshTokenExpiresAt);
-
+      
+      dispatch(setAuthUserPublicID(user.public_id));
       dispatch(setAuthenticated(true));
-      dispatch(setUser(user));
 
       navigation.reset({
         index: 0,

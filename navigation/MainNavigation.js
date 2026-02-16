@@ -44,6 +44,7 @@ import AddFootballIncident from '../components/AddFootballIncident';
 import VideoPlayer from '../components/VideoPlayer';
 import ManageRole from '../screen/ManageRole';
 import EditClub from '../screen/EditClub';
+import MyThreads from '../screen/MyThreads';
 import { clearSecureStorage, getRefreshToken } from '../utils/SecureStorage';
 
 const Stack = createStackNavigator();
@@ -269,6 +270,8 @@ export default function MainNavigation() {
                                 headerTintColor: tailwind.color('bg-black'),
                             }}
                         />
+                        <Stack.Screen name="MyThreads" component={MyThreads} />
+
                     </>
                 ):(
                     <>

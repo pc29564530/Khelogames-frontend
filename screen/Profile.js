@@ -1,97 +1,105 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, TouchableOpacity, Alert, Dimensions, Modal, TextInput, Image, KeyboardAvoidingView} from 'react-native';
-import { CurrentRenderContext, useFocusEffect, useNavigation } from '@react-navigation/native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import { View, Text, ScrollView, Pressable, TouchableOpacity, Image, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {useSelector,useDispatch} from 'react-redux';
-import { setFollowUser, setUnFollowUser, getFollowingUser, getProfile, checkIsFollowing} from '../redux/actions/actions';
-import axiosInstance from './axios_config';
-import tailwind from 'twrnc';
-import { AUTH_URL, BASE_URL } from '../constants/ApiConstants';
-import TopTabProfile from '../navigation/TopTabProfile';
-import { launchImageLibrary } from 'react-native-image-picker';
-import CountryPicker from 'react-native-country-picker-modal';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, useAnimatedProps } from 'react-native-reanimated';
-import { handleInlineError } from '../utils/errorHandler';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
+import { getProfile, logout, setFollowUser, setUnFollowUser, setAuthProfilePublicID, setCurrentProfile, setAuthUserPublicID, setAuthProfile, checkIsFollowing } from '../redux/actions/actions';
+import axiosInstance, { authAxiosInstance } from './axios_config';
+import tailwind from 'twrnc';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
+import { logoutServies } from '../services/authServies';
+import { handleUser } from '../utils/ThreadUtils';
+import { current } from '@reduxjs/toolkit';
 import ToastManager from '../utils/ToastManager';
 
 function Profile({route}) {
-    const {profilePublicID} = route.params;
-    console.log("Profile: ", profilePublicID)
-    const dispatch = useDispatch();
-    const isFollowing = useSelector((state) => state.user.isFollowing)
-    const navigation = useNavigation();
-    const following = useSelector((state) => state.user.following);
-    const [showEditProfileButton,setShowEditProfileButton] = useState(false);
-    const [moreTabVisible, setMoreTabVisible] = useState(false);
-    const [currentUser, setCurrentUser] = useState('');
-    const [displayText, setDisplayText] = useState('');
-    const [player, setPlayer] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const profile = useSelector(state => state.profile.profile)
-    const authProfilePublicID = useSelector(state => state.profile.authProfilePublicID)
-    const [followerCount, setFollowerCount] = useState(0);
-    const [followingCount, setFollowingCount] = useState(0);
-    const [isModalOrganizerVerified, setIsModalOrganizerVerified] = useState(false);
-    const [organizationName, setOrganizationName] = useState(null);
-    const [phoneNumber, setPhoneNumber] = useState(null);
-    const [documentURL, setDocumentURL] = useState(null);
-    const [isModalUploadDocumentVisible, setIsModalUploadDocumentVisible] = useState(false);
-    const [documentUploaded, setDocumentUploaded] = useState(null);
-    const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const [profileData, setProfileData] = useState([]);
-    const [email, setEmail] = useState(null);
-    const [country, setCountry] = useState(null);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const { profilePublicID } = route?.params || {};
+  const authUserPublicID = useSelector(state => state.profile.authUserPublicID);
+  const profilePublicIDFromStore = useSelector(state => state.profile.authProfilePublicID);
+  const currentProfile = useSelector(state => state.profile.currentProfile);
+  const authProfile = useSelector(state => state.profile.authProfile);
+  const isFollowing = useSelector((state) => state.user.isFollowing)
+  const profile = useSelector((state) => state.profile.profile);
+  const [currentUser, setCurrentUser] = useState('');
+  const [showMyCommunity, setShowMyCommunity] = useState(false);
+  const [myCommunityData, setMyCommunityData] = useState([]);
+  const [displayText, setDisplayText] = useState('');
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [currentRole, setCurrentRole] = useState('');
+  const [moreTabVisible, setMoreTabVisible] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  });
+  const user = useSelector(state => state.user.user)
 
-     useEffect(() => {
-      const fetchProfile = async () => {
-        const authToken = await AsyncStorage.getItem("AccessToken");
-        const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        const item = response.data;
-        dispatch(getProfile(response.data.data))
-      }
-      if(profilePublicID !== profile.public_id){
-        fetchProfile();
-      }
-    },[profilePublicID])
+  useEffect(() => {
+    setIsOwner(profilePublicID === profilePublicIDFromStore);
+  }, [profilePublicID, profile]);
 
-    useFocusEffect(
-      React.useCallback(() => {
-        fetchFollowing();
-        verifyUser();
-        fetchData();
-        fetchFollowerCount();
-        fetchFollowingCount();
-        if(profilePublicID !== authProfilePublicID){
-          checkIsFollowingFunc();
-        }
-      }, [profilePublicID])
-    );
-
-    const checkIsFollowingFunc = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/isFollowing/${profilePublicID}`, {
-              headers: {
-                  'Authorization': `Bearer ${authToken}`,
-                  'Content-Type': 'application/json'
-              }
-            });
-            dispatch(checkIsFollowing(response.data.data));
-        } catch (err) {
-            const message = handleInlineError(err);
-            ToastManager.show('Failed to update. Please try again.', 'err'); 
-            console.error("Unable to check is_following: ", err);
-        }
+  useEffect(() => {
+    const roleStatus = async () => {
+      const checkRole = await AsyncStorage.getItem('Role');
+      setCurrentRole(checkRole);
     };
+    roleStatus();
+  }, []);
+
+  const checkIsFollowingFunc = async () => {
+    try {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      const response = await axiosInstance.get(`${BASE_URL}/isFollowing/${currentProfile.public_id}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      dispatch(checkIsFollowing(response.data.data));
+    } catch (err) {
+      ToastManager.show('Failed to update. Please try again.', 'error');
+      console.error("Unable to check is_following: ", err);
+    }
+  };
+
+  // Fetch follower and following counts by current profile
+  const fetchFollowerCount = async (targetPublicID) => {
+    try {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      const response = await axiosInstance.get(`${BASE_URL}/getFollower/${targetPublicID}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFollowerCount(response.data?.data?.length || 0);
+    } catch (err) {
+      console.error("Unable to fetch follower count: ", err);
+    }
+  };
+
+  const fetchFollowingCount = async (targetPublicID) => {
+    try {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowing/${targetPublicID}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setFollowingCount(response.data?.data?.length || 0);
+    } catch (err) {
+      console.error("Unable to fetch following count: ", err);
+    }
+  };
 
 const handleReduxFollow = async () => {
   setLoading(true);
@@ -118,7 +126,7 @@ const handleReduxFollow = async () => {
 
     // Update follower count & isFollowing status
     try { await checkIsFollowingFunc(); } catch {}
-    try { await fetchFollowerCount(); } catch {}
+    try { await fetchFollowerCount(profilePublicID || currentProfile.public_id); } catch {}
     ToastManager.show('User followed successfully!', 'success');
   } catch (err) {
     console.error('Follow user failed:', err);
@@ -152,7 +160,7 @@ const handleReduxUnFollow = async () => {
 
     // Update follower count & isFollowing status
     try { await checkIsFollowingFunc(); } catch {}
-    try { await fetchFollowerCount(); } catch {}
+    try { await fetchFollowerCount(profilePublicID || currentProfile.public_id); } catch {}
 
     ToastManager.show('User unfollowed successfully!', 'info');
   } catch (err) {
@@ -172,552 +180,346 @@ const handleReduxUnFollow = async () => {
     } 
   }
 
-    const fetchFollowing = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-            }
-        })
-        const item = response.data;
-        if(item === null) {
-           dispatch(getFollowingUser([]));
-        } else {
-            dispatch(getFollowingUser(item));
-        }
-    } catch (e) {
-        console.error(e);
-    }
-  }
-
-  const fetchData = async () => {
+  const fetchProfileData = async () => {
     try {
-      const userPublicID = await AsyncStorage.getItem('UserPublicID');
-      if (!userPublicID) {
-        console.log("User not found in AsyncStorage.");
-        return;
-      }
-      
-      if(authProfilePublicID !== profilePublicID){
-        const response = await axios.get(`${AUTH_URL}/getProfileByPublicID/${profilePublicID}`);
-        if (response.data === null) {
-          setProfileData([]);
-        } else {
-          const item = response.data
-          dispatch(getProfile(item.data))
-          setProfileData(item.data)
-
-          if(!item.data.avatar_url || response.item.avatar_url === '') {
-            const usernameInitial = response.data.username ? response.data.username.charAt(0) : '';
-            setDisplayText(usernameInitial.toUpperCase());
-          } else {
-            setDisplayText('');
-          }
-        }
-      } else {
-        const response = await axios.get(`${AUTH_URL}/getProfile/${userPublicID}`)
-       if( response.data == null ){
-          setProfileData([])
-        } else {
-          const item =  response.data
-          setProfileData(item.data);
-          dispatch(getProfile(item.data))
-          if(!item.data.avatar_url || item.data.avatar_url === '') {
-            const usernameInitial = item.data.username ? item.data.username.charAt(0) : '';
-            setDisplayText(usernameInitial.toUpperCase());
-          } else {
-            setDisplayText('');
-          }
-        }
-      }
-    } catch(e) {
-      console.error("unable to fetch the profile details", e)
+      console.log('Profile Public ID from route: ', profilePublicID);
+      console.log('Profile Public ID from store: ', profilePublicIDFromStore);
+      const targetPublicID = profilePublicID || profilePublicIDFromStore
+      console.log('Fetching profile data for public ID: ', targetPublicID);
+      const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${targetPublicID}`);
+      console.log('Profile data fetched successfully: ', response.data);
+      dispatch(setCurrentProfile(response.data.data));
+      setError({ global: null, fields: {} });
+    } catch (err) {
+      const backendErrors = err?.response?.data?.error?.fields || {};
+      setError({
+        global: err?.response?.data?.error?.message || "Unable to load profile.",
+        fields: backendErrors,
+      })
+      console.error('Unable to fetch the profile data: ', err);
     }
-  }
-
-  const verifyUser = async () => {
-    const userPublicID = await AsyncStorage.getItem("UserPublicID");
-    if(profilePublicID === authProfilePublicID) {
-      setShowEditProfileButton(true);
-      setCurrentUser(authProfilePublicID);
-    } else {
-      setCurrentUser(profilePublicID);
-    }
-  }
-
-  const fetchFollowerCount = async () => {
-    try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          }
-        });
-
-        const item = response.data;
-        if(item.data !== null && Array.isArray(item.data)) {
-          setFollowerCount(item.data.length);
-        }
-    } catch(err) {
-        console.error("Error fetching follower count:", err);
-    }
-  }
-
-  const fetchFollowingCount = async () => {
-    try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        }
-      });
-      const item = response.data;
-      if(item.data !== null && Array.isArray(item.data)) {
-        setFollowingCount(item.data.length);
-      }
-    } catch(err) {
-        console.error("Error fetching following count:", err);
-    }
-  }
-
-
-  // handle message used to open the message box
-  const handleMessage = () => {
-    navigation.navigate("Message", {profileData: profile})
-  }
-
-  const handleEditProfile = () => {
-    navigation.navigate('EditProfile')
   };
 
-const addPlayerProfile = () => {
-  navigation.navigate("CreatePlayerProfile");
-}
+  useFocusEffect( useCallback(() => {
+    fetchProfileData();
+  }, [profilePublicID, profilePublicIDFromStore, dispatch]));
 
-const isFollowingConditionCheck = () => {
-  console.log("Is Following: ", isFollowing)
-  if(isFollowing?.is_following) {
-    return 'Following'
-  } else {
-    return 'Follow'
-  }
-}
+  useEffect(() => {
+    if (currentProfile?.public_id) {
+      fetchFollowerCount(currentProfile.public_id);
+      fetchFollowingCount(currentProfile.public_id);
+    }
+  }, [currentProfile?.public_id]);
 
-useEffect(() => {
-  console.log("isFollowing state changed: ", isFollowing);
-}, [isFollowing]);
-
-    const AnimatedMaterialIcons = Animated.createAnimatedComponent(MaterialIcons);
-    const AnimatedAntDesign = Animated.createAnimatedComponent(AntDesign)
-
-    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
-
-    const scrollY = useSharedValue(0);
-
-    const handleScroll = useAnimatedScrollHandler((e) => {
-        scrollY.value = e.contentOffset.y;
-      })
-    
-      const bgColor = 'white'
-      const bgColor2 =  'rgb(248, 113, 113)'
-      const headerInitialHeight = 100;
-      const headerNextHeight = 50;
-      const offsetValue = 100;
-      
-      const animatedIconProps = useAnimatedProps(() => {
-        return {
-          color: interpolateColor(
-            scrollY.value,
-            [0, offsetValue],
-            ['black', 'white']
-          ),
+    useFocusEffect(
+      React.useCallback(() => {
+        // fetchFollowing();
+        // verifyUser();
+        // fetchData();
+        // fetchFollowerCount();
+        // fetchFollowingCount();
+        if(currentProfile?.public_id !== authProfile?.public_id) {
+          checkIsFollowingFunc();
         }
+      }, [profilePublicID])
+    );
+
+  // useEffect(() => {
+  //   const fetchCounts = async () => {
+  //     const fetchFollowerCount = async () => {
+  //       const response = await axiosInstance.get(`${BASE_URL}/getFollower`);
+  //       const item = response.data;
+  //       setFollowerCount(item.data.length);
+  //     };
+
+  //     const fetchFollowingCount = async () => {
+  //       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`);
+  //       const item = response.data;
+  //       setFollowingCount(item.data.length);
+  //     };
+
+  //     fetchFollowerCount();
+  //     fetchFollowingCount();
+  //   };
+
+  //   fetchCounts();
+  // }, [axiosInstance]);
+
+  const toggleMyCommunity = async () => {
+    if (showMyCommunity) {
+      setShowMyCommunity(false);
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.get(`${BASE_URL}/getCommunityByUser`);
+      setMyCommunityData(response.data || []);
+      setShowMyCommunity(true);
+      // Clear any previous errors
+      setError({ global: null, fields: {} });
+    } catch (err) {
+      const backendErrors = err?.response?.data?.error?.fields || {};
+      setError({
+        global: err?.response?.data?.error?.message || "Unable to load communities. Please try again.",
+        fields: backendErrors,
       })
+      console.error("Unable to get community: ", err);
+      setShowMyCommunity(false);
+    }
+  };
 
+  const handleLogout = () => {
+    logoutServies({ dispatch });
+  };
 
-      const animatedHeader = useAnimatedStyle(() => {
-        const height = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [headerInitialHeight, headerNextHeight],
-          Extrapolation.CLAMP,
-        )
-    
-        const backgroundColor = interpolateColor(
-          scrollY.value,
-          [0, offsetValue],
-          [bgColor, bgColor2]
-        )
-        return {
-          backgroundColor, height
-        }
-      })
+  const handleNavigation = (screen) => {
+    navigation.navigate(screen);
+  };
 
-      const nameAnimatedStyles = useAnimatedStyle(() => {
-        const opacity = interpolate(
-          scrollY.value,
-          [0, 100, offsetValue],
-          [0, 1, 1],
-          Extrapolation.CLAMP,
-        )
-        const translateX = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [0, 40],
-          Extrapolation.CLAMP,
-        )
-        const translateY = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [0, -5],
-          Extrapolation.CLAMP,
-        )
-        return { opacity, transform: [{ translateX }, { translateY }] }
-      })
-      const animImage = useAnimatedStyle(() => {
-        const yValue = 75;
-        const translateY = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [0, -80],
-          Extrapolation.CLAMP,
-        )
-    
-        const xValue = sWidth / 2 - (2 * 16) - 20;
-        const translateX = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [0, -xValue],
-          Extrapolation.CLAMP,
-        )
-    
-        const scale = interpolate(
-          scrollY.value,
-          [0, offsetValue],
-          [1, 0.3],
-          Extrapolation.CLAMP,
-        )
-        return {
-          transform: [{ translateY }, { translateX }, { scale }]
-        }
-      })
+  const handleCommunityPage = (item) => {
+    navigation.navigate('CommunityPage', { item: item, communityPublicID: item.public_id });
+  };
 
-      const handleUploadDocument = async () => {
-        try {
-            let options = { 
-                noData: true,
-                mediaType: 'image',
-            };
-    
-            const res = await launchImageLibrary(options);
-    
-            if (res.didCancel) {
-                console.log('User cancelled photo picker');
-            } else if (res.error) {
-                console.log('ImagePicker Error: ', res.error);
-            } else {
-                // Handle document upload logic here
-                setDocumentUploaded(true);
-            }
-        } catch (e) {
-            console.error("unable to load avatar image", e);
-        }
-      }
+  const handleMessage = () => {
+    navigation.navigate('Messages', { recipientProfile: currentProfile });
+  };
 
-      const handleVerificationDetails = async () => {
-        try {
-          const authToken = await AsyncStorage.getItem('AccessToken');
-          const data = {
-            profile_id: profile.id,
-            organization_name: organizationName,
-            email: email,
-            phone_number: country ? `+${country.callingCode}` : '+91' + '-' + phoneNumber,
-            document_type: 'Verification',
-            file_path: documentURL
-          }
-          const response = await axiosInstance.post(`${BASE_URL}/applyForVerification`, data, {
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json',
-          }
-          })
-          if(response.data){
-            setIsModalOrganizerVerified(false)
-          }
-        } catch (err) {
-          console.error("Failed to verified the details and documents: ", err)
-        }
-      }
-    return(
-      <View style={tailwind`flex-1`}>
-            <Animated.View style={[tailwind`flex-row items-center justify-between`, animatedHeader]}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`items-start top-0 px-2`}>
-                  <AnimatedMaterialIcons name="arrow-back" size={22} animatedProps={animatedIconProps} />
-              </TouchableOpacity>              
-              <Animated.View style={[tailwind`flex-1 justify-center`, nameAnimatedStyles]}>
-                <Text style={[tailwind`text-xl text-white`]}>{profile?.full_name}</Text>
-              </Animated.View>
-              <View style={tailwind`flex-row items-end top-0 right-0 px-2  rounded-lg`}>
-                <TouchableOpacity onPress={handleMessage} style={tailwind`mx-2`}>
-                    <AnimatedAntDesign name="message1" size={22} animatedProps={animatedIconProps} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setMoreTabVisible(true)} style={tailwind`mx-2`}>
-                    <AnimatedMaterialIcons name="more-vert" size={22} animatedProps={animatedIconProps}/>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-            <Animated.Image source={profile?.avatar_url ? {uri: profile.avatar_url} : null} style={[tailwind`w-32 h-32 rounded-full absolute z-20 self-center bg-red-200 top-10`, animImage]}/>
-            <Animated.ScrollView
-                onScroll={handleScroll}
-                contentContainerStyle={{height:880}}
-                scrollEnabled={true}
-            >
-                <View style={tailwind`flex-1 bg-white`}>
-                  <View style={tailwind`items-center`}>
-                    <View style={tailwind`mt-18`}>
-                      <Text style={tailwind`text-2xl font-semibold text-black`}>{profile?.full_name}</Text>
-                      <Text style={tailwind`text-gray-400 text-base`}>@{profile?.username}</Text>
-                    </View>
-                  </View>
-                  <View style={tailwind`mt-2 items-center`}>
-                    <View style={tailwind`flex-row items-center mb-4`}>
-                      <Text style={tailwind`text-lg font-medium text-black`}>
-                        {followerCount} Followers
-                      </Text>
-                      <Text style={tailwind`text-lg mx-2 text-gray-400`}>|</Text>
-                      <Text style={tailwind`text-lg font-medium text-black`}>
-                        {followingCount} Following
-                      </Text>
-                    </View>
-                  </View>
+  return (
+    <View style={tailwind`flex-1 bg-white`}>
+      {/* Custom Header - With Conditional Follow Button */}
+      <View style={tailwind`bg-red-400 flex-row items-center justify-between px-4 py-3`}>
+        {/* Back Button */}
+        <Pressable onPress={() => navigation.goBack()} style={tailwind`items-center justify-center w-10 h-10`}>
+          <AntDesign name="arrowleft" size={24} color="white" />
+        </Pressable>
 
-                  {/* Follow/Edit Profile Button */}
-                  <View style={tailwind`px-4`}>
-                    <View style={tailwind`flex-row items-center justify-center`}>
-                      {profilePublicID !== authProfilePublicID ? (
-                        <>
-                          {/* Follow Button */}
-                          <Pressable 
-                            style={[
-                              tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm mr-3`,
-                              isFollowing?.is_following 
-                                ? tailwind`bg-white border border-red-500` 
-                                : tailwind`bg-red-500`
-                            ]}
-                            onPress={handleFollowButton}
-                            disabled={loading}
-                          >
-                            <Text style={[
-                              tailwind`text-lg font-semibold`,
-                              isFollowing?.is_following ? tailwind`text-red-500` : tailwind`text-white`
-                            ]}>
-                              {loading ? 'Loading...' : isFollowingConditionCheck()}
-                            </Text>
-                          </Pressable>
+        {authProfile.public_id !== currentProfile.public_id && (
+          <Pressable onPress={handleFollowButton} style={tailwind`items-center justify-center px-4 py-2 rounded-full ${isFollowing?.is_following ? 'bg-white/20' : 'bg-white'}`}>
+            <Text style={tailwind`text-sm font-medium ${isFollowing?.is_following ? 'text-white' : 'text-red-400'}`}>
+              {isFollowing?.is_following ? 'Following' : 'Follow'}
+            </Text>
+          </Pressable>
+        )}
 
-                          {/* Player Button */}
-                          <Pressable 
-                            style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
-                            onPress={() => navigation.navigate("PlayerProfile", {publicID: profile?.public_id, from: "profile"})}
-                          >
-                            <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
-                          </Pressable>
-                        </>
-                      ) : (
-                        /* Only Player button (full width if own profile) */
-                        <Pressable 
-                          style={tailwind`flex-1 py-3 rounded-2xl items-center shadow-sm bg-gray-100`}
-                          onPress={() => navigation.navigate("PlayerProfile", {publicID: authProfilePublicID, from: "profile"})}
-                        >
-                          <Text style={tailwind`text-lg font-semibold text-gray-700`}>Player</Text>
-                        </Pressable>
-                      )}
-                    </View>
-                  </View>
+        {/* Right Side: Follow Button OR More Menu */}
+        {authProfile.public_id === currentProfile.public_id && (
+          <View style={tailwind`flex-row items-center gap-2`}>
+            <Pressable onPress={() => setMoreTabVisible(true)} style={tailwind`items-center justify-center w-10 h-10`}>
+              <MaterialIcons name="more-vert" size={24} color="white"/>
+            </Pressable>
+          </View>
+        )}
+      </View>
 
-                  <View style={tailwind`flex-1 mt-6 bg-white rounded-t-2xl shadow-lg`}>
-                    <TopTabProfile profile={profile} />
-                  </View>
-                </View>
-            </Animated.ScrollView>
+      {/* Profile Header */}
+      <View style={tailwind`items-center bg-red-400 pt-4 pb-8 rounded-b-3xl`}>
+        {currentProfile?.avatar_url ? (
+          <Image style={tailwind`w-20 h-20 rounded-full border-3 border-white/30`} source={{ uri: currentProfile.avatar_url }} />
+        ) : (
+          <View style={tailwind`w-20 h-20 rounded-full bg-white/20 items-center justify-center`}>
+            <Text style={tailwind`text-white text-2xl font-bold`}>{currentProfile?.full_name?.charAt(0)?.toUpperCase()}</Text>
+          </View>
+        )}
+        <Text style={tailwind`mt-3 text-lg font-bold text-white`}>{currentProfile?.full_name || 'Loading...'}</Text>
+        <Text style={tailwind`text-white/100 text-sm mt-0.5`}>@{currentProfile?.username || '...'}</Text>
+        <View style={tailwind`flex-row mt-5 bg-white/15 rounded-2xl px-6 py-3`}>
+          <Pressable style={tailwind`items-center px-4`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>{followerCount}</Text>
+            <Text style={tailwind`text-white/100 text-sm mt-0.5`}>Followers</Text>
+          </Pressable>
+          <View style={tailwind`w-px bg-white/60 mx-2`} />
+          <Pressable style={tailwind`items-center px-4`}>
+            <Text style={tailwind`text-white text-lg font-bold`}>{followingCount}</Text>
+            <Text style={tailwind`text-white/100 text-sm mt-0.5`}>Following</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Menu */}
+      <ScrollView style={tailwind`flex-1 bg-gray-50`}>
+        <View style={tailwind`bg-white mx-4 mt-4 rounded-2xl overflow-hidden`} >
+          {/* Menu Items */}
+
+          <Pressable onPress={() => navigation.navigate("PlayerProfile", {publicID: currentProfile?.public_id, from: "profile_menu"})}style={tailwind`flex-row items-center py-4 px-4`}>
+              <FontAwesome name="soccer-ball-o" size={22} color="#374151" />
+              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>My Player</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+          </Pressable>
+          {authProfile.public_id === currentProfile.public_id && (
+            <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-4 px-4`}>
+              <MaterialIcons name="people-outline" size={22} color="#374151" />
+              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Connections</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+            </Pressable>
+          )}
+
+          <Pressable onPress={() => navigation.navigate("MyThreads", {from: "profile" })} style={tailwind`flex-row items-center py-4 px-4 border-t border-gray-50`}>
+              <AntDesign name="profile" size={22} color="#374151" />
+              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>My Posts</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+          </Pressable>
+        </View>
+
+        {/* {isPlayer && ( */}
+          <View style={tailwind`bg-white mx-4 mt-3 rounded-2xl overflow-hidden`}>
             
-            {moreTabVisible && (
-              <Modal
-                transparent
-                visible={moreTabVisible}
-                animationType="fade"
-                onRequestClose={() => setMoreTabVisible(false)}
-              >
-                <Pressable
-                  style={tailwind`flex-1 bg-black bg-opacity-30`}
-                  onPress={() => setMoreTabVisible(false)}
-                />
-                <View
-                  style={tailwind`absolute right-2 top-12 w-48 bg-white rounded-md shadow-lg p-4`}
-                >
+          </View>
+        {/* )} */}
+
+        {/* My Community Section */}
+        <View style={tailwind`bg-white mx-4 mt-3 rounded-2xl overflow-hidden`}>
+          <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between py-4 px-4`}>
+            <View style={tailwind`flex-row items-center`}>
+              <MaterialIcons name="forum" size={22} color="#374151" />
+              <Text style={tailwind`text-sm font-medium text-gray-900 ml-3`}>My Communities</Text>
+            </View>
+            <MaterialIcons name={showMyCommunity ? 'expand-less' : 'expand-more'} size={22} color="#9CA3AF" />
+          </Pressable>
+
+          {showMyCommunity && (
+            <View style={tailwind`border-t border-gray-50`}>
+              {myCommunityData.length > 0 ? (
+                myCommunityData.map((item, index) => (
+                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center py-3 px-4 border-b border-gray-50`}>
+                    {item?.media_url ? (
+                      <Image source={{ uri: item.media_url }} style={tailwind`h-9 w-9 rounded-full bg-gray-100`} />
+                    ) : (
+                      <View style={tailwind`h-9 w-9 rounded-full bg-red-400 items-center justify-center`}>
+                        <Text style={tailwind`text-xs text-white font-bold`}>{item.name.charAt(0).toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <Text style={tailwind`text-sm text-gray-800 ml-3 font-medium flex-1`}>{item.name}</Text>
+                    <MaterialIcons name="chevron-right" size={18} color="#D1D5DB" />
+                  </Pressable>
+                ))
+              ) : (
+                <View style={tailwind`items-center py-8 px-4`}>
+                  <Text style={tailwind`text-gray-400 text-center text-xs`}>
+                    No communities yet.{'\n'}Join or create one to get started!
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Logout */}
+        {authProfile.public_id === currentProfile.public_id && (
+            <View style={tailwind`mx-4 mt-3 mb-8`}>
+              <Pressable onPress={handleLogout} style={tailwind`flex-row items-center justify-center py-3.5 bg-white rounded-2xl`}>
+                <MaterialIcons name="logout" size={18} color="#f87171" />
+                <Text style={tailwind`text-red-400 text-sm font-semibold ml-2`}>Log Out</Text>
+              </Pressable>
+            </View>
+        )}
+      </ScrollView>
+      {moreTabVisible && (
+        <Modal
+          transparent
+          visible={moreTabVisible}
+          animationType="fade"
+          onRequestClose={() => setMoreTabVisible(false)}
+        >
+          <Pressable
+            style={tailwind`flex-1 bg-black bg-opacity-50`}
+            onPress={() => setMoreTabVisible(false)}
+          >
+            <View
+              style={tailwind`absolute right-4 top-16 w-56 bg-white rounded-2xl shadow-2xl overflow-hidden`}
+              onStartShouldSetResponder={() => true}
+            >
+              {/* Own Profile Menu */}
+              {authProfile.public_id === currentProfile.public_id ? (
+                <>
                   <TouchableOpacity
-                    style={tailwind`py-2 border-b border-gray-200`}
+                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
                     onPress={() => {
                       setMoreTabVisible(false);
-                      handleEditProfile();
+                      navigation.navigate('EditProfile', {from: "profile_menu"});
                     }}
                   >
-                    <Text style={tailwind`text-black text-lg`}>Edit Profile</Text>
+                    <MaterialIcons name="edit" size={20} color="#374151" />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Edit Profile</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={tailwind`py-2 border-b border-gray-200`}
+                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      navigation.navigate('Settings');
+                    }}
+                  >
+                    <MaterialIcons name="settings" size={20} color="#374151" />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Settings</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={tailwind`flex-row items-center py-4 px-4`}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      // Add share functionality
+                    }}
+                  >
+                    <MaterialIcons name="share" size={20} color="#374151" />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Share Profile</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                /* Other Profile Menu */
+                <>
+                  <TouchableOpacity
+                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
                     onPress={() => {
                       setMoreTabVisible(false);
                       handleFollowButton();
                     }}
                   >
-                    <Text style={tailwind`text-black text-lg`}>
+                    <MaterialIcons
+                      name={isFollowing?.is_following ? "person-remove" : "person-add"}
+                      size={20}
+                      color="#374151"
+                    />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>
                       {isFollowing?.is_following ? 'Unfollow' : 'Follow'}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={tailwind`py-2`}
+                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
                     onPress={() => {
                       setMoreTabVisible(false);
-                      // Add share functionality here
+                      handleMessage();
                     }}
                   >
-                    <Text style={tailwind`text-black text-lg`}>Share Profile</Text>
+                    <MaterialIcons name="message" size={20} color="#374151" />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Send Message</Text>
                   </TouchableOpacity>
-                </View>
-            </Modal>
-            )}
-            
-            {/* Rest of your modals remain the same */}
-            {isModalOrganizerVerified && (
-              <Modal
-                transparent
-                visible={isModalOrganizerVerified}
-                animationType="slide"
-                onRequestClose={() => setIsModalOrganizerVerified(false)}
-              >
-                <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                  <View style={tailwind`w-full bg-white rounded-t-3xl p-6 shadow-2xl`}>
-                    
-                    {/* Header */}
-                    <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                      <Text style={tailwind`text-xl font-bold text-black`}>Organizer Verification</Text>
-                      <Pressable onPress={() => setIsModalOrganizerVerified(false)}>
-                        <MaterialIcons name="close" size={24} color="black" />
-                      </Pressable>
-                    </View>
-
-                    {/* Input Fields */}
-                    <KeyboardAvoidingView style={tailwind` gap-4`}>
-                      <TextInput
-                        style={tailwind`p-4 rounded-lg border border-gray-400  text-lg text-black`}
-                        value={organizationName}
-                        onChangeText={setOrganizationName}
-                        placeholder="Organization Name"
-                        placeholderTextColor="gray"
-                      />
-                      <View style={tailwind`flex-row items-center space-x-3`}>
-                        <Pressable
-                          onPress={() => setIsCountryPicker(true)}
-                          style={tailwind`flex-row items-center px-4 py-3 rounded-lg bg-white border border-gray-400 shadow-md`}
-                        >
-                          {country?.flag ? (
-                            <Image
-                              source={{ uri: `https://flagcdn.com/w40/${country.cca2.toLowerCase()}.png` }}
-                              style={{ width: 28, height: 20, marginRight: 8 }}
-                              resizeMode="contain"
-                            />
-                          ): (
-                            <Image
-                              source={{ uri: `https://flagcdn.com/w40/in.png` }}
-                              style={{ width: 28, height: 20, marginRight: 8 }}
-                              resizeMode="contain"
-                            />
-                          )}
-                          <Text style={tailwind`text-base text-gray-800 font-medium`}>
-                            {country ? `+${country.callingCode}` : '+91'}
-                          </Text>
-                          <FontAwesome name="chevron-down" size={16} color="gray" style={tailwind`ml-2`} />
-                        </Pressable>
-
-                        <TextInput
-                          style={tailwind`flex-1 px-4 py-3 rounded-lg bg-white border border-gray-400 text-base text-gray-900 shadow-md`}
-                          value={phoneNumber}
-                          onChangeText={setPhoneNumber}
-                          placeholder="Phone Number"
-                          placeholderTextColor="gray"
-                          keyboardType='phone-pad'
-                        />
-                      </View>
-                      <TextInput
-                        style={tailwind`p-4 rounded-lg border border-gray-400 text-lg text-black`}
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Email"
-                        placeholderTextColor="gray"
-                        keyboardType='email-address'
-                      />
-                    </KeyboardAvoidingView>
-
-                    {/* Upload Button */}
-                    <View style={tailwind`mt-6 bg-gray-100`}>
-                        <View style={tailwind`p-2`}>
-                          <Text style={tailwind`text-lg`}>Required Document</Text>
-                        </View>
-                        <View style={tailwind`p-10 items-center justify-between`}>
-                        <MaterialIcons name="upload-file" size={46} color='black' />
-                        <Pressable
-                          onPress={handleUploadDocument}
-                          style={tailwind`items-center justify-center p-4  bg-red-400 rounded-xl border-white`}
-                        >
-                          <Text style={tailwind`text-white text-base font-semibold`}>
-                            {documentUploaded ? "Document Uploaded" : "Upload Document"}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    </View>
-
-                    {/* Submit Button */}
-                    <View style={tailwind`mt-6 mb-2`}>
-                      <Pressable
-                        onPress={handleVerificationDetails}
-                        style={tailwind`bg-red-400 rounded-xl p-4 items-center shadow-lg`}
-                      >
-                        <Text style={tailwind`text-white font-semibold text-base`}>Submit for Verification</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                </View>
-              </Modal>
-            )}
-            {isCountryPicker && (
-                <CountryPicker
-                    withFilter
-                    withFlag
-                    withCountryNameButton
-                    withAlphaFilter
-                    withCallingCode
-                    withEmoji
-                    countryCode={country?.cca2}
-                    onSelect={(selectedCountry) => {
-                      console.log("Selected Country: ", selectedCountry); // Debugging
-                      if (selectedCountry) {
-                          setCountry(selectedCountry);
-                      } else {
-                          console.error("No country selected");
-                      }
-                      setIsCountryPicker(false);
+                  <TouchableOpacity
+                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      // Add share functionality
                     }}
-                    visible={isCountryPicker}
-                    onClose={() => setIsCountryPicker(false)}
-                />
-            )}
-        </View>
-    );
+                  >
+                    <MaterialIcons name="share" size={20} color="#374151" />
+                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Share Profile</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={tailwind`flex-row items-center py-4 px-4`}
+                    onPress={() => {
+                      setMoreTabVisible(false);
+                      // Add report/block functionality
+                    }}
+                  >
+                    <MaterialIcons name="report" size={20} color="#DC2626" />
+                    <Text style={tailwind`text-red-600 text-base ml-3 font-medium`}>Report User</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </Pressable>
+      </Modal>
+      )}
+    </View>
+  );
 }
 
 export default Profile;
+

@@ -223,6 +223,35 @@ export const setAuthProfilePublicID = (publicID) => {
     }
 }
 
+export const setAuthUserPublicID = (publicID) => {
+    console.log("Action Set Auth User Public ID: ", publicID)
+    return {
+        type: actionTypes.SET_AUTH_USER_PUBLIC_ID,
+        payload: publicID
+    }
+}
+
+export const setAuthProfile = (profile) => {
+    return {
+        type: actionTypes.SET_AUTH_PROFILE,
+        payload: profile
+    }
+}
+
+export const setCurrentProfile = (profile) => {
+    return {
+        type: actionTypes.SET_CURRENT_PROFILE,
+        payload: profile
+    }
+}
+
+export const setAuthUser = (user) => {
+    return {
+        type: actionTypes.SET_AUTH_USER,
+        payload: user
+    }
+}
+
 //matches score
 
 export const getFootballMatchScore = (matchScore) => {
