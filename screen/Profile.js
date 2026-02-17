@@ -321,7 +321,7 @@ const handleReduxUnFollow = async () => {
             </Pressable>
           )}
 
-          <Pressable onPress={() => navigation.navigate("MyThreads", {from: "profile" })} style={tailwind`flex-row items-center py-4 px-4 border-t border-gray-50`}>
+          <Pressable onPress={() => navigation.navigate("UserThreads", {from: "profile" })} style={tailwind`flex-row items-center py-4 px-4 border-t border-gray-50`}>
               <AntDesign name="profile" size={22} color="#374151" />
               <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Posts</Text>
               <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />

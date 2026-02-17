@@ -11,7 +11,7 @@ import tailwind from 'twrnc';
 import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
-import { handleUser, handleLikes } from '../utils/ThreadUtils';
+import { handleUser,  } from '../utils/ThreadUtils';
 import { addThreadComment } from '../services/commentServices';
 import axiosInstance from './axios_config';
 import { CommentValidationFields, validateCommentForm } from '../utils/validation/commentValidation';
@@ -168,7 +168,7 @@ function ThreadComment ({route}) {
                     <View style={tailwind`flex-row border-t border-gray-100`}>
                         <Pressable
                             style={tailwind`flex-1 flex-row items-center justify-center py-3 active:bg-gray-50`}
-                            onPress={() => handleLikes({ threadPublicID: item.public_id, setError, dispatch })}
+                            onPress={() => handleLikes({threadPublicID: item.public_id, setError, dispatch})}
                         >
                             <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
                             <Text style={tailwind`text-gray-700 ml-2 font-medium`}>Like</Text>

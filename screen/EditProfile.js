@@ -29,10 +29,10 @@ import {BASE_URL, AUTH_URL} from '../constants/ApiConstants';
 import {setEditFullName, setEditDescription, setProfileAvatar} from '../redux/actions/actions';
 import {useDispatch} from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Geolocation from "@react-native-community/geolocation";
 import { validateProfileForm } from '../utils/validation/profileValidation';
 import ToastManager from '../utils/ToastManager';
 import { handleInlineError, logSilentError } from '../utils/errorHandler';
+import { requestLocationPermission } from '../utils/locationService';
 
 
 function getMediaTypeFromURL(url) {
@@ -86,54 +86,39 @@ export default function EditProfile() {
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
 
-      // Get location based on IP when screen is focused
-      useFocusEffect(
+  // Get location based on IP when screen is focused
+  useFocusEffect(
           React.useCallback(() => {
               let isActive = true;
-              const getIPLocation = async () => {
-                  try {
-                      console.log("Getting IP-based location...");
-                      // Try BigDataCloud API
-                      const response = await fetch('http://ip-api.com/json/', {
-                          method: 'GET',
-                          headers: { 'Accept': 'application/json' }
-                      });
-                      console.log("IP location response status:", response);
   
-                      if (!isActive) return;
-  
-                      const data = await response.json();
-                      console.log("IP location response:", data);
-  
-                      if (data && data.status === 'success') {
-                          let cleanedRegion = data.regionName || data.region || '';
-  
-                          // Remove common prefixes/suffixes to make region names cleaner
-                          cleanedRegion = cleanedRegion
-                              .replace(/^National Capital Territory of /i, '')
-                              .replace(/^Union Territory of /i, '')
-                              .replace(/^State of /i, '')
-                              .trim();
-  
-                          setCity(data.city || '');
-                          setState(cleanedRegion);
-                          setCountry(data.country || '');
-                          console.log("✓ Location set:");
-                          console.log("  City:", data.city);
-                          console.log("  State:", cleanedRegion);
-                          console.log("  Country:", data.country);
-                      }
-                  } catch (err) {
-                      console.error("IP location failed:", err.message);
+              const fetchIPLocation = async () => {
+                  const location = await getIPBasedLocation();
+                  if (isActive && location) {
+                      setCity(location.city);
+                      setState(location.state);
+                      setCountry(location.country);
                   }
               };
-              getIPLocation();
+  
+              fetchIPLocation();
+  
               // Cleanup when screen loses focus
               return () => {
-              isActive = false;
+                  isActive = false;
               };
-          }, [city, state, country])
+          }, [])
       );
+  
+    const handleLocation = async () => {
+          await requestLocationPermission(
+              (coords) => {
+                  setLatitude(coords.latitude);
+                  setLongitude(coords.longitude);
+              },
+              null,
+              setIsLoadingLocation
+          );
+    };
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -339,111 +324,6 @@ export default function EditProfile() {
       console.error('unable to add the new role: ', err);
     }
   };
-
-  const getCurrentCoordinates = () => {
-    setIsLoadingLocation(true);
-    console.log("Getting current coordinates with real-time location...");
-
-    let watchId = null;
-    let timeoutId = null;
-
-    // Use watchPosition as it's more reliable on Android physical devices
-    watchId = Geolocation.watchPosition(
-      async (position) => {
-        console.log("Got position via watchPosition: ", position);
-        const {latitude, longitude} = position.coords;
-        console.log("Latitude: ", latitude, " Longitude: ", longitude);
-
-        // Clear watch and timeout once we get a position
-        if (watchId !== null) {
-          Geolocation.clearWatch(watchId);
-        }
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-        }
-
-        setLatitude(latitude);
-        setLongitude(longitude);
-        setIsLoadingLocation(false);
-        Alert.alert('Success', 'Location retrieved successfully!');
-      },
-      (error) => {
-        console.error("watchPosition error: ", error);
-
-        // Clear watch on error
-        if (watchId !== null) {
-          Geolocation.clearWatch(watchId);
-        }
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-        }
-
-        setIsLoadingLocation(false);
-        setError(`Failed to get location. Please enter manually.\n\nPlease check:\n1. Location services are ON in device settings\n2. Google Play Services is up to date\n3. Try restarting the app\n\nOr enter your location manually.`);
-      },
-      {
-        enableHighAccuracy: false,  // Network location for faster results
-        timeout: 20000,  // 20 seconds timeout
-        maximumAge: 0,  // No cached position
-        distanceFilter: 0,  // Get immediate updates
-      }
-    );
-
-    // Fallback timeout in case watchPosition doesn't trigger error callback
-    timeoutId = setTimeout(() => {
-      if (watchId !== null) {
-        Geolocation.clearWatch(watchId);
-        console.log("Manual timeout triggered");
-        setIsLoadingLocation(false);
-        Alert.alert(
-          'Location Timeout',
-          'Location request took too long.\n\nPlease:\n1. Enable Location/GPS in device settings\n2. Make sure Google Play Services is enabled\n3. Grant location permission to this app\n\nOr enter your location manually.'
-        );
-      }
-    }, 25000); // 25 second fallback timeout
-  };
-
-  const handleLocation = async () => {
-    console.log("Platform: ", Platform.OS);
-    if (Platform.OS === "android") {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message: 'We need access to your location provide better result for matches, tournament etc.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        }
-      );
-      console.log("Granted: ", granted);
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        setLocationPermissionGranted(true);
-        getCurrentCoordinates();
-        return true;
-      } else {
-        Alert.alert(
-          'Location Permission Denied',
-          'You can still manually enter your city, state, and country.'
-        );
-        return false;
-      }
-    } else if (Platform.OS === "ios") {
-      // For iOS, request permission through Geolocation
-      getCurrentCoordinates();
-    }
-  };
-
-  // if (isLoadingProfile) {
-  //   return (
-  //     <View style={tailwind`flex-1 justify-center items-center bg-gray-50`}>
-  //       <ActivityIndicator size="large" color="#EF4444" />
-  //       <Text style={tailwind`mt-4 text-gray-600 text-base`}>
-  //         Loading profile...
-  //       </Text>
-  //     </View>
-  //   );
-  // }
 
   return (
     <KeyboardAvoidingView

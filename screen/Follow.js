@@ -1,45 +1,76 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Pressable} from 'react-native';
-import {MaterialTopTabBar, createMaterialTopTabNavigator} from "@react-navigation/material-top-tabs";
-import Follower from './Follower';
-import Following from './Following';
-import tailwind from 'twrnc';
+import { Pressable } from 'react-native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import tailwind from 'twrnc';
+import Follower from './Follower';
+import Following from './Following';
 
 const TopTab = createMaterialTopTabNavigator();
 
+/**
+ * Follow Screen
+ * Tab navigator for Followers and Following lists
+ */
 function Follow() {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
+  // Configure header
+  React.useLayoutEffect(() => {
     navigation.setOptions({
-        headerTitle:'Follow',
-        headerLeft:()=>(
-            <Pressable onPress={() => {navigation.goBack()}} style={tailwind`pl-2`}>
-                <AntDesign name="arrowleft" color="black" size={26} />
-            </Pressable>
-        )
-    })
-
-    return (
-        <TopTab.Navigator
-            screenOptions={{
-                tabBarLabelStyle: tailwind`text-white`,
-                tabBarStyle: tailwind`bg-red-400`,
-            }}
+      headerTitle: 'Connections',
+      headerStyle: {
+        backgroundColor: '#f87171',
+        elevation: 2,
+        shadowOpacity: 0.1,
+      },
+      headerTintColor: '#ffffff',
+      headerTitleAlign: 'center',
+      headerTitleStyle: {
+        fontSize: 18,
+        fontWeight: '600',
+      },
+      headerLeft: () => (
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={tailwind`ml-4 p-2`}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-            <TopTab.Screen 
-                name="Follower"
-                color="black"
-                component={Follower}
-            />
-            <TopTab.Screen 
-                name="Following"
-                color="black"
-                component={Following}
-            />
-        </TopTab.Navigator>
-    );
+          <AntDesign name="arrowleft" size={22} color="white" />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
+
+  return (
+    <TopTab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#ef4444',
+        tabBarInactiveTintColor: '#6b7280',
+        tabBarLabelStyle: {
+          fontSize: 15,
+          fontWeight: '600',
+          textTransform: 'capitalize',
+        },
+        tabBarStyle: {
+          backgroundColor: '#ffffff',
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#e5e7eb',
+        },
+        tabBarIndicatorStyle: {
+          backgroundColor: '#ef4444',
+          height: 3,
+        },
+        tabBarPressColor: 'rgba(239, 68, 68, 0.1)',
+      }}
+    >
+      <TopTab.Screen name="Followers" component={Follower} />
+      <TopTab.Screen name="Following" component={Following} />
+    </TopTab.Navigator>
+  );
 }
 
 export default Follow;

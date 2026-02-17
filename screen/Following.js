@@ -1,89 +1,123 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Image, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
-import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
+import { getFollowingUser } from '../redux/actions/actions';
+import { useNavigation } from '@react-navigation/native';
+import { BASE_URL } from '../constants/ApiConstants';
+
+// Components
+import UserListItem from '../components/follow/UserListItem';
+import EmptyState from '../components/follow/EmptyState';
+import LoadingState from '../components/follow/LoadingState';
+import ErrorState from '../components/follow/ErrorState';
+
+// Following Screen
+// Displays list of users that the authenticated user follows
 
 function Following() {
-    const dispatch = useDispatch();
-    const navigation = useNavigation();
-    const [followingWithProfile, setFollowingWithProfile] = useState([]);
-    const [displayText, setDisplayText] = useState('');
-    const [error, setError] = useState({
-        global: null,
-        fields: {},
-    })
-    const following = useSelector((state) => state.user.following)
-    const fetchFollowing = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                }
-            });
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
 
-            const item = response.data;
-            if(item.data === null || !item) {
-                dispatch(getFollowingUser([]));
-            } else {
-                dispatch(getFollowingUser(item.data));
-            }
+  // State
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
-        } catch (err) {
-            setError({
-                global: "Unable to get following user",
-                fields: {},
-            })
-            console.error("Unable to get following user: ", err);
+  // Redux
+  const following = useSelector((state) => state.user.following);
+
+  // Fetch following users from API
+  const fetchFollowing = async (isRefreshing = false) => {
+    if (isRefreshing) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setError(null);
+
+    try {
+      const authToken = await AsyncStorage.getItem('AccessToken');
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
         }
-    }
-    
-    useFocusEffect(
-        React.useCallback(() => {
-            fetchFollowing();
-        },[])
-    );
+      });
 
-    const handleProfile  = (profilePublicID) => {
-        navigation.navigate('Profile', {profilePublicID})
+      const item = response.data;
+      if (item.success) {
+        dispatch(getFollowingUser(item.data || []));
+      }
+    } catch (err) {
+      setError({
+        global: "Unable to get follower",
+        fields: err?.response.data?.error || {}
+      });
+      console.error("Unable to get following user: ", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
-    return (
-        <ScrollView style={tailwind`bg-white`}>
-            <View style={tailwind`flex-1 bg-white pl-5`}>
-                {error.global && following.length === 0 && (
-                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                        <Text style={tailwind`text-red-700 text-sm`}>
-                            {error.global}
-                        </Text>
-                    </View>
-                )}
-                {following?.map((item, i) => (
-                    <Pressable key={i} style={tailwind`bg-white flex-row items-center p-1 h-15`} onPress={() => handleProfile(item.profile?.public_id)}>
-                        {!item.profile && !item.profile?.avatar_url ?(
-                            <View style={tailwind`w-12 h-12 rounded-12 bg-white items-center justify-center`}>
-                                <Text style={tailwind`text-black text-6x3`}>
-                                    {displayText}
-                                </Text>
-                            </View>
-                        ) : (
-                            <Image style={tailwind`w-10 h-10 rounded-full bg-yellow-500`} source={{uri: item.profile?.avatar_url}}  />
-                        )}
-                        <View  style={tailwind`text-white p-2 mb-1`}>
-                            <Text style={tailwind`text-black font-bold text-xl `}>{item.profile?.full_name}</Text>
-                            <Text style={tailwind`text-black`}>@{item.profile?.username}</Text>
-                        </View>
-                    </Pressable>
-                ))}
-            </View>
-        </ScrollView>
-    );
+  // Fetch on mount
+  useEffect(() => {
+    fetchFollowing();
+  }, []);
+
+  // Handle pull to refresh
+  const handleRefresh = () => {
+    fetchFollowing(true);
+  };
+
+  // Navigate to user profile
+  const handleProfile = (profilePublicID) => {
+    navigation.navigate('Profile', { profilePublicID });
+  };
+
+  // Render loading state
+  if (loading && !refreshing) {
+    return <LoadingState />;
+  }
+
+  // Render error state
+  if (error && !following?.length) {
+    return <ErrorState message={error} onRetry={() => fetchFollowing()} />;
+  }
+
+  // Render empty state
+  if (!loading && !following?.length) {
+    return <EmptyState type="following" />;
+  }
+
+  // Render list
+  return (
+    <ScrollView
+      style={tailwind`flex-1 bg-gray-50`}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={['#f87171']}
+          tintColor="#f87171"
+        />
+      }
+    >
+      <View style={tailwind`bg-white`}>
+        {following?.map((item, index) => (
+          <UserListItem
+            key={item?.profile?.public_id || index}
+            user={item}
+            onPress={() => handleProfile(item?.profile?.public_id)}
+          />
+        ))}
+      </View>
+    </ScrollView>
+  );
 }
 
 export default Following;
