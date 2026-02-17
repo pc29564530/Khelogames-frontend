@@ -1,81 +1,44 @@
 import { setLikes } from "../redux/actions/actions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
+import axiosInstance from "../screen/axios_config";
 
-export const handleLikes = async ({threadPublicID, threadId, dispatch, axiosInstance, setIsLiked}) => {
+//handle like 
+export const handleLikes = async ({ threadPublicID, setError, dispatch }) => {
     try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      const headers = {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      }
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const headers = {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+        };
 
-      // Check if user has already liked this thread
-      const userLikeCheck = await axiosInstance.get(`${BASE_URL}/checkLikeByUser/${threadPublicID}`, {headers});
-      console.log("User Like Check: ", userLikeCheck.data)
+        const response = await axiosInstance.post(
+            `${BASE_URL}/likeThread/${threadPublicID}`,
+            null,
+            { headers }
+        );
 
-      if(userLikeCheck.data == 0) {
-        // User hasn't liked - create new like
-        const response = await axiosInstance.post(`${BASE_URL}/createLikeThread/${threadPublicID}`, null, {headers});
-
-        if(response.status === 200) {
-          // Get updated like count
-          const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${threadPublicID}`, {headers});
-
-          // Update thread's like count in database
-          await axiosInstance.put(`${BASE_URL}/update_like/${threadPublicID}`, {
-            like_count: updatedLikeCount.data
-          }, {headers});
-
-          // Update Redux store with new like count
-          dispatch(setLikes(threadId, updatedLikeCount.data));
-
-          // Update UI state
-          if (setIsLiked) {
-            setIsLiked(true);
-          }
-
-          console.log("Like added successfully. New count:", updatedLikeCount.data);
+        if (response.status === 200 && response.data.success) {
+            const { public_id, like_count } = response.data.data;
+            dispatch(setLikes(public_id, like_count));
         }
-      } else {
-        // User has already liked - remove like (unlike)
-        const response = await axiosInstance.delete(`${BASE_URL}/deleteLikeThread/${threadPublicID}`, {headers});
-
-        if(response.status === 200) {
-          // Get updated like count
-          const updatedLikeCount = await axiosInstance.get(`${BASE_URL}/countLike/${threadPublicID}`, {headers});
-
-          // Update thread's like count in database
-          await axiosInstance.put(`${BASE_URL}/update_like/${threadPublicID}`, {
-            like_count: updatedLikeCount.data
-          }, {headers});
-
-          // Update Redux store with new like count
-          dispatch(setLikes(threadId, updatedLikeCount.data));
-
-          // Update UI state
-          if (setIsLiked) {
-            setIsLiked(false);
-          }
-
-          console.log("Like removed successfully. New count:", updatedLikeCount.data);
-        }
-      }
-    } catch (error) {
-      console.error("Error handling like:", error);
+    } catch (err) {
+        setError({
+          "global":"Unable to like thread",
+          "fields": err?.response?.data?.error
+        });
+        console.error("Error handling like:", err);
     }
-  }
+};
 
-  export const handleThreadComment = ({item, threadPublicID, navigation}) => {
-    navigation.navigate('ThreadComment', {item: item, threadPublicID: threadPublicID, navigation})  
-  }
+export const handleThreadComment = ({ item, threadPublicID, navigation }) => {
+    navigation.navigate('ThreadComment', { item, threadPublicID });
+};
 
- export const handleUser = async ({ profilePublicID, navigation }) => {
-  if (!profilePublicID) {
-    console.warn("Missing profile public ID in handleUser");
-    return;
-  }
-
-  console.log("Navigating to Profile with ID:", profilePublicID);
-  navigation.navigate('Profile', { profilePublicID });
+export const handleUser = ({ profilePublicID, navigation }) => {
+    if (!profilePublicID) {
+        console.warn("Missing profile public ID in handleUser");
+        return;
+    }
+    navigation.navigate('Profile', { profilePublicID });
 };

@@ -1,304 +1,335 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Pressable, ScrollView, Image, Modal} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, Image, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Video from 'react-native-video';
 import axiosInstance from './axios_config';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import tailwind from 'twrnc';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { addNewThreadServices } from '../services/threadsServices';
 import { SelectMedia } from '../services/SelectMedia';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
-import { handleInlineError } from '../utils/errorHandler';
-import { setThreads } from '../redux/actions/actions';
+import { addThreads } from '../redux/actions/actions';
 import { validateThreadForm } from '../utils/validation/threadValidation';
 
 function CreateThread() {
-    const isFocused = useIsFocused();
     const navigation = useNavigation();
-    const route = useRoute();
     const dispatch = useDispatch();
+
+    const [loading, setLoading] = useState(false);
+    const [communityLoading, setCommunityLoading] = useState(false);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [mediaType, setMediaType] = useState('');
-    const [mediaURL,setMediaURL] = useState('');
-    const [likeCount, setLikeCount] = useState(0);
-    const [selectedCommunityPublicID, setSelectedCommunityPublicID] = useState(null);
+    const [mediaURL, setMediaURL] = useState('');
+    const [selectedCommunity, setSelectedCommunity] = useState(null);
     const [communityList, setCommunityList] = useState([]);
-    const [isCommunityListModal, setIsCommunityListModal] = useState(false);
-    const [communityType, setCommunityType] = useState(communityType || 'Select Community')
-    const [error, setError] = useState({
-        global: null,
-        fields: {},
-    });
-    const threads = useSelector(state => state.threads.threads)
+    const [isCommunityModalVisible, setIsCommunityModalVisible] = useState(false);
+    const [error, setError] = useState({ global: null, fields: {} });
+
+    const communityLabel = selectedCommunity?.name || 'Community';
 
     const handleMediaSelection = async () => {
         try {
-          // Select media functionality
-          const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
-          setMediaURL(mediaURL);
-          setMediaType(mediaType);
-          setLikeCount(0);
+            const result = await SelectMedia(axiosInstance);
+            setMediaURL(result.mediaURL);
+            setMediaType(result.mediaType);
         } catch (err) {
-            console.error("Unable to select media: ", err)
+            setError({ global: 'Unable to select media', fields: {} });
+            console.error('Unable to select media: ', err);
         }
-    }
+    };
+
+    const removeMedia = () => {
+        setMediaURL('');
+        setMediaType('');
+    };
 
     const fetchCommunity = async () => {
-          try {
-              const authToken = await AsyncStorage.getItem('AccessToken');
-              const response = await axiosInstance.get(`${BASE_URL}/get_all_communities`, {
-                  headers: {
-                      'Authorization': `Bearer ${authToken}`,
-                      'Content-Type': 'application/json',
-                  },
-              })
-              const item = await response.data;
-              if(item === null) {
-                  setCommunityList([]);
-              } else {
-                  const communityWithDisplayText = item.map((item, index) => {
-                      let displayText = '';
-                      const words = item.name.split(' ');
-                      displayText = words[0].charAt(0).toUpperCase();
-                      if(words.length>1){
-                          displayText += words[1].charAt(0).toUpperCase()
-                      }
-                      return {...item, displayText, displayText}
-                  })
-
-                  setCommunityList(communityWithDisplayText);
-              }
-
-        } catch(err) {
-              const backendErrors = err.response?.data?.error?.fields || {};
-              setError({
-                global: "Unable to get community",
-                fields: backendErrors,
-              })
-              console.error("Unable to get community: ", err);
+        try {
+            setCommunityLoading(true);
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getAllCommunities`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.data.success === true) {
+                setCommunityList(response.data.data || []);
+            }
+        } catch (err) {
+            setError({
+                global: 'Unable to load communities',
+                fields: err.response?.data?.error?.fields || {},
+            });
+            console.error('Unable to get community: ', err);
+        } finally {
+            setCommunityLoading(false);
         }
-    }
+    };
 
     const HandleSubmit = async () => {
         try {
-            // Clear previous errors
-            setError({
-                global: null,
-                fields: {},
-            });
+            setLoading(true);
+            setError({ global: null, fields: {} });
 
-            const formData = {
-                title,
-                content,
-                mediaURL,
-            }
-
-            const validation = validateThreadForm(formData)
-            if(!validation.isValid){
-                // Check if validation returned a global error
-                if (validation.errors.global) {
-                    setError({
-                        global: validation.errors.global,
-                        fields: {},
-                    })
-                } else {
-                    setError({
-                        global: null,
-                        fields: validation.errors,
-                    })
-                }
-                return
+            const formData = { title, content, mediaURL };
+            const validation = validateThreadForm(formData);
+            if (!validation.isValid) {
+                setError({
+                    global: validation.errors.global || null,
+                    fields: validation.errors.global ? {} : validation.errors,
+                });
+                return;
             }
 
             const thread = {
-                community_public_id: selectedCommunityPublicID?.public_id,
-                title: title,
-                content: content,
-                mediaURL: mediaURL,
-                mediaType: mediaType,
+                community_public_id: selectedCommunity?.public_id,
+                title,
+                content,
+                mediaURL,
+                mediaType,
             };
-            const threadCreated = await addNewThreadServices({dispatch: dispatch, thread: thread, navigation: navigation});
-            const item = threadCreated;
-            dispatch(setThreads(item || []));
-            console.log("thread: ", item);
+            const threadCreated = await addNewThreadServices({ dispatch, thread, navigation });
+            if(threadCreated.success === true) {
+                dispatch(addThreads(threadCreated.data || []));
+            }
+            navigation.goBack();
         } catch (err) {
             const backendErrors = err.response?.data?.error?.fields || {};
-            console.log("Backend: ", backendErrors)
-
-            // Check if backend returned a "global" error in fields
-            if (backendErrors.global) {
-                setError({
-                    global: backendErrors.global,
-                    fields: {},
-                });
-            } else {
-                setError({
-                    global: "Unable to create thread",
-                    fields: backendErrors,
-                });
-            }
-            console.error("Unable to create thread: ", err);
+            setError({
+                global: backendErrors.global || 'Unable to create thread',
+                fields: backendErrors.global ? {} : backendErrors,
+            });
+            console.error('Unable to create thread: ', err);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
-    const handleSelectCommunity = () => {
-      setIsCommunityListModal(true);
-      fetchCommunity()
-    }
+    const handleOpenCommunityModal = () => {
+        setIsCommunityModalVisible(true);
+        fetchCommunity();
+    };
 
     const selectCommunity = (item) => {
-        setSelectedCommunityPublicID(item);
-        setCommunityType(item.name);
-        setIsCommunityListModal(false);
-    }
-    console.log("Is community Selected")
-    navigation.setOptions({
-      headerTitle:'',
-      headerStyle:tailwind`bg-red-400 shadow-lg`,
-      headerTintColor:'white',
-      headerLeft: ()=> (
-        <View style={tailwind`flex-row items-center gap-35 p-2`}>
-            <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
-        </View>
-      ),
-      headerRight:()=>(
-        <View style={tailwind`flex-row items-center mr-2 gap-18`}>
-        <Pressable style={tailwind`p-2 flex-row border border-white rounded`} onPress={handleSelectCommunity}>
-          <Text style={tailwind`text-white text-lg mr-2`}>{communityType}</Text>
-          <AntDesign name="down" size={20} color="white"  style={tailwind`mt-1`}/>
-        </Pressable>
-        <Pressable style={tailwind`p-2`} onPress={HandleSubmit}>
-          <MaterialIcons name="send" size={24} color="white" />
-        </Pressable>
-      </View>
-      )
-    })
+        setSelectedCommunity(item);
+        setIsCommunityModalVisible(false);
+    };
+
+    React.useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: 'New Thread',
+            headerStyle: {
+                backgroundColor: '#f87171',
+                elevation: 2,
+                shadowOpacity: 0.1,
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: { fontSize: 18, fontWeight: '600' },
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    style={tailwind`ml-4 p-2`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <AntDesign name="arrowleft" size={22} color="white" />
+                </Pressable>
+            ),
+            headerRight: () => (
+                <Pressable
+                    onPress={HandleSubmit}
+                    disabled={loading}
+                    style={tailwind`mr-4 px-4 py-1.5 bg-white rounded-full`}
+                >
+                    {loading ? (
+                        <ActivityIndicator size="small" color="#f87171" />
+                    ) : (
+                        <Text style={tailwind`text-red-400 font-bold text-sm`}>POST</Text>
+                    )}
+                </Pressable>
+            ),
+        });
+    }, [navigation, loading, title, content]);
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
+
+            {/* Global Error */}
             {error?.global && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
-                        {error?.global}
-                    </Text>
-                </View> 
+                <View style={tailwind`mx-4 mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg flex-row items-center`}>
+                    <MaterialIcons name="error-outline" size={18} color="#dc2626" />
+                    <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>{error.global}</Text>
+                </View>
             )}
-            <ScrollView style={tailwind`flex-1`} contentContainerStyle={tailwind`pb-20`}>
+
+            <ScrollView style={tailwind`flex-1`} contentContainerStyle={tailwind`pb-32`} keyboardShouldPersistTaps="handled">
+
+                {/* Community Selector */}
+                <View style={tailwind`px-4 pt-4`}>
+                    <TouchableOpacity
+                        onPress={handleOpenCommunityModal}
+                        style={tailwind`flex-row items-center self-start px-3 py-1.5 rounded-full border border-gray-300 bg-gray-50`}
+                    >
+                        <MaterialIcons name="group" size={16} color="#6b7280" />
+                        <Text style={tailwind`text-gray-600 text-sm ml-1.5 mr-1`}>{communityLabel}</Text>
+                        <AntDesign name="down" size={12} color="#6b7280" />
+                    </TouchableOpacity>
+                </View>
+
                 {/* Title Input */}
-                <View style={tailwind`p-4`}>
+                <View style={tailwind`px-4 pt-3`}>
                     <TextInput
-                        style={tailwind`font-bold text-2xl text-black-400 mb-4`}
-                        value={title} 
-                        onChangeText={setTitle} 
-                        placeholder="Write the title here..."
-                        placeholderTextColor="black"
-                        multiline={true}
+                        style={tailwind`text-2xl font-bold text-gray-900`}
+                        value={title}
+                        onChangeText={setTitle}
+                        placeholder="Title"
+                        placeholderTextColor="#d1d5db"
+                        multiline
                     />
-                    {error?.fields.title && (
-                        <Text style={tailwind`text-red-500 text-sm p-2`}>
-                            *{error.title}
-                        </Text>
-                    )}
-                    
-                    {/* Content Input with fixed height */}
-                    <TextInput
-                        style={tailwind`text-lg text-black-400 textAlignVertical-top`}
-                        multiline={true}
-                        value={content} 
-                        onChangeText={setContent} 
-                        placeholder="Write something here..."
-                        placeholderTextColor="black"
-                    />
-                    {error?.fields.content && (
-                        <Text style={tailwind`text-red-500 text-sm p-2`}>
-                            *{error.content}
-                        </Text>
+                    {error?.fields?.title && (
+                        <Text style={tailwind`text-red-500 text-xs mt-1`}>* {error.fields.title}</Text>
                     )}
                 </View>
-                
-                {/* Media Display */}
-                {mediaType === 'image' && (
-                    <View style={tailwind`px-4 mb-4`}>
-                        <Image 
-                            source={{uri: mediaURL}} 
-                            style={tailwind`w-full h-64 rounded-lg`}
-                            resizeMode="cover"
-                        />
+
+                {/* Divider */}
+                <View style={tailwind`mx-4 my-3 h-px bg-gray-100`} />
+
+                {/* Content Input */}
+                <View style={tailwind`px-4`}>
+                    <TextInput
+                        style={tailwind`text-base text-gray-800 leading-6`}
+                        multiline
+                        value={content}
+                        onChangeText={setContent}
+                        placeholder="What's on your mind?"
+                        placeholderTextColor="#9ca3af"
+                        textAlignVertical="top"
+                        minHeight={120}
+                    />
+                    {error?.fields?.content && (
+                        <Text style={tailwind`text-red-500 text-xs mt-1`}>* {error.fields.content}</Text>
+                    )}
+                </View>
+
+                {/* Media Preview */}
+                {mediaURL ? (
+                    <View style={tailwind`mx-4 mt-4 rounded-xl overflow-hidden`}>
+                        {mediaType === 'image' && (
+                            <Image
+                                source={{ uri: mediaURL }}
+                                style={tailwind`w-full h-64`}
+                                resizeMode="cover"
+                            />
+                        )}
+                        {mediaType === 'video' && (
+                            <Video
+                                source={{ uri: mediaURL }}
+                                controls
+                                style={tailwind`w-full h-64`}
+                                resizeMode="contain"
+                            />
+                        )}
+                        {/* Remove media button */}
+                        <Pressable
+                            onPress={removeMedia}
+                            style={tailwind`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
+                        >
+                            <MaterialIcons name="close" size={18} color="white" />
+                        </Pressable>
                     </View>
-                )}
-                
-                {mediaType === 'video' && (
-                    <View style={tailwind`px-4 mb-4`}>
-                        <Video 
-                            source={{uri: mediaURL}} 
-                            controls={true} 
-                            style={tailwind`w-full h-64 rounded-lg`}
-                        />
-                    </View>
-                )}
+                ) : null}
             </ScrollView>
-            
-            {/* Fixed Upload Button */}
-            <View style={tailwind`absolute bottom-6 right-6`}>
-                <Pressable 
-                    style={tailwind`bg-red-400 rounded-full p-4 shadow-lg items-center justify-center`} 
+
+            {/* Bottom Toolbar */}
+            <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 flex-row items-center`}>
+                <TouchableOpacity
                     onPress={handleMediaSelection}
+                    style={tailwind`flex-row items-center px-3 py-2 rounded-full bg-gray-100 mr-3`}
                 >
-                    <MaterialIcons name="perm-media" size={25} color="white" />
-                    <Text style={tailwind`text-white text-xs mt-1`}>Upload</Text>
-                </Pressable>
+                    <MaterialIcons name="perm-media" size={20} color="#6b7280" />
+                    <Text style={tailwind`text-gray-600 text-sm ml-1.5 font-medium`}>Media</Text>
+                </TouchableOpacity>
             </View>
-            
+
             {/* Community Selection Modal */}
-            {isCommunityListModal && (
-              <Modal
-                transparent={true}
+            <Modal
+                transparent
                 animationType="slide"
-                visible={isCommunityListModal}
-                onRequestClose={() => setIsCommunityListModal(false)}
-              >
-                <Pressable 
-                    onPress={() => setIsCommunityListModal(false)} 
+                visible={isCommunityModalVisible}
+                onRequestClose={() => setIsCommunityModalVisible(false)}
+            >
+                <Pressable
+                    onPress={() => setIsCommunityModalVisible(false)}
                     style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                 >
-                    <View style={tailwind`bg-white rounded-t-lg max-h-96`}>
-                        <View style={tailwind`p-4 border-b border-gray-200`}>
-                            <Text style={tailwind`text-xl font-bold text-gray-800 text-center`}>
-                                Select Community
-                            </Text>
+                    <Pressable style={tailwind`bg-white rounded-t-3xl max-h-120`}>
+
+                        {/* Modal Handle */}
+                        <View style={tailwind`items-center pt-3 pb-2`}>
+                            <View style={tailwind`w-10 h-1 bg-gray-300 rounded-full`} />
                         </View>
-                        <ScrollView style={tailwind`p-4`}>
-                            {communityList.map((item, index) => (
-                                <Pressable 
-                                    key={index} 
-                                    onPress={() => selectCommunity(item)} 
-                                    style={tailwind`bg-white shadow-md mb-3 rounded-lg p-3 flex-row items-center border border-gray-100`}
-                                >
-                                    <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center mr-3`}>
-                                        <Text style={tailwind`text-white text-lg font-bold`}>
-                                            {item.displayText}
-                                        </Text>
-                                    </View>
-                                    <View style={tailwind`flex-1`}>
-                                        <Text style={tailwind`text-black text-lg font-semibold`}>
-                                            {item.name}
-                                        </Text>
-                                        <Text style={tailwind`text-gray-600 text-sm`}>
-                                            {item.description}
-                                        </Text>
-                                    </View>
-                                </Pressable>
-                            ))}
-                        </ScrollView>
-                    </View>
+
+                        {/* Modal Header */}
+                        <View style={tailwind`px-4 pb-3 border-b border-gray-100 flex-row items-center justify-between`}>
+                            <Text style={tailwind`text-lg font-bold text-gray-900`}>Select Community</Text>
+                            <Pressable onPress={() => setIsCommunityModalVisible(false)}>
+                                <MaterialIcons name="close" size={22} color="#6b7280" />
+                            </Pressable>
+                        </View>
+
+                        {/* Community List */}
+                        {communityLoading ? (
+                            <View style={tailwind`py-12 items-center`}>
+                                <ActivityIndicator size="large" color="#f87171" />
+                                <Text style={tailwind`text-gray-500 text-sm mt-3`}>Loading communities...</Text>
+                            </View>
+                        ) : communityList.length === 0 ? (
+                            <View style={tailwind`py-12 items-center`}>
+                                <MaterialIcons name="group-off" size={40} color="#d1d5db" />
+                                <Text style={tailwind`text-gray-500 text-sm mt-3`}>No communities found</Text>
+                            </View>
+                        ) : (
+                            <ScrollView style={tailwind`px-4 py-2`} showsVerticalScrollIndicator={false}>
+                                {communityList.map((item, index) => (
+                                    <Pressable
+                                        key={item.public_id || index}
+                                        onPress={() => selectCommunity(item)}
+                                        style={[
+                                            tailwind`flex-row items-center py-3 px-3 mb-2 rounded-xl border`,
+                                            selectedCommunity?.public_id === item.public_id
+                                                ? tailwind`border-red-300 bg-red-50`
+                                                : tailwind`border-gray-100 bg-gray-50`,
+                                        ]}
+                                    >
+                                        <View style={tailwind`w-11 h-11 rounded-full bg-red-400 items-center justify-center mr-3`}>
+                                            <Text style={tailwind`text-white text-base font-bold`}>
+                                                {item.name?.charAt(0)?.toUpperCase() || '?'}
+                                            </Text>
+                                        </View>
+                                        <View style={tailwind`flex-1`}>
+                                            <Text style={tailwind`text-gray-900 font-semibold text-sm`}>{item.name}</Text>
+                                            {item.description ? (
+                                                <Text style={tailwind`text-gray-500 text-xs mt-0.5`} numberOfLines={1}>
+                                                    {item.description}
+                                                </Text>
+                                            ) : null}
+                                        </View>
+                                        {selectedCommunity?.public_id === item.public_id && (
+                                            <MaterialIcons name="check-circle" size={20} color="#f87171" />
+                                        )}
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        )}
+                    </Pressable>
                 </Pressable>
-              </Modal>
-            )}
+            </Modal>
         </View>
     );
 }

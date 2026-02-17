@@ -83,17 +83,17 @@ export const setThreads = (threads) => {
     }
 }
 
-export const setLikes = (threadId, newLikesCount) => {
+export const setLikes = (threadPublicID, newLikesCount) => {
     return {
         type: actionTypes.SET_LIKES,
-        payload: {threadId, newLikesCount}
+        payload: {threadPublicID, newLikesCount}
     }
 }
 
-export const toggleLikes = (threadId, isLikes) => {
+export const toggleLikes = (threadPublicID, isLikes) => {
     return {
         type: actionTypes.TOGGLE_LIKES,
-        payload: {threadId, isLikes}
+        payload: {threadPublicID, isLikes}
     }
 }
 

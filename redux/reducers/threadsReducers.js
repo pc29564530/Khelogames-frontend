@@ -10,13 +10,13 @@ const threadsReducers = (state=initialState, action) => {
         case actionTypes.SET_THREADS:
             return {
                 ...state,
-                threads: action.payload
-            }
+                threads: action.payload,
+            };
         case actionTypes.SET_LIKES:
-            const threadId = action.payload.threadId;
+            const threadPublicID = action.payload.threadPublicID;
             const newLikesCount = action.payload.newLikesCount;
             const updateLikes = state.threads.map(thread => {
-                if(thread.id === threadId) {
+                if(thread.public_id === threadPublicID) {
                    return {
                     ...thread,
                     like_count: newLikesCount,

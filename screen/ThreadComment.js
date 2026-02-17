@@ -1,10 +1,12 @@
-import React, {useState, useRef, useEffect } from 'react';
-import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput, Platform} from 'react-native';
-import AsyncStorage  from '@react-native-async-storage/async-storage'
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText, setLikes } from '../redux/actions/actions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {useSelector, useDispatch} from 'react-redux';
-import Comment from '../components/Comment'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { useSelector, useDispatch } from 'react-redux';
+import Comment from '../components/Comment';
 import tailwind from 'twrnc';
 import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -20,16 +22,18 @@ function ThreadComment ({route}) {
     const commentInputRef = useRef();
     const scrollViewRef = useRef();
     const { item, threadPublicID } = route.params;
-    console.log("Line no 22: ", item)
     const dispatch = useDispatch();
-    const commentText = useSelector((state) => state.comments.commentText)
-    const [likeCount, setLikesCount] = useState(useSelector((state) => state.Like));
+    const commentText = useSelector((state) => state.comments.commentText);
+
+    const likeCount = useSelector(state =>
+        state.threads.threads.find(t => t.public_id === item.public_id)?.like_count ?? item.like_count
+    );
+
     const [error, setError] = useState({
         global: null,
         fields: {},
     });
     const [loading, setLoading] = useState(false);
-    const likeCounts = useSelector((state) => state.threads.threads.find((thread) => (thread.id === item.id)).like_counts)
 
     const handleReduxSubmit = async () => {
         setLoading(true);
@@ -47,7 +51,7 @@ function ThreadComment ({route}) {
             }
             const response = await addThreadComment({commentText: commentText, itemPublicID: item.public_id})
             const commentData = response.data;
-            dispatch(setComments(commentData || []));
+            dispatch(addComments(commentData));
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
             setError({
@@ -59,137 +63,176 @@ function ThreadComment ({route}) {
             setLoading(false);
         }
     }
-    
-    useEffect(()=> {
-      const handleLikeCount = async () => {
-        try {
-          const authToken =  await AsyncStorage.getItem('AccessToken');
-          const response = await axiosInstance.get(`${BASE_URL}/getThread/${item.public_id}`, null , {
-            headers: { 
-              'Authorization': `Bearer ${authToken}`,
-              'content-type': 'application/json'
-          }
-          });
-          const updatedLikesCount = response.data.like_count;
-          dispatch(setLikes(updatedLikesCount));
-          setLikesCount(updatedLikesCount);
-        } catch (e) {
-          console.error(e);
-        }
-      };
-      handleLikeCount();
-    }, [])
 
     const handleComment = () => {
       commentInputRef.current.focus();
     }
 
     navigation.setOptions({
-        headerTitle: '',
-        headerStyle:tailwind`bg-red-400`,
-        headerTintColor:'white'
+        headerTitle: () => (
+            <Text style={tailwind`text-xl font-bold text-white`}>Thread</Text>
+        ),
+        headerStyle: {
+            backgroundColor: tailwind.color('red-400'),
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+        },
+        headerTintColor: 'white',
+        headerTitleAlign: 'center',
+        headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="white" />
+            </Pressable>
+        ),
     });
 
     const isValidComment = commentText.trim().length > 0;
 
     return (
         <KeyboardAvoidingView
-            style={tailwind`flex-1 bg-white`}
+            style={tailwind`flex-1 bg-gray-50`}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
             <ScrollView
                 ref={scrollViewRef}
-                style={tailwind`flex-1 bg-white`}
+                style={tailwind`flex-1`}
                 contentContainerStyle={tailwind`pb-2`}
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={true}
+                showsVerticalScrollIndicator={false}
                 bounces={true}
             >
-                <View  style={tailwind`bg-white`}>
-                    <View  style={tailwind`p-2`}>
-                        <Pressable style={tailwind`flex-row items-center p-2`} onPress={() => {handleUser({profilePublicID: item.profile.public_id})}}>
-                            {item.profile?.avatar_url ? (
-                                <Image source={{uri: item.profile.avatar_url}} style={tailwind`w-15 h-15 rounded-full bg-red-400`} />
-                            ):(
-                                <View style={tailwind`w-15 h-15 rounded-12 bg-red-400 items-center justify-center`}>
-                                    <Text style={tailwind`text-white text-6x3`}>
-                                        {item.displayText}
-                                    </Text>
-                                </View>
-                            )}
-
-                            <View style={tailwind`ml-3`}>
-                                <Text style={tailwind`font-bold text-black text-lg`}>{item?.profile?.full_name}</Text>
-                                <Text style={tailwind`text-black`}>@{item.profile.username}</Text>
+                {/* Main Post Card */}
+                <View style={tailwind`bg-white border-b-8 border-gray-100`}>
+                    {/* User Info */}
+                    <Pressable
+                        style={tailwind`flex-row items-center px-4 pt-4 pb-3`}
+                        onPress={() => handleUser({profilePublicID: item.profile.public_id, navigation})}
+                    >
+                        {item.profile?.avatar_url ? (
+                            <Image
+                                source={{uri: item.profile.avatar_url}}
+                                style={tailwind`w-12 h-12 rounded-full`}
+                            />
+                        ) : (
+                            <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center`}>
+                                <Text style={tailwind`text-white text-lg font-bold`}>
+                                    {item.profile?.full_name?.charAt(0)?.toUpperCase() || '?'}
+                                </Text>
                             </View>
-                        </Pressable>
+                        )}
+                        <View style={tailwind`ml-3 flex-1`}>
+                            <Text style={tailwind`font-semibold text-gray-900 text-base`}>
+                                {item?.profile?.full_name}
+                            </Text>
+                            <Text style={tailwind`text-gray-500 text-sm`}>
+                                @{item.profile?.username}
+                            </Text>
+                        </View>
+                    </Pressable>
+
+                    {/* Post Content */}
+                    <View style={tailwind`px-4 pb-3`}>
+                        <Text style={tailwind`text-gray-900 text-base leading-6`}>
+                            {item.content}
+                        </Text>
                     </View>
-                    <Text style={tailwind`text-black  text-xl`}>{item.content}</Text>
-                    {item.media_type === 'image' && (
+
+                    {/* Media */}
+                    {item.media_type === 'image' && item.media_url && (
                         <Image
-                            style={tailwind`w-full h-70 aspect-w-1 -mt-7 aspect-h-1 `}
-                            source={{uri:item.media_url}}
+                            style={tailwind`w-full h-80 bg-gray-100`}
+                            source={{uri: item.media_url}}
+                            resizeMode="cover"
+                        />
+                    )}
+                    {(item.media_type === "video/mp4" || item.media_type === "video/quicktime" || item.media_type === "video/mkv") && item.media_url && (
+                        <Video
+                            style={tailwind`w-full h-80 bg-gray-900`}
+                            source={{uri: item.media_url}}
+                            controls={true}
+                            resizeMode="contain"
                         />
                     )}
 
-                    {(item.media_type === "video/mp4" || item.media_type === "video/quicktime" || item.media_type === "video/mkv") && (
-                        <Video style={tailwind`w-full h-70 aspect-w-1 aspect-h-1 -mt-7`}
-                            source={{uri:item.media_url}} controls={true} />
-                    )}
-                    <View style={tailwind`p-2`}>
-                        <Text style={tailwind`text-black`}>{item.like_count} Like</Text>
+                    <View style={tailwind`px-3 py-2`}>
+                        <Text style={tailwind`text-gray-700 text-sm font-medium`}>
+                            {likeCount || 0} {likeCount === 1 ? 'Like' : 'Likes'}
+                        </Text>
                     </View>
-                    <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
-                    <View style={tailwind`flex-row justify-evenly gap-50 h-10 mb-2`}>
-                        <Pressable style={tailwind`items-center`} onPress={() => handleLikes({threadPublicID: item.public_id, dispatch, axiosInstance})}>
-                            <FontAwesome
-                                name="thumbs-o-up"
-                                color="black"
-                                size={20}
-                            />
-                            <Text style={tailwind`text-black `}>Like</Text>
+
+                    {/* Action Buttons */}
+                    <View style={tailwind`flex-row border-t border-gray-100`}>
+                        <Pressable
+                            style={tailwind`flex-1 flex-row items-center justify-center py-3 active:bg-gray-50`}
+                            onPress={() => handleLikes({ threadPublicID: item.public_id, setError, dispatch })}
+                        >
+                            <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
+                            <Text style={tailwind`text-gray-700 ml-2 font-medium`}>Like</Text>
                         </Pressable>
-                        <Pressable style={tailwind`items-center`} onPress={() => handleComment()}>
-                            <FontAwesome
-                                name="comment-o"
-                                color="black"
-                                size={20}
-                            />
-                            <Text style={tailwind`text-black `}>Comment</Text>
+                        <View style={tailwind`w-px bg-gray-100`} />
+                        <Pressable
+                            style={tailwind`flex-1 flex-row items-center justify-center py-3 active:bg-gray-50`}
+                            onPress={handleComment}
+                        >
+                            <FontAwesome name="comment-o" color="#6B7280" size={18} />
+                            <Text style={tailwind`text-gray-700 ml-2 font-medium`}>Comment</Text>
                         </Pressable>
                     </View>
-                    <View style={tailwind`w-full h-0.4 bg-gray-200 mb-2`} />
+                </View>
+
+                {/* Comments Section */}
+                <View style={tailwind`bg-white mt-2`}>
+                    <View style={tailwind`px-4 py-3 border-b border-gray-100`}>
+                        <Text style={tailwind`text-gray-900 font-semibold text-base`}>Comments</Text>
+                    </View>
                     <Comment thread={item} />
                 </View>
             </ScrollView>
-            
-            {error?.fields?.comment_text &&  (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
-                        {error?.fields.comment_text}
-                    </Text>
+
+            {/* Error Display */}
+            {error?.fields?.comment_text && (
+                <View style={tailwind`mx-4 mb-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg`}>
+                    <View style={tailwind`flex-row items-center`}>
+                        <MaterialIcons name="error-outline" size={18} color="#dc2626" />
+                        <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>
+                            {error?.fields.comment_text}
+                        </Text>
+                    </View>
                 </View>
             )}
-            
-            <View style={tailwind`flex-end p-0.2 bg-white justify-between flex-row shadow-lg border-t border-gray-200`}>
-                <TextInput
-                    ref={commentInputRef}
-                    style={tailwind`p-2 pl-4 w-60 m-2 rounded-2xl border-2 border-gray-300 text-lg text-black`}
-                    value={commentText}
-                    onChangeText={(text) => dispatch(setCommentText(text))}
-                    placeholder="Write a comment..."
-                    placeholderTextColor="black"
-                    multiline
-                    maxLength={500}
-                />
-                <Pressable
-                    disabled={!isValidComment}
-                    style={[tailwind`m-3 bg-white items-center w-20 rounded-xl justify-center shadow-lg`, isValidComment ? tailwind`bg-red-400` : tailwind`bg-gray-400`]}
-                    onPress={() => handleReduxSubmit()}
-                >
-                    <Text style={[tailwind`font-bold text-white text-lg`]}>POST</Text>
-                </Pressable>
+
+            {/* Comment Input */}
+            <View style={tailwind`bg-white border-t border-gray-200 px-3 py-2 shadow-lg`}>
+                <View style={tailwind`flex-row items-center`}>
+                    <TextInput
+                        ref={commentInputRef}
+                        style={tailwind`flex-1 px-4 py-2 mr-2 rounded-full bg-gray-100 text-gray-900 text-base`}
+                        value={commentText}
+                        onChangeText={(text) => dispatch(setCommentText(text))}
+                        placeholder="Write a comment..."
+                        placeholderTextColor="#9ca3af"
+                        multiline
+                        maxLength={500}
+                    />
+                    <Pressable
+                        disabled={!isValidComment || loading}
+                        style={[
+                            tailwind`px-5 py-2.5 rounded-full items-center justify-center min-w-20`,
+                            isValidComment && !loading ? tailwind`bg-red-400` : tailwind`bg-gray-300`
+                        ]}
+                        onPress={handleReduxSubmit}
+                    >
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                            <Text style={tailwind`font-semibold text-white text-sm`}>POST</Text>
+                        )}
+                    </Pressable>
+                </View>
             </View>
         </KeyboardAvoidingView>
     );

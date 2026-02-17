@@ -1,26 +1,25 @@
-import React from 'react';
-import { View, Text, Image, Pressable, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, Pressable } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Video from 'react-native-video';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { formattedTime } from '../utils/FormattedDateTime';
 import { formattedDate } from '../utils/FormattedDateTime';
-import axiosInstance from '../screen/axios_config';
 
-const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handleComment}) => {
+const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handleComment }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const handleFullScreen = () => {
-    console.log('entering full screen mode')
-  }
-  const handleVolume = () => {
-    console.log('changing the volume of video')
-  }
+  const [error, setError] = useState({ global: null, fields: {}})
+
+  // Read like_count from Redux so it updates in real time when dispatched
+  const likeCount = useSelector(state =>
+    state.threads.threads.find(t => t.public_id === item.public_id)?.like_count ?? item.like_count
+  );
+
   return (
-    <Pressable onPress={() => navigation.navigate("ThreadComment", item={item} )} style={tailwind`bg-white mb-2 shadow-lg`}>
-      <Pressable style={tailwind`flex-row items-center px-4 pt-3 pb-2`} onPress={() => handleUser({profilePublicID: item?.profile?.public_id, navigation})}>
+    <Pressable onPress={() => navigation.navigate("ThreadComment", { item })} style={tailwind`bg-white mb-2 shadow-lg`}>
+      <Pressable style={tailwind`flex-row items-center px-4 pt-3 pb-2`} onPress={() => handleUser({ profilePublicID: item?.profile?.public_id, navigation })}>
         {item?.profile?.avatar_url ? (
           <Image source={{ uri: item.profile.avatar_url }} style={tailwind`w-11 h-11 rounded-full bg-gray-200`} />
         ) : (
@@ -48,12 +47,12 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
         <Image style={tailwind`w-full h-80`} source={{ uri: item.media_url }} resizeMode="cover" />
       )}
       {item.media_type === 'video/mp4' && (
-        <Video style={tailwind`w-full h-80`} source={{ uri: item.media_url }} controls={true} resizeMode='cover'/>
+        <Video style={tailwind`w-full h-80`} source={{ uri: item.media_url }} controls={true} resizeMode="cover" />
       )}
 
-      {/* Engagement stats */}
+      {/* Engagement stats — reads from Redux, updates in real time */}
       <View style={tailwind`px-4 py-2`}>
-        <Text style={tailwind`text-gray-500 text-xs`}>{item.like_count} likes</Text>
+        <Text style={tailwind`text-gray-500 text-xs`}>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</Text>
       </View>
 
       {/* Divider */}
@@ -61,11 +60,17 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
 
       {/* Action buttons */}
       <View style={tailwind`flex-row justify-around py-2`}>
-        <Pressable style={tailwind`flex-row items-center px-4 py-1`} onPress={() => handleLikes({threadPublicID: item.public_id, dispatch, axiosInstance})}>
+        <Pressable
+          style={tailwind`flex-row items-center px-4 py-1`}
+          onPress={() => handleLikes({ threadPublicID: item.public_id, setError, dispatch })}
+        >
           <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
           <Text style={tailwind`text-gray-500 text-xs ml-2`}>Like</Text>
         </Pressable>
-        <Pressable style={tailwind`flex-row items-center px-4 py-1`} onPress={handleComment ? handleComment : () => handleThreadComment({item, threadPublicID: item.public_id, navigation})}>
+        <Pressable
+          style={tailwind`flex-row items-center px-4 py-1`}
+          onPress={handleComment ? handleComment : () => handleThreadComment({ item, threadPublicID: item.public_id, navigation })}
+        >
           <FontAwesome name="comment-o" color="#6B7280" size={18} />
           <Text style={tailwind`text-gray-500 text-xs ml-2`}>Comment</Text>
         </Pressable>
