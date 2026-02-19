@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { View, Text, Image, Pressable, TextInput, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -8,19 +9,23 @@ import EmojiSelector from 'react-native-emoji-selector';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
 import {SelectMedia} from '../services/SelectMedia';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAuthProfilePublicID } from '../redux/actions/actions';
+import { setAuthProfilePublicID, setCurrentProfile } from '../redux/actions/actions';
 import { useWebSocket } from '../context/WebSocketContext';
 import { handleInlineError } from '../utils/errorHandler';
 import Video from 'react-native-video';
 
 function Message({ route }) {
     const navigation = useNavigation();
+    const dispatch = useDispatch()
     const [receivedMessage, setReceivedMessage] = useState([]);
     const [newMessageContent, setNewMessageContent] = useState('');
     const authProfilePublicID = useSelector(state => state.profile?.authProfilePublicID)
+    const currentProfile = useSelector(state => state.profile.currentProfile);
+    const authUserPublicID = useSelector(state => state.profile.authUserPublicID)
+    const authProfile = useSelector(state => state.profile.authProfile)
     const [allMessage, setAllMessage] = useState([]);
     const receiverProfile = route?.params?.profileData;
     const [currentUser, setCurrentUser] = useState('');
@@ -40,23 +45,57 @@ function Message({ route }) {
 
     const isMountedRef = useRef(true);
 
-    // Safe WebSocket subscription
-    useEffect(() => {
-        if (!receiverProfile?.public_id || !wsRef?.current) return;
 
+    const fetchProfileData = async () => {
         try {
-            const payloadData = {
-                "type": "SUBSCRIBE",
-                "category": "CHAT",
-                "payload": {"profile_public_id": receiverProfile.public_id}
-            }
-
-            if (wsRef.current.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify(payloadData));
-            }
+        const targetPublicID = receiverProfile.public_id
+        const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${targetPublicID}`);
+        dispatch(setCurrentProfile(response.data.data));
+        setError({ global: null, fields: {} });
         } catch (err) {
-            console.error("Failed to subscribe to chat:", err);
+        const backendErrors = err?.response?.data?.error?.fields || {};
+        setError({
+            global: err?.response?.data?.error?.message || "Unable to load profile.",
+            fields: backendErrors,
+        })
+        console.error('Unable to fetch the profile data: ', err);
         }
+    };
+
+  useFocusEffect( useCallback(() => {
+    fetchProfileData();
+  }, [receiverProfile.public_id, dispatch]));
+
+    // Safe WebSocket subscription — waits for OPEN if still CONNECTING
+    useEffect(() => {
+        if (!currentProfile?.public_id || !wsRef?.current) return;
+
+        const sendSubscribe = () => {
+            try {
+                const payloadData = {
+                    "type": "SUBSCRIBE",
+                    "category": "CHAT",
+                    "payload": {"profile_public_id": authProfile.public_id}
+                };
+                wsRef.current.send(JSON.stringify(payloadData));
+                console.log("Subscribed to chat:", authProfile.public_id);
+            } catch (err) {
+                console.error("Failed to subscribe to chat:", err);
+            }
+        };
+
+        if (wsRef.current.readyState === WebSocket.OPEN) {
+            // Already open — subscribe immediately
+            sendSubscribe();
+        } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
+            // Still connecting — hook into onopen so we subscribe as soon as it opens
+            const prevOnOpen = wsRef.current.onopen;
+            wsRef.current.onopen = (e) => {
+                if (prevOnOpen) prevOnOpen(e);
+                sendSubscribe();
+            };
+        }
+        // CLOSING or CLOSED — reconnect will re-mount this effect via wsRef change
     }, [receiverProfile?.public_id, wsRef]);
 
     const handleMediaSelection = async () => {
@@ -182,11 +221,32 @@ function Message({ route }) {
 
     //Send Message Functionality
     const sendMessage = async () => {
-        if (!wsRef?.current || wsRef.current.readyState !== WebSocket.OPEN) {
-            setError({
-                global: "Connection lost. Please check your internet connection.",
-                fields: {},
-            });
+        if (!wsRef?.current) {
+            setError({ global: "Not connected. Please try again.", fields: {} });
+            return;
+        }
+
+        // If WebSocket is still connecting, wait up to 3 seconds for it to open
+        if (wsRef.current.readyState === WebSocket.CONNECTING) {
+            try {
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('timeout')), 3000);
+                    const prevOnOpen = wsRef.current.onopen;
+                    wsRef.current.onopen = (e) => {
+                        clearTimeout(timeout);
+                        if (prevOnOpen) prevOnOpen(e);
+                        resolve();
+                    };
+                });
+            } catch {
+                setError({ global: "Connection timeout. Please try again.", fields: {} });
+                return;
+            }
+        }
+
+        // After waiting (or if not CONNECTING), re-check state
+        if (wsRef.current.readyState !== WebSocket.OPEN) {
+            setError({ global: "Connection closed. Reconnecting...", fields: {} });
             return;
         }
 
@@ -198,14 +258,12 @@ function Message({ route }) {
             setSendingMessage(true);
             setError({ global: null, fields: {} });
 
-            const userPublicID = await AsyncStorage.getItem('UserPublicID');
-
-            if (!userPublicID) {
+            if (!authProfilePublicID) {
                 throw new Error("User not authenticated");
             }
 
             const data = {
-                sender_public_id: userPublicID,
+                sender_public_id: authProfilePublicID,
                 receiver_public_id: receiverProfile?.public_id,
                 content: newMessageContent.trim(),
                 sent_at: new Date().toISOString(),
@@ -350,7 +408,8 @@ function Message({ route }) {
         if (!item) return null;
 
         try {
-            const isMyMessage = item?.sender?.public_id === user?.public_id;
+            // sender.public_id is a profile UUID; authProfilePublicID is also the profile UUID — correct comparison
+            const isMyMessage = item?.sender?.public_id === authProfilePublicID;
             const previousMessage = index > 0 ? receivedMessage[index - 1] : null;
             const showDateSeparator = shouldShowDateSeparator(item, previousMessage);
 
@@ -521,7 +580,7 @@ function Message({ route }) {
               <MaterialIcons
                 name="emoji-emotions"
                 size={24}
-                color={showEmojiSelect ? "#3b82f6" : "#6b7280"}
+                color={showEmojiSelect ? "#ef4444" : "#6b7280"}
               />
             </Pressable>
 

@@ -1,68 +1,65 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
-import {View, Text, Image, ScrollView, Pressable, TextInput } from 'react-native';
+import React, { useRef, useState, useLayoutEffect } from 'react';
+import { View, Text, Image, ScrollView, Pressable, TextInput, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
-import { useDispatch, useSelector } from 'react-redux';
-import { setUnFollowUser, getFollowingUser } from '../redux/actions/actions';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
+import { BASE_URL } from '../constants/ApiConstants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { handleInlineError } from '../utils/errorHandler';
 
 function MessagePage() {
-    const dispatch = useDispatch();
     const navigation = useNavigation();
-    const [followingWithProfile, setFollowingWithProfile] = useState([]);
-    const [searchPlayer, setSearchPlayer] = useState('');
-    const [displayText, setDisplayText] = useState('');
+
+    const [previousContacts, setPreviousContacts] = useState([]);
+
     const [communities, setCommunities] = useState([]);
+
     const [filteredUsers, setFilteredUsers] = useState([]);
-    const [error, setError] = useState({
+    const [filteredCommunities, setFilteredCommunities] = useState([]);
+
+    const [searchUser, setSearchUser] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [searchLoading, setSearchLoading] = useState(false);
+     const [error, setError] = useState({
         global: null,
         fields: {},
     });
-    const [loading, setLoading] = useState(false);
-    const [filteredCommunities, setFilteredCommunities] = useState([]);
-    const following = useSelector((state) => state.user.following)
 
-    const fetchFollowing = async () => {
+    // Debounce timer ref
+    const searchTimer = useRef(null);
+
+    // Fetch previously messaged users
+    const fetchMessageReceiver = async () => {
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const currentUser = await AsyncStorage.getItem('UserPublicID');
-            const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
+            const response = await axiosInstance.get(`${BASE_URL}/getMessagedUser`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
-                }
+                },
             });
 
-            const item = response.data;
-            if(item === null || !item) {
-                setFollowingWithProfile([]);
-                dispatch(getFollowingUser([]));
+            const items = response?.data?.data;
+            if (!items || items.length === 0) {
+                setPreviousContacts([]);
+                setFilteredUsers([]);
             } else {
-                const followingProfile = item.map(async (itm, index) => {                  
-                    const profileResponse = await axiosInstance.get(`${AUTH_URL}/getProfile/${itm.user_public_id}`);
-                    if (!profileResponse.data.avatar_url || profileResponse.data.avatar_url === '') {
-                        const usernameInitial = profileResponse.data.username ? profileResponse.data.username.charAt(0) : '';
-                        setDisplayText(usernameInitial.toUpperCase());
-                    } else {
-                        setDisplayText('');
-                    }
-                    return {...itm, profile: profileResponse.data}
-                })
-                const followingData = await Promise.all(followingProfile);
-                setFollowingWithProfile(followingData);
-                setFilteredUsers(followingData); // Initialize filtered users
-                dispatch(getFollowingUser(followingData));
+                setPreviousContacts(items);
+                setFilteredUsers(items);
             }
         } catch (err) {
-            const message = handleInlineError(err);
-            setError(message);
+            setError({
+                global: "Unable to fetch message receiver",
+                fields: err?.response.data?.error || {},
+            })
+            console.error('Unable to fetch message error:', err);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
+    // Fetch communities
     const fetchCommunity = async () => {
         try {
             setLoading(true);
@@ -70,171 +67,163 @@ function MessagePage() {
             const response = await axiosInstance.get(`${BASE_URL}/getCommunityByMessage`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
             });
-            if(!response.data || response.data === null) {
+
+            const items = response?.data.data;
+            if (!items || items.length === 0) {
                 setCommunities([]);
                 setFilteredCommunities([]);
             } else {
-                setCommunities(response.data);
-                setFilteredCommunities(response.data);
+                setCommunities(items);
+                setFilteredCommunities(items);
             }
-
-        } catch(err) {
-            const backendError = err?.response?.data?.error?.fields;
+        } catch (err) {
             setError({
-                global: "Unable to get community",
-                fields: backendError,
+                global: "Unable to get community message",
+                fields: err?.response.data?.error || {},
             })
-            console.error("Unable to get community: ", err);
+            console.error('Unable to get community message:', err);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
-    const fetchMessageReceiver = async () => {
+    // Search ALL
+    const searchByUser = async (text) => {
+        if (!text || text.trim() === '') return;
         try {
-            setLoading(true);
+            setSearchLoading(true);
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.get(`${BASE_URL}/getMessagedUser`, null, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
+            const response = await axiosInstance.post(
+                `${BASE_URL}/search-user`,
+                { name: text.trim() },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
                 }
-            });
-            const item = response.data;
-            if(item === null || !item) {
-                setFollowingWithProfile([]);
-                setFilteredUsers([]);
-            } else {
-                setFilteredUsers(item);
-            }
-        } catch(err) {
-            const backendError = err?.response?.data?.error?.fields;
+            );
+            const results = response?.data?.data;
+            setFilteredUsers(results || []);
+        } catch (err) {
             setError({
-                global: "Unable to get message",
-                fields: backendError,
+                global: "Unable to search by user",
+                fields: err?.response?.data?.error || {},
             })
-            console.error("Unable to get message: ", err);
+            console.error('Unable to search by user:', err);
+            setFilteredUsers([]);
         } finally {
-            setLoading(false);
+            setSearchLoading(false);
         }
-    }
-    
+    };
+
+    // Load on screen focus
     useFocusEffect(
         React.useCallback(() => {
-            fetchCommunity();
             fetchMessageReceiver();
-        },[])
+            fetchCommunity();
+            setSearchUser('');
+        }, [])
     );
 
-    const handleMessage = ({item}) => {
-        navigation.navigate("Message", {profileData: item})
-    }
-
-    const handleMessageCommunity = ({item}) => {
-        navigation.navigate("CommunityMessage", {communityPageData: item})
-    }
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerTitle: "",
-            headerStyle: tailwind`bg-red-400`,
-            headerLeft: ()=> (
-                <View style={tailwind`flex-row items-center gap-35 p-2`}>
-                    <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
-                    <Text style={tailwind`text-white text-xl`}>Message</Text>
-                </View>
-            )
-        })
-    },[navigation]);
-
-    //  search function
+    // Handle search input
     const handleSearch = (text) => {
-        setSearchPlayer(text);
-        
+        setSearchUser(text);
+
+        // Clear existing debounce timer
+        if (searchTimer.current) {
+            clearTimeout(searchTimer.current);
+        }
+
         if (text.trim() === '') {
-            // If search is empty, show all data
-            setFilteredUsers(followingWithProfile);
+            setFilteredUsers(previousContacts);
             setFilteredCommunities(communities);
             return;
         }
 
+        // Filter communities locally (instant, no API)
         const searchTerm = text.toLowerCase().trim();
-
-        // Filter users by name, username, or full name
-        const filteredUserResults = followingWithProfile.filter((item) => {
-            const profile = item.profile || {};
-            const fullName = profile.full_name || '';
-            const username = profile.owner || profile.username || '';
-            const name = profile.name || '';
-            return (
-                fullName.toLowerCase().includes(searchTerm) ||
-                username.toLowerCase().includes(searchTerm) ||
-                name.toLowerCase().includes(searchTerm)
-            );
+        const filteredComm = communities?.filter((item) => {
+            const name = (item.name || '').toLowerCase();
+            const description = (item.description || item.discription || '').toLowerCase();
+            return name.includes(searchTerm) || description.includes(searchTerm);
         });
+        setFilteredCommunities(filteredComm);
 
-        // Filter communities by name or description
-        const filteredCommunityResults = communities.filter((item) => {
-            const name = item.name || '';
-            const description = item.discription || item.description || '';
-            
-            return (
-                name.toLowerCase().includes(searchTerm) ||
-                description.toLowerCase().includes(searchTerm)
-            );
-        });
+        // Debounce user search API call (300ms)
+        searchTimer.current = setTimeout(() => {
+            searchByUser(text);
+        }, 300);
+    };
 
-        setFilteredUsers(filteredUserResults);
-        setFilteredCommunities(filteredCommunityResults);
-    }
+    // Clear search revert to previous contacts
+    const clearSearch = () => {
+        setSearchUser('');
+        setFilteredUsers(previousContacts);
+        setFilteredCommunities(communities);
+    };
 
-    // Get user initials for avatar placeholder
-    const getUserInitials = (profile) => {
-        if (profile?.full_name) {
-            return profile.full_name.charAt(0).toUpperCase();
-        } else if (profile?.username) {
-            return profile.username.charAt(0).toUpperCase();
-        } else if (profile?.owner) {
-            return profile.owner.charAt(0).toUpperCase();
-        }
-        return '?';
-    }
+    // Navigation
+    const handleMessage = (item) => {
+        navigation.navigate('Message', { profileData: item });
+    };
 
-    // Get community initials for avatar placeholder  
-    const getCommunityInitials = (community) => {
-        return community.name ? community.name.charAt(0).toUpperCase() : '?';
-    }
+    const handleMessageCommunity = (item) => {
+        navigation.navigate('CommunityMessage', { communityPageData: item });
+    };
 
-    const renderNoResults = () => {
-        if (searchPlayer.trim() !== '' && filteredUsers.length === 0 && filteredCommunities.length === 0) {
-            return (
-                <View style={tailwind`items-center py-8`}>
-                    <Text style={tailwind`text-lg text-gray-500`}>No results found</Text>
-                    <Text style={tailwind`text-sm text-gray-400 mt-1`}>Try searching for something else</Text>
+    // Avatar helpers
+    const getUserInitials = (item) => {
+        const name = item?.full_name || item?.username || '';
+        return name.charAt(0).toUpperCase() || '?';
+    };
+
+    const getCommunityInitials = (item) => {
+        return (item?.name || '?').charAt(0).toUpperCase();
+    };
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: '',
+            headerStyle: tailwind`bg-red-400`,
+            headerLeft: () => (
+                <View style={tailwind`flex-row items-center gap-35 p-2`}>
+                    <AntDesign name="arrowleft" onPress={() => navigation.goBack()} size={24} color="white" />
+                    <Text style={tailwind`text-white text-xl`}>Messages</Text>
                 </View>
-            );
-        }
-        return null;
-    }
+            ),
+        });
+    }, [navigation]);
+
+    const isSearching = searchUser.trim() !== '';
+    const showNoResults =
+        isSearching && !searchLoading && filteredUsers.length === 0 && filteredCommunities.length === 0;
+    const showEmptyState =
+        !isSearching && !loading && previousContacts.length === 0 && communities.length === 0;
 
     return (
         <ScrollView style={tailwind`bg-white flex-1`}>
-            {/* Search Input */}
+
             <View style={tailwind`bg-white p-4`}>
                 <View style={tailwind`flex-row items-center border border-gray-300 rounded-lg px-3 py-2`}>
                     <AntDesign name="search1" size={18} color="#666" style={tailwind`mr-2`} />
-                    <TextInput 
-                        value={searchPlayer} 
+                    <TextInput
+                        value={searchUser}
                         onChangeText={handleSearch}
-                        placeholder='Search' 
+                        placeholder="Search users or communities"
                         style={tailwind`flex-1 text-base`}
                         placeholderTextColor="#999"
+                        autoCorrect={false}
+                        autoCapitalize="none"
                     />
-                    {searchPlayer.length > 0 && (
-                        <Pressable onPress={() => handleSearch('')}>
+                    {searchLoading && (
+                        <ActivityIndicator size="small" color="#999" style={tailwind`mr-2`} />
+                    )}
+                    {searchUser.length > 0 && !searchLoading && (
+                        <Pressable onPress={clearSearch}>
                             <AntDesign name="close" size={18} color="#666" />
                         </Pressable>
                     )}
@@ -242,25 +231,44 @@ function MessagePage() {
             </View>
 
             <View style={tailwind`flex-1 bg-white px-4`}>
-                {renderNoResults()}
-                {error?.global && filteredCommunities.length === 0 && (
-                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                        <Text style={tailwind`text-red-700 text-sm`}>
-                            {error?.global}
+                {loading && (
+                    <View style={tailwind`items-center py-8`}>
+                        <ActivityIndicator size="large" color="#f87171" />
+                    </View>
+                )}
+                {error.global && !loading && (
+                    <View style={tailwind`mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                        <Text style={tailwind`text-red-700 text-sm`}>{error.global}</Text>
+                    </View>
+                )}
+                {showNoResults && (
+                    <View style={tailwind`items-center py-8`}>
+                        <Text style={tailwind`text-lg text-gray-500`}>No results found</Text>
+                        <Text style={tailwind`text-sm text-gray-400 mt-1`}>Try a different name</Text>
+                    </View>
+                )}
+                {showEmptyState && (
+                    <View style={tailwind`items-center py-12`}>
+                        <AntDesign name="message1" size={48} color="#d1d5db" />
+                        <Text style={tailwind`text-lg text-gray-400 mt-4`}>No messages yet</Text>
+                        <Text style={tailwind`text-sm text-gray-400 mt-1`}>
+                            Search for a user above to start chatting
                         </Text>
                     </View>
                 )}
-                {/* Communities Section */}
+
                 {filteredCommunities.length > 0 && (
                     <View style={tailwind`mb-4`}>
-                        {searchPlayer.trim() !== '' && (
-                            <Text style={tailwind`text-lg font-semibold text-gray-700 mb-2`}>Communities</Text>
+                        {isSearching && (
+                            <Text style={tailwind`text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide`}>
+                                Communities
+                            </Text>
                         )}
                         {filteredCommunities.map((item, index) => (
-                            <Pressable 
-                                key={`community-${index}`} 
-                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`} 
-                                onPress={() => handleMessageCommunity({ item: item })}
+                            <Pressable
+                                key={`community-${index}`}
+                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`}
+                                onPress={() => handleMessageCommunity(item)}
                             >
                                 <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center mr-3`}>
                                     <Text style={tailwind`text-white text-lg font-semibold`}>
@@ -269,51 +277,55 @@ function MessagePage() {
                                 </View>
                                 <View style={tailwind`flex-1`}>
                                     <Text style={tailwind`text-black font-semibold text-base`}>{item.name}</Text>
-                                    <Text style={tailwind`text-gray-600 text-sm mt-1`} numberOfLines={1}>
-                                        {item.discription || item.description}
+                                    <Text style={tailwind`text-gray-500 text-sm mt-0.5`} numberOfLines={1}>
+                                        {item.description || item.discription || ''}
                                     </Text>
                                 </View>
+                                <AntDesign name="right" size={14} color="#ccc" />
                             </Pressable>
                         ))}
                     </View>
                 )}
 
-                {/* Users Section */}
                 {filteredUsers.length > 0 && (
                     <View>
-                        {searchPlayer.trim() !== '' && filteredCommunities.length > 0 && (
-                            <Text style={tailwind`text-lg font-semibold text-gray-700 mb-2`}>Contacts</Text>
+                        {isSearching && filteredCommunities.length > 0 && (
+                            <Text style={tailwind`text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide`}>
+                                People
+                            </Text>
                         )}
                         {filteredUsers.map((item, i) => (
-                            <Pressable 
-                                key={`user-${i}`} 
-                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`} 
-                                onPress={() => handleMessage({ item: item })}
+                            <Pressable
+                                key={`user-${i}`}
+                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`}
+                                onPress={() => handleMessage(item)}
                             >
-                                {!item.profile?.avatar_url ? (
-                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-300 items-center justify-center mr-3`}>
-                                        <Text style={tailwind`text-gray-700 text-lg font-semibold`}>
-                                           {displayText}
+                                {item?.avatar_url ? (
+                                    <Image
+                                        style={tailwind`w-12 h-12 rounded-full mr-3`}
+                                        source={{ uri: item.avatar_url }}
+                                    />
+                                ) : (
+                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center mr-3`}>
+                                        <Text style={tailwind`text-gray-600 text-lg font-semibold`}>
+                                            {getUserInitials(item)}
                                         </Text>
                                     </View>
-                                ) : (
-                                    <Image 
-                                        style={tailwind`w-12 h-12 rounded-full mr-3`} 
-                                        source={{uri: item?.avatar_url}}  
-                                    />
                                 )}
                                 <View style={tailwind`flex-1`}>
                                     <Text style={tailwind`text-black font-semibold text-base`}>
                                         {item?.full_name || item?.name || 'Unknown'}
                                     </Text>
-                                    <Text style={tailwind`text-gray-600 text-sm mt-1`}>
-                                        @{item?.username || item?.username || 'unknown'}
+                                    <Text style={tailwind`text-gray-500 text-sm mt-0.5`}>
+                                        @{item?.username || 'unknown'}
                                     </Text>
                                 </View>
+                                <AntDesign name="right" size={14} color="#ccc" />
                             </Pressable>
                         ))}
                     </View>
                 )}
+
             </View>
         </ScrollView>
     );
