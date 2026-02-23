@@ -24,6 +24,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [selectedHighlight, setSelectedHighlight] = useState(null);
+    const [error, setError] = useState({global: null, fields: {}});
 
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
     const currentScrollY = useSharedValue(0);
@@ -68,7 +69,11 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
         setHighlights(withThumbnails);
 
     } catch (err) {
-        console.error("Error fetching highlights: ", err);
+        setError({
+            global: "Unable to fetch highlights",
+            fields: err?.response?.data?.error.fields || {},
+        })
+        console.log("Unable to fetch highlights: ", err);
     } finally {
         setLoading(false);
     }
@@ -111,8 +116,12 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             setMediaType('');
             setTitle('');
             setDescription('');
-        } catch (err) {
-            console.error("Failed to create match media: ", err)
+        } catch (err) { 
+            setError({
+                global: err?.response?.data?.error.message,
+                fields: err?.response?.data?.error?.fields,
+            })
+            console.log("Failed to create match media: ", err)
         }
     }
 
@@ -335,6 +344,13 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                         </Text>
                     </View>
                     <View style={tailwind`bg-red-400 w-full h-0.5 rounded-full mr-2 mb-4`} />
+                    {error?.global && (
+                        <View style={tailwind`mx-3 mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl flex-row items-center`}>
+                            <Text style={tailwind`text-gray-600 text-sm ml-2 flex-1`}>
+                                {error?.global}
+                            </Text>
+                        </View>
+                    )}
                     {/* Highlights List */}
                     {loading ? (
                         <View style={tailwind`py-32 items-center`}>
@@ -357,7 +373,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                                 No highlights yet
                             </Text>
                             <Text style={tailwind`text-gray-500 text-center text-sm`}>
-                                Be the first to share this match's{'\n'}best moments!
+                                Upload Highlights
                             </Text>
                         </View>
                     )}

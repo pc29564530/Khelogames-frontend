@@ -65,6 +65,9 @@ const persistConfig = {
     "cricketMatchInning",
     "cricketPlayerScore",
     "cricketMatchScore",
+    "auth",
+    "user",
+    "profile",
   ],
 };
 

@@ -47,7 +47,7 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
                         />
                     )}
                 </TopTab.Screen>
-                <TopTab.Screen name="Team">
+                <TopTab.Screen name="Participants">
                     {() => (
                         <TournamentParticipants
                             tournament={tournament}

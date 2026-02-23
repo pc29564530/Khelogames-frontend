@@ -96,10 +96,10 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
                 setError({
-                    global: err?.response?.data?.error?.message || "Unable to update regular score",
+                    global: "Unable to update regular score",
                     fields: backendErrors,
                 });
-                console.error("Failed to add the runs and balls: ", err)
+                console.log("Failed to add the runs and balls: ", err.response.data.error)
             }
         }
         

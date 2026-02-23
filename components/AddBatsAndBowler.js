@@ -12,7 +12,6 @@ import { getCricketMatchSqud } from '../redux/actions/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
-    const [currentAuthUser, setCurrentAuthUser] = useState(null);
     const [striker, setStriker] = useState(null);
     const [nonStriker, setNonStriker] = useState(null)
     const [currentModal, setCurrentModal] = useState(null);
@@ -31,7 +30,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
     const dispatch = useDispatch();
 
     const currentBatTeamUser = batTeam === match.homeTeam.public_id ? match.homeTeam.user_id : match.awayTeam.user_id;
-
+    
     useEffect(() => {
         const fetchCurrentAuthUser = async () => {
             try {

@@ -19,6 +19,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const players = useSelector(state => state.players.players)
     const squad = useSelector(state => state.players.squad)
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
+    const authProfile = useSelector(state => state.profile.authProfile)
     const game = useSelector((state) => state.sportReducers.game);
     const [selectedSquad, setSelectedSquad] = useState([]);
     const homeTeamID = match?.homeTeam?.id;
@@ -28,28 +29,12 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
     const cricketMatchSquad= useSelector(state => state.players.squads)
     const [isPlayerModalVisible,setIsPlayerModalVisible] = useState(false);
-    const [authUser, setAuthUser] = useState(null);
     const [searchText, setSearchText] = useState('');
     const [error, setError] = useState({
         global: null,
         fields: {},
     });
     const [loading, setLoading] = useState(false);
-
-    //checking for auth user
-    useEffect(() => {
-        const fetchUser = async () => {
-        try {
-            const storedUser = await AsyncStorage.getItem("User");
-            if (storedUser) {
-            setAuthUser(JSON.parse(storedUser)); // parse because it’s stored as string
-            }
-        } catch (err) {
-            console.error("Failed to load user:", err);
-        }
-        };
-        fetchUser();
-    }, []);
 
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
@@ -275,9 +260,6 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     }
 
     const AddTeamPlayerButton = () => {
-        if(!authUser){
-          return null;
-        }
         if(currentTeamPlayer === homeTeamPublicID){
           return (
               <Pressable
@@ -355,7 +337,10 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             </Pressable>
                         </View>
                         {/* Squad selector */}
-                        <AddTeamPlayerButton />
+                        {/* Add scorer check and manager check and tournament host check */}
+                        {(authProfile?.id === match.user_id || authProfile.id === match.tournament.id) && (
+                            <AddTeamPlayerButton />
+                        )}
                     </Animated.View>
 
                 {/* Error Display */}

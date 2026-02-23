@@ -50,7 +50,11 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
   const [error, setError] = useState({
     global: null,
     fields: {},
-  })
+  });
+  const [modalError, setModalError] = useState({
+    global: null,
+    fields: {},
+  });
   const [tournamentParticipants, setTournamentParticipants] = useState();
 
   // Redux state
@@ -77,9 +81,12 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
 
   // Focus effect for data fetching
   useFocusEffect(
-    React.useCallback(async () => {
-      const response = await fetchAllGroups();
-      dispatch(setGroups(response))
+    React.useCallback(() => {
+      const loadGroup = async () => {
+          const response = await fetchAllGroups();
+          dispatch(setGroups(response))
+      }
+      loadGroup();
     }, [axiosInstance])
   );
 
@@ -100,8 +107,8 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
             setTournamentParticipants(item.data || []);
         } catch (err) {
             const backendError = err?.response?.data?.error?.fields || {};
-            setError({global: "Unable to get teams", fields: backendError,});
-            console.error("Failed to get tournament participants for adding to standing: ", err);
+            setModalError({global: "Unable to get teams", fields: backendError,});
+            console.log("Failed to get tournament participants for adding to standing: ", err);
         }
     }
     fetchTeam()
@@ -215,55 +222,19 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
       });
 
       await Promise.all(promises);
-      
-      // Success feedback
-      Alert.alert(
-        'Success!', 
-        `${teamsToProcess.length} participant(s) added to ${selectedGroup.name}`,
-        [{ text: 'OK', onPress: () => {
-          setSelectedTeams([]);
-          setIsModalTeamVisible(false);
-          onRefresh(); // Refresh standings
-        }}]
-      );
+
+      // Success: close both modals and clear selection
+      setSelectedTeams([]);
+      setIsModalTeamVisible(false);
+      setIsCreateStandingVisible(false);
 
     } catch (err) {
       const backendError = err?.response?.data?.error?.fields || {};
-      setError({
-        global: "Unable to create standing",
+      setModalError({
+        global: err?.response?.data?.error?.message || 'Failed to add teams. Please try again.',
         fields: backendError,
       });
-      console.error("Unable to add teams to group: ", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Create new group
-  const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) {
-      Alert.alert('Error', 'Please enter a group name.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const authToken = await AsyncStorage.getItem('AccessToken');
-      const groupData = {
-        name: newGroupName.trim(),
-        tournament_id: tournament.id,
-        strength: groupStrength
-      };
-
-      await addGroup({ groupData, axiosInstance, dispatch });
-      
-      Alert.alert('Success!', `Group "${newGroupName}" created successfully.`);
-      setNewGroupName('');
-      setCreateGroupMode(false);
-      fetchAllGroups({ axiosInstance: axiosInstance, dispatch: dispatch });
-      
-    } catch (error) {
-      Alert.alert('Error', 'Failed to create group. Please try again.');
+      console.log("Unable to add teams to group: ", err);
     } finally {
       setLoading(false);
     }
@@ -463,69 +434,83 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
           transparent={true}
         >
           <View style={tailwind`flex-1 justify-end bg-black/50`}>
-            <View style={tailwind`bg-white rounded-t-3xl p-6`}>
-              <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
-              <View style={tailwind`flex-row justify-between items-center mb-6`}>
-                <Text style={tailwind`text-xl font-bold text-gray-900`}>
-                  Create Standing
-                </Text>
+            <View style={[tailwind`bg-white rounded-t-3xl p-6`, { maxHeight: sHeight * 0.55 }]}>
+              {/* Drag handle */}
+              <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-5`} />
+
+              {/* Header */}
+              <View style={tailwind`flex-row justify-between items-start mb-5`}>
+                <View style={tailwind`flex-1 mr-3`}>
+                  <Text style={tailwind`text-xl font-bold text-gray-900`}>Create Standing</Text>
+                  <Text style={tailwind`text-sm text-gray-400 mt-0.5`}>Set up a group and assign teams</Text>
+                </View>
                 <Pressable
                   onPress={() => setIsCreateStandingVisible(false)}
                   style={tailwind`w-8 h-8 rounded-full bg-gray-100 items-center justify-center`}
                 >
-                  <Text style={tailwind`text-gray-600 font-bold`}>×</Text>
+                  <MaterialIcon name="close" size={18} color="#6b7280" />
                 </Pressable>
               </View>
 
               {(tournament?.stage === "group" || tournament?.stage === "league") && (
-                <View style={tailwind`gap-4`}>
-                  {/* Selected Group Display */}
-                  {selectedGroup && (
-                    <View style={tailwind`bg-red-50 p-4 rounded-xl border border-red-100 flex-row items-center`}>
-                      <MaterialIcon name="check-circle" size={18} color="#f87171" />
-                      <Text style={tailwind`text-gray-700 font-medium ml-2`}>
-                        Selected: <Text style={tailwind`text-red-400 font-bold`}>{selectedGroup.name}</Text>
-                      </Text>
+                <View style={tailwind`gap-3`}>
+                  {/* Select Group */}
+                  <Pressable
+                    onPress={() => setIsModalGroupVisible(true)}
+                    style={[
+                      tailwind`flex-row items-center p-4 rounded-2xl border border-gray-100 bg-white`,
+                      { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1 }
+                    ]}
+                  >
+                    <View style={tailwind`w-11 h-11 rounded-full bg-red-50 items-center justify-center mr-3`}>
+                      <MaterialIcon name="folder-open" size={22} color="#f87171" />
                     </View>
-                  )}
+                    <View style={tailwind`flex-1`}>
+                      <Text style={tailwind`text-sm font-semibold text-gray-900`}>Select Group</Text>
+                      {selectedGroup ? (
+                        <Text style={tailwind`text-xs text-red-400 mt-0.5 font-medium`}>✓ {selectedGroup.name}</Text>
+                      ) : (
+                        <Text style={tailwind`text-xs text-gray-400 mt-0.5`}>Choose which group to use</Text>
+                      )}
+                    </View>
+                    <MaterialIcon name="chevron-right" size={20} color="#d1d5db" />
+                  </Pressable>
 
-                  {/* Action Buttons */}
-                  <View style={tailwind`flex-row gap-3`}>
-                    <Pressable
-                      onPress={() => setIsModalGroupVisible(true)}
-                      style={tailwind`flex-1 p-4 bg-red-400 rounded-xl items-center flex-row justify-center`}
-                    >
-                      <MaterialIcon name="folder-open" size={20} color="#fff" />
-                      <Text style={tailwind`text-white font-semibold text-base ml-2`}>
-                        Select Group
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => {
-                        if (selectedGroup) {
-                          setIsModalTeamVisible(true);
-                        } else {
-                          Alert.alert('Error', 'Please select a group first.');
-                        }
-                      }}
-                      style={[
-                        tailwind`flex-1 p-4 rounded-xl items-center flex-row justify-center`,
-                        selectedGroup
-                          ? tailwind`bg-gray-900`
-                          : tailwind`bg-gray-200`
-                      ]}
-                      disabled={!selectedGroup}
-                    >
-                      <MaterialIcon name="group-add" size={20} color={selectedGroup ? "#fff" : "#9ca3af"} />
-                      <Text style={[
-                        tailwind`font-semibold text-base ml-2`,
-                        selectedGroup ? tailwind`text-white` : tailwind`text-gray-400`
-                      ]}>
+                  {/* Add Teams */}
+                  <Pressable
+                    onPress={() => {
+                      if (selectedGroup) {
+                        setError({ global: null, fields: {} });
+                        setIsModalTeamVisible(true);
+                      } else {
+                        Alert.alert('Select Group First', 'Please select a group before adding teams.');
+                      }
+                    }}
+                    style={[
+                      tailwind`flex-row items-center p-4 rounded-2xl border border-gray-100`,
+                      selectedGroup ? tailwind`bg-white` : tailwind`bg-gray-50`,
+                      { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: selectedGroup ? 0.05 : 0, shadowRadius: 3, elevation: selectedGroup ? 1 : 0 }
+                    ]}
+                  >
+                    <View style={[
+                      tailwind`w-11 h-11 rounded-full items-center justify-center mr-3`,
+                      selectedGroup ? tailwind`bg-gray-900` : tailwind`bg-gray-100`
+                    ]}>
+                      <MaterialIcon name="group-add" size={22} color={selectedGroup ? "#fff" : "#9ca3af"} />
+                    </View>
+                    <View style={tailwind`flex-1`}>
+                      <View style={tailwind`flex-row items-center gap-1 mb-0.5`}>
+                        {!selectedGroup && <MaterialIcon name="lock" size={11} color="#9ca3af" />}
+                      </View>
+                      <Text style={[tailwind`text-sm font-semibold`, selectedGroup ? tailwind`text-gray-900` : tailwind`text-gray-400`]}>
                         Add Teams
                       </Text>
-                    </Pressable>
-                  </View>
+                      <Text style={[tailwind`text-xs mt-0.5`, selectedGroup ? tailwind`text-gray-400` : tailwind`text-gray-300`]}>
+                        {selectedGroup ? `Adding to ${selectedGroup.name}` : 'Select a group first'}
+                      </Text>
+                    </View>
+                    <MaterialIcon name="chevron-right" size={20} color={selectedGroup ? "#d1d5db" : "#e5e7eb"} />
+                  </Pressable>
                 </View>
               )}
             </View>
@@ -548,37 +533,7 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                   <Text style={tailwind`text-xl font-bold text-gray-900`}>
                     Select Group
                   </Text>
-                  <Pressable
-                    onPress={() => setCreateGroupMode(!createGroupMode)}
-                    style={tailwind`px-3 py-1.5 bg-red-50 rounded-full`}
-                  >
-                    <Text style={tailwind`text-red-400 font-medium text-sm`}>
-                      {createGroupMode ? 'Cancel' : '+ New'}
-                    </Text>
-                  </Pressable>
                 </View>
-
-                {/* Create Group Section */}
-                {createGroupMode && (
-                  <View style={tailwind`gap-3`}>
-                    <TextInput
-                      placeholder="Enter group name"
-                      value={newGroupName}
-                      onChangeText={setNewGroupName}
-                      style={tailwind`bg-gray-100 rounded-xl p-3 text-sm text-gray-900`}
-                      placeholderTextColor="#9ca3af"
-                    />
-                    <Pressable
-                      onPress={handleCreateGroup}
-                      disabled={loading}
-                      style={tailwind`p-3 bg-red-400 rounded-xl items-center`}
-                    >
-                      <Text style={tailwind`text-white font-medium`}>
-                        {loading ? 'Creating...' : 'Create Group'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
               </View>
               <FlatList
                 data={groups}
@@ -618,7 +573,14 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
                 <Text style={tailwind`text-xl font-bold text-gray-900 mb-2`}>
                   Add Teams to {selectedGroup?.name}
                 </Text>
-                
+                {modalError?.global && (
+                    <View style={tailwind`mx-3 mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl flex-row items-center`}>
+                        <MaterialIcon name="error-outline" size={18} color="#f87171" />
+                        <Text style={tailwind`text-gray-600 text-sm ml-2 flex-1`}>
+                            {modalError?.global}
+                        </Text>
+                    </View>
+                )}
                 {/* Search Bar */}
                 <View style={tailwind`bg-gray-100 rounded-xl flex-row items-center px-3 mb-3`}>
                   <MaterialIcon name="search" size={20} color="#9ca3af" />

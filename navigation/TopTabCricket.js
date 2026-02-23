@@ -47,7 +47,7 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                         )}
                 />
                 <TopTab.Screen
-                    name="Team"
+                    name="Participants"
                     component={(props) => (
                         <TournamentParticipants
                             {...props}

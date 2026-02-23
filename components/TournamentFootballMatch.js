@@ -26,7 +26,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
-        }, [dispatch])
+        }, [dispatch, tournament.public_id])
     );
 
     useEffect(() => {

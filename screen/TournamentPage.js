@@ -9,6 +9,9 @@ import TopTabCricket from '../navigation/TopTabCricket';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { current } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from './axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const TournamentPage = ({ route }) => {
       const { tournament } = route.params;

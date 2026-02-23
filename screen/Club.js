@@ -77,9 +77,6 @@ const Club = () => {
                 });
 
                 const item = response.data;
-                if(item.success && item.data.length === 0) {
-                    //First to add new team
-                }
                 dispatch(getTeamsBySport(item.data));
             } catch (err) {
                 logSilentError(err);
@@ -97,32 +94,6 @@ const Club = () => {
             getClubData();
         }
     }, [axiosInstance, game]);
-
-    navigation.setOptions({
-        headerTitle: 'Teams',
-        headerStyle: {
-          backgroundColor: tailwind.color('red-400'),
-        },
-        headerTintColor: 'white',
-        headerTitleStyle: {
-          color: 'white',
-        },
-        headerLeft: () => (
-          <Pressable onPress={() => navigation.goBack()}>
-            <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
-          </Pressable>
-        ),
-        headerRight: () => (
-          <View>
-            <Pressable
-              style={tailwind`relative p-2 items-center justify-center mr-1`}
-              onPress={handleAddClub}
-            >
-              <MaterialIcons name="add" size={24} color="white" /> 
-            </Pressable>
-          </View>
-        )
-      });
       
 
     const handleAddClub = () => {
@@ -141,6 +112,27 @@ const Club = () => {
         setSelectedSport(item);
         dispatch(setGame(item));
     }
+
+    navigation.setOptions({
+        headerTitle: () => (
+            <Text style={tailwind`text-xl font-bold text-white`}>Team</Text>
+        ),
+        headerStyle: {
+            backgroundColor: tailwind.color('red-400'),
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+        },
+        headerTintColor: 'white',
+        headerTitleAlign: 'center',
+        headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="white" />
+            </Pressable>
+        ),
+    });
 
     const renderFilterTeams = ({ item }) => {
         return (

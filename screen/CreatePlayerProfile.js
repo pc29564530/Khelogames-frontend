@@ -22,6 +22,7 @@ const CreatePlayerProfile = () => {
     const [mediaUrl, setMediaUrl] = useState('');
     const [position, setPosition] = useState('');
     const [playerCountry, setPlayerCountry] = useState('');
+    const [loading, setLoading] = useState(false);
     const [isSportVisible, setIsSportVisible] = useState(false);
     const [isCountryPicker, setIsCountryPicker] = useState(false);
     const [isPositionsVisible, setIsPositionsVisible] = useState(false);

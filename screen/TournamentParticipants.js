@@ -9,6 +9,8 @@ import {
   TextInput,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import tailwind from 'twrnc';
@@ -18,13 +20,159 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { getTournamentEntities } from '../redux/actions/actions';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { validateTournamentParticipantForm } from '../utils/validation/tournamentValidation';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-/* ---------------- Icons ---------------- */
-const AddIcon = () => <Text style={tailwind`text-white text-lg font-bold`}>+</Text>;
-const SearchIcon = () => <Text style={tailwind`text-gray-400`}>🔍</Text>;
+const SearchIcon = () => <MaterialIcons name="search" size={24} color="black"/>;
 const CloseIcon = () => <Text style={tailwind`text-gray-500 font-bold text-lg`}>✕</Text>;
 const TeamIcon = () => <Text style={tailwind`text-white text-xl`}>👥</Text>;
 const PlayerIcon = () => <Text style={tailwind`text-white text-xl`}>👤</Text>;
+
+const AddParticipantModal = ({
+  visible,
+  allEntities,       // full unfiltered list
+  loading,
+  error,
+  submitting,
+  onClose,
+  onAdd,
+  entityType,
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Reset search whenever modal opens or entity type changes
+  useEffect(() => {
+    if (visible) setSearchQuery('');
+  }, [visible, entityType]);
+
+  const filteredEntities = useMemo(() => {
+    if (!searchQuery.trim()) return allEntities;
+    const query = searchQuery.toLowerCase();
+    return allEntities.filter((e) => {
+      const name = (e.name || e.short_name || '').toLowerCase();
+      return name.includes(query);
+    });
+  }, [allEntities, searchQuery]);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={tailwind`flex-1`}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={tailwind`flex-1 bg-black/50 justify-end`}>
+          <Pressable style={tailwind`flex-1`} onPress={onClose} />
+
+          <View style={[tailwind`bg-white rounded-t-3xl p-6`, { maxHeight: Dimensions.get('window').height * 0.75 }]}>
+            {/* Header */}
+            <View style={tailwind`flex-row items-center justify-between mb-4`}>
+              <Text style={tailwind`text-xl font-bold`}>
+                Add {entityType === 'team' ? 'Teams' : 'Players'}
+              </Text>
+              <Pressable onPress={onClose} style={tailwind`w-8 h-8 items-center justify-center`}>
+                <CloseIcon />
+              </Pressable>
+            </View>
+
+            {/* Search Bar */}
+            <View style={tailwind`bg-gray-100 rounded-xl px-4 py-3 mb-4 flex-row items-center`}>
+              <SearchIcon />
+              <TextInput
+                placeholder={`Search ${entityType === 'team' ? 'teams' : 'players'}...`}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={tailwind`flex-1 ml-2 text-base text-gray-900`}
+                placeholderTextColor="#9CA3AF"
+                autoCorrect={false}
+                autoCapitalize="none"
+                clearButtonMode="while-editing"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery('')} style={tailwind`ml-2 p-1`}>
+                  <Text style={tailwind`text-gray-400 text-sm`}>✕</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {/* Error Message */}
+            {error?.global && (
+              <View style={tailwind`bg-red-50 border border-red-200 rounded-lg p-3 mb-3`}>
+                <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
+              </View>
+            )}
+
+            {/* Content */}
+            {loading ? (
+              <View style={tailwind`py-10 items-center`}>
+                <ActivityIndicator size="large" color="#EF4444" />
+                <Text style={tailwind`text-gray-500 mt-3`}>Loading...</Text>
+              </View>
+            ) : filteredEntities.length === 0 ? (
+              <View style={tailwind`py-10 items-center`}>
+                <MaterialIcons name="search" size={24} color="black" />
+                <Text style={tailwind`text-gray-500 text-base font-medium`}>
+                  {searchQuery
+                    ? `No results for "${searchQuery}"`
+                    : `No ${entityType}s available`}
+                </Text>
+                {searchQuery ? (
+                  <Pressable onPress={() => setSearchQuery('')} style={tailwind`mt-3`}>
+                    <Text style={tailwind`text-red-500 text-sm font-medium`}>Clear search</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : (
+              <ScrollView
+                style={{ maxHeight: 400 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {filteredEntities.map((e) => (
+                  <Pressable
+                    key={e.public_id}
+                    onPress={() => onAdd(e.public_id)}
+                    disabled={submitting}
+                    style={({ pressed }) => [
+                      tailwind`p-4 bg-gray-50 rounded-xl mb-2 flex-row items-center`,
+                      pressed && tailwind`bg-gray-100`,
+                      submitting && tailwind`opacity-50`,
+                    ]}
+                  >
+                    <View style={tailwind`w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-3`}>
+                      {e.media_url || e.avatar_url ? (
+                        <Image
+                          source={{ uri: e.media_url || e.avatar_url }}
+                          style={tailwind`w-10 h-10 rounded-full`}
+                        />
+                      ) : (
+                        <Text style={tailwind`text-red-600 font-bold text-base`}>
+                          {(e.name || '?').charAt(0).toUpperCase()}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={tailwind`flex-1`}>
+                      <Text style={tailwind`font-semibold text-gray-900`}>{e.name}</Text>
+                      {(e.short_name || e.shortname) && (
+                        <Text style={tailwind`text-sm text-gray-500 mt-0.5`}>
+                          {e.short_name || e.shortname}
+                        </Text>
+                      )}
+                    </View>
+                    {submitting ? (
+                      <ActivityIndicator size="small" color="#EF4444" />
+                    ) : (
+                      <Text style={tailwind`text-red-500 font-bold text-lg`}>+</Text>
+                    )}
+                  </Pressable>
+                ))}
+                <View style={{ height: 20 }} />
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
 
 const TournamentParticipants = ({
   tournament,
@@ -66,8 +214,6 @@ const TournamentParticipants = ({
     fields: {},
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     (async () => {
       try {
@@ -108,6 +254,7 @@ const TournamentParticipants = ({
     try {
       setModalLoading(true);
       setModalError({ global: null, fields: {} });
+      setEntities([]);
 
       const token = await AsyncStorage.getItem('AccessToken');
       const endpoint =
@@ -119,7 +266,7 @@ const TournamentParticipants = ({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setEntities(res.data?.data || []);
+      setEntities(res?.data?.data || []);
     } catch (err) {
       setModalError({
         global: 'Unable to load entities',
@@ -163,7 +310,6 @@ const TournamentParticipants = ({
 
       await fetchParticipants();
       setIsModalVisible(false);
-      setSearchQuery('');
     } catch (err) {
       setModalError({
         global: 'Unable to add participant',
@@ -174,13 +320,6 @@ const TournamentParticipants = ({
     }
   };
 
-  const filteredEntities = useMemo(() => {
-    if (!searchQuery.trim()) return entities;
-    return entities.filter((e) =>
-      e.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [entities, searchQuery]);
-
   return (
     <Animated.ScrollView
       onScroll={handlerScroll}
@@ -189,7 +328,6 @@ const TournamentParticipants = ({
       contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight }}
     >
       {/* Action Buttons */}
-      {tournament.user_id === authUser?.id && (
         <View style={tailwind`px-4 py-4 flex-row gap-3 bg-white border-b border-gray-100`}>
           {['team', 'player'].map((type) => (
             <Pressable
@@ -207,9 +345,8 @@ const TournamentParticipants = ({
             </Pressable>
           ))}
         </View>
-      )}
 
-      {/* Content */}
+      {/* Participants List */}
       {loading ? (
         <View style={tailwind`py-20 items-center`}>
           <ActivityIndicator size="large" color="#EF4444" />
@@ -253,22 +390,22 @@ const TournamentParticipants = ({
               style={tailwind`bg-white rounded-xl p-4 mb-3 flex-row items-center shadow-sm`}
             >
               <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center mr-3`}>
-                {item.entity.avatar_url ? (
+                {item.entity?.media_url || item.entity?.avatar_url ? (
                   <Image
-                    source={{ uri: item.entity.avatar_url }}
+                    source={{ uri: item.entity.media_url || item.entity.avatar_url }}
                     style={tailwind`w-12 h-12 rounded-full`}
                   />
                 ) : (
                   <Text style={tailwind`text-gray-500 text-lg font-bold`}>
-                    {item.entity.name.charAt(0).toUpperCase()}
+                    {(item.entity?.name).charAt(0).toUpperCase()}
                   </Text>
                 )}
               </View>
               <View style={tailwind`flex-1`}>
                 <Text style={tailwind`text-lg font-semibold text-gray-900`}>
-                  {item.entity.name}
+                  {item.entity?.name}
                 </Text>
-                {item.entity.type && (
+                {item.entity?.type && (
                   <Text style={tailwind`text-sm text-gray-500 capitalize mt-1`}>
                     {item.entity.type}
                   </Text>
@@ -282,9 +419,7 @@ const TournamentParticipants = ({
       {/* Modal */}
       <AddParticipantModal
         visible={isModalVisible}
-        entities={filteredEntities}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        allEntities={entities}
         loading={modalLoading}
         error={modalError}
         submitting={submitting}
@@ -295,113 +430,5 @@ const TournamentParticipants = ({
     </Animated.ScrollView>
   );
 };
-
-const AddParticipantModal = ({
-  visible,
-  entities,
-  searchQuery,
-  setSearchQuery,
-  loading,
-  error,
-  submitting,
-  onClose,
-  onAdd,
-  entityType,
-}) => (
-  <Modal visible={visible} transparent animationType="slide">
-    <View style={tailwind`flex-1 bg-black/50 justify-end`}>
-      <Pressable style={tailwind`flex-1`} onPress={onClose} />
-
-      <View style={tailwind`bg-white rounded-t-3xl p-6 max-h-[70%]`}>
-        {/* Header */}
-        <View style={tailwind`flex-row items-center justify-between mb-4`}>
-          <Text style={tailwind`text-xl font-bold`}>
-            Add {entityType === 'team' ? 'Teams' : 'Players'}
-          </Text>
-          <Pressable onPress={onClose} style={tailwind`w-8 h-8 items-center justify-center`}>
-            <CloseIcon />
-          </Pressable>
-        </View>
-
-        {/* Search Bar */}
-        <View style={tailwind`bg-gray-100 rounded-xl px-4 py-3 mb-4 flex-row items-center`}>
-          <SearchIcon />
-          <TextInput
-            placeholder="Search..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={tailwind`flex-1 ml-2 text-base`}
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* Error Message */}
-        {error?.global && (
-          <View style={tailwind`bg-red-50 border border-red-200 rounded-lg p-3 mb-3`}>
-            <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
-          </View>
-        )}
-
-        {/* Content */}
-        {loading ? (
-          <View style={tailwind`py-10 items-center`}>
-            <ActivityIndicator size="large" color="#EF4444" />
-            <Text style={tailwind`text-gray-500 mt-3`}>Loading...</Text>
-          </View>
-        ) : entities.length === 0 ? (
-          <View style={tailwind`py-10 items-center`}>
-            <Text style={tailwind`text-gray-400 text-lg`}>
-              {searchQuery ? 'No results found' : `No ${entityType}s available`}
-            </Text>
-            {searchQuery && (
-              <Text style={tailwind`text-gray-400 text-sm mt-2`}>
-                Try a different search term
-              </Text>
-            )}
-          </View>
-        ) : (
-          <ScrollView
-            style={tailwind`flex-1`}
-            showsVerticalScrollIndicator={false}
-          >
-            {entities.map((e) => (
-              <Pressable
-                key={e.public_id}
-                onPress={() => onAdd(e.public_id)}
-                disabled={submitting}
-                style={[
-                  tailwind`p-4 bg-gray-50 rounded-xl mb-2 flex-row items-center`,
-                  submitting && tailwind`opacity-50`
-                ]}
-              >
-                <View style={tailwind`w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-3`}>
-                  {e.avatar_url || e.media_url ? (
-                    <Image
-                      source={{ uri: e.avatar_url || e.media_url }}
-                      style={tailwind`w-10 h-10 rounded-full`}
-                    />
-                  ) : (
-                    <Text style={tailwind`text-gray-600 font-bold`}>
-                      {e.name.charAt(0).toUpperCase()}
-                    </Text>
-                  )}
-                </View>
-                <View style={tailwind`flex-1`}>
-                  <Text style={tailwind`font-semibold text-gray-900`}>{e.name}</Text>
-                  {e.shortname && (
-                    <Text style={tailwind`text-sm text-gray-500 mt-0.5`}>{e.shortname}</Text>
-                  )}
-                </View>
-                {submitting && (
-                  <ActivityIndicator size="small" color="#EF4444" />
-                )}
-              </Pressable>
-            ))}
-          </ScrollView>
-        )}
-      </View>
-    </View>
-  </Modal>
-);
 
 export default TournamentParticipants;

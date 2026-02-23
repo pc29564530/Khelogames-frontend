@@ -34,7 +34,6 @@ import CreatePlayerProfile from '../screen/CreatePlayerProfile';
 import PlayerProfile from '../screen/PlayerProfile';
 import CricketMatchPage from '../screen/CricketMatchPage';
 // import AddCricketMatchPlayer from '../screen/AddCricketMatchPlayer';
-import EditMatchScore from '../screen/EditMatchScore';
 import FootballMatchPage from '../screen/FootballMatchPage';
 import AddFootballPlayerScore from '../screen/AddFootballPlayerScore';
 import Follow from '../screen/Follow';
@@ -169,14 +168,7 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
-                        <Stack.Screen name="ManageRole" component={ManageRole} 
-                            options={() => ({
-                                headerShown: false,
-                                headerTitle: null,
-                                headerBackTitleVisible: false,
-                                headerLeft: false
-                            })}
-                        />
+                        <Stack.Screen name="ManageRole" component={ManageRole} />
                         <Stack.Screen name="CommunityList" component={CommunityList} />
                         <Stack.Screen name="CommunityType" component={CommunityType} />
                         <Stack.Screen name="Message" component={Message} />
@@ -241,7 +233,6 @@ export default function MainNavigation() {
                             }}
                         />
                         {/* <Stack.Screen name="AddCricketMatchPlayer" component={AddCricketMatchPlayer} /> */}
-                        <Stack.Screen name="EditMatchScore" component={EditMatchScore} />
                         <Stack.Screen name="FootballMatchPage" component={FootballMatchPage} 
                             options={{
                                 headerShown: false,

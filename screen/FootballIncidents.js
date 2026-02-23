@@ -42,13 +42,13 @@ const PenaltyShootOutIncident = ({key, item, match}) => {
                         <Text style={tailwind`h-10 w-0.2 bg-gray-400`} />
                         <Text style={tailwind`text-md`}>{item.player.name}</Text>
                         <View style={tailwind`rounded-lg bg-gray-200 p-1`}>
-                            <Text style={tailwind`text-lg font-bold`}>{item.home_score.goals} - {item.away_score.goals}</Text>
+                            <Text style={tailwind`text-lg font-bold`}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
                         </View>
                     </View>
             ) : (
                     <View style={tailwind`flex-row justify-end gap-2 ml-40 items-center`}>
                         <View style={tailwind`rounded-lg bg-gray-200 p-1`}>
-                            <Text style={tailwind`text-lg font-bold`}>{item.home_score.goals} - {item.away_score.goals}</Text>
+                            <Text style={tailwind`text-lg font-bold`}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
                         </View>
                         <Text style={tailwind`text-md`}>{item.player.name}</Text>
                         <Text style={tailwind`h-10 w-0.2 bg-gray-400`} />
@@ -282,20 +282,30 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     return (
         <View style={tailwind`flex-1`}>
             {groupIncidents.length === 0 ? (
-                <View style={tailwind`px-2 py-2`}>
-                    <Pressable 
-                            onPress={() => handleIncidentModal()} 
-                            style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2 items-center mb-4`}
-                        >
-                            <View style={tailwind`flex-row`}>
-                            <MaterialIcons name="add" size={24} color="#ef4444" />
-                            <Text style={tailwind`text-gray-700 text-lg font-semibold ml-2`}>
-                                Add Incident
-                            </Text>
-                            </View>
-                        </Pressable>
-                    <View style={tailwind`items-center`}>
-                        <Text style={tailwind`text-gray-500 text-md`}>No incidents yet</Text>
+               <View style={tailwind`px-4 py-4 flex-1 bg-white`}>
+                    {/* Add Incident Button */}
+                    <Pressable
+                        onPress={handleIncidentModal}
+                        style={({ pressed }) => [
+                        tailwind`rounded-xl p-4 flex-row items-center justify-center`,
+                        pressed ? tailwind`bg-red-600` : tailwind`bg-red-400`,
+                        ]}
+                    >
+                        <MaterialIcons name="add" size={22} color="white" />
+                        <Text style={tailwind`text-white text-base font-semibold ml-2`}>
+                            Add Incident
+                        </Text>
+                    </Pressable>
+
+                    {/* Empty State */}
+                    <View style={tailwind`flex-1 justify-center items-center mt-10`}>
+                        <MaterialIcons name="sports-soccer" size={64} color="#d1d5db" />
+                        <Text style={tailwind`text-gray-400 text-lg font-medium mt-4`}>
+                        No Incidents Yet
+                        </Text>
+                        <Text style={tailwind`text-gray-400 text-sm mt-1 text-center px-10`}>
+                        Tap the button above to add a new match incident.
+                        </Text>
                     </View>
                 </View>
             ):(
@@ -354,16 +364,17 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                         paddingHorizontal: 16
                     }}
                     ListHeaderComponent={
-                        <Pressable 
-                            onPress={() => setIncidentModalVisible(true)} 
-                            style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2 items-center mb-4`}
+                        <Pressable
+                            onPress={() => setIncidentModalVisible(true)}
+                            style={({ pressed }) => [
+                                tailwind`rounded-xl p-3.5 flex-row items-center justify-center mb-4`,
+                                pressed ? tailwind`bg-red-600` : tailwind`bg-red-500`,
+                            ]}
                         >
-                            <View style={tailwind`flex-row`}>
-                            <MaterialIcons name="add" size={24} color="#ef4444" />
-                            <Text style={tailwind`text-gray-700 text-lg font-semibold ml-2`}>
+                            <MaterialIcons name="add" size={22} color="white" />
+                            <Text style={tailwind`text-white text-base font-semibold ml-2`}>
                                 Add Incident
                             </Text>
-                            </View>
                         </Pressable>
                     }
                 />

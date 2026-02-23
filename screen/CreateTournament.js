@@ -17,6 +17,7 @@ import { addTournament } from '../redux/actions/actions';
 const Stages = ['Group', 'Knockout', 'League'];
 import { validateTournamentField, validateTournamentForm } from '../utils/validation/tournamentValidation';
 import { handleInlineError } from '../utils/errorHandler';
+import { getIPBasedLocation } from '../utils/locationService';
 
 
 const CreateTournament = () => {
@@ -49,7 +50,6 @@ const CreateTournament = () => {
 
 
     // Get location based on IP when screen is focused
-
     useFocusEffect(
             React.useCallback(() => {
                 let isActive = true;
@@ -76,11 +76,11 @@ const CreateTournament = () => {
         try {
             // Validate all fields before submission
             const formData = {
-                name,
+                tournamentName: name,
                 city,
                 state,
                 country,
-                startTimestamp,
+                startOn: startTimestamp,
                 stage,
                 groupCount,
                 maxTeamGroup,
@@ -107,7 +107,7 @@ const CreateTournament = () => {
                 level: "local",
                 start_timestamp: modifyDateTime(startTimestamp),
                 game_id: game.id,
-                group_count: parseInt(groupCount, 10),
+                ...(stage === "Group" && { group_count: parseInt(groupCount, 10)}),
                 max_group_team: parseInt(maxTeamGroup, 10),
                 stage: stage?.toLowerCase(),
                 has_knockout: isKnockout,
@@ -189,6 +189,28 @@ const CreateTournament = () => {
           const matchDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute));
           return matchDateTime;
       };
+
+      useFocusEffect(
+            React.useCallback(() => {
+                let isActive = true;
+    
+                const fetchIPLocation = async () => {
+                    const location = await getIPBasedLocation();
+                    if (isActive && location) {
+                        setCity(location.city);
+                        setState(location.state);
+                        setCountry(location.country);
+                    }
+                };
+    
+                fetchIPLocation();
+    
+                // Cleanup when screen loses focus
+                return () => {
+                    isActive = false;
+                };
+            }, [])
+        );
 
     return (
         <ScrollView style={tailwind`flex-1 bg-gray-50`} contentContainerStyle={tailwind`px-5 py-5 pb-12`}>
@@ -300,12 +322,13 @@ const CreateTournament = () => {
                     )}
                 </View>
 
-                {/* Group Count */}
-                {(stage === "group" || stage === "league" || stage === "Group" || stage === "League") && (
+                {/* Group Count — only for Group stage, League always has 1 group (set by backend) */}
+                {stage === "Group" && (
                     <View style={tailwind`mb-5`}>
+                        <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Number of Groups</Text>
                         <TextInput
                             style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
-                            placeholder="Group Count"
+                            placeholder="e.g. 4"
                             keyboardType='numeric'
                             placeholderTextColor="#D1D5DB"
                             value={groupCount}
@@ -317,18 +340,19 @@ const CreateTournament = () => {
                     </View>
                 )}
 
-                {/* Max Team Per Group */}
+                {/* Max Team Per Group — shown for both Group and League */}
                 {(stage === "Group" || stage === "League") && (
                     <View style={tailwind`mb-5`}>
+                        <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Max Teams Per Group</Text>
                         <TextInput
                             style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
-                            placeholder="Max Team Per Group"
+                            placeholder="e.g. 6"
                             keyboardType='numeric'
                             placeholderTextColor="#D1D5DB"
                             value={maxTeamGroup}
                             onChangeText={setMaxGroupTeam}
                         />
-                        {stage === "Group" && error?.fields.maxTeamGroup && (
+                        {error?.fields.maxTeamGroup && (
                             <Text style={tailwind`text-red-400 text-xs mt-1.5`}>{error.fields.maxTeamGroup}</Text>
                         )}
                     </View>

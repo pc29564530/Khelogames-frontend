@@ -1,5 +1,7 @@
 import React, {createContext, useContext, useRef, useEffect, useCallback} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WS_URL } from '../constants/ApiConstants';
+
 
 const WebSocketContext = createContext(null);
 
@@ -17,7 +19,7 @@ export const WebSocketProvider = ({children}) => {
             }
             
             console.log("Connecting to WebSocket...");
-            wsRef.current = new WebSocket('ws://192.168.1.3:8080/api/ws', '', {
+            wsRef.current = new WebSocket(`${WS_URL}`, '', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
                 }
@@ -46,6 +48,13 @@ export const WebSocketProvider = ({children}) => {
             
             wsRef.current.onclose = (event) => {
                 console.log("WebSocket connection closed:", event.reason);
+                // Auto-reconnect after 3 seconds if the provider is still mounted
+                if (isMountedRef.current) {
+                    setTimeout(() => {
+                        console.log("Attempting WebSocket reconnect...");
+                        setupWebSocket();
+                    }, 3000);
+                }
             };
         } catch (err) {
             console.error("Unable to setup the websocket:", err);

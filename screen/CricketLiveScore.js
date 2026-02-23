@@ -68,7 +68,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [addBowlerModalVisible, setAddBowlerModalVisible] = useState(false);
     const [isStartNewInningModalVisible, setIsStartNewInningModalVisible] = useState(false);
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -117,15 +117,16 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     
     //check for next inning
    const showNextInning = currentInningNumber < MAX_INNINGS[match.match_format];
-    useEffect(() => {
-        if(match) {
-            setIsLoading(false);
-        }
-    }, [match]);
+    // useEffect(() => {
+    //     if(match) {
+    //         setIsLoading(false);
+    //     }
+    // }, [match]);
 
     useEffect(() => {
         const fetchCricketCurrentInning = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem("AccessToken")
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketCurrentInning/${match.public_id}`, {
                     headers: {
@@ -144,6 +145,8 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     fields: backendError,
                 })
                 console.error("Failed to get cricket inning : ", err)
+            } finally {
+                setLoading(false);
             }
         }
         fetchCricketCurrentInning()
@@ -171,28 +174,10 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }, [cricketToss, homeTeamPublicID, awayTeamPublicID]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
-    // navigation.setOptions({
-    //     headerTitle:'',
-    //     headerLeft:()=>(
-    //         <Pressable onPress={()=>navigation.goBack()}>
-    //             <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
-    //         </Pressable>
-    //     ),
-    //     headerStyle:tailwind`bg-red-400`,
-    //     headerRight : () => (
-    //         <View style={tailwind`flex-row`}>
-    //             <Pressable style={tailwind`border-b-1  `} onPress={() => {setInningVisible(true)}}>
-    //                 <Text style={tailwind`text-white text-lg`}>Actions</Text>
-    //             </Pressable>
-    //             <Pressable style={tailwind``} onPress={toggleMenu}>
-    //                 <MaterialIcon name="more-vert" size={24} color="white" />
-    //             </Pressable>
-    //         </View>      
-    //     )
-    // });
 
     const fetchCurrentBatsman = async () => {
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem("AccessToken");
             const data = {
                 match_public_id: match.public_id,
@@ -224,11 +209,14 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 fields: backendError,
             })
             console.error("Failed to fetch current batsman: ", err);
+        } finally {
+            setLoading(false);
         }
     }
 
     const fetchCurrentBowler = async () => {
         try {
+            setLoading(true);
             const authToken = await AsyncStorage.getItem("AccessToken");
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCurrentBowler`, {
                 params:{
@@ -249,6 +237,8 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             }
         } catch (err) {
             console.error("Failed to fetch current batsman: ", err);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -521,7 +511,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         wsRef.current.onmessage = handleUpdateInningStatus;
     }, [handleUpdateInningStatus]);
 
-    if (isLoading) {
+    if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#0000ff" />

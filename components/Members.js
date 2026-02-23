@@ -37,10 +37,11 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
   const game = useSelector((state) => state.sportReducers.game);
   const navigation = useNavigation();
   const players = useSelector((state) => state.players.players);
+  const authProfile = useSelector(state => state.profile.authProfile);
+  const currentProfile = useSelector(state => state.profile.currentProfile);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [selectedSquad, setSelectedSquad] = useState([]);
-  const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({
     global: null,
@@ -60,21 +61,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         parentScrollY.value = event.contentOffset.y;
       }
     },
-  });  
-
-  useEffect(() => {
-        const fetchAuthUser = async () => {
-        try {
-            const currentAuthUserStr = await AsyncStorage.getItem("User");
-            if (currentAuthUserStr) {
-            setAuthUser(JSON.parse(currentAuthUserStr));
-            }
-        } catch (err) {
-            console.error("Failed to load auth user:", err);
-        }
-        };
-        fetchAuthUser();
-    }, []);
+  });
 
   useEffect(() => {
     const fetchPlayerProfile = async () => {
@@ -173,15 +160,16 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         );
         const item = response.data;
         if (item) {
-          dispatch(setTeamPlayer(item));
-          setMember([...member, item]);
+          dispatch(setTeamPlayer(item.data));
+          setMember([...member, item.data]);
         }
         setIsSelectPlayerModal(false);
         setSearchPlayer('');
       } catch (err) {
         logSilentError(err);
+        console.log("Error: ", err?.response?.data?.error?.message)
         setError({
-          global: 'Unable to add player. Please try again.',
+          global: err?.response.data.error.message,
           fields: err.response?.data?.error?.fields || {},
         });
         console.error('unable to add the player data: ', err);
@@ -260,9 +248,6 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
       return (
         <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
           <MaterialIcons name="error-outline" size={64} color="#9ca3af" />
-          <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>
-            Oops! Something went wrong
-          </Text>
           <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
             {error.global}
           </Text>
@@ -279,14 +264,14 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         <Text style={tailwind`text-gray-500 text-sm mt-2 text-center mb-4`}>
           Add players to build your squad
         </Text>
-        {authUser && teamData.user_id === authUser.id (
+        {/* {authProfile && teamData.user_id === authProfile.id ( */}
           <Pressable
             onPress={() => setIsSelectPlayerModal(true)}
             style={tailwind`bg-red-400 px-6 py-3 rounded-lg`}
           >
             <Text style={tailwind`text-white font-semibold`}>Add Player</Text>
           </Pressable>
-        )}
+        {/* )} */}
       </View>
     );
   };
@@ -305,7 +290,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         }}
       >
         {/* Add Player Button - Only for team owner */}
-        {authUser && authUser.id === teamData.user_id && players?.length > 0 && (
+        {authProfile && authProfile.id === teamData.user_id && players?.length > 0 && (
           <View style={tailwind`px-4 mb-4`}>
             <Pressable
               onPress={() => setIsSelectPlayerModal(true)}
@@ -379,7 +364,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                 </View>
 
                 {/* Remove Button - Only for team owner */}
-                {authUser && teamData.user_id === authUser.id && (
+                {authProfile && teamData.user_id === authProfile.id && (
                   <Pressable
                     style={tailwind`p-2 ml-2`}
                     onPress={(e) => {
@@ -429,6 +414,14 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                 <MaterialIcons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
+
+            {error?.global && (
+              <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
+                    <Text style={tailwind`text-red-700 text-sm`}>
+                        {error.global}
+                    </Text>
+                </View>
+            )}
 
             {/* Search Input */}
             <View style={tailwind`px-4 pt-4 pb-2`}>
