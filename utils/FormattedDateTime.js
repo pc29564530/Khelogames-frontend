@@ -7,6 +7,7 @@ export const formattedDate = (item) => {
 }
 
 export const formattedTime = (item) => {
+    const dt = new Date(item);
     if (!item || typeof item !== 'string' || !item.includes('T')) return '--';
     try {
         const [datePart, timePart] = item.split('T');
@@ -45,3 +46,53 @@ export const formatToDDMMYY = (item) => {
     const year = String(timestampDate.getFullYear()).slice(-2);
     return `${day}/${month}/${year}`;
 }
+
+//Local to UTC
+export const localToUTC = (localDate) => {
+    if (!localDate) return null;
+    return new Date(localDate).toISOString();
+}
+
+export const localToUTCTimestamp = (localDate) => {
+    if (!localDate) return null;
+    return Math.floor(new Date(localDate).getTime() / 1000);
+}
+
+export const utcToLocalDate = (utcString) => {
+    if(!utcString) return null;
+    return new Date(utcString);
+}
+
+export const utcTimestampToLocalDate = (timestamp) => {
+    if (!timestamp) return null;
+    return new Date(timestamp * 1000); // Multiply by 1000 for milliseconds
+};
+
+// Formatted outputs
+export const formatLocalTime = (date) => {
+    if (!date) return '--';
+    return new Date(date).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
+export const formatLocalDate = (date) => {
+    if (!date) return '--';
+    return new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: '2-digit'
+    });
+};
+
+export const formatUTCTime = (date) => {
+    if (!date) return '--';
+    const d = new Date(date);
+    const hours = d.getUTCHours();
+    const minutes = d.getUTCMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period} UTC`;
+};
