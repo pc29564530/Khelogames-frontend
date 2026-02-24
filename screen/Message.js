@@ -27,7 +27,7 @@ function Message({ route }) {
     const authUserPublicID = useSelector(state => state.profile.authUserPublicID)
     const authProfile = useSelector(state => state.profile.authProfile)
     const [allMessage, setAllMessage] = useState([]);
-    const receiverProfile = route?.params?.profileData;
+    const receiverProfile = route?.params?.recrecipientProfile;
     const [currentUser, setCurrentUser] = useState('');
     const [showEmojiSelect, setShowEmojiSelect] = useState(false);
     const [mediaType, setMediaType] = useState('');
@@ -48,6 +48,7 @@ function Message({ route }) {
 
     const fetchProfileData = async () => {
         try {
+            console.log("receiverProfile: ", receiverProfile)
         const targetPublicID = receiverProfile.public_id
         const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${targetPublicID}`);
         dispatch(setCurrentProfile(response.data.data));

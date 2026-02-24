@@ -1,63 +1,7 @@
 // utils/validation/authValidation.js
 
 export const AuthValidationRules = {
-  email: {
-    required: true,
-    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    message: 'Please enter a valid email address',
-  },
-  password: {
-    required: true,
-    minLength: 8,
-    message: 'Password must be at least 8 characters',
-  },
-};
-
-export const validateAuthField = (fieldName, value) => {
-  const rules = AuthValidationRules[fieldName];
-  if (!rules) return null;
-
-  // Required check
-  if (rules.required && (!value || value.trim() === '')) {
-    return rules.message || `${fieldName} is required`;
-  }
-
-  // Skip further checks if empty
-  if (!value) return null;
-
-  // Pattern (email)
-  if (rules.pattern && !rules.pattern.test(value.trim())) {
-    return rules.message;
-  }
-
-  // Min length (password)
-  if (rules.minLength && value.length < rules.minLength) {
-    return rules.message;
-  }
-
-  return null;
-};
-
-export const validateAuthForm = (formData) => {
-  const errors = {};
-
-  Object.keys(AuthValidationRules).forEach(field => {
-    const error = validateAuthField(field, formData[field]);
-    if (error) {
-      errors[field] = error;
-    }
-  });
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-  };
-};
-
-// SignUp Validation
-
-export const SignUpValidationRules = {
-  fullName: {
+  full_name: {
     required: true,
     minLength: 2,
     message: 'Full name must be at least 2 characters',
@@ -72,43 +16,55 @@ export const SignUpValidationRules = {
     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
     message: 'Min 8 chars with uppercase, lowercase and number',
   },
-  confirmPassword: {
+  confirm_password: {
     required: true,
     message: 'Please confirm your password',
   },
 };
 
-export const validateSignUpForm = (formData) => {
+export const validateAuthField = (fieldName, value, formData = {}) => {
+  const rules = AuthValidationRules[fieldName];
+  if (!rules) return null;
+
+  const trimmedValue = typeof value === 'string' ? value.trim() : value;
+
+  // Required check
+  if (rules.required && (!trimmedValue || trimmedValue === '')) {
+    return rules.message || `${fieldName} is required`;
+  }
+
+  if (!trimmedValue) return null;
+
+  // Pattern check
+  if (rules.pattern && !rules.pattern.test(trimmedValue)) {
+    return rules.message;
+  }
+
+  // Min length check
+  if (rules.minLength && trimmedValue.length < rules.minLength) {
+    return rules.message;
+  }
+
+  // Confirm password match
+  if (fieldName === 'confirm_password') {
+    if (trimmedValue !== formData.password) {
+      return 'Passwords do not match';
+    }
+  }
+
+  return null;
+};
+
+export const validateAuthForm = (formData, fields) => {
   const errors = {};
+  const fieldsToValidate = fields || Object.keys(formData);
 
-  // fullName
-  const fullName = formData.fullName?.trim() || '';
-  if (!fullName) {
-    errors.fullName = 'Full name is required';
-  } else if (fullName.length < SignUpValidationRules.fullName.minLength) {
-    errors.fullName = SignUpValidationRules.fullName.message;
-  }
-
-  // email
-  if (!formData.email?.trim()) {
-    errors.email = 'Email is required';
-  } else if (!SignUpValidationRules.email.pattern.test(formData.email.trim())) {
-    errors.email = SignUpValidationRules.email.message;
-  }
-
-  // password
-  if (!formData.password) {
-    errors.password = 'Password is required';
-  } else if (!SignUpValidationRules.password.pattern.test(formData.password)) {
-    errors.password = SignUpValidationRules.password.message;
-  }
-
-  // confirmPassword
-  if (!formData.confirmPassword) {
-    errors.confirmPassword = SignUpValidationRules.confirmPassword.message;
-  } else if (formData.password !== formData.confirmPassword) {
-    errors.confirmPassword = 'Passwords do not match';
-  }
+  fieldsToValidate.forEach(field => {
+    if (field in AuthValidationRules) {
+      const error = validateAuthField(field, formData[field], formData);
+      if (error) errors[field] = error;
+    }
+  });
 
   return {
     isValid: Object.keys(errors).length === 0,

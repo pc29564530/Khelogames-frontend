@@ -15,9 +15,9 @@ import { BASE_URL } from '../constants/ApiConstants';
 
 const TournamentPage = ({ route }) => {
       const { tournament } = route.params;
-      const [currentRole, setCurrentRole] = useState("admin")
       const [showRoleModal, setShowRoleModal] = useState(false);
       const game = useSelector(state => state.sportReducers.game);
+      const authProfile = useSelector(state => state.profile.authProfile)
       const navigation = useNavigation();
       const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
@@ -132,6 +132,14 @@ const TournamentPage = ({ route }) => {
         }
     }
 
+    const handleNavigation = () => {
+        if (tournament?.profile?.public_id === authProfile?.public_id) {
+          navigation.navigate("MessagePage")
+        } else {
+          navigation.navigate("Message", {recrecipientProfile: tournament.profile})
+        }
+    }
+
     return (
         <View style={tailwind`flex-1`}>
           <Animated.View
@@ -165,15 +173,24 @@ const TournamentPage = ({ route }) => {
                 </Text>
               </Animated.View>
             </View>
-            {(currentRole === "admin" || currentRole === "manager") && (
+            <View style={tailwind`absolute right-2 top-2 flex-row items-center`}>
+              <Pressable
+                onPress={() => handleNavigation()}
+                style={tailwind`p-1.5 mr-1`}
+                hitSlop={8}
+              >
+                <MaterialIcons name="message" size={22} color="white" />
+              </Pressable>
+              {(authProfile.public_id === tournament.profile.public_id) && (
                 <Pressable
                   onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
-                  style={tailwind`absolute right-3 top-2 p-1.5`}
-                  hitSlop={12}
+                  style={tailwind`p-1.5`}
+                  hitSlop={8}
                 >
                   <MaterialIcons name="settings" size={22} color="white" />
                 </Pressable>
               )}
+            </View>
           </Animated.View>
           <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
             {checkSport(game)}
