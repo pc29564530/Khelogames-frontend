@@ -31,9 +31,9 @@ export const TournamentValidationRules = {
     message: 'Please select a stage',
   },
   groupCount: {
-    required: (stage) => stage === 'Group' || stage === 'League',
-    min: 2,
-    message: 'Group count must be at least 2',
+    required: (stage) => stage === 'Group',
+    min: 1,
+    message: 'Group count must be at least 1',
   },
   maxTeamGroup: {
     required: (stage) => stage === 'Group' || stage === 'League',
@@ -91,8 +91,12 @@ export const validateTournamentForm = (formData) => {
   ];
 
   // Add conditional fields based on stage
-  if (formData.stage === 'Group' || formData.stage === 'League') {
+  if (formData.stage === 'Group') {
     fieldsToValidate.push('groupCount', 'maxTeamGroup');
+  }
+
+  if (formData.stage === 'League') {
+    fieldsToValidate.push('maxTeamGroup');
   }
 
   fieldsToValidate.forEach(field => {

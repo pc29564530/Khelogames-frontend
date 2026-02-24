@@ -7,7 +7,7 @@ export const getFootballMatchesService  = async ({ tournamentPublicID, game}) =>
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllTournamentMatch/${tournamentPublicID}`, {
             headers: {
-                'Authorization': `bearer ${authToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });

@@ -10,7 +10,7 @@ const convertSecondToTimestamp = (timeStamp) => {
 }
 
 export const getTournamentBySport = async ({axiosInstance, game}) => {
-        const authToken = await AsyncStorage.getItem('AcessToken');
+        const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentsBySport/${game.id}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -141,7 +141,7 @@ export const getTeamsByTournamentID  = async ({tournamentPublicID, game,  AsyncS
         const authToken = await AsyncStorage.getItem('AccessToken')
         const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentTeam/${tournamentPublicID}`, {
             headers: {
-                'Authorization': `bearer ${authToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -157,7 +157,7 @@ export const getTeamsBySports = async ({game,  AsyncStorage, axiosInstance}) => 
         const authToken = await AsyncStorage.getItem('AccessToken')
         const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`, {
             headers: {
-                'Authorization': `bearer ${authToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });

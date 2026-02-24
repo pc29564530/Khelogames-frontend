@@ -29,24 +29,28 @@ import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from
 import { handleInlineError } from '../utils/errorHandler';
 
 // get lead and trail status
-const getLeadTrailStatus = ({match}) => {
+const getLeadTrailStatus = (match, batTeam) => {
+    if (!match?.homeScore?.length || !match?.awayScore?.length) return '';
+    const homeTeam = match.homeTeam;
+    const awayTeam = match.awayTeam;
     const homeInnings = match.homeScore;
     const awayInnings = match.awayScore;
-    const homeTotalScore = match.homeScore.map((item) => item.score).reduce((a,b) => a+b);
-    const awayTotalScore = match.awayScore.map((item) => item.score).reduce((a,b) => a+b);
-    if(homeInnings[0].team === batTeam) {
-        if(homeTotalScore > awayTotalScore) {
-            return `${homeTeam.name} is leading by ${homeTotalScore - awayTotalScore} runs`;
+    const homeTotalScore = match.homeScore.map((item) => item.score).reduce((a, b) => a + b, 0);
+    const awayTotalScore = match.awayScore.map((item) => item.score).reduce((a, b) => a + b, 0);
+    if (homeInnings[0].team === batTeam) {
+        if (homeTotalScore > awayTotalScore) {
+            return `${homeTeam?.name} is leading by ${homeTotalScore - awayTotalScore} runs`;
         } else {
-            return  `${homeTeam.name} is trailing by ${awayTotalScore - homeTotalScore} runs`;
+            return `${homeTeam?.name} is trailing by ${awayTotalScore - homeTotalScore} runs`;
         }
-    } else if(awayInnings[0].team_id === batTeam) {
-        if(homeTotalScore < awayTotalScore) {
-            return `${awayTeam.name} is leading by ${awayTotalScore - homeTotalScore} runs`;
+    } else if (awayInnings[0].team_id === batTeam) {
+        if (homeTotalScore < awayTotalScore) {
+            return `${awayTeam?.name} is leading by ${awayTotalScore - homeTotalScore} runs`;
         } else {
-            return  `${awayTeam.name} is trailing by ${homeTotalScore - awayTotalScore} runs`;
+            return `${awayTeam?.name} is trailing by ${homeTotalScore - awayTotalScore} runs`;
         }
     }
+    return '';
 }
 
 // Team Score Component
@@ -357,8 +361,8 @@ const CricketMatchPage = ({ route }) => {
                     fields: {},
                 })
                 const [homePlayers, awayPlayers] = await Promise.all([
-                    fetchTeamPlayers(BASE_URL, match?.homeTeam?.public_id, game, axiosInstance),
-                    fetchTeamPlayers(BASE_URL, match?.awayTeam?.public_id, game, axiosInstance)
+                    fetchTeamPlayers( match?.homeTeam?.public_id, game),
+                    fetchTeamPlayers( match?.awayTeam?.public_id, game)
                 ]);
                 
                 dispatch(getHomePlayer(homePlayers.data));
@@ -369,7 +373,7 @@ const CricketMatchPage = ({ route }) => {
                     global: "Unable to get team player",
                     fields: backendError,
                 });
-                console.error("Failed to fetch players: ", err);
+                console.log("Failed to fetch players: ", err);
             } finally {
                 setLoading(false);
             }
@@ -584,7 +588,7 @@ const CricketMatchPage = ({ route }) => {
                 return (
                     <View style={tailwind`items-center -top-4`}>
                         <Text style={tailwind`text-white text-sm`}>
-                            {getLeadTrailStatus(match)}
+                            {getLeadTrailStatus(match, batTeam)}
                         </Text>
                     </View>
                 );

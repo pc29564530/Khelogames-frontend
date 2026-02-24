@@ -287,7 +287,7 @@ export const getFootballPlayerScore = (playerScore) => {
 export const getCricketStanding = (standing) => {
     return {
         type: actionTypes.GET_CRICKET_STANDING,
-        payload: score
+        payload: standing
     }
 }
 

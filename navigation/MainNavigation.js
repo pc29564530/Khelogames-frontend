@@ -266,14 +266,16 @@ export default function MainNavigation() {
                     </>
                 ):(
                     <>
-                        <Stack.Screen name="SignUp" component={SignUp}
-                            options={() => ({
-                            headerShown: true,
-                            headerTitle: null,
-                            headerBackTitleVisible: false,
-                            headerLeft: false
-                            })}
-                        />
+                        {__DEV__ && (
+                            <Stack.Screen name="SignUp" component={SignUp}
+                                options={() => ({
+                                headerShown: true,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                                })}
+                            />
+                        )}
                         <Stack.Screen name="User" component={User}
                         options={{
                             headerTitle: null,

@@ -6,7 +6,7 @@ import { setCurrentInning, setCurrentInningNumber, setBatTeam, setInningStatus, 
 export const addCricketScoreServices = async ({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn}) => {
     try {
         const data = {
-            match_public_id:matchPublicID, 
+            match_public_id:matchPublicID,
             team_public_id: teamPublicID,
             inning_number: currentInningNumber + 1,
             score: 0,
@@ -16,32 +16,30 @@ export const addCricketScoreServices = async ({game, dispatch, matchPublicID, te
             follow_on: followOn
         }
         const authToken = await AsyncStorage.getItem("AccessToken");
-        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketScore`,data, {
+        const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketScore`, data, {
             headers: {
-                'Authorization':`bearer ${authToken}`,
-                'Content-Type':'application/json'
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
             }
         });
-        console.log("Lien no 25: ", response.data)
-        const item = response.data
-        console.log("Bat Team Line no 26 services: ", item.team)
-        console.log("Inning Current : ", item)
+        const item = response.data;
         dispatch(setCurrentInningNumber(item.inning.inning_number))
-        dispatch(setInningStatus("not_started",item.inning.inning_number));
+        dispatch(setInningStatus("not_started", item.inning.inning_number));
         dispatch(setBatTeam(item.team.public_id));
         dispatch(setInningScore(item.inning || []));
     } catch (err) {
-        console.log("unable to add the cricket score of home team and away team ", err);
+        console.error("unable to add the cricket score of home team and away team ", err);
     }
 }
 
 export const matchBattingScoreBoard = async ({ matchPublicID, teamPublicID}) => {
     try {
         const authToken = await AsyncStorage.getItem("AccessToken")
-        const battingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getPlayerScoreFunc`,{match_public_id: matchPublicID, team_public_id: teamPublicID, inning: "inning1"}, {
+        const battingScore = await axiosInstance.get(`${BASE_URL}/Cricket/getPlayerScoreFunc`, {
+            params: { match_public_id: matchPublicID, team_public_id: teamPublicID, inning: "inning1" },
             headers: {
-                'Authorization':`bearer ${authToken}`,
-                'Content-Type':'application/json'
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
             }
         })
         return battingScore.data || [];
