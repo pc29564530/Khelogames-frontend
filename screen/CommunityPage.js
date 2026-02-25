@@ -1,90 +1,74 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { View, Text, Dimensions, Pressable } from "react-native";
 import { getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
 import { fetchCommunityJoinedByUserService, addUserToCommunity } from '../services/communityServices';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
-  useAnimatedScrollHandler,
-  interpolateColor,
-  useAnimatedProps
+    useSharedValue,
+    useAnimatedStyle,
+    interpolate,
+    Extrapolation,
 } from "react-native-reanimated";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import PostByCommunity from "./PostByCommunity";
 import CommunityMember from "./CommunityMember";
+import CommunityMessage from "./CommunityMessage";
 import tailwind from "twrnc";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign'
 
-const { height: sHeight, width: sWidth } = Dimensions.get("window");
+const { width: sWidth } = Dimensions.get("window");
 const TopTab = createMaterialTopTabNavigator();
 
+const BG_RED = '#f87171'; // red-400 — matches TournamentPage exactly
+const APP_RED = '#ef4444';
+
 export default function CommunityPage({ route }) {
-    const {item, communityPublicID} = route.params;
+    const { item, communityPublicID } = route.params;
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity);
-    const [memberCount, setMemberCount] = useState(1);
-    const [error, setError] = useState({
-        global: null,
-        fields: {},
-    });
-    const [loading, setLoading] = useState({});
+    const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity || []);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({ global: null, fields: {} });
 
-    const AnimatedMaterialIcons = Animated.createAnimatedComponent(MaterialIcons);
-    const AnimatedAntDesign = Animated.createAnimatedComponent(AntDesign)
+    useEffect(() => {
+        fetchCommunityJoinedByUser();
+    }, []);
 
     const fetchCommunityJoinedByUser = async () => {
         try {
             setLoading(true);
             const response = await fetchCommunityJoinedByUserService();
-            dispatch(getJoinedCommunity(response.data))
+            dispatch(getJoinedCommunity(response.data || []));
         } catch (err) {
-            const backendError = err?.response?.data?.error?.fields;
-            setError({
-                global: "Unable to get joined community",
-                fields: backendError,
-            });
+            setError({ global: "Unable to load community info", fields: {} });
             console.error('unable to get the joined communities', err);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchCommunityJoinedByUser();
-    },[]);
-    
-    const handleAnnouncement = (item) => {
-        navigation.navigate('CommunityMessage', {item:item})
-    }
-
-    const handleJoinCommunity = async (communityPublicID) => {
+    const handleJoinCommunity = async () => {
         try {
             setLoading(true);
-            const response = await addUserToCommunity({communityPublicID: communityPublicID})
+            const response = await addUserToCommunity({ communityPublicID: item.public_id });
             dispatch(addJoinedCommunity(response.data));
         } catch (err) {
-            const backendError = err?.response?.data?.error?.fields;
-            setError({
-                global: "Unable to join community",
-                fields: backendError,
-            });
+            setError({ global: "Unable to join community", fields: {} });
+            console.error('unable to join community', err);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
+    const isJoined = joinedCommunity?.some(c => c.public_id === item.public_id);
+
+    // ── Animation constants — mirrors TournamentPage ──
     const parentScrollY = useSharedValue(0);
-    const headerHeight = 280; // increased for better content spacing
-    const collapsedHeader = 60;
-    const offsetValue = 130;
+    const headerHeight   = 160;
+    const collapsedHeader = 50;
+    const offsetValue    = headerHeight - collapsedHeader; // 110
 
-    // Header background animation
+    // Header height collapses; background stays solid red (like TournamentPage)
     const headerStyle = useAnimatedStyle(() => {
         const height = interpolate(
             parentScrollY.value,
@@ -92,239 +76,163 @@ export default function CommunityPage({ route }) {
             [headerHeight, collapsedHeader],
             Extrapolation.CLAMP,
         );
-
-        const backgroundColor = interpolateColor(
-            parentScrollY.value,
-            [0, offsetValue],
-            ["white", "red"]
-        );
-
-        return {
-            backgroundColor,
-            height
-        };
+        return { backgroundColor: BG_RED, height };
     });
 
-    // Collapsed state title animation (shows in header bar)
-    const collapsedTitleStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-                  parentScrollY.value,
-                  [0, offsetValue],
-                  [0, 1],
-                  Extrapolation.CLAMP,
-                )
-                const translateX = interpolate(
-                  parentScrollY.value,
-                  [0, offsetValue],
-                  [0, 42],
-                  Extrapolation.CLAMP,
-                )
-                const translateY = interpolate(
-                  parentScrollY.value,
-                  [0, offsetValue],
-                  [0, 5],
-                  Extrapolation.CLAMP,
-                )
-                const color = interpolateColor(
-                    parentScrollY.value,
-                    [0, offsetValue],
-                    ['black', 'white']
-                )
-                return { opacity, transform: [{ translateX }, { translateY }] , color}
-    });
-
-    // Avatar animation for collapsed state
-    const animImage = useAnimatedStyle(() => {
-        const translateY = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0, -headerHeight/2+104],
-            Extrapolation.CLAMP,
-        );
-
-        const translateX = interpolate(
-            parentScrollY.value,
-            [0, offsetValue],
-            [0, -sWidth / 2 + 56],
-            Extrapolation.CLAMP,
-        );
-
+    // Avatar circle: big + centred → small + slides to left  (mirrors trophyStyle)
+    const avatarStyle = useAnimatedStyle(() => {
         const scale = interpolate(
             parentScrollY.value,
             [0, offsetValue],
-            [1, 0.4],
+            [1, 0.5],
             Extrapolation.CLAMP,
         );
-
-        return {
-            transform: [{ translateY }, { translateX }, { scale }],
-        };
+        const translateY = interpolate(
+            parentScrollY.value,
+            [0, offsetValue],
+            [30, -24],
+            Extrapolation.CLAMP,
+        );
+        const translateX = interpolate(
+            parentScrollY.value,
+            [0, offsetValue],
+            [0, -sWidth/2-60],
+            Extrapolation.CLAMP,
+        );
+        return { transform: [{ scale }, { translateX }, { translateY }] };
     });
 
-    // Content fade out animation (for member count, buttons, etc.)
-    const contentFadeStyle = useAnimatedStyle(() => {
+    // Community name: slides left alongside avatar  (mirrors titleStyle)
+    const titleStyle = useAnimatedStyle(() => {
+        const scale = interpolate(
+            parentScrollY.value,
+            [0, offsetValue],
+            [1, 0.85],
+            Extrapolation.CLAMP,
+        );
+        const translateY = interpolate(
+            parentScrollY.value,
+            [0, offsetValue],
+            [44, -80],
+            Extrapolation.CLAMP,
+        );
+        const translateX = interpolate(
+            parentScrollY.value,
+            [0, offsetValue],
+            [0, -(sWidth/2) + 170 ],
+            Extrapolation.CLAMP,
+        );
+        return { transform: [{ scale }, { translateX }, { translateY }] };
+    });
+
+    // Action buttons (join / announcements): fade out as header collapses
+    const actionsStyle = useAnimatedStyle(() => {
         const opacity = interpolate(
             parentScrollY.value,
-            [0, offsetValue * 0.6],
+            [0, offsetValue * 0.4],
             [1, 0],
             Extrapolation.CLAMP,
         );
-
         const translateY = interpolate(
             parentScrollY.value,
-            [0, offsetValue * 0.6],
-            [0, -20],
+            [0, offsetValue * 0.4],
+            [0, -10],
             Extrapolation.CLAMP,
         );
-
-        return {
-            opacity,
-            transform: [{ translateY }]
-        };
+        return { opacity, transform: [{ translateY }] };
     });
 
-    const textColorSytle = useAnimatedStyle(() => {
-        return {
-              color: interpolateColor(
-                parentScrollY.value,
-                [0, offsetValue],
-                ['black', 'white']
-              ),
-        }
-    })
-
-    // Tab container animation
-    const tabContainerStyle = useAnimatedStyle(() => {
+    // Content container pushes down from header  (mirrors contentContainerStyle)
+    const contentContainerStyle = useAnimatedStyle(() => {
         const marginTop = interpolate(
             parentScrollY.value,
             [0, offsetValue],
             [headerHeight, collapsedHeader],
             Extrapolation.CLAMP,
         );
-
-        return { marginTop };
+        return { flex: 1, marginTop };
     });
 
-    const animatedIconProps = useAnimatedProps(() => {
-            return {
-              color: interpolateColor(
-                parentScrollY.value,
-                [0, offsetValue],
-                ['black', 'white']
-              ),
-            }
-          })
-
     return (
-        <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-            {/* Collapsing Header */}
-            <Animated.View
-                style={[
-                    headerStyle,
-                    { 
-                        position: "absolute", 
-                        top: 0, 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 10
-                    },
-                ]}
-            >
-                {/* Header Bar with Back Button and Collapsed Title */}
-                <View style={tailwind`flex-row py-2 h-16`}>
-                    <Pressable onPress={() => navigation.goBack()} style={tailwind`p-2`}>
-                        <AnimatedMaterialIcons name="arrow-back" size={24} animatedProps={animatedIconProps}/>
-                    </Pressable>
-                    <View style={[tailwind`font-bold text-black`]}>
-                        <Animated.Text style={[tailwind`text-lg font-bold text-black`, collapsedTitleStyle]}>
+        <View style={tailwind`flex-1`}>
+
+            {/* ── Collapsing red header ── */}
+            <Animated.View style={[headerStyle, { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }]}>
+
+                {/* Back button — absolute top-left, always white */}
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    style={tailwind`absolute left-3 top-2 p-1.5`}
+                    hitSlop={12}
+                >
+                    <MaterialIcons name="arrow-back" size={22} color="white" />
+                </Pressable>
+
+                {/* Avatar + name animate together from centre → left */}
+                <View style={tailwind`items-center`}>
+                    <Animated.View style={[
+                        tailwind`w-20 h-20 rounded-full bg-white/20 items-center justify-center`,
+                        avatarStyle,
+                    ]}>
+                        <Text style={tailwind`text-white text-2xl font-bold`}>
+                            {item?.name?.charAt(0)?.toUpperCase()}
+                        </Text>
+                    </Animated.View>
+
+                    <Animated.View style={titleStyle}>
+                        <Text style={tailwind`text-xl text-white font-semibold`}>
                             {item?.name}
-                        </Animated.Text>
-                    </View>
-                </View>
-
-                {/* Expanded Content Area */}
-                <View style={tailwind`flex-1 items-center justify-center px-6 pt-2 pb-2`}>
-                    {/* Avatar */}
-                    <Animated.Image 
-                        source={{ uri: item?.imageUrl }} 
-                        style={[
-                            tailwind`w-24 h-24 rounded-full bg-yellow-400 mb-4`,
-                            animImage
-                        ]}
-                    />
-
-                    {/* Content that fades out on scroll */}
-                    <Animated.View style={[tailwind`items-center w-full`, contentFadeStyle]}>
-                        {/* Community Name and Member Count */}
-                        <View style={tailwind`items-center mb-4`}>
-                            <Text style={tailwind`text-2xl font-bold text-black mb-2`}>
-                                {item?.name}
-                            </Text>
-                            <Text style={tailwind`text-gray-600 text-sm`}>
-                                Community • {memberCount} {memberCount === 1 ? 'member' : 'members'}
-                            </Text>
-                        </View>
-
-                        {/* Action Buttons */}
-                        <View style={tailwind`flex-row items-center justify-center w-full px-4 gap-3`}>
-                            {/* Announcements Button */}
-                            <Pressable 
-                                style={tailwind`flex-row items-center bg-red-500 rounded-lg px-4 py-3 flex-1`} 
-                                onPress={() => handleAnnouncement(item)}
-                            >
-                                <AntDesign name="sound" size={18} color="white" />
-                                <Text style={tailwind`text-white font-medium ml-2`}>
-                                    Announcements
-                                </Text>
-                            </Pressable>
-
-                            {/* Join/Joined Button */}
-                            <Pressable
-                                style={tailwind`rounded-lg px-6 py-3 ${
-                                    joinedCommunity?.some(c => c.name === item.name)
-                                        ? 'bg-gray-500'
-                                        : 'bg-blue-500'
-                                }`}
-                                onPress={() => handleJoinCommunity(item.public_id)}
-                            >
-                                <Text style={tailwind`text-white font-medium`}>
-                                    {joinedCommunity?.some(c => c.name === item.name) ? 'Joined' : 'Join'}
-                                </Text>
-                            </Pressable>
-                        </View>
+                        </Text>
                     </Animated.View>
                 </View>
+
+                {/* Right-side: Join pill */}
+                <View style={tailwind`absolute right-2 top-2 flex-row items-center`}>
+                    <Pressable
+                        onPress={() => !isJoined && handleJoinCommunity()}
+                        disabled={loading || isJoined}
+                        style={[
+                            tailwind`px-3 py-1 rounded-full`,
+                            isJoined ? tailwind`bg-white/20` : tailwind`bg-white`,
+                        ]}
+                        hitSlop={8}
+                    >
+                        <Text style={[
+                            tailwind`text-xs font-bold`,
+                            isJoined ? tailwind`text-white` : { color: BG_RED },
+                        ]}>
+                            {isJoined ? 'Joined' : 'Join'}
+                        </Text>
+                    </Pressable>
+                </View>
+
             </Animated.View>
 
-            {/* Top Tabs with animated margin */}
-            <Animated.View style={[tabContainerStyle, { flex: 1 }]}>
+            {/* ── Top Tabs — pushed down by animated marginTop ── */}
+            <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
                 <TopTab.Navigator
                     screenOptions={{
-                        tabBarStyle:tailwind`bg-red-400`,
+                        headerShown: false,
                         tabBarStyle: { 
-                            backgroundColor: "white",
+                            backgroundColor: '#f87171',
                             elevation: 4,
-                            shadowOpacity: 0.1,
+                            shadowOpacity: 0.2,
+                            zIndex:20, // used this more then top tab because not having proper touch
                         },
                         tabBarLabelStyle: {
+                            width:100,
                             fontSize: 14,
                             fontWeight: '600',
+                            textTransform: 'none',
+                            color: 'white',
                         },
                         tabBarIndicatorStyle: {
-                            backgroundColor: '#ef4444',
+                            backgroundColor: '#fff',
                         },
+                        tabBarActiveTintColor: '#fff',
+                        tabBarInactiveTintColor: '#ffe4e6',
                     }}
-                >
-                    <TopTab.Screen name="Posts">
-                        {() => (
-                            <PostByCommunity
-                                item={item}
-                                parentScrollY={parentScrollY}
-                                headerHeight={headerHeight}
-                                collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                    </TopTab.Screen>
+                >   
                     <TopTab.Screen name="Members">
                         {() => (
                             <CommunityMember
@@ -335,8 +243,19 @@ export default function CommunityPage({ route }) {
                             />
                         )}
                     </TopTab.Screen>
+                    <TopTab.Screen name="Announcements">
+                        {() => (
+                            <CommunityMessage
+                                item={item}
+                                parentScrollY={parentScrollY}
+                                headerHeight={headerHeight}
+                                collapsedHeader={collapsedHeader}
+                            />
+                        )}
+                    </TopTab.Screen>
                 </TopTab.Navigator>
             </Animated.View>
+
         </View>
     );
 }

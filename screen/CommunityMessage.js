@@ -1,268 +1,364 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useEffect, useState} from 'react';
-import {View, Text, TextInput, Pressable, ScrollView, Image} from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+    View, Text, TextInput, Pressable,
+    FlatList, Image, KeyboardAvoidingView,
+    Platform, ActivityIndicator,
+} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import { launchImageLibrary } from 'react-native-image-picker';
-import  RFNS from 'react-native-fs';
-import axiosInstance from './axios_config'; 
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import EmojiSelector from 'react-native-emoji-selector';
-import Video from 'react-native-video';
-import { useNavigation } from '@react-navigation/native';
+import { launchImageLibrary } from 'react-native-image-picker';
+import RFNS from 'react-native-fs';
+import axiosInstance from './axios_config';
+import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 
-
+// ── helpers ──────────────────────────────────────────────────────────────────
 function getMediaTypeFromURL(url) {
-    const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
-    if (fileExtensionMatch) {
-      const fileExtension = fileExtensionMatch[1].toLowerCase();
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
-      const videoExtensions = ['mp4', 'avi', 'mkv', 'mov', 'MP4'];
-  
-      if (imageExtensions.includes(fileExtension)) {
-        return 'image';
-      } else if (videoExtensions.includes(fileExtension)) {
-        return 'video';
-      }
-    }
-  }
-  
-  
+    const ext = url.match(/\.([0-9a-z]+)$/i)?.[1]?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
+    if (['mp4', 'avi', 'mkv', 'mov'].includes(ext)) return 'video';
+    return null;
+}
+
 const fileToBase64 = async (filePath) => {
     try {
-        const fileContent = await RFNS.readFile(filePath, 'base64');
-        return fileContent;
-    } catch (error) {
-        console.error('Error converting image to Base64:', error);
+        return await RFNS.readFile(filePath, 'base64');
+    } catch (err) {
+        console.error('Error converting to base64:', err);
         return null;
     }
 };
 
-function CommunityMessage ({route}) {
-    const {item: communityData} = route.params.item;
+// ── component — works as a TopTab screen ─────────────────────────────────────
+function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }) {
+    const community = item;
+    const flatListRef = useRef(null);
+
     const [content, setContent] = useState('');
     const [mediaURL, setMediaURL] = useState('');
     const [mediaType, setMediaType] = useState('');
-    const [mediaId, setMediaId] = useState();
-    const [contentId, setContentId] = useState();
-    const [receivedMessage, setReceivedMessage] = useState([]);
-    const [showEmojiSelect, setShowEmojiSelect] = useState(false);
+    const [mediaId, setMediaId] = useState(null);
+    const [contentId, setContentId] = useState(null);
+    const [messages, setMessages] = useState([]);
     const [currentUser, setCurrentUser] = useState('');
-    const [admin, setAdmin] = useState(false);
-    const navigation = useNavigation();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleUpload = () => {
-            let options = { 
-                noData: false,
-                mediaType: 'mixed',
-            }
-            
-             launchImageLibrary(options, async (res) => {
-              
-                if (res.didCancel) {
-                    console.log('User cancelled photo picker');
-                  } else if (res.error) {
-                    console.log('ImagePicker Error: ', response.error);
-                  } else {
-                    const type = getMediaTypeFromURL(res.assets[0].uri);
-                    
-                    if(type === 'image' || type === 'video') {
-                      const base64File = await fileToBase64(res.assets[0].uri);
-                      setMediaURL(base64File)
-                      setMediaType(type);
-                      const formData = new FormData();
-                      formData.append('media_url', base64File)
-                      formData.append('media_type', type)
-
-                      const authToken = await AsyncStorage.getItem("AccessToken")
-                      const response = await axiosInstance.post(`${BASE_URL}/createUploadMedia`, formData, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'multipart/form-data',
-                        },
-                      });
-
-                    setMediaId(response.data.id);
-                    } else {
-                      console.log('unsupported media type:', type);
-                    }
-                  }
-              });
-    }
-
-    const handleContent = async () => {
-        try {
-            const user = await AsyncStorage.getItem("Users")
-            const data = {
-                name: communityData.name,
-                sender_username: user,
-                content: content
-            }
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.post(`${BASE_URL}/createCommunityMessage`, data, {
-                headers:{
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            setContent(response.data)
-            setContentId(response.data.id)
-        } catch (err) {
-            console.error("unable to create the content", err)
-        }
-    }
-
-    const handleMessageMedia = async () => {
-        try {
-            const data = {
-                message_id: contentId,
-                media_id: mediaId
-            }
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            const response = await axiosInstance.post(`${BASE_URL}/createMessageMedia`,data,{
-                headers:{
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            } );
-        } catch(err) {
-            console.error('unable to send the response: ', err);
-        }
-    }
-
-    const checkUserAdmim = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('AccessToken')
-            const user = await AsyncStorage.getItem('User');
-            const response = await axiosInstance.get(`${BASE_URL}/getCommunityByCommunityName/${communityData.name}`,null,{
-                headers:{
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            } );
-            const item = response.data;
-            if (item.owner === user){
-                setAdmin(true);
-            }
-
-        } catch(err) {
-            console.log("unable to get the community by community name: ", err)
-        }
-    }
+    // Sync scroll with collapsing header
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            parentScrollY.value = event.contentOffset.y;
+        },
+    });
 
     useEffect(() => {
-        const fetchData = async() => {
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/getCommunityMessage`,{
-                    headers:{
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                } );
-                setReceivedMessage(response.data)
-                const user = await AsyncStorage.getItem('Users')
-                setCurrentUser(user);
-            } catch (err) {
-                console.error("unable to fetch the message: ", err);
-            }
-        }
-        checkUserAdmim();
-        fetchData();
-        
-    }, [])
+        loadCurrentUser();
+        fetchMessages();
+        checkIsAdmin();
+    }, []);
 
-    const handleEmoji = () => {
-        setShowEmojiSelect(!showEmojiSelect);
+    const loadCurrentUser = async () => {
+        try {
+            const user = await AsyncStorage.getItem('User');
+            if (user) setCurrentUser(JSON.parse(user)?.username || '');
+        } catch (err) {
+            console.error('Failed to load current user:', err);
+        }
     };
 
-    navigation.setOptions({
-        headerTitle:communityData?.name,
-        headerStyle:{
-          backgroundColor: tailwind.color('bg-red-400')
-        },
-        headerTintColor: 'white'
-    });
-    
-    return (
-    <View style={tailwind`flex-1 bg-white`}>
-      <ScrollView 
-        style={tailwind`flex-3/5 bg-white p-10`}
-        contentContainerStyle={tailwind`gap-2`}
-      >
-        {receivedMessage?.map((item, index) => (
-          <View key={index} style={[
-            tailwind`flex-row items-end`,
-            item.sender_username !== currentUser
-              ? tailwind`justify-start`
-              : tailwind`justify-end`,
-          ]}>
+    const fetchMessages = async () => {
+        try {
+            setLoading(true);
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/getCommunityMessage`, {
+                params: { community_name: community?.name },
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            setMessages(response.data?.data || []);
+        } catch (err) {
+            setError('Unable to load announcements');
+            console.error('Unable to fetch messages:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const checkIsAdmin = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const user = await AsyncStorage.getItem('User');
+            const parsedUser = user ? JSON.parse(user) : null;
+            const response = await axiosInstance.get(
+                `${BASE_URL}/getCommunityByCommunityName/${community?.name}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            if (response.data?.owner === parsedUser?.username) {
+                setIsAdmin(true);
+            }
+        } catch (err) {
+            console.error('Unable to check admin status:', err);
+        }
+    };
+
+    const handleUpload = () => {
+        launchImageLibrary({ noData: false, mediaType: 'mixed' }, async (res) => {
+            if (res.didCancel || res.error) return;
+            const uri = res.assets?.[0]?.uri;
+            if (!uri) return;
+            const type = getMediaTypeFromURL(uri);
+            if (type !== 'image' && type !== 'video') return;
+
+            const base64File = await fileToBase64(uri);
+            if (!base64File) return;
+            setMediaURL(base64File);
+            setMediaType(type);
+
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const formData = new FormData();
+                formData.append('media_url', base64File);
+                formData.append('media_type', type);
+                const response = await axiosInstance.post(`${BASE_URL}/createUploadMedia`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                setMediaId(response.data?.id);
+            } catch (err) {
+                console.error('Failed to upload media:', err);
+            }
+        });
+    };
+
+    const handleSend = async () => {
+        if (!content.trim() && !mediaId) return;
+        try {
+            setSending(true);
+            const user = await AsyncStorage.getItem('User');
+            const parsedUser = user ? JSON.parse(user) : null;
+            const authToken = await AsyncStorage.getItem('AccessToken');
+
+            // 1 — create message
+            const msgResponse = await axiosInstance.post(
+                `${BASE_URL}/createCommunityMessage`,
+                {
+                    name: community?.name,
+                    sender_username: parsedUser?.username,
+                    content: content.trim(),
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            const newContentId = msgResponse.data?.id;
+            setContentId(newContentId);
+
+            // 2 — attach media if any
+            if (mediaId && newContentId) {
+                await axiosInstance.post(
+                    `${BASE_URL}/createMessageMedia`,
+                    { message_id: newContentId, media_id: mediaId },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+            }
+
+            setContent('');
+            setMediaURL('');
+            setMediaType('');
+            setMediaId(null);
+            fetchMessages(); // refresh
+        } catch (err) {
+            console.error('Failed to send message:', err);
+            setError('Failed to send announcement');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    // ── render one message bubble ─────────────────────────────────────────────
+    const renderMessage = ({ item: msg }) => {
+        const isMine = msg.sender_username === currentUser;
+        return (
             <View style={[
-                    tailwind`p-2 border rounded-2xl`,
-                    item.sender_username !== currentUser
-                    ? tailwind`bg-gray-300`
-                    : tailwind`bg-green-200`,
-                ]}         
-            >
-                {item.media_type === 'image'&& (
-                    <Image 
-                        source={{uri: item.media_url}}
-                        style={{ width: 200, height: 200 }}
+                tailwind`flex-row mb-3`,
+                isMine ? tailwind`justify-end` : tailwind`justify-start`,
+            ]}>
+                <View style={[
+                    tailwind`max-w-4/5 px-4 py-3 rounded-2xl`,
+                    isMine
+                        ? tailwind`bg-red-400 rounded-tr-sm`
+                        : tailwind`bg-white rounded-tl-sm`,
+                    { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
+                ]}>
+                    {!isMine && (
+                        <Text style={tailwind`text-xs font-semibold text-red-400 mb-1`}>
+                            {msg.sender_username}
+                        </Text>
+                    )}
+                    {msg.media_type === 'image' && msg.media_url && (
+                        <Image
+                            source={{ uri: msg.media_url }}
+                            style={tailwind`w-48 h-48 rounded-xl mb-2`}
+                            resizeMode="cover"
+                        />
+                    )}
+                    {msg.content ? (
+                        <Text style={[
+                            tailwind`text-sm`,
+                            isMine ? tailwind`text-white` : tailwind`text-gray-800`,
+                        ]}>
+                            {msg.content}
+                        </Text>
+                    ) : null}
+                    <Text style={[
+                        tailwind`text-xs mt-1`,
+                        isMine ? tailwind`text-red-100` : tailwind`text-gray-400`,
+                    ]}>
+                        {msg.sent_at}
+                    </Text>
+                </View>
+            </View>
+        );
+    };
+
+    // ── empty state ───────────────────────────────────────────────────────────
+    const ListEmpty = () => (
+        <View style={tailwind`flex-1 items-center justify-center mt-16`}>
+            <View style={tailwind`w-14 h-14 rounded-full bg-gray-100 items-center justify-center mb-3`}>
+                <MaterialIcons name="campaign" size={28} color="#9ca3af" />
+            </View>
+            <Text style={tailwind`text-gray-700 font-semibold text-sm mb-1`}>No Announcements Yet</Text>
+            <Text style={tailwind`text-gray-400 text-xs text-center px-8`}>
+                {isAdmin
+                    ? 'Send the first announcement to your community.'
+                    : 'The admin hasn\'t posted any announcements yet.'}
+            </Text>
+        </View>
+    );
+
+    // ── main render ───────────────────────────────────────────────────────────
+    return (
+        <KeyboardAvoidingView
+            style={tailwind`flex-1 bg-gray-50`}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+            {/* Error banner */}
+            {error && (
+                <View style={tailwind`mx-4 mt-2 p-3 bg-red-50 border border-red-200 rounded-xl flex-row items-center`}>
+                    <MaterialIcons name="error-outline" size={16} color="#ef4444" />
+                    <Text style={tailwind`text-red-600 text-xs ml-2 flex-1`}>{error}</Text>
+                    <Pressable onPress={() => setError(null)}>
+                        <MaterialIcons name="close" size={16} color="#ef4444" />
+                    </Pressable>
+                </View>
+            )}
+
+            {/* Message list */}
+            {loading ? (
+                <View style={tailwind`flex-1 items-center justify-center`}>
+                    <ActivityIndicator size="large" color="#ef4444" />
+                </View>
+            ) : (
+                <Animated.FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    keyExtractor={(msg, idx) => msg?.id?.toString() ?? idx.toString()}
+                    renderItem={renderMessage}
+                    ListEmptyComponent={ListEmpty}
+                    onScroll={scrollHandler}
+                    scrollEventThrottle={16}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingTop: 12,
+                        paddingHorizontal: 16,
+                        paddingBottom: 16,
+                        flexGrow: 1,
+                    }}
+                    onContentSizeChange={() =>
+                        messages.length > 0 && flatListRef.current?.scrollToEnd({ animated: true })
+                    }
+                />
+            )}
+
+            {/* Preview of selected media */}
+            {mediaURL ? (
+                <View style={tailwind`mx-4 mb-2 flex-row items-center bg-white rounded-xl p-2`}>
+                    <Image
+                        source={{ uri: `data:image/${mediaType};base64,${mediaURL}` }}
+                        style={tailwind`w-12 h-12 rounded-lg mr-2`}
+                        resizeMode="cover"
                     />
-                )}
-                 {item.media_type === 'video' && (
-                    <Video style={tailwind`w-full h-80 aspect-w-16 aspect-h-9`} source={{ uri: item.media_url }} controls={true} onFullscreenPlayerWillPresent={() => {handleFullScreen()}} onVolumeChange={()=>{handleVolume()}} resizeMode='cover'/>
-                )}
-                {item.content && (
-                    <Text
+                    <Text style={tailwind`flex-1 text-xs text-gray-500`}>Media attached</Text>
+                    <Pressable onPress={() => { setMediaURL(''); setMediaType(''); setMediaId(null); }}>
+                        <MaterialIcons name="close" size={18} color="#9ca3af" />
+                    </Pressable>
+                </View>
+            ) : null}
+
+            {/* Input bar — only admin can send */}
+            {isAdmin ? (
+                <View style={[
+                    tailwind`flex-row items-end px-3 py-2 bg-white border-t border-gray-100`,
+                    { shadowColor: '#000', shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 4 },
+                ]}>
+                    <Pressable onPress={handleUpload} style={tailwind`p-2 mr-1`}>
+                        <FontAwesome name="camera" size={22} color="#9ca3af" />
+                    </Pressable>
+                    <TextInput
                         style={[
-                        tailwind`text-black`,
-                        item.media_type === 'image' && tailwind`mt-2`,
+                            tailwind`flex-1 bg-gray-100 rounded-2xl px-4 py-2 text-sm text-gray-900`,
+                            { maxHeight: 100 },
+                        ]}
+                        multiline
+                        value={content}
+                        onChangeText={setContent}
+                        placeholder="Write an announcement..."
+                        placeholderTextColor="#9ca3af"
+                    />
+                    <Pressable
+                        onPress={handleSend}
+                        disabled={sending || (!content.trim() && !mediaId)}
+                        style={[
+                            tailwind`ml-2 p-2 rounded-full`,
+                            content.trim() || mediaId ? tailwind`bg-red-400` : tailwind`bg-gray-200`,
                         ]}
                     >
-                        {item.content}
-                  </Text>
-                )}
-                <Text style={tailwind`text-sm text-gray-500`}>{item.sent_at}</Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-      {admin ? (
-            <View style={tailwind`flex-end flex-row items-center p-2 bg-white  justify-between shadow-lg`}>
-                <MaterialIcons onPress={handleEmoji} style={tailwind`mt-1`} name="emoji-emotions" size={25} color="black"/>
-                <TextInput
-                    style={tailwind` border border-gray-300 rounded-2xl p-2 text-lg text-black w-60`}
-                    multiline
-                    value={content}
-                    onChangeText={setContent}
-                    placeholder="Enter message..."
-                    placeholderTextColor="black"
-                    onEndEditing={handleContent}
-                />
-                <FontAwesome onPress={handleUpload} name="camera" size={24} color="black" />
-                <Pressable onPress={handleMessageMedia} style={tailwind`bg-white rounded-lg p-2 shadow-lg `}>
-                    <Text style={tailwind`text-black`}>Send</Text>
-                </Pressable>
-            </View>
-            ):( 
-            <View style={tailwind`flex-end flex-row items-center p-2 bg-white  justify-evenly shadow-lg`}>
-                    <Text style={tailwind`text-black items-center`}>Only community admin can sent message.</Text>
-            </View>
-        )}
-      {showEmojiSelect && (
-        <EmojiSelector
-        showSearchBar={false}
-        headerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
-        style={{ borderColor: 'red', borderWidth: 1, height: 300 }}
-        onEmojiSelected={(emoji) => {
-           setNewMessageContent((prevMessage) => prevMessage + emoji)
-        }}
-        />
-      )}
-    </View>
+                        {sending
+                            ? <ActivityIndicator size="small" color="white" />
+                            : <MaterialIcons name="send" size={20} color={content.trim() || mediaId ? 'white' : '#9ca3af'} />
+                        }
+                    </Pressable>
+                </View>
+            ) : (
+                <View style={tailwind`px-4 py-3 bg-white border-t border-gray-100 items-center`}>
+                    <Text style={tailwind`text-gray-400 text-xs`}>
+                        Only the community admin can post announcements.
+                    </Text>
+                </View>
+            )}
+        </KeyboardAvoidingView>
     );
 }
 
