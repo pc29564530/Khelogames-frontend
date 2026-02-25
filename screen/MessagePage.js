@@ -168,7 +168,7 @@ function MessagePage() {
 
     // Navigation
     const handleMessage = (item) => {
-        navigation.navigate('Message', { profileData: item });
+        navigation.navigate('Message', { recrecipientProfile: item });
     };
 
     const handleMessageCommunity = (item) => {
