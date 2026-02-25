@@ -47,21 +47,21 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             if (item?.success && Array.isArray(item?.data) && item.data.length > 0) {
                 // Generate thumbnail only once
                 const withThumbnails = await Promise.all(
-                    data.length > 0 && data.map(async (item) => {
+                    item.data.map(async (highlight) => {
                         try {
                             const thumb = await createThumbnail({
-                                url: item.media_url,
+                                url: highlight.media_url,
                                 timeStamp: 1000,
                             });
 
                             return {
-                                ...item,
+                                ...highlight,
                                 thumbnail: thumb.path,
                             };
                         } catch (error) {
                             console.log("Thumbnail Error:", error);
                             return {
-                                ...item,
+                                ...highlight,
                                 thumbnail: null,
                             };
                         }
