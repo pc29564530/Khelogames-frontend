@@ -14,8 +14,12 @@ import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 
 const TournamentPage = ({ route }) => {
-      const { tournament } = route.params;
+      const { tournament, currentRole } = route.params;
       const [showRoleModal, setShowRoleModal] = useState(false);
+      const [error, setError] = useState({
+        global: null,
+        fields: {}
+      });
       const game = useSelector(state => state.sportReducers.game);
       const authProfile = useSelector(state => state.profile.authProfile)
       const navigation = useNavigation();
@@ -79,7 +83,7 @@ const TournamentPage = ({ route }) => {
         const translateX = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, -260],
+          [0, -(sWidth/2)-80],
           Extrapolation.CLAMP,
         );
 
@@ -107,7 +111,7 @@ const TournamentPage = ({ route }) => {
         const translateX = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, -100], 
+          [0, -(sWidth/2)+100], 
           Extrapolation.CLAMP,
         );
 
@@ -117,7 +121,6 @@ const TournamentPage = ({ route }) => {
       });
 
       const checkSport = (game) => {
-        console.log("Game: ", game)
         switch (game.name) {
             case "badminton":
                 return <TopTabBadminton />;
@@ -130,7 +133,7 @@ const TournamentPage = ({ route }) => {
             default:
                 return <TopTabFootball tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
         }
-    }
+      }
 
     const handleNavigation = () => {
         if (tournament?.profile?.public_id === authProfile?.public_id) {

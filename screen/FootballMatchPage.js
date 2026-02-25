@@ -410,15 +410,12 @@ const FootballMatchPage = ({ route }) => {
     
             try {
                 const message = JSON.parse(rawData);
-                // console.log("WebSocket Message Received:", message);
-                // console.log("Message Type: ", message.type)
                 if(message.type === undefined || message.type === null){
                     console.log("Message type is undefined ")
                     return
                 }
                 switch(message.type) {
                     case "UPDATE_FOOTBALL_SCORE":
-                        // console.log("Score Update Payload:", message.payload);
                         dispatch(setFootballScore(message.payload));
                         break;
                     case "UPDATE_MATCH_STATUS":
@@ -440,8 +437,6 @@ const FootballMatchPage = ({ route }) => {
         const unsubscribe = subscribe(handleWebSocketMessage);
         return unsubscribe; 
     }, [handleWebSocketMessage, subscribe])
-
-    //console.log("Tournqment Match Page; ", tournament)
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
@@ -486,7 +481,7 @@ const FootballMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                            <View style={tailwind`rounded-full h-12 w-12 bg-red-200 items-center justify-center`}>
                                 <Text style={tailwind`text-white text-lg font-bold`}>
                                     {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
                                 </Text>
@@ -537,7 +532,7 @@ const FootballMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                            <View style={tailwind`rounded-full h-12 w-12 bg-red-200 items-center justify-center`}>
                                 <Text style={tailwind`text-white text-lg font-bold`}>
                                     {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'A'}
                                 </Text>

@@ -140,7 +140,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
         data,
         {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            'Authorization': `bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
         }
@@ -148,8 +148,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       console.log("Squad added successfully: ", response.data);
       setCurrentSquad(response.data.data || []);
     } catch (err) {
-      setError({ global: "Unable to create squad for match", fields: err?.response?.data?.error?.fields || {} });
-      console.error('Failed to create the squad for match: ', err);
+      setError({
+        global: err?.response?.data?.error?.message || "Unable to create squad for match",
+        fields: err?.response?.data?.error?.fields || {}
+      })
+      console.log('Unable to create squad for match: ', err);
     } finally {
       setLoading(false);
     }
@@ -174,15 +177,16 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
             },
           }
         );
-        // console.log("Squad: ", response.data)
         setCurrentSquad(response.data.data || []);
       } catch (err) {
         const backendError = err?.response?.data?.error?.fields || {};
         setError({
           global: "Unable to fetch squad",
           fields: backendError,
-        })
+        });
         console.error('failed to fetch football lineup: ', err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchSquad();
@@ -210,6 +214,8 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           fields: err?.response?.data?.error?.fields || {},
         })
         console.error('unable to fetch the team player: ', err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchPlayers();
@@ -221,14 +227,14 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   );
 
   const togglePlayerSelection = (itm) => {
-    setSelectedSquad((prevSquad) => [...prevSquad, itm]);
+    setSelectedSquad((prevSquad) => [...prevSquad, itm?.public_id]);
   };
 
   const AddTeamPlayerButton = () => {
     if(!authUser){
       return null;
     }
-    if(currentTeamPlayer === homeTeamPublicID && match?.homeTeam?.user_id === authUser?.id ){
+    if(currentTeamPlayer === homeTeamPublicID){
       return (
         <Pressable
           style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
@@ -240,7 +246,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           </Text>
         </Pressable>
       )
-    } else if(currentTeamPlayer === awayTeamPublicID && match?.awayTeam?.user_id === authUser?.id ){
+    } else if(currentTeamPlayer === awayTeamPublicID){
       return (
         <Pressable
           style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
@@ -309,14 +315,14 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       <AddTeamPlayerButton />
       </Animated.View>
       {/* Current Lineup */}
-      {error.global && currentLineUp.length === 0 && (
+      {!loading && currentLineUp.length === 0 && substitutionPlayer.length === 0 && (
         <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
           <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
           <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
             No Squad Selected
           </Text>
           <Text style={tailwind`text-gray-400 text-xs text-center`}>
-            {error.global}
+            {error.global || "No squad has been selected for this team yet."}
           </Text>
         </View>
       )}
@@ -425,10 +431,16 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                 </Pressable>
               </View>
 
+              {error?.global && (
+                <View style={tailwind`mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg`}>
+                  <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
+                </View>
+              )}
+
               {/* Player list */}
               <ScrollView contentContainerStyle={tailwind`pb-20 pt-2`}>
                 {players.map((itm, index) => {
-                  const isSelected = selectedSquad?.some((p) => p.public_id === itm.public_id);
+                  const isSelected = selectedSquad?.some((p) => p === itm.public_id);
                   return (
                     <View
                       key={index}
@@ -503,16 +515,15 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
               {/* Submit Button */}
               <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100`}>
                 <Pressable
-                  onPress={handleSelectSquad}
-                  disabled={selectedSquad.length === 0 || loading}
+                  onPress={() => handleSelectSquad()}
                   style={[
                     tailwind`py-3.5 rounded-xl items-center`,
-                    selectedSquad.length === 0 || loading ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
+                    selectedSquad.length === 0 ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
                     {shadowColor: '#f87171', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3}
                   ]}
                 >
                   <Text style={tailwind`text-white text-base font-semibold`}>
-                    {loading ? 'Saving...' : selectedSquad.length > 0 ? `Add ${selectedSquad.length} Player(s)` : 'Select Players'}
+                    {selectedSquad.length > 0 ? `Add ${selectedSquad.length} Player(s)` : 'Select Players'}
                   </Text>
                 </Pressable>
               </View>

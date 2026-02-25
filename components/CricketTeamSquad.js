@@ -343,15 +343,15 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         )}
                     </Animated.View>
 
-                {/* Error Display */}
-                {error.global && currentPlayingXI.length === 0 && currentOnBench.length === 0 && (
+                {/* Empty State Display */}
+                {!loading && currentPlayingXI.length === 0 && currentOnBench.length === 0 && (
                     <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
                         <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
                         <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
                             No Squad Selected
                         </Text>
                         <Text style={tailwind`text-gray-400 text-xs text-center`}>
-                            {error.global}
+                            {error.global || "No squad has been selected for this team yet."}
                         </Text>
                     </View>
                 )}

@@ -25,7 +25,7 @@ export const FootballLineUpValidationRules = {
       const selected = allValues.player || [];
       const invalid = value.filter(id => !selected.includes(id));
 
-      if (invalid.length > 0) {
+      if (invalid.length >= 0) {
         return 'Substitutes must be selected players';
       }
       return null;
