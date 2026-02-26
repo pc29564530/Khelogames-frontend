@@ -79,7 +79,7 @@ export const SelectMedia =  async (axiosInstance) => {
         }
       })
       return {
-        mediaURL: response.data.file_url,
+        mediaUrl: response.data.data.file_url,
         mediaType: file.type
       }
 

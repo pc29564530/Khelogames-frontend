@@ -34,9 +34,9 @@ function CreateThread() {
 
     const handleMediaSelection = async () => {
         try {
-            const result = await SelectMedia(axiosInstance);
-            setMediaURL(result.mediaURL);
-            setMediaType(result.mediaType);
+            const {mediaUrl, mediaType} = await SelectMedia(axiosInstance);
+            setMediaURL(mediaUrl);
+            setMediaType(mediaType);
         } catch (err) {
             setError({ global: 'Unable to select media', fields: {} });
             console.error('Unable to select media: ', err);
@@ -72,6 +72,15 @@ function CreateThread() {
         }
     };
 
+    // Convert MIME type to backend-accepted short type: image | video | gif | link
+    const getShortMediaType = (mimeType) => {
+        if (!mimeType) return '';
+        if (mimeType.startsWith('image/gif')) return 'gif';
+        if (mimeType.startsWith('image/')) return 'image';
+        if (mimeType.startsWith('video/')) return 'video';
+        return '';
+    };
+
     const HandleSubmit = async () => {
         try {
             setLoading(true);
@@ -91,10 +100,11 @@ function CreateThread() {
                 community_public_id: selectedCommunity?.public_id,
                 title,
                 content,
-                mediaURL,
-                mediaType,
+                media_type: getShortMediaType(mediaType),
+                media_url: mediaURL,
             };
-            const threadCreated = await addNewThreadServices({ dispatch, thread, navigation });
+            
+            const threadCreated = await addNewThreadServices({ thread });
             if(threadCreated.success === true) {
                 dispatch(addThreads(threadCreated.data || []));
             }
@@ -155,7 +165,7 @@ function CreateThread() {
                 </Pressable>
             ),
         });
-    }, [navigation, loading, title, content]);
+    }, [navigation, loading, title, content, mediaURL, mediaType]);
 
     return (
         <View style={tailwind`flex-1 bg-white`}>

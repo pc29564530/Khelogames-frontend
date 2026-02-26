@@ -7,8 +7,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
 import Comment from '../components/Comment';
+import InlineVideoPlayer from '../components/InlineVideoPlayer';
 import tailwind from 'twrnc';
-import Video from 'react-native-video';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
 import { handleUser,  } from '../utils/ThreadUtils';
@@ -142,21 +142,16 @@ function ThreadComment ({route}) {
                     </View>
 
                     {/* Media */}
-                    {item.media_type === 'image' && item.media_url && (
+                    {item.media_type === 'image' && item.media_url ? (
                         <Image
                             style={tailwind`w-full h-80 bg-gray-100`}
                             source={{uri: item.media_url}}
                             resizeMode="cover"
                         />
-                    )}
-                    {(item.media_type === "video/mp4" || item.media_type === "video/quicktime" || item.media_type === "video/mkv") && item.media_url && (
-                        <Video
-                            style={tailwind`w-full h-80 bg-gray-900`}
-                            source={{uri: item.media_url}}
-                            controls={true}
-                            resizeMode="contain"
-                        />
-                    )}
+                    ) : null}
+                    {item.media_type === 'video' && item.media_url ? (
+                        <InlineVideoPlayer item={item} navigation={navigation} />
+                    ) : null}
 
                     <View style={tailwind`px-3 py-2`}>
                         <Text style={tailwind`text-gray-700 text-sm font-medium`}>
