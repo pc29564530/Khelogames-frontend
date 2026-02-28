@@ -11,7 +11,7 @@ import InlineVideoPlayer from '../components/InlineVideoPlayer';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useNavigation } from '@react-navigation/native';
-import { handleUser,  } from '../utils/ThreadUtils';
+import { handleUser, handleLikes  } from '../utils/ThreadUtils';
 import { addThreadComment } from '../services/commentServices';
 import axiosInstance from './axios_config';
 import { CommentValidationFields, validateCommentForm } from '../utils/validation/commentValidation';

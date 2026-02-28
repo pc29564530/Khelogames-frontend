@@ -2,9 +2,11 @@ import  RFNS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
 import { uploadMedia } from './uploads/mediaService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../constants/ApiConstants';
+import { BASE_URL, MAX_SIZE } from '../constants/ApiConstants';
 import DocumentPicker, { types } from 'react-native-document-picker';
 import { Platform } from 'react-native';
+import { compressVideo } from '../utils/compress-media';
+import { Alert } from 'react-native';
 
 const copyContentUriToFile = async (uri, name) => {
     try {
@@ -50,7 +52,7 @@ const fileToBase64 = async (filePath) => {
 
 
 // Select media functionality
-export const SelectMedia =  async (axiosInstance) => {
+export const SelectMedia =  async (axiosInstance, onProgress) => {
   try {
     const res = await DocumentPicker.pickSingle({
       type: [types.images, types.video]
@@ -61,10 +63,29 @@ export const SelectMedia =  async (axiosInstance) => {
       type: res.type,
       size: res.size,
     }
-    
-    const fileURL = await copyContentUriToFile(file.uri, res.name)
 
-    const {uploadID, totalChunks} = await uploadMedia(fileURL, file.type, axiosInstance)
+    // Check Size
+    if (file.size > MAX_SIZE) {
+      Alert.alert("File too large", "Video size must be less than 300MB")
+      return;
+    }
+
+    const tempFilePath = await copyContentUriToFile(file.uri, res.name);
+
+    let uploadPath = tempFilePath;
+    if (file.type && file.type.startsWith('video')) {
+      try {
+        const compressedUri = await compressVideo(uploadPath,
+          (p) => onProgress(Math.round(p*50))
+        );
+        uploadPath = compressedUri;
+        console.log('Video compressed successfully:', compressedUri);
+      } catch (compressErr) {
+        console.log('Compression failed, uploading original:', compressErr);
+        uploadPath = tempFilePath; // fallback to uncompressed plain path
+      }
+    }
+    const {uploadID, totalChunks} = await uploadMedia(uploadPath, file.type, axiosInstance, (p) => onProgress && onProgress(p))
     try {
       const authToken = await AsyncStorage.getItem("AccessToken");
       const data = {
