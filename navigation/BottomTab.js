@@ -3,6 +3,7 @@ import { Modal, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
 import Community from '../screen/Community';
@@ -12,6 +13,7 @@ import AddContentStack from './AddContentStack';
 import Tournament from '../screen/Tournament';
 import Matches from '../screen/Matches';
 import Club from '../screen/Club';
+import Thread from '../screen/Thread';
 
 const Tab = createBottomTabNavigator();
 
@@ -38,11 +40,25 @@ const BottomTab = () => {
        headerLeft: null,
        headerBackTitleVisible: false,
        tabBarShowLabel: true,
-       tabBarActiveTintColor: 'black',
-       tabBarInactiveTintColor: 'gray',
-       tabBarStyle: tailwind`absolute bottom-0 w-full bg-white shadow-lg text-white p-1`,
+       tabBarActiveTintColor: '#f87171',
+       tabBarInactiveTintColor: '#475569',
+       tabBarStyle: {
+         position: 'absolute',
+         bottom: 0,
+         width: '100%',
+         backgroundColor: '#0f172a',
+         borderTopWidth: 1,
+         borderTopColor: '#1e293b',
+         paddingTop: 4,
+         elevation: 0,
+         shadowOpacity: 0,
+       },
+       tabBarLabelStyle: {
+         fontSize: 10,
+         fontWeight: '600',
+       },
        tabBarIcon: ({focused, size, color}) => {
-        const activeStatus = focused ? 'black' : 'gray'
+        const activeStatus = focused ? '#f87171' : '#475569'
          let Icon;
          if(route.name === "Home"){
            Icon=<FontAwesome name="home" size={25} color={activeStatus}/>;
@@ -56,6 +72,8 @@ const BottomTab = () => {
            Icon = <FontAwesome name="trophy" size={25} color={activeStatus}/>;
          } else if(route.name === "Team") {
            Icon = <MaterialIcons name="groups" size={25} color={activeStatus}/>;
+         } else if(route.name === "Thread") {
+          Icon = <Ionicons name="newspaper-outline" size={25} color={activeStatus}/>;
          }
          return Icon;
        } 
@@ -75,6 +93,7 @@ const BottomTab = () => {
      />
      <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen name="Team" component={Club}/>
+     <Tab.Screen name="Thread" component={Thread} />
      <Tab.Screen
        name="Add"
        component={AddContentStack}
@@ -95,7 +114,7 @@ const BottomTab = () => {
      onRequestClose={closeModal}
    >
      <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-       <View style={tailwind`p-10 bg-white rounded-xl`}>
+       <View style={{ padding: 24, backgroundColor: '#1e293b', borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTopWidth: 1, borderColor: '#334155' }}>
          <AddContent closeModal={closeModal} navigation={navigation}/>
        </View>
      </View>

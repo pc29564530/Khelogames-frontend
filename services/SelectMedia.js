@@ -75,8 +75,9 @@ export const SelectMedia =  async (axiosInstance, onProgress) => {
     let uploadPath = tempFilePath;
     if (file.type && file.type.startsWith('video')) {
       try {
-        const compressedUri = await compressVideo(uploadPath,
-          (p) => onProgress(Math.round(p*50))
+        const compressedUri = await compressVideo(
+          `file://${uploadPath}`,
+          (p) => onProgress && onProgress(Math.round(p * 50))
         );
         uploadPath = compressedUri;
         console.log('Video compressed successfully:', compressedUri);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {View, Text, TouchableOpacity, ActivityIndicator, Pressable, ScrollView} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import tailwind from 'twrnc';
 import ThreadItem from '../components/ThreadItems';
@@ -8,8 +8,10 @@ import {getAllThreadServices} from '../services/threadsServices';
 import { handleInlineError } from '../utils/errorHandler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { setThreads } from '../redux/actions/actions';
+import { useNavigation } from '@react-navigation/native';
 
 const Thread = () => {
+    const navigation = useNavigation();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads);
     const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +68,7 @@ const Thread = () => {
     }
 
     return (
-        <View style={tailwind`flex-1 bg-white`} vertical={true}>
+        <ScrollView style={tailwind`flex-1 bg-white`} vertical={true}>
             {threads.length === 0 && !error.global && (
                 <View style={tailwind`flex-1 items-center justify-center py-20`}>
                     <MaterialIcons name="chat-bubble-outline" size={40} color="#D1D5DB" />
@@ -89,7 +91,16 @@ const Thread = () => {
                 handleThreadComment={handleThreadComment}
               />
             ))}
-        </View>
+
+            <View style={tailwind`absolute bottom-14 right-5`}>
+                <Pressable
+                    style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
+                    onPress={() => navigation.navigate("CreateThread")}
+                >
+                    <MaterialIcons name="add" size={24} color="white" />
+                </Pressable>
+            </View>
+        </ScrollView>
     );
   };
 

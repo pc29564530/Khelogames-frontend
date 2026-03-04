@@ -21,6 +21,18 @@ export const getTournamentBySport = async ({axiosInstance, game}) => {
         return item;
 }
 
+export const getTournamentBySportAndTrending = async ({axiosInstance, game}) => {
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTournamentsBySportAndTrending/${game.id}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        })
+        const item = response?.data;
+        return item;
+}
+
 export const addNewTournamentBySport = async ({axiosInstance, data, navigation}) => {
     try {
         const authToken = await AsyncStorage.getItem('AccessToken');

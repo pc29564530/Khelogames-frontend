@@ -99,7 +99,7 @@ export const uploadMedia = async (fileUrl, fileType, axiosInstance, onProgress) 
                 const chunkData = await readChunk(fileUrl, data.start, data.size);
                 await uploadChunk(chunkData, totalChunks,uploadID, data.chunkIndex, axiosInstance);
                 const percent = 50 + Math.round(((i + 1) / totalChunks) * 50);
-                onProgress(percent)
+                onProgress && onProgress(percent)
             } catch (err) {
                 console.error("Failed to upload chunks; ", err)
                 throw err

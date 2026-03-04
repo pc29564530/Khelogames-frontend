@@ -41,7 +41,7 @@ function CreateThread() {
 
             const result = await SelectMedia(axiosInstance, (percent) => {
                 setUploadProgress(percent);
-                setUploadStatus(percent == 0 || percent == 100 ? 'Media' : 'uploading');
+                setUploadStatus(percent < 100 && percent > 0 ? 'uploading' : 'Media');
             });
 
             if (result) {
@@ -287,14 +287,13 @@ function CreateThread() {
                         }}>
                             <View style={{
                                 width: `${uploadProgress}%`, height: '100%',
-                                backgroundColor: uploadStatus === 'uploading' ? '#fb923c' : null,
+                                backgroundColor: uploadStatus === 'uploading' ? '#fb923c' : '#f87171',
                                 borderRadius: 2,
                             }} />
                         </View>
                         <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 2, textAlign: 'right' }}>
                             {uploadStatus === 'uploading'
-                                ? `Uploading ${uploadProgress * 2}%`
-                                : null}
+                            && `Uploading ${Math.min(uploadProgress * 2, 100)}%`}
                         </Text>
                     </View>
                 )}
@@ -330,10 +329,8 @@ function CreateThread() {
                                 ? tailwind`text-red-400`
                                 : tailwind`text-gray-600`,
                     ]}>
-                        {uploadStatus === 'idle'        ? 'Media'
-                        : uploadStatus === 'done'       ? 'Done!'
-                        : uploadStatus === 'uploading'? `uploading ${uploadProgress * 2}%`
-                        :                                 null}
+                        {uploadStatus === 'idle'         ? 'Media'
+                        : uploadStatus === 'uploading' && `Uploading ${Math.min(uploadProgress * 2, 100)}%`}
                     </Text>
                 </TouchableOpacity>
             </View>
