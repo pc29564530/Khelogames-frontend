@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
-import {setGames, setGame, getTeams, getTeamsBySport } from '../redux/actions/actions';
+import { setGames, setGame, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 import { logSilentError } from '../utils/errorHandler';
 
@@ -28,24 +28,13 @@ const Club = () => {
     const game = useSelector(state => state.sportReducers.game);
     const teams = useSelector((state) => state.teams.teamsBySports);
 
-
-    useEffect(() => {
-        const defaultSport = { id: 1, name: 'football', min_players: 11 };
-        dispatch(setGame(defaultSport));
-    }, []);
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await sportsServices();
-                console.log("Games: ", response.data)
                 dispatch(setGames(response.data));
             } catch (err) {
-                logSilentError(err)
-                setError({
-                    global: 'Unable to load games',
-                    fields: {}
-                })
+                logSilentError(err);
                 console.error("Unable to fetch games data: ", err);
             }
         };
@@ -206,39 +195,35 @@ const Club = () => {
     return (
         <View style={tailwind`flex-1 bg-gray-50`}>
             {/* Sports Filter Section */}
-            <View style={tailwind`flex-row mt-1 items-center border-b border-gray-100`}>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        ref={scrollViewRef}
-                        contentContainerStyle={tailwind`flex-row px-4`}
+            <View style={{ marginTop: 4 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
+                {games.map(s => {
+                  const active = game?.id === s.id;
+                  return (
+                    <Pressable
+                      key={s.id}
+                      onPress={() => handleSport(s)}
+                      style={{
+                        flexDirection: 'row', alignItems: 'center',
+                        paddingHorizontal: 18, paddingVertical: 8,
+                        borderRadius: 20, gap: 6,
+                        backgroundColor: active ? '#f87171' : '#1e293b',
+                        borderWidth: active ? 0 : 1,
+                        borderColor: '#334155',
+                      }}
                     >
-                        {games?.length > 0 ? (
-                            games.map((item, index) => (
-                                <Pressable
-                                key={index}
-                                style={[
-                                    tailwind`px-4 py-3 mr-1`,
-                                    selectedSport.id === item.id && {borderBottomWidth: 2, borderBottomColor: '#f87171'},
-                                ]}
-                                onPress={() => handleSport(item)}
-                                >
-                                <Text
-                                    style={[
-                                    tailwind`text-sm`,
-                                    selectedSport.id === item.id ? tailwind`text-gray-900 font-bold` : tailwind`text-gray-400 font-medium`,
-                                    ]}
-                                >
-                                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
-                                </Text>
-                                </Pressable>
-                            ))
-                        ) : (
-                            <View style={tailwind`px-4 py-3`}>
-                                <Text style={tailwind`text-gray-400 text-sm`}>Loading...</Text>
-                            </View>
-                        )}
-                    </ScrollView>
+                      <Text style={{
+                        color: active ? '#fff' : '#94a3b8',
+                        fontWeight: active ? '700' : '500',
+                        fontSize: 13,
+                      }}>
+                        {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
 
             {/* Teams List */}

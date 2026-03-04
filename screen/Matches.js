@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DatePicker from 'react-native-modern-datepicker';
 import { useSelector, useDispatch } from 'react-redux';
-import {setGames, setGame } from '../redux/actions/actions';
+import { setGames, setGame } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
@@ -135,7 +135,6 @@ const Matches = () => {
     const [error, setError] = useState({global: null, fields: {}});
     const [loading, setLoading] = useState(false);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-    const [selectedSport, setSelectedSport] = useState({"id": 1, "min_players": 11, "name": "football"});
     const [permissionGranted, setPermissionGranted] = useState(null);
     const dispatch = useDispatch();
     const today = new Date();
@@ -214,12 +213,6 @@ const Matches = () => {
         }
         fetchMatches();
     }, [game, selectedDate, dispatch]);
-
-
-    const handleSport = useCallback((item) => {
-        setSelectedSport(item);
-        dispatch(setGame(item));
-    }, [game]);
 
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
@@ -453,6 +446,36 @@ const Matches = () => {
 
     return (
         <View style={tailwind`flex-1 bg-white`}>
+            <View style={{ marginTop: 4 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
+                {games.map(s => {
+                    const active = game?.id === s.id;
+                    return (
+                    <Pressable
+                        key={s.id}
+                        onPress={() => handleSport(s)}
+                        style={{
+                        flexDirection: 'row', alignItems: 'center',
+                        paddingHorizontal: 18, paddingVertical: 8,
+                        borderRadius: 20, gap: 6,
+                        backgroundColor: active ? '#f87171' : '#1e293b',
+                        borderWidth: active ? 0 : 1,
+                        borderColor: '#334155',
+                        }}
+                    >
+                        <Text style={{
+                        color: active ? '#fff' : '#94a3b8',
+                        fontWeight: active ? '700' : '500',
+                        fontSize: 13,
+                        }}>
+                        {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
+                        </Text>
+                    </Pressable>
+                    );
+                })}
+                </ScrollView>
+            </View>
             <View style={tailwind`p-4`}>
                 <View style={tailwind`flex-row justify-between items-center mb-4`}>
                     <Pressable
@@ -486,25 +509,6 @@ const Matches = () => {
                     </Pressable>
                 </View>
 
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    ref={scrollViewRef}
-                    contentContainerStyle={tailwind`pb-3`}
-                >
-                    {games && games?.map((item, index) => (
-                        <Pressable
-                            key={index}
-                            style={[
-                                tailwind`border rounded-lg px-4 py-2 mr-2`,
-                                selectedSport.name===item.name ? tailwind`bg-orange-400` : tailwind`bg-orange-200`
-                            ]}
-                            onPress={() => handleSport(item)}
-                        >
-                            <Text style={tailwind`text-white font-semibold capitalize`}>{item.name}</Text>
-                        </Pressable>
-                    ))}
-                </ScrollView>
             </View>
 
             {error.global && (

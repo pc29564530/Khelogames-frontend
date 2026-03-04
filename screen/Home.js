@@ -271,7 +271,7 @@ function Home() {
       >
 
         {/* SPORT SELECTOR */}
-        <View style={tailwind`mt-6`}>
+        <View style={{ marginTop: 24 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
             {games.map(s => {
@@ -280,13 +280,14 @@ function Home() {
                 <Pressable
                   key={s.id}
                   onPress={() => dispatch(setGame(s))}
-                  style={[tailwind`flex-row items-center`, {
+                  style={{
+                    flexDirection: 'row', alignItems: 'center',
                     paddingHorizontal: 18, paddingVertical: 8,
                     borderRadius: 20, gap: 6,
                     backgroundColor: active ? '#f87171' : '#1e293b',
                     borderWidth: active ? 0 : 1,
                     borderColor: '#334155',
-                  }]}
+                  }}
                 >
                   <MaterialIcons name={getIconForSport(s.name)} color={active ? '#fff' : '#94a3b8'} size={18} />
                   <Text style={{
