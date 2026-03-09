@@ -101,7 +101,7 @@ export const SelectMedia =  async (axiosInstance, onProgress) => {
         }
       })
       return {
-        mediaUrl: response.data.data.file_url,
+        mediaUrl: response.data.data.media_url,
         mediaType: file.type
       }
 
