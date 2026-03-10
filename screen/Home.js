@@ -16,10 +16,9 @@ import { getMatches, setGames, setGame } from '../redux/actions/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const QUICK_ACTIONS = [
-  { id: 'create',  icon: 'emoji-events', label: 'Create\nTournament', color: '#f87171', screen: 'CreateTournament' },
-  { id: 'explore', icon: 'explore',      label: 'Create\nTeam',       color: '#38bdf8', screen: 'CreateTeam' },
-  { id: 'join',    icon: 'group-add',    label: 'Join a\nTeam',       color: '#a78bfa', screen: 'Club' },
-  { id: 'feed',    icon: 'dynamic-feed', label: 'Community\nFeed',    color: '#34d399', screen: 'Thread' },
+  { id: 'tournament', icon: 'emoji-events', label: 'Create\nTournament', color: '#f87171', screen: 'CreateTournament' },
+  { id: 'team',       icon: 'create',       label: 'Create\nTeam',       color: '#38bdf8', screen: 'CreateClub' },
+  { id: 'join',       icon: 'group-add',    label: 'Join a\nTeam',       color: '#a78bfa', screen: 'Club' },
 ];
 
 // Pulsing red live dot
@@ -223,6 +222,7 @@ function Home() {
     if (game?.name) fetchData();
   }, [game?.name]);
 
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -231,10 +231,10 @@ function Home() {
       const liveData = (liveRes.data?.data || []).map(m => ({ ...m, sport: game.name }));
       dispatch(getMatches(liveRes.data));
       setLiveMatches(liveData.slice(0, 5));
-
       // Tournaments
-      const tournRes = await getTournamentBySportAndTrending({ axiosInstance, game });
-      setTournaments(tournRes?.data || []);
+      const tournRes = await getTournamentBySportAndTrending({ game });
+      const tournamentList = tournRes?.data?.tournament || [];
+      setTournaments(Array.isArray(tournamentList) ? tournamentList : []);
 
       // Top Performers
       await fetchTopPerformer();
@@ -266,7 +266,7 @@ function Home() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f87171" colors={['#f87171']} />}
       >
 
@@ -303,45 +303,17 @@ function Home() {
           </ScrollView>
         </View>
 
-        {/* WELCOME BANNER (when everything empty) */}
-        {isEverythingEmpty && (
-          <View style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 8 }}>
-            <LinearGradient
-              colors={['#1e293b', '#0f172a']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#334155' }}
-            >
-              <Text style={{ fontSize: 28, marginBottom: 8 }}>
-                {game?.name === 'cricket' ? '🏏' : game?.name === 'football' ? '⚽' : '🏆'}
-              </Text>
-              <Text style={{ color: '#f1f5f9', fontSize: 20, fontWeight: '800', marginBottom: 6 }}>
-                Welcome to Kridagram
-              </Text>
-              <Text style={{ color: '#64748b', fontSize: 13, lineHeight: 20, marginBottom: 18 }}>
-                Your local sports platform. Create tournaments, build teams, and track every match live.
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <Pressable onPress={() => navigation.navigate('CreateTournament')}
-                  style={{ backgroundColor: '#f87171', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10 }}>
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Get Started</Text>
-                </Pressable>
-                <Pressable onPress={() => navigation.navigate('Tournament')}
-                  style={{ backgroundColor: '#1e293b', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: '#334155' }}>
-                  <Text style={{ color: '#94a3b8', fontWeight: '600', fontSize: 13 }}>Explore</Text>
-                </Pressable>
-              </View>
-            </LinearGradient>
-          </View>
-        )}
-
         {/* QUICK ACTIONS */}
         <View style={{ marginTop: 12, paddingHorizontal: 16 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
             {QUICK_ACTIONS.map(a => (
               <Pressable
                 key={a.id}
                 onPress={() => { try { navigation.navigate(a.screen); } catch (e) {} }}
-                style={{ width: 85, alignItems: 'center', paddingVertical: 14, backgroundColor: '#1e293b', borderRadius: 16, borderWidth: 1, borderColor: '#334155' }}
+                style={{
+                  flex: 1, maxWidth: 110, alignItems: 'center', paddingVertical: 14,
+                  backgroundColor: '#1e293b', borderRadius: 16, borderWidth: 1, borderColor: '#334155',
+                }}
               >
                 <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: a.color + '18', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                   <MaterialIcons name={a.icon} size={22} color={a.color} />
@@ -349,8 +321,34 @@ function Home() {
                 <Text style={{ color: '#94a3b8', fontSize: 10, fontWeight: '600', textAlign: 'center', lineHeight: 14 }}>{a.label}</Text>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
         </View>
+
+        {/* WELCOME BANNER — shown when all data is empty */}
+        {isEverythingEmpty && (
+          <View style={{ marginHorizontal: 16, marginTop: 20 }}>
+            <LinearGradient
+              colors={['#1e293b', '#0f172a']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={{ borderRadius: 20, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#334155' }}
+            >
+              <View style={{
+                width: 64, height: 64, borderRadius: 32,
+                backgroundColor: '#f8717118', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+              }}>
+                <Text style={{ fontSize: 32 }}>
+                  {game?.name === 'cricket' ? '🏏' : game?.name === 'football' ? '⚽' : '🏆'}
+                </Text>
+              </View>
+              <Text style={{ color: '#f1f5f9', fontSize: 20, fontWeight: '800', marginBottom: 6, textAlign: 'center' }}>
+                Welcome to Kridagram
+              </Text>
+              <Text style={{ color: '#64748b', fontSize: 13, lineHeight: 20, textAlign: 'center', paddingHorizontal: 8 }}>
+                Your sports community is just getting started. Create a tournament or build a team to see live scores, stats, and highlights here.
+              </Text>
+            </LinearGradient>
+          </View>
+        )}
 
         {/* LIVE MATCHES */}
         <View style={{ marginTop: 20 }}>
@@ -367,6 +365,7 @@ function Home() {
                 <Pressable
                   key={item.public_id || index}
                   style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}
+                  onPress={() => navigation.navigate("ClubPage")}
                 >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -429,7 +428,7 @@ function Home() {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12 }}>
             <Text style={{ color: '#94a3b8', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>TOURNAMENTS</Text>
             {tournaments.length > 0 && (
-              <Pressable onPress={() => navigation.navigate('TournamentPage')}>
+              <Pressable onPress={() => navigation.navigate('Tournament')}>
                 <Text style={{ color: '#f87171', fontSize: 12 }}>See all</Text>
               </Pressable>
             )}
@@ -443,6 +442,7 @@ function Home() {
                 <Pressable
                   key={t.public_id || index}
                   style={{ backgroundColor: '#1e293b', borderRadius: 16, padding: 16, width: 200, borderWidth: 1, borderColor: '#334155' }}
+                  onPress={() => navigation.navigate("TournamentPage", {tournament: t})}
                 >
                   <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: sportColor(game.name) + '22', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
                     <Text style={{ fontSize: 18 }}>{game.name === 'cricket' ? '🏏' : '⚽'}</Text>
@@ -467,41 +467,6 @@ function Home() {
                 subtitle="Be the first to organize a tournament in your area. Invite teams and get started!"
                 buttonLabel="Create Tournament" onPress={() => navigation.navigate('CreateTournament')} />
             </View>
-          )}
-        </View>
-
-        {/* HIGHLIGHTS */}
-        <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
-          <Text style={{ color: '#94a3b8', fontWeight: '700', fontSize: 12, letterSpacing: 1, marginBottom: 12 }}>
-            TRENDING HIGHLIGHTS
-          </Text>
-
-          {loading && (
-            <View>
-              <SkeletonBlock width={'100%'} height={180} borderRadius={14} style={{ marginBottom: 10 }} />
-              <SkeletonBlock width={'100%'} height={180} borderRadius={14} />
-            </View>
-          )}
-
-          {!loading && highlights.length > 0 && highlights.map((h, index) => (
-            <Pressable key={h.public_id || index}
-              style={{ backgroundColor: '#1e293b', borderRadius: 14, marginBottom: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#334155' }}>
-              {h.media_url ? (
-                <Image source={{ uri: h.media_url }} style={{ width: '100%', height: 180, backgroundColor: '#0f172a' }} resizeMode="cover" />
-              ) : (
-                <View style={{ width: '100%', height: 120, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialIcons name="play-circle-filled" size={40} color="#475569" />
-                </View>
-              )}
-              <View style={{ padding: 12 }}>
-                <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 14 }} numberOfLines={2}>{h.title || 'Match Highlight'}</Text>
-              </View>
-            </Pressable>
-          ))}
-
-          {!loading && highlights.length === 0 && (
-            <EmptyState icon="videocam" title="No Highlights Yet"
-              subtitle="Match highlights will appear here once live matches start. Stay tuned!" />
           )}
         </View>
 
@@ -594,6 +559,40 @@ function Home() {
           )}
         </View>
 
+        {/* HIGHLIGHTS */}
+        <View style={{ marginTop: 24, paddingHorizontal: 16}}>
+          <Text style={{ color: '#94a3b8', fontWeight: '700', fontSize: 12, letterSpacing: 1, marginBottom: 12 }}>
+            TRENDING HIGHLIGHTS
+          </Text>
+
+          {loading && (
+            <View>
+              <SkeletonBlock width={'100%'} height={180} borderRadius={14} style={{ marginBottom: 10 }} />
+              <SkeletonBlock width={'100%'} height={180} borderRadius={14} />
+            </View>
+          )}
+
+          {!loading && highlights.length > 0 && highlights.map((h, index) => (
+            <Pressable key={h.public_id || index}
+              style={{ backgroundColor: '#1e293b', borderRadius: 14, marginBottom: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#334155' }}>
+              {h.media_url ? (
+                <Image source={{ uri: h.media_url }} style={{ width: '100%', height: 180, backgroundColor: '#0f172a' }} resizeMode="cover" />
+              ) : (
+                <View style={{ width: '100%', height: 120, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center' }}>
+                  <MaterialIcons name="play-circle-filled" size={40} color="#475569" />
+                </View>
+              )}
+              <View style={{ padding: 12 }}>
+                <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 14 }} numberOfLines={2}>{h.title || 'Match Highlight'}</Text>
+              </View>
+            </Pressable>
+          ))}
+
+          {!loading && highlights.length === 0 && (
+            <EmptyState icon="videocam" title="No Highlights Yet"
+              subtitle="Match highlights will appear here once live matches start. Stay tuned!" />
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
