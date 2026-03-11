@@ -253,9 +253,9 @@ const handleReduxUnFollow = async () => {
   };
 
   return (
-    <View style={tailwind`flex-1 bg-white`}>
+    <View style={{flex: 1, backgroundColor: '#0f172a'}}>
       {/* Custom Header - With Conditional Follow Button */}
-      <View style={tailwind`bg-red-400 flex-row items-center justify-between px-4 py-3`}>
+      <View style={[tailwind`flex-row items-center justify-between px-4 py-3`, {backgroundColor: '#1e293b'}]}>
         {/* Back Button */}
         <Pressable onPress={() => navigation.goBack()} style={tailwind`items-center justify-center w-10 h-10`}>
           <AntDesign name="arrowleft" size={24} color="white" />
@@ -280,7 +280,7 @@ const handleReduxUnFollow = async () => {
       </View>
 
       {/* Profile Header */}
-      <View style={tailwind`items-center bg-red-400 pt-4 pb-8 rounded-b-3xl`}>
+      <View style={[tailwind`items-center pt-4 pb-8 rounded-b-3xl`, {backgroundColor: '#1e293b'}]}>
         {currentProfile?.avatar_url ? (
           <Image style={tailwind`w-20 h-20 rounded-full border-3 border-white/30`} source={{ uri: currentProfile.avatar_url }} />
         ) : (
@@ -304,65 +304,65 @@ const handleReduxUnFollow = async () => {
       </View>
 
       {/* Menu */}
-      <ScrollView style={tailwind`flex-1 bg-gray-50`}>
-        <View style={tailwind`bg-white mx-4 mt-4 rounded-2xl overflow-hidden`} >
+      <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}}>
+        <View style={[tailwind`mx-4 mt-4 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]} >
           {/* Menu Items */}
 
           <Pressable onPress={() => navigation.navigate("PlayerProfile", {publicID: currentProfile?.public_id, from: "profile_menu"})}style={tailwind`flex-row items-center py-4 px-4`}>
-              <FontAwesome name="soccer-ball-o" size={22} color="#374151" />
-              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Player Stats</Text>
-              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+              <FontAwesome name="soccer-ball-o" size={22} color="#94a3b8" />
+              <Text style={{color: '#f1f5f9', fontSize: 14, marginLeft: 12, fontWeight: '500', flex: 1}}>Player Stats</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#475569" />
           </Pressable>
           {authProfile.public_id === currentProfile.public_id && (
-            <Pressable onPress={() => handleNavigation('Follow')} style={tailwind`flex-row items-center py-4 px-4`}>
-              <MaterialIcons name="people-outline" size={22} color="#374151" />
-              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Connections</Text>
-              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+            <Pressable onPress={() => handleNavigation('Follow')} style={[tailwind`flex-row items-center py-4 px-4`, {borderTopWidth: 1, borderColor: '#334155'}]}>
+              <MaterialIcons name="people-outline" size={22} color="#94a3b8" />
+              <Text style={{color: '#f1f5f9', fontSize: 14, marginLeft: 12, fontWeight: '500', flex: 1}}>Connections</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#475569" />
             </Pressable>
           )}
 
-          <Pressable onPress={() => navigation.navigate("UserThreads", {from: "profile" })} style={tailwind`flex-row items-center py-4 px-4 border-t border-gray-50`}>
-              <AntDesign name="profile" size={22} color="#374151" />
-              <Text style={tailwind`text-sm text-gray-900 ml-3 font-medium flex-1`}>Posts</Text>
-              <MaterialIcons name="chevron-right" size={20} color="#D1D5DB" />
+          <Pressable onPress={() => navigation.navigate("UserThreads", {from: "profile" })} style={[tailwind`flex-row items-center py-4 px-4`, {borderTopWidth: 1, borderColor: '#334155'}]}>
+              <AntDesign name="profile" size={22} color="#94a3b8" />
+              <Text style={{color: '#f1f5f9', fontSize: 14, marginLeft: 12, fontWeight: '500', flex: 1}}>Posts</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#475569" />
           </Pressable>
         </View>
 
         {/* {isPlayer && ( */}
-          <View style={tailwind`bg-white mx-4 mt-3 rounded-2xl overflow-hidden`}>
-            
+          <View style={[tailwind`mx-4 mt-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
+
           </View>
         {/* )} */}
 
         {/* My Community Section */}
-        <View style={tailwind`bg-white mx-4 mt-3 rounded-2xl overflow-hidden`}>
+        <View style={[tailwind`mx-4 mt-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
           <Pressable onPress={toggleMyCommunity} style={tailwind`flex-row items-center justify-between py-4 px-4`}>
             <View style={tailwind`flex-row items-center`}>
-              <MaterialIcons name="forum" size={22} color="#374151" />
-              <Text style={tailwind`text-sm font-medium text-gray-900 ml-3`}>Communities</Text>
+              <MaterialIcons name="forum" size={22} color="#94a3b8" />
+              <Text style={{color: '#f1f5f9', fontSize: 14, fontWeight: '500', marginLeft: 12}}>Communities</Text>
             </View>
-            <MaterialIcons name={showMyCommunity ? 'expand-less' : 'expand-more'} size={22} color="#9CA3AF" />
+            <MaterialIcons name={showMyCommunity ? 'expand-less' : 'expand-more'} size={22} color="#64748b" />
           </Pressable>
 
           {showMyCommunity && (
-            <View style={tailwind`border-t border-gray-50`}>
+            <View style={{borderTopWidth: 1, borderColor: '#334155'}}>
               {myCommunityData.length > 0 ? (
                 myCommunityData.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={tailwind`flex-row items-center py-3 px-4 border-b border-gray-50`}>
+                  <Pressable key={index} onPress={() => handleCommunityPage(item)} style={[tailwind`flex-row items-center py-3 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
                     {item?.media_url ? (
-                      <Image source={{ uri: item.media_url }} style={tailwind`h-9 w-9 rounded-full bg-gray-100`} />
+                      <Image source={{ uri: item.media_url }} style={[tailwind`h-9 w-9 rounded-full`, {backgroundColor: '#334155'}]} />
                     ) : (
                       <View style={tailwind`h-9 w-9 rounded-full bg-red-400 items-center justify-center`}>
                         <Text style={tailwind`text-xs text-white font-bold`}>{item.name.charAt(0).toUpperCase()}</Text>
                       </View>
                     )}
-                    <Text style={tailwind`text-sm text-gray-800 ml-3 font-medium flex-1`}>{item.name}</Text>
-                    <MaterialIcons name="chevron-right" size={18} color="#D1D5DB" />
+                    <Text style={{color: '#cbd5e1', fontSize: 14, marginLeft: 12, fontWeight: '500', flex: 1}}>{item.name}</Text>
+                    <MaterialIcons name="chevron-right" size={18} color="#475569" />
                   </Pressable>
                 ))
               ) : (
                 <View style={tailwind`items-center py-8 px-4`}>
-                  <Text style={tailwind`text-gray-400 text-center text-xs`}>
+                  <Text style={{color: '#64748b', textAlign: 'center', fontSize: 12}}>
                     No communities yet.{'\n'}Join or create one to get started!
                   </Text>
                 </View>
@@ -374,7 +374,7 @@ const handleReduxUnFollow = async () => {
         {/* Logout */}
         {authProfile.public_id === currentProfile.public_id && (
             <View style={tailwind`mx-4 mt-3 mb-8`}>
-              <Pressable onPress={handleLogout} style={tailwind`flex-row items-center justify-center py-3.5 bg-white rounded-2xl`}>
+              <Pressable onPress={handleLogout} style={[tailwind`flex-row items-center justify-center py-3.5 rounded-2xl`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                 <MaterialIcons name="logout" size={18} color="#f87171" />
                 <Text style={tailwind`text-red-400 text-sm font-semibold ml-2`}>Log Out</Text>
               </Pressable>
@@ -389,35 +389,35 @@ const handleReduxUnFollow = async () => {
           onRequestClose={() => setMoreTabVisible(false)}
         >
           <Pressable
-            style={tailwind`flex-1 bg-black bg-opacity-50`}
+            style={tailwind`flex-1 bg-black/60`}
             onPress={() => setMoreTabVisible(false)}
           >
             <View
-              style={tailwind`absolute right-4 top-16 w-56 bg-white rounded-2xl shadow-2xl overflow-hidden`}
+              style={[tailwind`absolute right-4 top-16 w-56 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}
               onStartShouldSetResponder={() => true}
             >
               {/* Own Profile Menu */}
               {authProfile.public_id === currentProfile.public_id ? (
                 <>
                   <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                     onPress={() => {
                       setMoreTabVisible(false);
                       navigation.navigate('EditProfile', {from: "profile_menu"});
                     }}
                   >
-                    <MaterialIcons name="edit" size={20} color="#374151" />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Edit Profile</Text>
+                    <MaterialIcons name="edit" size={20} color="#94a3b8" />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Edit Profile</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                     onPress={() => {
                       setMoreTabVisible(false);
                       navigation.navigate('Settings');
                     }}
                   >
-                    <MaterialIcons name="settings" size={20} color="#374151" />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Settings</Text>
+                    <MaterialIcons name="settings" size={20} color="#94a3b8" />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Settings</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={tailwind`flex-row items-center py-4 px-4`}
@@ -426,15 +426,15 @@ const handleReduxUnFollow = async () => {
                       // Add share functionality
                     }}
                   >
-                    <MaterialIcons name="share" size={20} color="#374151" />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Share Profile</Text>
+                    <MaterialIcons name="share" size={20} color="#94a3b8" />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Share Profile</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 /* Other Profile Menu */
                 <>
                   <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                     onPress={() => {
                       setMoreTabVisible(false);
                       handleFollowButton();
@@ -443,31 +443,31 @@ const handleReduxUnFollow = async () => {
                     <MaterialIcons
                       name={isFollowing?.is_following ? "person-remove" : "person-add"}
                       size={20}
-                      color="#374151"
+                      color="#94a3b8"
                     />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>
                       {isFollowing?.is_following ? 'Unfollow' : 'Follow'}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                     onPress={() => {
                       setMoreTabVisible(false);
                       handleMessage();
                     }}
                   >
-                    <MaterialIcons name="message" size={20} color="#374151" />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Send Message</Text>
+                    <MaterialIcons name="message" size={20} color="#94a3b8" />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Send Message</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4 border-b border-gray-100`}
+                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                     onPress={() => {
                       setMoreTabVisible(false);
                       // Add share functionality
                     }}
                   >
-                    <MaterialIcons name="share" size={20} color="#374151" />
-                    <Text style={tailwind`text-gray-900 text-base ml-3 font-medium`}>Share Profile</Text>
+                    <MaterialIcons name="share" size={20} color="#94a3b8" />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Share Profile</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={tailwind`flex-row items-center py-4 px-4`}

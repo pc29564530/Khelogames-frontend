@@ -1,52 +1,57 @@
 import React from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import tailwind from 'twrnc';
-import BottomTab from './BottomTab';
 import { useNavigation } from '@react-navigation/native';
-//const KhelogamesLogo = require('/Users/pawan/project/Khelogames-frontend/assets/images/Khelogames.png');
+import BottomTab from './BottomTab';
+
 const Stack = createStackNavigator();
 
 const StackNavigation = () => {
   const navigation = useNavigation();
-  const handleMessage = () => {
-    navigation.navigate("MessagePage")
-  }
 
   return (
     <Stack.Navigator
       screenOptions={{
-        header: ({ navigation }) => {
-          return (
-            <View style={tailwind`bg-white h-15 flex-row items-center justify-between px-4 bg-red-400`}>
-              <Image source={""} style={tailwind`h-16 w-16`} />
-              <View style={tailwind`flex-row items-center gap-3`}>
-                <FontAwesome
-                  name="search"
-                  size={24}
-                  color="white"
-                />
-                <TouchableOpacity onPress={handleMessage}>
-                  <MaterialIcons
-                    name="message"
-                    size={24}
-                    color="white"
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                  <FontAwesome name="bars" color="white" size={24} />
-                </TouchableOpacity>
-              </View>
+        header: () => (
+          <View
+            style={{
+              height: 64,
+              backgroundColor: '#1e293b',
+              borderBottomWidth: 1,
+              borderBottomColor: '#334155',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 16
+            }}
+          >
+            {/* Logo */}
+            <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '800' }}>
+              Kridagram
+            </Text>
+
+            {/* Right Icons */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+              <FontAwesome name="search" size={20} color="#f1f5f9" />
+
+              <TouchableOpacity onPress={() => navigation.navigate("MessagePage")}>
+                <MaterialIcons name="message" size={22} color="#f1f5f9" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => navigation.openDrawer()}>
+                <FontAwesome name="bars" size={20} color="#f1f5f9" />
+              </TouchableOpacity>
             </View>
-          );
-        },
+          </View>
+        )
       }}
     >
       <Stack.Screen
         name="BottomTab"
         component={BottomTab}
+        options={{ headerShown: true }}
       />
     </Stack.Navigator>
   );

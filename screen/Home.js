@@ -264,6 +264,7 @@ function Home() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -271,10 +272,10 @@ function Home() {
       >
 
         {/* SPORT SELECTOR */}
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 16 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-            {games.map(s => {
+            {games?.map(s => {
               const active = game?.id === s.id;
               return (
                 <Pressable

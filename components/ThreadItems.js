@@ -19,7 +19,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
   );
 
   return (
-    <View style={tailwind`bg-white mb-2 border-b border-gray-100`}>
+    <View style={[tailwind`mb-2`, {backgroundColor: '#1e293b', borderBottomWidth: 1, borderColor: '#334155'}]}>
 
       <Pressable
         style={tailwind`flex-row items-center px-4 pt-3 pb-2`}
@@ -28,7 +28,7 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
         {item?.profile?.avatar_url ? (
           <Image
             source={{ uri: item.profile.avatar_url }}
-            style={tailwind`w-11 h-11 rounded-full bg-gray-200`}
+            style={[tailwind`w-11 h-11 rounded-full`, {backgroundColor: '#334155'}]}
           />
         ) : (
           <View style={tailwind`w-11 h-11 rounded-full bg-red-400 items-center justify-center`}>
@@ -38,23 +38,23 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
           </View>
         )}
         <View style={tailwind`ml-3 flex-1`}>
-          <Text style={tailwind`font-bold text-black text-sm`}>
+          <Text style={{fontWeight: '700', color: '#f1f5f9', fontSize: 14}}>
             {item?.profile?.full_name || ''}
           </Text>
           <View style={tailwind`flex-row items-center`}>
-            <Text style={tailwind`text-gray-500 text-xs`}>@{item.profile.username}</Text>
-            <Text style={tailwind`text-gray-300 text-xs mx-1`}>&middot;</Text>
-            <Text style={tailwind`text-gray-500 text-xs`}>{formattedDate(item.created_at)}</Text>
+            <Text style={{color: '#64748b', fontSize: 12}}>@{item.profile.username}</Text>
+            <Text style={{color: '#475569', fontSize: 12, marginHorizontal: 4}}>&middot;</Text>
+            <Text style={{color: '#64748b', fontSize: 12}}>{formattedDate(item.created_at)}</Text>
           </View>
         </View>
       </Pressable>
 
       <Pressable onPress={() => navigation.navigate('ThreadComment', { item })}>
         {item.title ? (
-          <Text style={tailwind`text-black text-base font-bold px-4 pb-1`}>{item.title}</Text>
+          <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 16, paddingBottom: 4}}>{item.title}</Text>
         ) : null}
         {item.content ? (
-          <Text style={tailwind`text-gray-800 text-sm px-4 pb-3 leading-5`}>{item.content}</Text>
+          <Text style={{color: '#cbd5e1', fontSize: 14, paddingHorizontal: 16, paddingBottom: 12, lineHeight: 20}}>{item.content}</Text>
         ) : null}
       </Pressable>
 
@@ -73,20 +73,20 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
       ) : null}
 
       <View style={tailwind`px-4 pt-2 pb-1 flex-row items-center`}>
-        <Text style={tailwind`text-gray-400 text-xs`}>
+        <Text style={{color: '#64748b', fontSize: 12}}>
           {likeCount} {likeCount === 1 ? 'like' : 'likes'}
         </Text>
       </View>
 
-      <View style={tailwind`h-px bg-gray-100 mx-4`} />
+      <View style={[tailwind`h-px mx-4`, {backgroundColor: '#334155'}]} />
 
       <View style={tailwind`flex-row justify-around py-2`}>
         <Pressable
           style={tailwind`flex-row items-center px-4 py-2`}
           onPress={() => handleLikes({ threadPublicID: item.public_id, setError, dispatch })}
         >
-          <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
-          <Text style={tailwind`text-gray-500 text-xs ml-2`}>Like</Text>
+          <FontAwesome name="thumbs-o-up" color="#94a3b8" size={18} />
+          <Text style={{color: '#94a3b8', fontSize: 12, marginLeft: 8}}>Like</Text>
         </Pressable>
         <Pressable
           style={tailwind`flex-row items-center px-4 py-2`}
@@ -94,8 +94,8 @@ const ThreadItem = ({ item, handleUser, handleLikes, handleThreadComment, handle
             ? handleComment
             : () => handleThreadComment({ item, threadPublicID: item.public_id, navigation })}
         >
-          <FontAwesome name="comment-o" color="#6B7280" size={18} />
-          <Text style={tailwind`text-gray-500 text-xs ml-2`}>Comment</Text>
+          <FontAwesome name="comment-o" color="#94a3b8" size={18} />
+          <Text style={{color: '#94a3b8', fontSize: 12, marginLeft: 8}}>Comment</Text>
         </Pressable>
       </View>
 

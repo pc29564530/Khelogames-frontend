@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, Pressable, ScrollView, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addComments, setComments, setCommentText, setLikes } from '../redux/actions/actions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -70,21 +69,18 @@ function ThreadComment ({route}) {
 
     navigation.setOptions({
         headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Thread</Text>
+            <Text style={{ color: '#f1f5f9', fontSize: 20, fontWeight: '700' }}>Thread</Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
         },
-        headerTintColor: 'white',
+        headerTintColor: '#e2e8f0',
         headerTitleAlign: 'center',
         headerLeft: () => (
             <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
+                <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
             </Pressable>
         ),
     });
@@ -93,7 +89,7 @@ function ThreadComment ({route}) {
 
     return (
         <KeyboardAvoidingView
-            style={tailwind`flex-1 bg-gray-50`}
+            style={{ flex: 1, backgroundColor: '#0f172a' }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
@@ -106,7 +102,7 @@ function ThreadComment ({route}) {
                 bounces={true}
             >
                 {/* Main Post Card */}
-                <View style={tailwind`bg-white border-b-8 border-gray-100`}>
+                <View style={{ backgroundColor: '#1e293b', borderBottomWidth: 4, borderBottomColor: '#0f172a' }}>
                     {/* User Info */}
                     <Pressable
                         style={tailwind`flex-row items-center px-4 pt-4 pb-3`}
@@ -118,17 +114,17 @@ function ThreadComment ({route}) {
                                 style={tailwind`w-12 h-12 rounded-full`}
                             />
                         ) : (
-                            <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center`}>
+                            <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center`, { backgroundColor: '#f87171' }]}>
                                 <Text style={tailwind`text-white text-lg font-bold`}>
                                     {item.profile?.full_name?.charAt(0)?.toUpperCase() || '?'}
                                 </Text>
                             </View>
                         )}
                         <View style={tailwind`ml-3 flex-1`}>
-                            <Text style={tailwind`font-semibold text-gray-900 text-base`}>
+                            <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 15 }}>
                                 {item?.profile?.full_name}
                             </Text>
-                            <Text style={tailwind`text-gray-500 text-sm`}>
+                            <Text style={{ color: '#64748b', fontSize: 13 }}>
                                 @{item.profile?.username}
                             </Text>
                         </View>
@@ -136,7 +132,7 @@ function ThreadComment ({route}) {
 
                     {/* Post Content */}
                     <View style={tailwind`px-4 pb-3`}>
-                        <Text style={tailwind`text-gray-900 text-base leading-6`}>
+                        <Text style={{ color: '#e2e8f0', fontSize: 15, lineHeight: 22 }}>
                             {item.content}
                         </Text>
                     </View>
@@ -144,7 +140,7 @@ function ThreadComment ({route}) {
                     {/* Media */}
                     {item.media_type === 'image' && item.media_url ? (
                         <Image
-                            style={tailwind`w-full h-80 bg-gray-100`}
+                            style={[tailwind`w-full h-80`, { backgroundColor: '#334155' }]}
                             source={{uri: item.media_url}}
                             resizeMode="cover"
                         />
@@ -154,35 +150,35 @@ function ThreadComment ({route}) {
                     ) : null}
 
                     <View style={tailwind`px-3 py-2`}>
-                        <Text style={tailwind`text-gray-700 text-sm font-medium`}>
+                        <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '500' }}>
                             {likeCount || 0} {likeCount === 1 ? 'Like' : 'Likes'}
                         </Text>
                     </View>
 
                     {/* Action Buttons */}
-                    <View style={tailwind`flex-row border-t border-gray-100`}>
+                    <View style={[tailwind`flex-row`, { borderTopWidth: 1, borderTopColor: '#334155' }]}>
                         <Pressable
-                            style={tailwind`flex-1 flex-row items-center justify-center py-3 active:bg-gray-50`}
+                            style={tailwind`flex-1 flex-row items-center justify-center py-3`}
                             onPress={() => handleLikes({threadPublicID: item.public_id, setError, dispatch})}
                         >
-                            <FontAwesome name="thumbs-o-up" color="#6B7280" size={18} />
-                            <Text style={tailwind`text-gray-700 ml-2 font-medium`}>Like</Text>
+                            <FontAwesome name="thumbs-o-up" color="#94a3b8" size={18} />
+                            <Text style={{ color: '#94a3b8', marginLeft: 8, fontWeight: '500' }}>Like</Text>
                         </Pressable>
-                        <View style={tailwind`w-px bg-gray-100`} />
+                        <View style={{ width: 1, backgroundColor: '#334155' }} />
                         <Pressable
-                            style={tailwind`flex-1 flex-row items-center justify-center py-3 active:bg-gray-50`}
+                            style={tailwind`flex-1 flex-row items-center justify-center py-3`}
                             onPress={handleComment}
                         >
-                            <FontAwesome name="comment-o" color="#6B7280" size={18} />
-                            <Text style={tailwind`text-gray-700 ml-2 font-medium`}>Comment</Text>
+                            <FontAwesome name="comment-o" color="#94a3b8" size={18} />
+                            <Text style={{ color: '#94a3b8', marginLeft: 8, fontWeight: '500' }}>Comment</Text>
                         </Pressable>
                     </View>
                 </View>
 
                 {/* Comments Section */}
-                <View style={tailwind`bg-white mt-2`}>
-                    <View style={tailwind`px-4 py-3 border-b border-gray-100`}>
-                        <Text style={tailwind`text-gray-900 font-semibold text-base`}>Comments</Text>
+                <View style={{ backgroundColor: '#1e293b', marginTop: 8 }}>
+                    <View style={[tailwind`px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 15 }}>Comments</Text>
                     </View>
                     <Comment thread={item} />
                 </View>
@@ -190,10 +186,10 @@ function ThreadComment ({route}) {
 
             {/* Error Display */}
             {error?.fields?.comment_text && (
-                <View style={tailwind`mx-4 mb-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg`}>
+                <View style={[tailwind`mx-4 mb-2 px-4 py-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                     <View style={tailwind`flex-row items-center`}>
-                        <MaterialIcons name="error-outline" size={18} color="#dc2626" />
-                        <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>
+                        <MaterialIcons name="error-outline" size={18} color="#f87171" />
+                        <Text style={{ color: '#fca5a5', fontSize: 13, marginLeft: 8, flex: 1 }}>
                             {error?.fields.comment_text}
                         </Text>
                     </View>
@@ -201,15 +197,15 @@ function ThreadComment ({route}) {
             )}
 
             {/* Comment Input */}
-            <View style={tailwind`bg-white border-t border-gray-200 px-3 py-2 shadow-lg`}>
+            <View style={{ backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155', paddingHorizontal: 12, paddingVertical: 8 }}>
                 <View style={tailwind`flex-row items-center`}>
                     <TextInput
                         ref={commentInputRef}
-                        style={tailwind`flex-1 px-4 py-2 mr-2 rounded-full bg-gray-100 text-gray-900 text-base`}
+                        style={[tailwind`flex-1 px-4 py-2 mr-2 rounded-full text-base`, { backgroundColor: '#0f172a', color: '#f1f5f9' }]}
                         value={commentText}
                         onChangeText={(text) => dispatch(setCommentText(text))}
                         placeholder="Write a comment..."
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#475569"
                         multiline
                         maxLength={500}
                     />
@@ -217,7 +213,7 @@ function ThreadComment ({route}) {
                         disabled={!isValidComment || loading}
                         style={[
                             tailwind`px-5 py-2.5 rounded-full items-center justify-center min-w-20`,
-                            isValidComment && !loading ? tailwind`bg-red-400` : tailwind`bg-gray-300`
+                            { backgroundColor: isValidComment && !loading ? '#f87171' : '#334155' }
                         ]}
                         onPress={handleReduxSubmit}
                     >

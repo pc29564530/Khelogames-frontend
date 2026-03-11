@@ -9,7 +9,6 @@ import Home from '../screen/Home';
 import Community from '../screen/Community';
 import AddContent from '../components/AddContent';
 import tailwind from 'twrnc';
-import AddContentStack from './AddContentStack';
 import Tournament from '../screen/Tournament';
 import Matches from '../screen/Matches';
 import Club from '../screen/Club';
@@ -18,7 +17,7 @@ import Thread from '../screen/Thread';
 const Tab = createBottomTabNavigator();
 
 const BottomTab = () => {
- 
+
  const navigation = useNavigation();
  const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -46,9 +45,9 @@ const BottomTab = () => {
          position: 'absolute',
          bottom: 0,
          width: '100%',
-         backgroundColor: '#0f172a',
+         backgroundColor: '#1e293b',
          borderTopWidth: 1,
-         borderTopColor: '#1e293b',
+         borderTopColor: '#334155',
          paddingTop: 4,
          elevation: 0,
          shadowOpacity: 0,
@@ -66,8 +65,6 @@ const BottomTab = () => {
             Icon = <MaterialIcons name="schedule" size={25} color={activeStatus}/>
          } else if(route.name === "Community"){
            Icon = <MaterialIcons name="forum" size={25} color={activeStatus}/>
-         } else if(route.name === "Add") {
-           Icon = <MaterialIcons name="add-box" size={25} color={activeStatus}/>;
          } else if(route.name === "Tournament") {
            Icon = <FontAwesome name="trophy" size={25} color={activeStatus}/>;
          } else if(route.name === "Team") {
@@ -94,16 +91,6 @@ const BottomTab = () => {
      <Tab.Screen name="Tournament" component={Tournament} />
      <Tab.Screen name="Team" component={Club}/>
      <Tab.Screen name="Thread" component={Thread} />
-     <Tab.Screen
-       name="Add"
-       component={AddContentStack}
-      listeners={() => ({
-        tabPress: (e) => {
-           e.preventDefault();
-           handleAddContentPress();
-        },
-        })}
-     />
      <Tab.Screen name="Community" component={Community} />
    </Tab.Navigator>
 
