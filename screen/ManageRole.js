@@ -16,13 +16,13 @@ import { formatToDDMMYY, formattedTime, convertToISOString } from '../utils/Form
 
 // Color + icon map keyed by role name from API
 const ROLE_STYLE_MAP = {
-    admin:            { color: '#ef4444', bg: '#fef2f2', icon: 'user-shield' },
-    organizer:        { color: '#f87171', bg: '#fff1f2', icon: 'crown' },
-    tournament_admin: { color: '#6366f1', bg: '#eef2ff', icon: 'shield-alt' },
-    scorer:           { color: '#f59e0b', bg: '#fffbeb', icon: 'pencil-alt' },
-    team_manager:     { color: '#10b981', bg: '#ecfdf5', icon: 'users' },
-    coach:            { color: '#3b82f6', bg: '#eff6ff', icon: 'chalkboard-teacher' },
-    normal:           { color: '#6b7280', bg: '#f9fafb', icon: 'user' },
+    admin:            { color: '#ef4444', bg: '#ef444420', icon: 'user-shield' },
+    organizer:        { color: '#f87171', bg: '#f8717120', icon: 'crown' },
+    tournament_admin: { color: '#6366f1', bg: '#6366f120', icon: 'shield-alt' },
+    scorer:           { color: '#f59e0b', bg: '#f59e0b20', icon: 'pencil-alt' },
+    team_manager:     { color: '#10b981', bg: '#10b98120', icon: 'users' },
+    coach:            { color: '#3b82f6', bg: '#3b82f620', icon: 'chalkboard-teacher' },
+    normal:           { color: '#6b7280', bg: '#33415530', icon: 'user' },
 };
 
 // Roles that organizer should NOT be able to assign (system-level)
@@ -150,7 +150,7 @@ const ManageRole = ({ route }) => {
             setLoading(false);
         }
       }
-      
+
       if(selectedRole?.name === "scorer") {
         getTournamentMatches()
       }
@@ -183,21 +183,20 @@ const ManageRole = ({ route }) => {
 
     navigation.setOptions({
         headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Manage Role</Text>
+            <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Manage Role</Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#334155',
         },
-        headerTintColor: 'white',
+        headerTintColor: '#f1f5f9',
         headerTitleAlign: 'center',
         headerLeft: () => (
             <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
+                <AntDesign name="arrowleft" size={24} color="#f1f5f9" />
             </Pressable>
         ),
     });
@@ -209,11 +208,11 @@ const ManageRole = ({ route }) => {
     }, [selectedRole])
 
     return (
-        <View style={tailwind`flex-1 bg-gray-50`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
             {error?.global && (
                 <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
-                    <MaterialIcons name="error-outline" size={64} color="#9ca3af" />
-                    <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
+                    <MaterialIcons name="error-outline" size={64} color="#475569" />
+                    <Text style={[tailwind`text-sm mt-2 text-center`, { color: '#64748b' }]}>
                         {error?.global}
                     </Text>
                 </View>
@@ -221,13 +220,13 @@ const ManageRole = ({ route }) => {
             <ScrollView contentContainerStyle={tailwind`px-4 py-5 pb-12`} keyboardShouldPersistTaps="handled">
 
                 {/* Tournament Info Banner */}
-                <View style={tailwind`bg-white rounded-2xl p-4 mb-5 flex-row items-center`}>
-                    <View style={tailwind`w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-3`}>
+                <View style={[tailwind`rounded-2xl p-4 mb-5 flex-row items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center mr-3`, { backgroundColor: '#f8717120' }]}>
                         <MaterialIcons name="emoji-events" size={20} color="#f87171" />
                     </View>
                     <View style={tailwind`flex-1`}>
-                        <Text style={tailwind`text-xs text-gray-400 mb-0.5`}>Assigning role for</Text>
-                        <Text style={tailwind`text-sm font-bold text-gray-800`} numberOfLines={1}>
+                        <Text style={[tailwind`text-xs mb-0.5`, { color: '#64748b' }]}>Assigning role for</Text>
+                        <Text style={[tailwind`text-sm font-bold`, { color: '#f1f5f9' }]} numberOfLines={1}>
                             {tournament?.name}
                         </Text>
                     </View>
@@ -235,67 +234,67 @@ const ManageRole = ({ route }) => {
 
                 {/* Success Message */}
                 {successMsg !== '' && (
-                    <View style={tailwind`bg-green-50 border border-green-200 rounded-xl p-3 mb-4 flex-row items-center`}>
-                        <MaterialIcons name="check-circle" size={18} color="#10b981" />
-                        <Text style={tailwind`text-green-700 text-sm ml-2 flex-1`}>{successMsg}</Text>
+                    <View style={[tailwind`rounded-xl p-3 mb-4 flex-row items-center`, { backgroundColor: '#10b98115', borderWidth: 1, borderColor: '#10b98130' }]}>
+                        <MaterialIcons name="check-circle" size={18} color="#4ade80" />
+                        <Text style={[tailwind`text-sm ml-2 flex-1`, { color: '#4ade80' }]}>{successMsg}</Text>
                         <Pressable onPress={() => setSuccessMsg('')}>
-                            <MaterialIcons name="close" size={16} color="#10b981" />
+                            <MaterialIcons name="close" size={16} color="#4ade80" />
                         </Pressable>
                     </View>
                 )}
 
                 {/* Select User */}
-                <View style={tailwind`bg-white rounded-2xl p-4 mb-4`}>
+                <View style={[tailwind`rounded-2xl p-4 mb-4`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                     <View style={tailwind`flex-row items-center mb-3`}>
-                        <Text style={tailwind`text-sm font-bold text-gray-800`}>Select User</Text>
+                        <Text style={[tailwind`text-sm font-bold`, { color: '#f1f5f9' }]}>Select User</Text>
                     </View>
 
                     {/* Selected User Card */}
                     {selectedUser ? (
-                        <View style={tailwind`flex-row items-center bg-gray-50 rounded-xl p-3`}>
+                        <View style={[tailwind`flex-row items-center rounded-xl p-3`, { backgroundColor: '#0f172a' }]}>
                             {selectedUser.avatar_url ? (
                                 <Image
                                     source={{ uri: selectedUser.avatar_url }}
                                     style={tailwind`w-11 h-11 rounded-full`}
                                 />
                             ) : (
-                                <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
-                                    <Text style={tailwind`text-red-400 font-bold text-sm`}>
+                                <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#f8717120' }]}>
+                                    <Text style={[tailwind`font-bold text-sm`, { color: '#f87171' }]}>
                                         {getInitials(selectedUser.full_name)}
                                     </Text>
                                 </View>
                             )}
                             <View style={tailwind`flex-1 ml-3`}>
-                                <Text style={tailwind`text-sm font-semibold text-gray-800`}>
+                                <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
                                     {selectedUser.full_name}
                                 </Text>
-                                <Text style={tailwind`text-xs text-gray-400`}>@{selectedUser.username}</Text>
+                                <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>@{selectedUser.username}</Text>
                             </View>
                             <Pressable
                                 onPress={() => setSelectedUser(null)}
-                                style={tailwind`w-7 h-7 rounded-full bg-gray-200 items-center justify-center`}
+                                style={[tailwind`w-7 h-7 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}
                             >
-                                <MaterialIcons name="close" size={14} color="#6b7280" />
+                                <MaterialIcons name="close" size={14} color="#94a3b8" />
                             </Pressable>
                         </View>
                     ) : (
                         <Pressable
                             onPress={() => setShowModal(true)}
-                            style={tailwind`flex-row items-center bg-gray-50 rounded-xl p-3 border border-dashed border-gray-300`}
+                            style={[tailwind`flex-row items-center rounded-xl p-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderStyle: 'dashed', borderColor: '#334155' }]}
                         >
-                            <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center mr-3`}>
-                                <MaterialIcons name="person-search" size={22} color="#9ca3af" />
+                            <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
+                                <MaterialIcons name="person-search" size={22} color="#64748b" />
                             </View>
-                            <Text style={tailwind`text-sm text-gray-400`}>Tap to search and select a user</Text>
-                            <MaterialIcons name="chevron-right" size={20} color="#9ca3af" style={tailwind`ml-auto`} />
+                            <Text style={[tailwind`text-sm`, { color: '#64748b' }]}>Tap to search and select a user</Text>
+                            <MaterialIcons name="chevron-right" size={20} color="#475569" style={tailwind`ml-auto`} />
                         </Pressable>
                     )}
                 </View>
 
                 {/* Select Role */}
-                <View style={tailwind`bg-white rounded-2xl p-4 mb-5`}>
+                <View style={[tailwind`rounded-2xl p-4 mb-5`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                     <View style={tailwind`flex-row items-center mb-3`}>
-                        <Text style={tailwind`text-sm font-bold text-gray-800`}>Select Role</Text>
+                        <Text style={[tailwind`text-sm font-bold`, { color: '#f1f5f9' }]}>Select Role</Text>
                     </View>
 
                     {loading ? (
@@ -304,7 +303,7 @@ const ManageRole = ({ route }) => {
                         roles.map((opt, index) => {
                             const style = ROLE_STYLE_MAP[opt.name] || {
                                 color: '#6b7280',
-                                bg: '#f9fafb',
+                                bg: '#33415530',
                                 icon: 'user',
                             };
                             const isSelected = selectedRole?.id === opt.id;
@@ -313,23 +312,24 @@ const ManageRole = ({ route }) => {
                                     key={opt.id ?? index}
                                     onPress={() => {setSelectedRole(opt);}}
                                     style={[
-                                        tailwind`flex-row items-center p-3 rounded-xl mb-2.5 border`,
+                                        tailwind`flex-row items-center p-3 rounded-xl mb-2.5`,
+                                        { borderWidth: 1 },
                                         isSelected
                                             ? { backgroundColor: style.bg, borderColor: style.color }
-                                            : tailwind`bg-gray-50 border-gray-100`,
+                                            : { backgroundColor: '#0f172a', borderColor: '#334155' },
                                     ]}
                                 >
                                     {/* Role Icon */}
                                     <View
                                         style={[
                                             tailwind`w-10 h-10 rounded-xl items-center justify-center mr-3`,
-                                            { backgroundColor: isSelected ? style.color : '#f3f4f6' },
+                                            { backgroundColor: isSelected ? style.color : '#334155' },
                                         ]}
                                     >
                                         <FontAwesome5
                                             name={style.icon}
                                             size={15}
-                                            color={isSelected ? '#fff' : '#9ca3af'}
+                                            color={isSelected ? '#fff' : '#64748b'}
                                         />
                                     </View>
 
@@ -338,12 +338,12 @@ const ManageRole = ({ route }) => {
                                         <Text
                                             style={[
                                                 tailwind`text-sm font-semibold`,
-                                                { color: isSelected ? style.color : '#1f2937' },
+                                                { color: isSelected ? style.color : '#f1f5f9' },
                                             ]}
                                         >
                                             {modifyRoles(opt.name)}
                                         </Text>
-                                        <Text style={tailwind`text-xs text-gray-400 mt-0.5`}>
+                                        <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
                                             {opt.description}
                                         </Text>
                                     </View>
@@ -354,7 +354,7 @@ const ManageRole = ({ route }) => {
                                             tailwind`w-5 h-5 rounded-full border-2 items-center justify-center`,
                                             isSelected
                                                 ? { backgroundColor: style.color, borderColor: style.color }
-                                                : tailwind`border-gray-300`,
+                                                : { borderColor: '#475569' },
                                         ]}
                                     >
                                         {isSelected && (
@@ -373,9 +373,7 @@ const ManageRole = ({ route }) => {
                     disabled={!selectedUser || !selectedRole || saving}
                     style={[
                         tailwind`py-4 rounded-2xl items-center flex-row justify-center`,
-                        selectedUser && selectedRole && !saving
-                            ? tailwind`bg-red-400`
-                            : tailwind`bg-gray-200`,
+                        { backgroundColor: selectedUser && selectedRole && !saving ? '#f87171' : '#334155' },
                     ]}
                 >
                     {saving ? (
@@ -385,13 +383,13 @@ const ManageRole = ({ route }) => {
                             <MaterialIcons
                                 name="check-circle"
                                 size={18}
-                                color={selectedUser && selectedRole ? 'white' : '#9ca3af'}
+                                color={selectedUser && selectedRole ? 'white' : '#475569'}
                                 style={tailwind`mr-2`}
                             />
                             <Text
                                 style={[
                                     tailwind`text-sm font-semibold`,
-                                    selectedUser && selectedRole ? tailwind`text-white` : tailwind`text-gray-400`,
+                                    { color: selectedUser && selectedRole ? '#fff' : '#475569' },
                                 ]}
                             >
                                 Assign Role
@@ -404,34 +402,34 @@ const ManageRole = ({ route }) => {
             {/* User Search Modal */}
             <Modal visible={showModal} animationType="slide" transparent>
                 <View style={tailwind`flex-1 bg-black/50 justify-end`}>
-                    <View style={tailwind`bg-white rounded-t-3xl p-5`} >
+                    <View style={[tailwind`rounded-t-3xl p-5`, { backgroundColor: '#1e293b' }]}>
 
                         {/* Modal Header */}
                         <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                            <Text style={tailwind`text-base font-bold text-gray-800`}>Search User</Text>
+                            <Text style={[tailwind`text-base font-bold`, { color: '#f1f5f9' }]}>Search User</Text>
                             <Pressable
                                 onPress={() => { setShowModal(false); setSearch(''); setUserResults([]); }}
-                                style={tailwind`w-8 h-8 rounded-full bg-gray-100 items-center justify-center`}
+                                style={[tailwind`w-8 h-8 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}
                             >
-                                <MaterialIcons name="close" size={18} color="#6b7280" />
+                                <MaterialIcons name="close" size={18} color="#94a3b8" />
                             </Pressable>
                         </View>
 
                         {/* Search Input */}
-                        <View style={tailwind`flex-row items-center bg-gray-50 rounded-xl px-3 mb-4 border border-gray-100`}>
-                            <MaterialIcons name="search" size={20} color="#9ca3af" />
+                        <View style={[tailwind`flex-row items-center rounded-xl px-3 mb-4`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
+                            <MaterialIcons name="search" size={20} color="#64748b" />
                             <TextInput
                                 ref={modalInputRef}
                                 placeholder="Type a name to search..."
-                                placeholderTextColor="#d1d5db"
+                                placeholderTextColor="#475569"
                                 value={search}
                                 onChangeText={setSearch}
-                                style={tailwind`flex-1 py-3 px-2 text-sm text-gray-800`}
+                                style={[tailwind`flex-1 py-3 px-2 text-sm`, { color: '#f1f5f9' }]}
                             />
                             {searching && <ActivityIndicator size="small" color="#f87171" />}
                             {search.length > 0 && !searching && (
                                 <Pressable onPress={() => { setSearch(''); setUserResults([]); }}>
-                                    <MaterialIcons name="cancel" size={18} color="#d1d5db" />
+                                    <MaterialIcons name="cancel" size={18} color="#475569" />
                                 </Pressable>
                             )}
                         </View>
@@ -447,7 +445,7 @@ const ManageRole = ({ route }) => {
                                     renderItem={({ item }) => (
                                         <Pressable
                                             onPress={() => selectUser(item)}
-                                            style={tailwind`flex-row items-center py-3 border-b border-gray-50`}
+                                            style={[tailwind`flex-row items-center py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                         >
                                             {item.avatar_url ? (
                                                 <Image
@@ -455,34 +453,34 @@ const ManageRole = ({ route }) => {
                                                     style={tailwind`w-11 h-11 rounded-full`}
                                                 />
                                             ) : (
-                                                <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
-                                                    <Text style={tailwind`text-red-400 font-bold text-sm`}>
+                                                <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#f8717120' }]}>
+                                                    <Text style={[tailwind`font-bold text-sm`, { color: '#f87171' }]}>
                                                         {getInitials(item.full_name)}
                                                     </Text>
                                                 </View>
                                             )}
                                             <View style={tailwind`flex-1 ml-3`}>
-                                                <Text style={tailwind`text-sm font-semibold text-gray-800`}>
+                                                <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
                                                     {item.full_name}
                                                 </Text>
-                                                <Text style={tailwind`text-xs text-gray-400`}>
+                                                <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                                                     @{item.username}
                                                 </Text>
                                             </View>
-                                            <MaterialIcons name="chevron-right" size={20} color="#d1d5db" />
+                                            <MaterialIcons name="chevron-right" size={20} color="#475569" />
                                         </Pressable>
                                     )}
                                 />
                             ) : search.length > 0 && !searching ? (
                                 <View style={tailwind`py-10 items-center`}>
-                                    <MaterialIcons name="search-off" size={40} color="#e5e7eb" />
-                                    <Text style={tailwind`text-gray-400 text-sm mt-2`}>No users found</Text>
-                                    <Text style={tailwind`text-gray-300 text-xs mt-1`}>Try a different name</Text>
+                                    <MaterialIcons name="search-off" size={40} color="#475569" />
+                                    <Text style={[tailwind`text-sm mt-2`, { color: '#64748b' }]}>No users found</Text>
+                                    <Text style={[tailwind`text-xs mt-1`, { color: '#475569' }]}>Try a different name</Text>
                                 </View>
                             ) : (
                                 <View style={tailwind`py-10 items-center`}>
-                                    <MaterialIcons name="person-search" size={40} color="#e5e7eb" />
-                                    <Text style={tailwind`text-gray-400 text-sm mt-2`}>Search by name</Text>
+                                    <MaterialIcons name="person-search" size={40} color="#475569" />
+                                    <Text style={[tailwind`text-sm mt-2`, { color: '#64748b' }]}>Search by name</Text>
                                 </View>
                             )}
                         </View>
@@ -496,14 +494,14 @@ const ManageRole = ({ route }) => {
                 onRequestClose={() => setShowMatchesModal(false)}
             >
                 <View style={tailwind`flex-1 bg-black/50 justify-end`}>
-                    <View style={tailwind`bg-white rounded-t-3xl p-5`}>
+                    <View style={[tailwind`rounded-t-3xl p-5`, { backgroundColor: '#1e293b' }]}>
                         <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                            <Text style={tailwind`text-base font-bold text-gray-800`}>Select Match</Text>
+                            <Text style={[tailwind`text-base font-bold`, { color: '#f1f5f9' }]}>Select Match</Text>
                             <Pressable
                                 onPress={() => setShowMatchesModal(false)}
-                                style={tailwind`w-8 h-8 rounded-full bg-gray-100 items-center justify-center`}
+                                style={[tailwind`w-8 h-8 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}
                             >
-                                <MaterialIcons name="close" size={18} color="#6b7280" />
+                                <MaterialIcons name="close" size={18} color="#94a3b8" />
                             </Pressable>
                         </View>
                         <FlatList
@@ -513,8 +511,8 @@ const ManageRole = ({ route }) => {
                             renderItem={({ item }) => renderMatchCard(item, selectedMatchPublicID, setSelectedMatchPublicID, setShowMatchesModal)}
                             ListEmptyComponent={
                                 <View style={tailwind`py-10 items-center`}>
-                                    <MaterialIcons name="sports-cricket" size={40} color="#e5e7eb" />
-                                    <Text style={tailwind`text-gray-400 text-sm mt-2`}>No matches found</Text>
+                                    <MaterialIcons name="sports-cricket" size={40} color="#475569" />
+                                    <Text style={[tailwind`text-sm mt-2`, { color: '#64748b' }]}>No matches found</Text>
                                 </View>
                             }
                         />
@@ -527,16 +525,19 @@ const ManageRole = ({ route }) => {
 
 const renderMatchCard = (item, selectedMatchPublicID, setSelectedMatchPublicID, setShowMatchesModal) => {
         const isSelected = selectedMatchPublicID === item?.public_id;
+        const isLive = item?.status === "live";
         return (
             <Pressable
                 key={item?.public_id}
                 style={[
-                    tailwind`mb-3 bg-white rounded-xl overflow-hidden border`,
-                    isSelected ? tailwind`border-red-400` : tailwind`border-gray-100`,
-                    {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}
+                    tailwind`mb-3 rounded-xl overflow-hidden`,
+                    { backgroundColor: '#0f172a', borderWidth: 1 },
+                    { borderColor: isSelected ? '#f87171' : '#334155' },
                 ]}
                 onPress={() => { setSelectedMatchPublicID(item.public_id); setShowMatchesModal(false); }}
             >
+                {/* Live accent bar */}
+                {isLive && <View style={tailwind`h-0.5 bg-red-400`} />}
 
                 {/* Match Content */}
                 <View style={tailwind`p-4`}>
@@ -545,59 +546,59 @@ const renderMatchCard = (item, selectedMatchPublicID, setSelectedMatchPublicID, 
                         <View style={tailwind`flex-1`}>
                             {/* Home Team */}
                             <View style={tailwind`flex-row items-center mb-3`}>
-                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, { backgroundColor: '#334155' }]}>
                                     {item?.homeTeam?.media_url ? (
                                         <Image
                                             source={{ uri: item.homeTeam.media_url }}
                                             style={tailwind`w-full h-full`}
                                         />
                                     ) : (
-                                        <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                        <Text style={[tailwind`font-bold text-xs`, { color: '#f87171' }]}>
                                             {item?.homeTeam?.name?.charAt(0).toUpperCase()}
                                         </Text>
                                     )}
                                 </View>
-                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                <Text style={[tailwind`font-semibold ml-3 flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                                     {item?.homeTeam?.name}
                                 </Text>
                             </View>
 
                             {/* Away Team */}
                             <View style={tailwind`flex-row items-center`}>
-                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, { backgroundColor: '#334155' }]}>
                                     {item?.awayTeam?.media_url ? (
                                         <Image
                                             source={{ uri: item.awayTeam.media_url }}
                                             style={tailwind`w-full h-full`}
                                         />
                                     ) : (
-                                        <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                        <Text style={[tailwind`font-bold text-xs`, { color: '#f87171' }]}>
                                             {item?.awayTeam?.name?.charAt(0).toUpperCase()}
                                         </Text>
                                     )}
                                 </View>
-                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                <Text style={[tailwind`font-semibold ml-3 flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                                     {item?.awayTeam?.name}
                                 </Text>
                             </View>
                         </View>
-                        
+
                         {/* Vertical divider */}
-                        <View style={tailwind`w-px bg-gray-100 my-3`} />
+                        <View style={[tailwind`w-px my-3 ml-3`, { backgroundColor: '#334155' }]} />
 
                         {/* Match Info */}
                         <View style={tailwind`items-end ml-4`}>
-                            <Text style={tailwind`text-gray-600 text-xs font-semibold mb-1`}>
+                            <Text style={[tailwind`text-xs font-semibold mb-1`, { color: '#64748b' }]}>
                                 {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                             </Text>
                             {item?.status !== "not_started" ? (
-                                <View style={tailwind`px-2 py-1 rounded bg-gray-100`}>
-                                    <Text style={tailwind`text-xs font-semibold capitalize`}>
+                                <View style={[tailwind`px-2 py-1 rounded`, { backgroundColor: isLive ? '#f8717120' : '#334155' }]}>
+                                    <Text style={[tailwind`text-xs font-semibold capitalize`, { color: isLive ? '#f87171' : '#cbd5e1' }]}>
                                         {item?.status_code || item?.status}
                                     </Text>
                                 </View>
                             ) : (
-                                <Text style={tailwind`text-gray-500 text-xs`}>
+                                <Text style={[tailwind`text-xs`, { color: '#cbd5e1' }]}>
                                     {formattedTime(convertToISOString(item?.start_timestamp))}
                                 </Text>
                             )}

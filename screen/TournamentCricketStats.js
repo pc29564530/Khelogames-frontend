@@ -118,10 +118,10 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
         const topPlayers = data?.slice(0, 1) || [];
 
         return (
-            <View style={tailwind`bg-white rounded-xl shadow-sm p-4 mb-3 mx-4`}>
+            <View style={[tailwind`rounded-xl p-4 mb-3 mx-4`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                 <View style={tailwind`flex-row justify-between items-center mb-3`}>
                     <View style={tailwind`flex-row items-center`}>
-                        <Text style={tailwind`text-lg font-bold text-gray-900`}>
+                        <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>
                             {title}
                         </Text>
                     </View>
@@ -133,23 +133,23 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                                 setModalType(type);
                                 setModalVisible(true);
                             }}
-                            style={tailwind`bg-gray-100 rounded-full px-3 py-2 flex-row items-center`}
+                            style={[tailwind`rounded-full px-3 py-2 flex-row items-center`, { backgroundColor: '#334155' }]}
                         >
-                            <Text style={tailwind`text-gray-700 text-xs font-semibold mr-1`}>
+                            <Text style={[tailwind`text-xs font-semibold mr-1`, { color: '#cbd5e1' }]}>
                                 View All
                             </Text>
-                            <AntDesign name="right" size={12} color="#374151" />
+                            <AntDesign name="right" size={12} color="#cbd5e1" />
                         </Pressable>
                     )}
                 </View>
 
                 {loading ? (
                     <View style={tailwind`py-8 items-center`}>
-                        <ActivityIndicator size="small" color="#EF4444" />
+                        <ActivityIndicator size="small" color="#f87171" />
                     </View>
                 ) : !data || data.length === 0 ? (
                     <View style={tailwind`py-8 items-center`}>
-                        <Text style={tailwind`text-gray-400 text-sm`}>No data available</Text>
+                        <Text style={[tailwind`text-sm`, { color: '#64748b' }]}>No data available</Text>
                     </View>
                 ) : (
                     <>
@@ -172,32 +172,30 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     };
 
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
             {error.global && (
-                <View style={tailwind`mx-4 mt-3 mb-3 p-3 bg-red-50 border border-red-200 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
+                <View style={[tailwind`mx-4 mt-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                    <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>
                         {error?.global}
                     </Text>
                 </View>
             )}
 
             {/* Tab Buttons */}
-            <View style={tailwind`flex-row justify-around mb-4 px-4 pt-4`}>
+            <View style={[tailwind`flex-row justify-around mb-4 px-4 pt-4`, { backgroundColor: '#0f172a' }]}>
                 {['batting', 'bowling'].map(tab => (
                     <Pressable
                         key={tab}
                         onPress={() => setSelectedTab(tab)}
-                        style={tailwind`flex-1 mx-1 px-5 py-3 rounded-xl ${
-                            selectedTab === tab
-                                ? 'bg-red-500'
-                                : 'bg-white border border-gray-200'
-                        }`}>
+                        style={[
+                            tailwind`flex-1 mx-1 px-5 py-3 rounded-xl`,
+                            { backgroundColor: selectedTab === tab ? '#f87171' : '#1e293b', borderWidth: selectedTab === tab ? 0 : 1, borderColor: '#334155' }
+                        ]}>
                         <Text
-                            style={tailwind`text-center font-semibold ${
-                                selectedTab === tab
-                                    ? 'text-white'
-                                    : 'text-gray-700'
-                            }`}>
+                            style={[
+                                tailwind`text-center font-semibold`,
+                                { color: selectedTab === tab ? '#fff' : '#94a3b8' }
+                            ]}>
                             {tab.toUpperCase()}
                         </Text>
                     </Pressable>
@@ -207,14 +205,14 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
             <Animated.ScrollView
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
-                style={tailwind`flex-1`}
+                style={{ flex: 1 }}
                 contentContainerStyle={{paddingTop: 8, paddingBottom: 100, minHeight: sHeight + 100}}
                 showsVerticalScrollIndicator={false}
             >
                 {loading && !mostRuns && !mostWickets ? (
                     <View style={tailwind`py-20 items-center`}>
-                        <ActivityIndicator size="large" color="#EF4444" />
-                        <Text style={tailwind`text-gray-500 mt-3`}>Loading stats...</Text>
+                        <ActivityIndicator size="large" color="#f87171" />
+                        <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>Loading stats...</Text>
                     </View>
                 ) : (
                     <>

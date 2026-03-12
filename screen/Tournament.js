@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import CountryPicker from 'react-native-country-picker-modal';
 import { sportsServices } from '../services/sportsServices';
 import Geolocation from "@react-native-community/geolocation";
+import { FilterBar } from '../components/FilterBar';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,6 +22,7 @@ import Animated, {
 import { BASE_URL } from '../constants/ApiConstants';
 import { validateTournamentField } from '../utils/validation/tournamentValidation';
 import { logSilentError } from '../utils/errorHandler';
+import SportSelector from '../components/SportSelector';
 
 const Tournament = () => {
   const navigation = useNavigation();
@@ -223,7 +225,7 @@ const Tournament = () => {
 
         return (
             <Pressable
-                style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}
+                style={[{backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}, tailwind`mx-4 mb-1.5 rounded-2xl overflow-hidden mt-1.5`]}
                 onPress={() => handleTournamentPage(item)}
             >
                 {/* Top accent line for live matches */}
@@ -232,29 +234,21 @@ const Tournament = () => {
                 <View style={tailwind`p-4`}>
                     <View style={tailwind`flex-row items-center`}>
                         {/* Trophy icon in circle */}
-                        <View style={tailwind`w-12 h-12 rounded-full bg-gray-50 items-center justify-center mr-3`}>
-                            <FontAwesome name="trophy" size={20} color={isLive ? "#f87171" : "#9CA3AF"} />
+                        <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, {backgroundColor: '#334155'}]}>
+                            <FontAwesome name="trophy" size={20} color={isLive ? "#f87171" : "#94a3b8"} />
                         </View>
 
                         {/* Main Info */}
                         <View style={tailwind`flex-1`}>
-                            <Text style={tailwind`text-base font-bold text-gray-900`} numberOfLines={1}>
+                            <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700'}} numberOfLines={1}>
                                 {item.name}
                             </Text>
                             <View style={tailwind`flex-row items-center mt-0.5`}>
                                 {item.season && (
-                                    <Text style={tailwind`text-xs text-gray-400 mr-2`}>
+                                    <Text style={{color: '#94a3b8', fontSize: 12, marginRight: 8}}>
                                         Season {item.season}
                                     </Text>
                                 )}
-                                {/* {item.country && (
-                                    <>
-                                        <Text style={tailwind`text-gray-300 text-xs`}>&middot;</Text>
-                                        <Text style={tailwind`text-xs text-gray-400 ml-2`}>
-                                            {item.country}
-                                        </Text>
-                                    </>
-                                )} */}
                             </View>
                         </View>
 
@@ -264,12 +258,12 @@ const Tournament = () => {
                                 {isLive && <View style={tailwind`w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5`} />}
                                 <Text style={[
                                     tailwind`text-xs font-semibold capitalize`,
-                                    isLive ? tailwind`text-red-400` : tailwind`text-gray-400`
+                                    isLive ? tailwind`text-red-400` : {color: '#94a3b8'}
                                 ]}>
                                     {item.status === "not_started" ? "Upcoming" : item.status || "Upcoming"}
                                 </Text>
                             </View>
-                            <Text style={tailwind`text-xs text-gray-400 mt-1 font-semibold`}>
+                            <Text style={{color: '#64748b', fontSize: 12, marginTop: 4, fontWeight: '600'}}>
                                 {startDate}
                             </Text>
                         </View>
@@ -280,102 +274,65 @@ const Tournament = () => {
     }
 
   return (
-    <View style={tailwind`flex-1 bg-gray-50`}>
-        <View>
-            <Animated.View style={[
+    <View style={{flex: 1, backgroundColor: '#0f172a'}}>
+            <Animated.View
+              style={[
                 animatedSportAndFilter,
-                {   position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor: "white",
-                    paddingBottom: 10,
-                    elevation: 6,
-                },
-            ]}>
-            {/* Sports selector */}
-                <View style={{ marginTop: 4 }}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-                    {games.map(s => {
-                      const active = game?.id === s.id;
-                      return (
-                        <Pressable
-                          key={s.id}
-                          onPress={() => handleSport(s)}
-                          style={{
-                            flexDirection: 'row', alignItems: 'center',
-                            paddingHorizontal: 18, paddingVertical: 8,
-                            borderRadius: 20, gap: 6,
-                            backgroundColor: active ? '#f87171' : '#1e293b',
-                            borderWidth: active ? 0 : 1,
-                            borderColor: '#334155',
-                          }}
-                        >
-                          <Text style={{
-                            color: active ? '#fff' : '#94a3b8',
-                            fontWeight: active ? '700' : '500',
-                            fontSize: 13,
-                          }}>
-                            {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-
-                {/* Filter row */}
-                <View style={tailwind`flex-row mt-3 items-center px-4`}>
-                    <Pressable
-                        style={[
-                            tailwind`flex-row items-center px-3.5 py-2 rounded-lg border mr-2`,
-                            typeFilter !== 'all' ? tailwind`border-red-400 bg-red-400` : tailwind`border-gray-200 bg-white`
-                        ]}
-                        onPress={() => setTypeFilterModal(true)}
-                    >
-                        <MaterialIcons name="filter-list" size={16} color={typeFilter !== 'all' ? "white" : "#9CA3AF"} />
-                        <Text style={[
-                            tailwind`text-sm ml-1.5`,
-                            typeFilter !== 'all' ? tailwind`text-white font-medium` : tailwind`text-gray-500`
-                        ]}>{typeFilter !== 'all' ? typeFilter : 'Category'}</Text>
-                        {typeFilter !== 'all' && (
-                            <Pressable onPress={() => setTypeFilter('all')} hitSlop={10} style={tailwind`ml-2`}>
-                                <MaterialIcons name="close" size={14} color="white" />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                    <Pressable
-                        style={[
-                            tailwind`flex-row items-center px-3.5 py-2 rounded-lg border`,
-                            statusFilter !== 'all' ? tailwind`border-red-400 bg-red-400` : tailwind`border-gray-200 bg-white`
-                        ]}
-                        onPress={() => setStatusFilterModal(true)}
-                    >
-                        <MaterialIcons name="schedule" size={16} color={statusFilter !== 'all' ? "white" : "#9CA3AF"} />
-                        <Text style={[
-                            tailwind`text-sm ml-1.5`,
-                            statusFilter !== 'all' ? tailwind`text-white font-medium` : tailwind`text-gray-500`
-                        ]}>{statusFilter !== 'all' ? statusFilter : 'Status'}</Text>
-                        {statusFilter !== 'all' && (
-                            <Pressable onPress={() => setStatusFilter('all')} hitSlop={10} style={tailwind`ml-2`}>
-                                <MaterialIcons name="close" size={14} color="white" />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                </View>
+                tailwind`shadow-lg`,
+                {
+                  backgroundColor: "#1e293b",
+                  borderBottomColor: "#334155",
+                  zIndex: 10
+                }
+              ]}
+            >
+              <SportSelector />
             </Animated.View>
-        </View>
+            <Animated.FlatList
+              data={filterTournaments}
+              keyExtractor={(item, index) =>
+                item.public_id ? item.public_id.toString() : index.toString()
+              }
+              renderItem={renderFilterTournament}
+              ListHeaderComponent={
+                <FilterBar
+                  typeFilter={typeFilter}
+                  statusFilter={statusFilter}
+                  setTypeFilterModal={setTypeFilterModal}
+                  setStatusFilterModal={setStatusFilterModal}
+                />
+              }
+              ListEmptyComponent={() =>
+                !loading && (
+                  <View style={tailwind`flex-1 justify-center items-center py-20`}>
+                    <MaterialIcons name="emoji-events" size={40} color="#475569" />
+
+                    <Text style={{color: '#f1f5f9', fontWeight: '600', marginTop: 16}}>
+                      No Tournaments Found
+                    </Text>
+
+                    <Text style={{color: '#94a3b8', marginTop: 6}}>
+                      Create a new tournament.
+                    </Text>
+                  </View>
+                )
+              }
+              stickyHeaderIndices={[0]}
+              onScroll={scrollHandler}
+              scrollEventThrottle={16}
+              contentContainerStyle={{
+                paddingBottom: 80
+              }}
+            />
 
         {/* Inline Error Display */}
         {!loading && error.global && (
-          <View style={tailwind`mx-4 mt-28 p-4 bg-white rounded-2xl items-center`}>
-            <MaterialIcons name="wifi-off" size={32} color="#D1D5DB" />
-            <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+          <View style={[tailwind`mx-4 mt-28 p-4 rounded-2xl items-center`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
+            <MaterialIcons name="wifi-off" size={32} color="#64748b" />
+            <Text style={{color: '#f1f5f9', fontWeight: '600', fontSize: 14, marginTop: 12, marginBottom: 4}}>
               Connection issue
             </Text>
-            <Text style={tailwind`text-gray-400 text-xs text-center mb-4`}>
+            <Text style={{color: '#94a3b8', fontSize: 12, textAlign: 'center', marginBottom: 16}}>
               {error.global}
             </Text>
             <Pressable
@@ -387,35 +344,17 @@ const Tournament = () => {
           </View>
         )}
 
-        <Animated.FlatList
-            data={filterTournaments}
-            keyExtractor={(item, index) => item.public_id ? item.public_id.toString() : index.toString()}
-            renderItem={renderFilterTournament}
-            onScroll={scrollHandler}
-            scrollEventThrottle={16}
-            contentContainerStyle={{
-              paddingTop: (typeFilter !== 'all' || statusFilter !== 'all') ? 170 : 120,
-              paddingBottom: 50,
-            }}
-            ListEmptyComponent={() => !loading && (
-                  <View style={tailwind`flex-1 justify-center items-center px-6`}>
-                    <MaterialIcons name="emoji-events" size={40} color="#D1D5DB" />
-                    <Text style={tailwind`text-gray-900 font-semibold mt-4 text-base`}>
-                      No Tournaments Found
-                    </Text>
-                    <Text style={tailwind`text-gray-400 text-sm text-center mt-2`}>
-                      create a new tournament.
-                    </Text>
-                  </View>
-                )
-            }
-        />
-
       {/* Floating Action Button */}
-      <View style={tailwind`absolute bottom-14 right-5`}>
+      <View style={tailwind`absolute bottom-18 right-5`}>
         <Pressable
-          style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
-          onPress={() => navigation.navigate('CreateTournament')}
+          onPress={() => navigation.navigate("CreateTournament")}
+          style={[
+            tailwind`p-4 rounded-lg`,
+            {
+              backgroundColor: "#f87171",
+              elevation: 6
+            }
+          ]}
         >
           <MaterialIcons name="add" size={24} color="white" />
         </Pressable>
@@ -425,15 +364,15 @@ const Tournament = () => {
       <Modal transparent={true} animationType="slide" visible={typeFilterModal} onRequestClose={() => setTypeFilterModal(false)}>
         <Pressable
           onPress={() => setTypeFilterModal(false)}
-          style={tailwind`flex-1 justify-end bg-black/40`}
+          style={tailwind`flex-1 justify-end bg-black/60`}
         >
-          <View style={tailwind`bg-white rounded-t-3xl pt-2 pb-8`}>
-            <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
-            <Text style={tailwind`text-base font-bold text-gray-900 px-6 mb-3`}>Category</Text>
-            {['international', 'country', 'nearby'].map((val) => (
+          <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
+            <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
+            <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Category</Text>
+            {['all', 'international', 'country', 'nearby'].map((val) => (
               <Pressable
                 key={val}
-                style={tailwind`flex-row items-center px-6 py-4 border-b border-gray-50`}
+                style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                 onPress={() => {
                   setTypeFilter(val);
                   setTypeFilterModal(false);
@@ -446,8 +385,8 @@ const Tournament = () => {
               >
                 <MaterialIcons
                   name={val === 'international' ? 'public' : val === 'country' ? 'flag' : 'near-me'}
-                  size={20} color="#9CA3AF" />
-                <Text style={tailwind`text-base text-gray-800 ml-4 capitalize`}>{val}</Text>
+                  size={20} color="#94a3b8" />
+                <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16, textTransform: 'capitalize'}}>{val}</Text>
                 {typeFilter === val && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
               </Pressable>
             ))}
@@ -459,11 +398,11 @@ const Tournament = () => {
       <Modal transparent={true} animationType="slide" visible={statusFilterModal} onRequestClose={() => setStatusFilterModal(false)}>
         <Pressable
           onPress={() => setStatusFilterModal(false)}
-          style={tailwind`flex-1 justify-end bg-black/40`}
+          style={tailwind`flex-1 justify-end bg-black/60`}
         >
-          <View style={tailwind`bg-white rounded-t-3xl pt-2 pb-8`}>
-            <View style={tailwind`w-10 h-1 bg-gray-200 rounded-full self-center mb-4`} />
-            <Text style={tailwind`text-base font-bold text-gray-900 px-6 mb-3`}>Status</Text>
+          <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
+            <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
+            <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Status</Text>
             {[
               { label: 'All', value: 'all', icon: 'list' },
               { label: 'Upcoming', value: 'not_started', icon: 'schedule' },
@@ -471,14 +410,14 @@ const Tournament = () => {
             ].map((opt) => (
               <Pressable
                 key={opt.value}
-                style={tailwind`flex-row items-center px-6 py-4 border-b border-gray-50`}
+                style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                 onPress={() => {
                   setStatusFilter(opt.value);
                   setStatusFilterModal(false);
                 }}
               >
-                <MaterialIcons name={opt.icon} size={20} color={opt.value === 'live' ? '#f87171' : '#9CA3AF'} />
-                <Text style={tailwind`text-base text-gray-800 ml-4`}>{opt.label}</Text>
+                <MaterialIcons name={opt.icon} size={20} color={opt.value === 'live' ? '#f87171' : '#94a3b8'} />
+                <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16}}>{opt.label}</Text>
                 {statusFilter === opt.value && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
               </Pressable>
             ))}

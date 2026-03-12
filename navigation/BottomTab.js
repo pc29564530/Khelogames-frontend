@@ -30,52 +30,72 @@ const BottomTab = () => {
  };
 
  return (
-   <>
    <Tab.Navigator
-     screenOptions={({route})=> ({
-       headerTitle: null,
-       headerTransparent: true,
-       headerShown: false,
-       headerLeft: null,
-       headerBackTitleVisible: false,
-       tabBarShowLabel: true,
-       tabBarActiveTintColor: '#f87171',
-       tabBarInactiveTintColor: '#475569',
-       tabBarStyle: {
-         position: 'absolute',
-         bottom: 0,
-         width: '100%',
-         backgroundColor: '#1e293b',
-         borderTopWidth: 1,
-         borderTopColor: '#334155',
-         paddingTop: 4,
-         elevation: 0,
-         shadowOpacity: 0,
-       },
-       tabBarLabelStyle: {
-         fontSize: 10,
-         fontWeight: '600',
-       },
-       tabBarIcon: ({focused, size, color}) => {
-        const activeStatus = focused ? '#f87171' : '#475569'
-         let Icon;
-         if(route.name === "Home"){
-           Icon=<FontAwesome name="home" size={25} color={activeStatus}/>;
-         } else if(route.name === "Matches"){
-            Icon = <MaterialIcons name="schedule" size={25} color={activeStatus}/>
-         } else if(route.name === "Community"){
-           Icon = <MaterialIcons name="forum" size={25} color={activeStatus}/>
-         } else if(route.name === "Tournament") {
-           Icon = <FontAwesome name="trophy" size={25} color={activeStatus}/>;
-         } else if(route.name === "Team") {
-           Icon = <MaterialIcons name="groups" size={25} color={activeStatus}/>;
-         } else if(route.name === "Thread") {
-          Icon = <Ionicons name="newspaper-outline" size={25} color={activeStatus}/>;
-         }
-         return Icon;
-       } 
-   })}
-   >
+      screenOptions={({ route }) => ({
+        headerShown: false,
+
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#f87171',
+        tabBarInactiveTintColor: '#64748b',
+
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 65,
+          paddingTop: 6,
+          paddingBottom: 10,
+          backgroundColor: "#1e293b",
+
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 8,
+
+          elevation: 12,
+        },
+
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginBottom: 2,
+        },
+
+        tabBarIconStyle: {
+          marginTop: 2,
+        },
+
+        tabBarIcon: ({ focused }) => {
+          const color = focused ? '#f87171' : '#64748b';
+          const size = 22;
+
+          if (route.name === "Home") {
+            return <FontAwesome name="home" size={size} color={color} />;
+          }
+
+          if (route.name === "Matches") {
+            return <MaterialIcons name="sports-soccer" size={size} color={color} />;
+          }
+
+          if (route.name === "Tournament") {
+            return <FontAwesome name="trophy" size={size} color={color} />;
+          }
+
+          if (route.name === "Team") {
+            return <MaterialIcons name="groups" size={size} color={color} />;
+          }
+
+          if (route.name === "Thread") {
+            return <Ionicons name="newspaper-outline" size={size} color={color} />;
+          }
+
+          if (route.name === "Community") {
+            return <MaterialIcons name="forum" size={size} color={color} />;
+          }
+        },
+      })}
+    >
      <Tab.Screen name="Home" component={Home} />
      <Tab.Screen name="Matches" component={Matches} 
       listeners={() => ({
@@ -93,20 +113,6 @@ const BottomTab = () => {
      <Tab.Screen name="Thread" component={Thread} />
      <Tab.Screen name="Community" component={Community} />
    </Tab.Navigator>
-
-   <Modal
-     transparent={true}
-     animationType="slide"
-     visible={isModalVisible}
-     onRequestClose={closeModal}
-   >
-     <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-       <View style={{ padding: 24, backgroundColor: '#1e293b', borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTopWidth: 1, borderColor: '#334155' }}>
-         <AddContent closeModal={closeModal} navigation={navigation}/>
-       </View>
-     </View>
-   </Modal>
- </>
  );
 };
 

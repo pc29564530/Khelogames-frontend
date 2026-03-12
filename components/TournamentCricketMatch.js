@@ -15,16 +15,16 @@ import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, in
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
       <View key={index} style={tailwind`flex-row items-center`}>
-        <Text style={tailwind`text-sm font-bold text-gray-900`}>
+        <Text style={{ color: '#f1f5f9', fontSize: 14, fontWeight: '700' }}>
           {score.score}/{score.wickets}
         </Text>
         {score.is_inning_completed === false && (
-            <Text style={tailwind`text-xs text-gray-400 ml-1`}>({convertBallToOvers(score.overs)})</Text>
+            <Text style={{ color: '#64748b', fontSize: 11, marginLeft: 4 }}>({convertBallToOvers(score.overs)})</Text>
         )}
       </View>
     ));
 };
-  
+
 
 const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const navigation = useNavigation();
@@ -82,7 +82,6 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             });
             const item = response.data;
             if(item.success && item.data.length === 0) {
-                //Added the null data
                 dispatch(getMatches([]));
             }
             dispatch(getMatches(item.data))
@@ -107,23 +106,23 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
             contentContainerStyle={{paddintTop: 20, paddingBottom:100, minHeight: sHeight+100}}
             showsVerticalScrollIndicator={false}
         >
-                <Animated.View style={[tailwind`p-4 bg-white`, contentStyle]}>
+                <Animated.View style={[{ padding: 16, backgroundColor: '#0f172a' }, contentStyle]}>
                     {matches?.length === 0 && error?.global && (
-                        <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                            <Text style={tailwind`text-red-700 text-sm`}>
+                        <View style={[tailwind`mx-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                            <Text style={{ color: '#fca5a5', fontSize: 13 }}>
                                 {error.global}
                             </Text>
                         </View>
                     )}
                     {matches?.length > 0 ? (
                         matches.map((stage, index) => (
-                            <View key={index} style={tailwind`bg-white`}>
-                                {Object.keys(stage?.group_stage).length > 0 && 
+                            <View key={index} style={{ backgroundColor: '#0f172a' }}>
+                                {Object.keys(stage?.group_stage).length > 0 &&
                                     Object.entries(stage.group_stage).map(([stageName, matchs]) => (
                                         matchesData(matchs, stageName, navigation)
                                     ))
                                 }
-                                {Object.keys(stage.league_stage).length > 0 && 
+                                {Object.keys(stage.league_stage).length > 0 &&
                                     Object.entries(stage.league_stage).map(([stageName, matchs]) => (
                                         matchesData(matchs, stageName, navigation)
                                     ))
@@ -133,7 +132,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                                         matches.length > 0 && (
                                             <View key={stageName}>
                                                 {matchs.length>0 && (
-                                                    <Text style={tailwind`text-lg mb-2`}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
+                                                    <Text style={{ color: '#f1f5f9', fontSize: 17, marginBottom: 8 }}>{stageName.replace('_', ' ').toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('')}</Text>
                                                 )}
                                                 {matchs.map((item, ind) => (
                                                     matchesData(item, ind, navigation)
@@ -145,7 +144,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                             </View>
                         ))
                     ) : (
-                        <Text style={tailwind`text-center mt-4 text-gray-600`}>Loading matches...</Text>
+                        <Text style={{ color: '#64748b', textAlign: 'center', marginTop: 16 }}>Loading matches...</Text>
                     )}
                 </Animated.View>
             </Animated.ScrollView>
@@ -164,8 +163,8 @@ const matchesData = (item, ind, navigation) => {
         <Pressable
             key={ind}
             style={[
-                tailwind`mb-2 bg-white rounded-xl overflow-hidden`,
-                {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1}
+                tailwind`mb-2 rounded-xl overflow-hidden`,
+                { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
             ]}
             onPress={() => handleCricketMatchPage(item)}
         >
@@ -180,16 +179,16 @@ const matchesData = (item, ind, navigation) => {
                         {item?.homeTeam?.media_url ? (
                             <Image
                                 source={{ uri: item.homeTeam.media_url }}
-                                style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
+                                style={[tailwind`w-7 h-7 rounded-full`, { backgroundColor: '#334155' }]}
                             />
                         ) : (
-                            <View style={tailwind`w-7 h-7 rounded-full bg-gray-100 items-center justify-center`}>
-                                <Text style={tailwind`text-xs font-bold text-gray-400`}>
+                            <View style={[tailwind`w-7 h-7 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700' }}>
                                     {homeTeamName.charAt(0).toUpperCase()}
                                 </Text>
                             </View>
                         )}
-                        <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
+                        <Text style={[tailwind`ml-2.5 text-sm flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                             {item.homeTeam?.name}
                         </Text>
                         {item?.homeScore && (
@@ -204,16 +203,16 @@ const matchesData = (item, ind, navigation) => {
                         {item?.awayTeam?.media_url ? (
                             <Image
                                 source={{ uri: item.awayTeam.media_url }}
-                                style={tailwind`w-7 h-7 rounded-full bg-gray-100`}
+                                style={[tailwind`w-7 h-7 rounded-full`, { backgroundColor: '#334155' }]}
                             />
                         ) : (
-                            <View style={tailwind`w-7 h-7 rounded-full bg-gray-100 items-center justify-center`}>
-                                <Text style={tailwind`text-xs font-bold text-gray-400`}>
+                            <View style={[tailwind`w-7 h-7 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700' }}>
                                     {awayTeamName.charAt(0).toUpperCase()}
                                 </Text>
                             </View>
                         )}
-                        <Text style={tailwind`ml-2.5 text-sm text-gray-900 flex-1`} numberOfLines={1}>
+                        <Text style={[tailwind`ml-2.5 text-sm flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                             {item.awayTeam?.name}
                         </Text>
                         {item?.awayScore && (
@@ -225,22 +224,22 @@ const matchesData = (item, ind, navigation) => {
                 </View>
 
                 {/* Vertical divider */}
-                <View style={tailwind`w-px bg-gray-100 my-3`} />
+                <View style={[tailwind`w-px my-3`, { backgroundColor: '#334155' }]} />
 
                 {/* Date + Status */}
                 <View style={tailwind`w-20 items-center justify-center py-3`}>
-                    <Text style={tailwind`text-xs text-gray-400`}>
+                    <Text style={{ color: '#64748b', fontSize: 11 }}>
                         {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                     </Text>
                     {item?.status_code !== "not_started" && item?.status_code !== "finished" ? (
                         <Text style={[
                             tailwind`text-xs font-semibold mt-1 capitalize`,
-                            isLive ? tailwind`text-red-400` : tailwind`text-gray-400`
+                            isLive ? tailwind`text-red-400` : { color: '#64748b' }
                         ]}>
                             {item?.status_code}
                         </Text>
                     ) : (
-                        <Text style={tailwind`text-xs text-gray-900 font-medium mt-1`}>
+                        <Text style={{ color: '#cbd5e1', fontSize: 11, fontWeight: '500', marginTop: 4 }}>
                             {formattedTime(convertToISOString(item?.start_timestamp))}
                         </Text>
                     )}

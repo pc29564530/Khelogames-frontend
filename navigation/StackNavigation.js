@@ -17,9 +17,8 @@ const StackNavigation = () => {
         header: () => (
           <View
             style={{
-              height: 64,
+              height: 56,
               backgroundColor: '#1e293b',
-              borderBottomWidth: 1,
               borderBottomColor: '#334155',
               flexDirection: 'row',
               alignItems: 'center',

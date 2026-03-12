@@ -14,6 +14,15 @@ import { formatToDDMMYY, formattedDate, formattedTime, convertToISOString, local
 import { getMatches, getTournamentByIdAction } from '../redux/actions/actions';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import { requestLocationPermission } from '../utils/locationService';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedScrollHandler,
+  withTiming
+} from "react-native-reanimated";
+import SportSelector from '../components/SportSelector';
+import { MatchesFilterBar } from '../components/FilterBar';
 
 const liveStatus = ['in_progress', 'break', 'half_time', 'penalty_shootout', 'extra_time'];
 
@@ -30,27 +39,27 @@ const STATUS_LABELS = {
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
       <View key={index} style={tailwind`flex-row ml-2`}>
-        <Text style={tailwind`ml-2 text-lg text-gray-800`}>
+        <Text style={[tailwind`ml-2 text-lg`, {color: '#e2e8f0'}]}>
           {score.score}/{score.wickets}
         </Text>
         {score.overs !== undefined && (
-            <Text style={tailwind`ml-2 text-lg text-gray-800`}>({convertBallToOvers(score.overs)})</Text>
+            <Text style={[tailwind`ml-2 text-lg`, {color: '#e2e8f0'}]}>({convertBallToOvers(score.overs)})</Text>
         )}
       </View>
     ));
   };
 
-export const emptyStateUI = () => {
+export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation}) => {
     return (
-        <View style={tailwind`flex-1 justify-center items-center p-6`}>
-            <AntDesign name="calendar" size={64} color="#d1d5db" />
-            <Text style={tailwind`text-gray-700 text-xl font-semibold mt-4 text-center`}>
+        <View style={[tailwind`flex-1 justify-center items-center p-6`, {backgroundColor: '#0f172a'}]}>
+            <AntDesign name="calendar" size={64} color="#475569" />
+            <Text style={[tailwind`text-xl font-semibold mt-4 text-center`, {color: '#94a3b8'}]}>
                 No Matches Scheduled
             </Text>
-            <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
+            <Text style={[tailwind`text-sm mt-2 text-center`, {color: '#64748b'}]}>
                 No {game?.name} matches found for {formattedDate(selectedDate)}
             </Text>
-            <Text style={tailwind`text-gray-400 text-xs mt-3 text-center`}>
+            <Text style={[tailwind`text-xs mt-3 text-center`, {color: '#475569'}]}>
                 Try selecting a different date or sport, or check Live matches
             </Text>
             <View style={tailwind`flex-row gap-3 mt-6`}>
@@ -79,8 +88,8 @@ const renderScore = (item, game) => {
     if (game?.name === 'football') {
         return (
             <View style={tailwind`items-center`}>
-                <Text style={tailwind`ml-2 text-lg font-bold text-black`}>{item.homeScore?.score || '0'}</Text>
-                <Text style={tailwind`ml-2 text-lg font-bold text-black`}>{item.awayScore?.score || '0'}</Text>
+                <Text style={[tailwind`ml-2 text-lg font-bold`, {color: '#f1f5f9'}]}>{item.homeScore?.score || '0'}</Text>
+                <Text style={[tailwind`ml-2 text-lg font-bold`, {color: '#f1f5f9'}]}>{item.awayScore?.score || '0'}</Text>
             </View>
         );
     }
@@ -144,6 +153,34 @@ const Matches = () => {
     const scrollViewRef = useRef(null);
 
     const matches = useSelector((state) => state.matches.matches)
+
+    const scrollY = useSharedValue(0);
+    const pos = useSharedValue(0);
+    const FILTER_HEIGHT = 100;
+
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            const currentY = event.contentOffset.y;
+            if (currentY > scrollY.value + 5) {
+                // scrolling down
+                if (pos.value === 0) {
+                    pos.value = withTiming(-FILTER_HEIGHT, { duration: 250 });
+                }
+            } else if (currentY < scrollY.value - 5) {
+                // scrolling up
+                if (pos.value === -FILTER_HEIGHT) {
+                    pos.value = withTiming(0, { duration: 250 });
+                }
+            }
+            scrollY.value = currentY;
+        },
+    });
+
+    const animatedSportAndFilter = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: pos.value }],
+        };
+    });
 
     useEffect(() => {
         const defaultSport = { id: 1, name: 'football', min_players: 11};
@@ -335,18 +372,17 @@ const Matches = () => {
         return (
             <Pressable
                 style={[
-                    tailwind`mb-3 bg-white rounded-xl overflow-hidden`,
-                    {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}
+                    tailwind`mb-3 rounded-xl overflow-hidden`,
+                    {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}
                 ]}
                 onPress={() => checkSportForMatchPage(item, game)}
-            >   
+            >
 
                 {/* Tournament Header */}
-                <View style={tailwind`bg-gray-50 px-4 py-2 border-b border-gray-100`}>
-                    <Text style={tailwind`text-gray-600 text-xs font-semibold`} numberOfLines={1}>
+                <View style={[tailwind`px-4 py-2`, {backgroundColor: '#0f172a', borderBottomWidth: 1, borderBottomColor: '#334155'}]}>
+                    <Text style={[tailwind`text-xs font-semibold`, {color: '#94a3b8'}]} numberOfLines={1}>
                         {item?.tournament?.name || 'Tournament'}
                     </Text>
-                    {/* <MaterialIcons name="right" size={12} color="#6b7280" style={tailwind`ml-1`} /> */}
                 </View>
 
                 {/* Match Content */}
@@ -356,7 +392,7 @@ const Matches = () => {
                         <View style={tailwind`flex-1`}>
                             {/* Home Team */}
                             <View style={tailwind`flex-row items-center mb-3`}>
-                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, {backgroundColor: '#334155'}]}>
                                     {item?.homeTeam?.media_url ? (
                                         <Image
                                             source={{ uri: item.homeTeam.media_url }}
@@ -368,14 +404,14 @@ const Matches = () => {
                                         </Text>
                                     )}
                                 </View>
-                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                <Text style={[tailwind`font-semibold ml-3 flex-1`, {color: '#f1f5f9'}]} numberOfLines={1}>
                                     {item?.homeTeam?.name}
                                 </Text>
                                 {item?.status !== "not_started" && item?.homeScore && (
-                                    <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                    <Text style={[tailwind`font-bold text-md ml-2`, {color: '#f1f5f9'}]}>
                                         {item.homeScore.goals}
                                         {item.homeScore?.penalty_shootout && (
-                                            <Text style={tailwind`text-gray-500 text-md`}> ({item.homeScore.penalty_shootout})</Text>
+                                            <Text style={[tailwind`text-md`, {color: '#64748b'}]}> ({item.homeScore.penalty_shootout})</Text>
                                         )}
                                     </Text>
                                 )}
@@ -383,7 +419,7 @@ const Matches = () => {
 
                             {/* Away Team */}
                             <View style={tailwind`flex-row items-center`}>
-                                <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                                <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, {backgroundColor: '#334155'}]}>
                                     {item?.awayTeam?.media_url ? (
                                         <Image
                                             source={{ uri: item.awayTeam.media_url }}
@@ -395,36 +431,36 @@ const Matches = () => {
                                         </Text>
                                     )}
                                 </View>
-                                <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                                <Text style={[tailwind`font-semibold ml-3 flex-1`, {color: '#f1f5f9'}]} numberOfLines={1}>
                                     {item?.awayTeam?.name}
                                 </Text>
                                 {item?.status !== "not_started" && item?.awayScore && (
-                                    <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
+                                    <Text style={[tailwind`font-bold text-md ml-2`, {color: '#f1f5f9'}]}>
                                         {item.awayScore.goals}
                                         {item.awayScore?.penalty_shootout && (
-                                            <Text style={tailwind`text-gray-500 text-sm`}> ({item.awayScore.penalty_shootout})</Text>
+                                            <Text style={[tailwind`text-sm`, {color: '#64748b'}]}> ({item.awayScore.penalty_shootout})</Text>
                                         )}
                                     </Text>
                                 )}
                             </View>
                         </View>
-                        
+
                         {/* Vertical divider */}
-                        <View style={tailwind`w-px bg-gray-100 my-3`} />
+                        <View style={[tailwind`w-px my-3`, {backgroundColor: '#334155'}]} />
 
                         {/* Match Info */}
                         <View style={tailwind`items-end ml-4`}>
-                            <Text style={tailwind`text-gray-600 text-xs font-semibold mb-1`}>
+                            <Text style={[tailwind`text-xs font-semibold mb-1`, {color: '#94a3b8'}]}>
                                 {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                             </Text>
                             {item?.status !== "not_started" ? (
-                                <View style={tailwind`px-2 py-1 rounded bg-gray-100`}>
-                                    <Text style={tailwind`text-xs font-semibold capitalize`}>
+                                <View style={[tailwind`px-2 py-1 rounded`, {backgroundColor: '#334155'}]}>
+                                    <Text style={[tailwind`text-xs font-semibold capitalize`, {color: '#cbd5e1'}]}>
                                         {item?.status_code || item?.status}
                                     </Text>
                                 </View>
                             ) : (
-                                <Text style={tailwind`text-gray-500 text-xs`}>
+                                <Text style={[tailwind`text-xs`, {color: '#64748b'}]}>
                                     {formattedTime(convertToISOString(item?.start_timestamp))}
                                 </Text>
                             )}
@@ -437,121 +473,59 @@ const Matches = () => {
 
     if (loading && !matches.length) {
         return (
-            <View style={tailwind`flex-1 bg-white justify-center items-center`}>
-                <ActivityIndicator size="large" color="#f97316" />
-                <Text style={tailwind`mt-4 text-gray-600`}>Loading matches...</Text>
+            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={[tailwind`mt-4`, {color: '#94a3b8'}]}>Loading matches...</Text>
             </View>
         );
     }
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
-            <View style={{ marginTop: 4 }}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-                {games.map(s => {
-                    const active = game?.id === s.id;
-                    return (
-                    <Pressable
-                        key={s.id}
-                        onPress={() => handleSport(s)}
-                        style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        paddingHorizontal: 18, paddingVertical: 8,
-                        borderRadius: 20, gap: 6,
-                        backgroundColor: active ? '#f87171' : '#1e293b',
-                        borderWidth: active ? 0 : 1,
-                        borderColor: '#334155',
-                        }}
-                    >
-                        <Text style={{
-                        color: active ? '#fff' : '#94a3b8',
-                        fontWeight: active ? '700' : '500',
-                        fontSize: 13,
-                        }}>
-                        {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
-                        </Text>
-                    </Pressable>
-                    );
-                })}
-                </ScrollView>
-            </View>
-            <View style={tailwind`p-4`}>
-                <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                    <Pressable
-                        style={tailwind`flex-row items-center`}
-                        onPress={() => setIsDatePickerVisible(true)}
-                    >
-                        <AntDesign name="calendar" size={25} color="black" />
-                        <Text style={tailwind`ml-2 text-base text-black`}>
-                            {formattedDate(selectedDate)}
-                        </Text>
-                    </Pressable>
-                    <Pressable
-                        onPress={() => {handleLocation()}}
-                        style={[
-                            tailwind`bg-red-500 rounded-md shadow-md px-3 py-2`,
-                            isLoadingLocation && tailwind`opacity-50`
-                        ]}
-                        disabled={isLoadingLocation}
-                    >
-                        {isLoadingLocation ? (
-                            <ActivityIndicator size="small" color="white" />
-                        ) : (
-                            <Text style={tailwind`text-white text-sm font-bold`}>Nearby</Text>
-                        )}
-                    </Pressable>
-                    <Pressable
-                        onPress={() => handleLiveMatches()}
-                        style={tailwind`bg-red-500 rounded-md shadow-md px-3 py-2`}
-                    >
-                        <Text style={tailwind`text-white text-sm font-bold`}>Live</Text>
-                    </Pressable>
-                </View>
-
-            </View>
+        <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
+            {/* Sport Selector - SofaScore style */}
+            <Animated.View
+                style={[
+                animatedSportAndFilter,
+                {
+                    backgroundColor: "#1e293b",
+                    borderBottomColor: "#334155",
+                    zIndex: 10,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 6
+                }
+                ]}
+            >
+                <SportSelector />
+            </Animated.View>
+            <Animated.FlatList
+                data={matches}
+                keyExtractor={(item) => item.public_id}
+                renderItem={renderMatchCard}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={
+                    <MatchesFilterBar
+                        selectedDate={selectedDate}
+                        setIsDatePickerVisible={setIsDatePickerVisible}
+                        handleLocation={handleLocation}
+                        handleLiveMatches={handleLiveMatches}
+                        formattedDate={formattedDate}
+                    />
+                }
+                stickyHeaderIndices={[0]}
+                ListEmptyComponent={!loading && emptyStateUI(game)}
+                onScroll={scrollHandler}
+                scrollEventThrottle={16}
+                contentContainerStyle={{
+                    paddingBottom: 80
+                }}
+            />
 
             {error.global && (
-                <View style={tailwind`px-4 py-2 bg-red-50`}>
-                    <Text style={tailwind`text-red-600 text-center`}>{error.global}</Text>
+                <View style={[tailwind`px-4 py-2`, {backgroundColor: '#f8717115'}]}>
+                    <Text style={tailwind`text-red-400 text-center`}>{error.global}</Text>
                 </View>
-            )}
-
-            {!matches.length && !loading ? (
-                <View style={tailwind`flex-1 justify-center items-center p-6`}>
-                    <AntDesign name="calendar" size={64} color="#d1d5db" />
-                    <Text style={tailwind`text-gray-700 text-xl font-semibold mt-4 text-center`}>
-                        No Matches Scheduled
-                    </Text>
-                    <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>
-                        No {game?.name} matches found for {formattedDate(selectedDate)}
-                    </Text>
-                    <Text style={tailwind`text-gray-400 text-xs mt-3 text-center`}>
-                        Try selecting a different date or sport, or check Live matches
-                    </Text>
-                    <View style={tailwind`flex-row gap-3 mt-6`}>
-                        <Pressable
-                            onPress={() => setIsDatePickerVisible(true)}
-                            style={tailwind`bg-orange-400 px-6 py-3 rounded-lg`}
-                        >
-                            <Text style={tailwind`text-white font-semibold`}>Change Date</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={handleLiveMatches}
-                            style={tailwind`bg-red-500 px-6 py-3 rounded-lg`}
-                        >
-                            <Text style={tailwind`text-white font-semibold`}>View Live</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            ) : (
-                <FlatList
-                    data={matches}
-                    keyExtractor={(item) => item.public_id}
-                    renderItem={renderMatchCard}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={tailwind`px-4 pb-4`}
-                />
             )}
 
             {isDatePickerVisible && (
@@ -561,32 +535,59 @@ const Matches = () => {
                     animationType="fade"
                     onRequestClose={() => setIsDatePickerVisible(false)}
                 >
-                    <Pressable
-                        onPress={()=>setIsDatePickerVisible(false)}
-                        style={tailwind`flex-1 justify-center p-2 bg-black/50`}
-                    >
-                        <Pressable onPress={(e) => e.stopPropagation()}>
-                            <View style={tailwind`bg-white rounded-lg p-4`}>
-                                <DatePicker
-                                    date={formatDateToDatePicker(selectedDate)}
-                                    mode="calendar"
-                                    onDateChange={(dateString) => {
-                                        console.log("Date selected from picker: ", dateString);
-                                        setSelectedDate(formatDatePickerToDate(dateString));
-                                    }}
-                                />
-                                <Pressable
-                                    style={tailwind`mt-4 bg-orange-400 rounded-md p-3`}
-                                    onPress={() => setIsDatePickerVisible(false)}
-                                >
-                                    <Text style={tailwind`text-white text-center font-bold`}>
-                                        Confirm
-                                    </Text>
+                    <View style={tailwind`flex-1 justify-end bg-black/60`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsDatePickerVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`p-4 rounded-t-3xl`,
+                                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+                            ]}
+                        >
+                            {/* Drag indicator */}
+                            <View
+                                style={{
+                                width: 40,
+                                height: 4,
+                                backgroundColor: "#475569",
+                                borderRadius: 2,
+                                alignSelf: "center",
+                                marginBottom: 10
+                                }}
+                            />
+
+                            {/* Header */}
+                            <View style={tailwind`flex-row items-center justify-between mb-3`}>
+                                <Text style={{ color: "#f1f5f9", fontSize: 18, fontWeight: "700" }}>
+                                Select Date
+                                </Text>
+
+                                <Pressable onPress={() => setIsModalStartTimeVisible(false)}>
+                                <MaterialIcons name="close" size={22} color="#94a3b8" />
                                 </Pressable>
                             </View>
-                        </Pressable>
-                    </Pressable>
-                </Modal>
+                            <DatePicker
+                                date={formatDateToDatePicker(selectedDate)}
+                                mode="calendar"
+                                onDateChange={(dateString) => {
+                                    setSelectedDate(formatDatePickerToDate(dateString));
+                                    setIsDatePickerVisible(false);
+                                }}
+                                options={{
+                                    backgroundColor: "#0f172a",
+                                    textHeaderColor: "#f87171",
+                                    textDefaultColor: "#f1f5f9",
+                                    selectedTextColor: "#fff",
+                                    mainColor: "#f87171",
+                                    textSecondaryColor: "#94a3b8",
+                                    borderColor: "#334155",
+                                }}
+                            />
+                            </View>
+                    </View>
+                 </Modal>
             )}
         </View>
     );

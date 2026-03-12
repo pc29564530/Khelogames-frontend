@@ -122,18 +122,12 @@ const CreateTournament = () => {
             );
 
 
-            const tournament = response.data
+            const item = response.data
 
-            console.log("API Response structure:", {
-            data: response.data,
-            type: typeof response.data,
-            isArray: Array.isArray(response.data)
-        });
-
-            if (tournament) {
-                dispatch(addTournament(tournament));
+            if (item.data) {
+                dispatch(addTournament(item.data));
                 navigation.popToTop()
-                navigation.navigate("TournamentPage", { tournament, currentRole: "user" });
+                navigation.navigate("TournamentPage", { tournament: item.data, currentRole: "user" });
             } else {
             console.error("No tournament found in response", response.data);
             }
@@ -162,12 +156,11 @@ const CreateTournament = () => {
             <Text style={tailwind`text-xl font-bold text-white`}>Create Tournament</Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            backgroundColor: '#0f172a',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#1e293b',
         },
         headerTintColor: 'white',
         headerTitleAlign: 'center',
@@ -212,10 +205,12 @@ const CreateTournament = () => {
             }, [])
         );
 
+    const today = new Date().toISOString().split("T")[0];
+
     return (
-        <ScrollView style={tailwind`flex-1 bg-gray-50`} contentContainerStyle={tailwind`px-5 py-5 pb-12`}>
+        <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}} contentContainerStyle={tailwind`px-5 py-5 pb-12`}>
             {error?.global && (
-                <View style={tailwind`mb-4 p-3.5 bg-white rounded-xl border border-gray-100`}>
+                <View style={[tailwind`mb-4 p-3.5 rounded-xl`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                     <View style={tailwind`flex-row items-center`}>
                         <MaterialIcons name="error-outline" size={18} color="#f87171" />
                         <Text style={tailwind`text-red-400 text-sm ml-2 flex-1`}>
@@ -226,17 +221,17 @@ const CreateTournament = () => {
             )}
 
             {/* Form card */}
-            <View style={tailwind`bg-white rounded-2xl p-5 mb-4`}>
+            <View style={[tailwind`rounded-2xl p-5 mb-4`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                 <View style={tailwind`mb-5`}>
-                  <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>
+                  <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>
                     Tournament Name
                   </Text>
                   <TextInput
-                    style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                    style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                     value={name}
                     onChangeText={setName}
                     placeholder="e.g. Premier League 2025"
-                    placeholderTextColor="#D1D5DB"
+                    placeholderTextColor="#475569"
                   />
                   {(error?.fields?.name || error?.fields?.tournamentName) && (
                     <Text style={tailwind`text-red-400 text-xs mt-1.5`}>
@@ -246,15 +241,15 @@ const CreateTournament = () => {
                 </View>
 
                 {/* Location row */}
-                <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Location</Text>
+                <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Location</Text>
                 <View style={tailwind`flex-row mb-5`}>
                   <View style={tailwind`flex-1 mr-2`}>
                     <TextInput
-                      style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                      style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                       value={city}
                       onChangeText={setCity}
                       placeholder="City"
-                      placeholderTextColor="#D1D5DB"
+                      placeholderTextColor="#475569"
                     />
                     {error?.fields.city && (
                       <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.city}</Text>
@@ -262,11 +257,11 @@ const CreateTournament = () => {
                   </View>
                   <View style={tailwind`flex-1`}>
                     <TextInput
-                      style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                      style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                       value={state}
                       onChangeText={setState}
                       placeholder="State"
-                      placeholderTextColor="#D1D5DB"
+                      placeholderTextColor="#475569"
                     />
                     {error?.fields.state && (
                       <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.state}</Text>
@@ -275,11 +270,11 @@ const CreateTournament = () => {
                 </View>
                 <View style={tailwind`mb-5`}>
                   <TextInput
-                    style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                    style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                     value={country}
                     onChangeText={setCountry}
                     placeholder="Country"
-                    placeholderTextColor="#D1D5DB"
+                    placeholderTextColor="#475569"
                   />
                   {error?.fields.country && (
                     <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.country}</Text>
@@ -288,12 +283,12 @@ const CreateTournament = () => {
 
                 {/* Date Picker */}
                 <View style={tailwind`mb-5`}>
-                  <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Start Date</Text>
+                  <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Start Date</Text>
                   <Pressable
                         onPress={() => setIsDurationVisible(true)}
-                        style={tailwind`flex-row justify-between items-center py-3 px-4 bg-gray-50 rounded-xl`}
+                        style={[tailwind`flex-row justify-between items-center py-3 px-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1}]}
                     >
-                        <Text style={startTimestamp ? tailwind`text-gray-900 text-sm` : tailwind`text-gray-300 text-sm`}>
+                        <Text style={startTimestamp ? {color: '#f1f5f9', fontSize: 14} : {color: '#475569', fontSize: 14}}>
                             {startTimestamp ? startTimestamp : 'Select date & time'}
                         </Text>
                         <MaterialIcons name="calendar-today" size={18} color="#9CA3AF" />
@@ -307,11 +302,11 @@ const CreateTournament = () => {
 
                 {/* Stage selector */}
                 <View style={tailwind`mb-5`}>
-                    <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Stage</Text>
-                    <View style={tailwind`flex-row bg-gray-50 rounded-xl p-1`}>
+                    <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Stage</Text>
+                    <View style={[tailwind`flex-row rounded-xl p-1`, {backgroundColor: '#0f172a'}]}>
                         {Stages.map((item, index) => (
                         <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-2.5 rounded-lg`, stage===item && tailwind`bg-red-400`]}>
-                            <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:tailwind`text-gray-400`]}>{item}</Text>
+                            <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:{color: '#94a3b8'}]}>{item}</Text>
                         </Pressable>
                         ))}
                     </View>
@@ -325,12 +320,12 @@ const CreateTournament = () => {
                 {/* Group Count — only for Group stage, League always has 1 group (set by backend) */}
                 {stage === "Group" && (
                     <View style={tailwind`mb-5`}>
-                        <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Number of Groups</Text>
+                        <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Number of Groups</Text>
                         <TextInput
-                            style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                            style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                             placeholder="e.g. 4"
                             keyboardType='numeric'
-                            placeholderTextColor="#D1D5DB"
+                            placeholderTextColor="#475569"
                             value={groupCount}
                             onChangeText={setGroupCount}
                         />
@@ -343,12 +338,12 @@ const CreateTournament = () => {
                 {/* Max Team Per Group — shown for both Group and League */}
                 {(stage === "Group" || stage === "League") && (
                     <View style={tailwind`mb-5`}>
-                        <Text style={tailwind`text-gray-900 font-semibold mb-2 text-sm`}>Max Teams Per Group</Text>
+                        <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Max Teams Per Group</Text>
                         <TextInput
-                            style={tailwind`py-3 px-4 bg-gray-50 rounded-xl text-gray-900 text-sm`}
+                            style={[tailwind`py-3 px-4 rounded-xl text-sm`, {backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1}]}
                             placeholder="e.g. 6"
                             keyboardType='numeric'
-                            placeholderTextColor="#D1D5DB"
+                            placeholderTextColor="#475569"
                             value={maxTeamGroup}
                             onChangeText={setMaxGroupTeam}
                         />
@@ -361,10 +356,10 @@ const CreateTournament = () => {
                 {/* Knockout toggle */}
                 <Pressable
                     onPress={() => setIsKnockout(!isKnockout)}
-                    style={tailwind`flex-row items-center justify-between py-3 px-4 bg-gray-50 rounded-xl mb-2`}
+                    style={[tailwind`flex-row items-center justify-between py-3 px-4 rounded-xl mb-2`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1}]}
                 >
-                    <Text style={tailwind`text-sm text-gray-900`}>Has Knockout Stage</Text>
-                    <View style={[tailwind`w-11 h-6 rounded-full justify-center px-0.5`, isKnockout ? tailwind`bg-red-400` : tailwind`bg-gray-200`]}>
+                    <Text style={{color: '#f1f5f9', fontSize: 14}}>Has Knockout Stage</Text>
+                    <View style={[tailwind`w-11 h-6 rounded-full justify-center px-0.5`, isKnockout ? tailwind`bg-red-400` : {backgroundColor: '#475569'}]}>
                         <View style={[tailwind`w-5 h-5 rounded-full bg-white`, isKnockout && tailwind`self-end`]} />
                     </View>
                 </Pressable>
@@ -388,10 +383,10 @@ const CreateTournament = () => {
                     visible={isSportVisible}
                 >
                     <Pressable
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        style={tailwind`flex-1 justify-end bg-black/60`}
                         onPress={() => setIsSportVisible(false)}
                     >
-                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                        <View style={[tailwind`rounded-t-lg p-4`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
                             {games?.map((item, index) => (
                                 <Pressable
                                     key={index}
@@ -399,10 +394,10 @@ const CreateTournament = () => {
                                         setSport(item.name);
                                         setIsSportVisible(false);
                                     }}
-                                    style={tailwind`py-2 border-b border-gray-200`}
+                                    style={[tailwind`py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>
-                                        
+                                    <Text style={{color: '#cbd5e1', fontSize: 18}}>
+
                                         {item.name}
                                     </Text>
                                 </Pressable>
@@ -430,10 +425,10 @@ const CreateTournament = () => {
                     visible={isLevelVisible}
                 >
                     <Pressable
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                        style={tailwind`flex-1 justify-end bg-black/60`}
                         onPress={() => setIsLevelVisible(false)}
                     >
-                        <View style={tailwind`bg-white rounded-t-lg p-4`}>
+                        <View style={[tailwind`rounded-t-lg p-4`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
                             {levels.map((item) => (
                                 <Pressable
                                     key={item}
@@ -441,9 +436,9 @@ const CreateTournament = () => {
                                         setCategory(item.toLocaleLowerCase());
                                         setIsLevelVisible(false);
                                     }}
-                                    style={tailwind`py-2 border-b border-gray-200`}
+                                    style={[tailwind`py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                 >
-                                    <Text style={tailwind`text-lg text-gray-800`}>
+                                    <Text style={{color: '#cbd5e1', fontSize: 18}}>
                                         {item}
                                     </Text>
                                 </Pressable>
@@ -454,22 +449,67 @@ const CreateTournament = () => {
             )}
 
             {isDurationVisible && (
-                <Modal
-                transparent={true}
-                animationType="slide"
-                visible={isDurationVisible}
-              >
-                <Pressable onPress={() => setIsDurationVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                  <View style={tailwind`bg-white rounded-md p-4`}>
-                    <DateTimePicker
-                            onSelectedChange={(startTimestamp) => {
-                            setStartTimestamp(startTimestamp);
-                            setIsDurationVisible(false);
-                        }}
-                    />
+               <Modal
+                    visible={isDurationVisible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setIsDurationVisible(false)}
+                >
+                    <View style={tailwind`flex-1 justify-end bg-black/60`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsDurationVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`p-4 rounded-t-3xl`,
+                                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+                            ]}
+                        >
+                            {/* Drag indicator */}
+                            <View
+                                style={{
+                                width: 40,
+                                height: 4,
+                                backgroundColor: "#475569",
+                                borderRadius: 2,
+                                alignSelf: "center",
+                                marginBottom: 10
+                                }}
+                            />
+
+                            {/* Header */}
+                            <View style={tailwind`flex-row items-center justify-between mb-3`}>
+                                <Text style={{ color: "#f1f5f9", fontSize: 18, fontWeight: "700" }}>
+                                Select Date
+                                </Text>
+
+                                <Pressable onPress={() => setIsDurationVisible(false)}>
+                                    <MaterialIcons name="close" size={22} color="#94a3b8" />
+                                </Pressable>
+                            </View>
+                            <DateTimePicker
+                                current={today}
+                                date={startTimestamp || today}
+                                minimumDate={today}
+                                mode="calendar"
+                                onSelectedChange={(dateString) => {
+                                    setStartTimestamp(dateString);
+                                    setIsDurationVisible(false);
+                                }}
+                                options={{
+                                    backgroundColor: "#0f172a",
+                                    textHeaderColor: "#f87171",
+                                    textDefaultColor: "#f1f5f9",
+                                    selectedTextColor: "#fff",
+                                    mainColor: "#f87171",
+                                    textSecondaryColor: "#94a3b8",
+                                    borderColor: "#334155",
+                                }}
+                            />
+                            </View>
                     </View>
-                </Pressable>
-              </Modal>
+                 </Modal>
             )}
         </ScrollView>
     );

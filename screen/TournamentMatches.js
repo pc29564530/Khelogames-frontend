@@ -47,13 +47,13 @@ const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeigh
     }, [entities]);
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
-                <View style={tailwind`bg-white p-4 py-4`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+                <View style={{ backgroundColor: '#0f172a', padding: 16 }}>
                     <Pressable
                         onPress={() => navigation.navigate("CreateMatch", {tournament:tournament, entities:entities})}
-                        style={tailwind` bg-white rounded-lg shadow-lg p-2 items-center w-full`}
+                        style={{ backgroundColor: '#1e293b', borderRadius: 12, padding: 10, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: '#334155' }}
                     >
-                        <Text style={tailwind`text-lg text-black mr-2`}>Create Match</Text>
+                        <Text style={{ fontSize: 17, color: '#f1f5f9', fontWeight: '600' }}>Create Match</Text>
                     </Pressable>
                 </View>
                 {tournamentMatchBySport()}

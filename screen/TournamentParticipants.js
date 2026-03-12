@@ -22,8 +22,8 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native
 import { validateTournamentParticipantForm } from '../utils/validation/tournamentValidation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const SearchIcon = () => <MaterialIcons name="search" size={24} color="black"/>;
-const CloseIcon = () => <Text style={tailwind`text-gray-500 font-bold text-lg`}>✕</Text>;
+const SearchIcon = () => <MaterialIcons name="search" size={24} color="#94a3b8"/>;
+const CloseIcon = () => <Text style={[tailwind`font-bold text-lg`, { color: '#94a3b8' }]}>✕</Text>;
 const TeamIcon = () => <Text style={tailwind`text-white text-xl`}>👥</Text>;
 const PlayerIcon = () => <Text style={tailwind`text-white text-xl`}>👤</Text>;
 
@@ -62,10 +62,10 @@ const AddParticipantModal = ({
         <View style={tailwind`flex-1 bg-black/50 justify-end`}>
           <Pressable style={tailwind`flex-1`} onPress={onClose} />
 
-          <View style={[tailwind`bg-white rounded-t-3xl p-6`, { maxHeight: Dimensions.get('window').height * 0.75 }]}>
+          <View style={[tailwind`rounded-t-3xl p-6`, { backgroundColor: '#1e293b', maxHeight: Dimensions.get('window').height * 0.75 }]}>
             {/* Header */}
             <View style={tailwind`flex-row items-center justify-between mb-4`}>
-              <Text style={tailwind`text-xl font-bold`}>
+              <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>
                 Add {entityType === 'team' ? 'Teams' : 'Players'}
               </Text>
               <Pressable onPress={onClose} style={tailwind`w-8 h-8 items-center justify-center`}>
@@ -74,49 +74,49 @@ const AddParticipantModal = ({
             </View>
 
             {/* Search Bar */}
-            <View style={tailwind`bg-gray-100 rounded-xl px-4 py-3 mb-4 flex-row items-center`}>
+            <View style={[tailwind`rounded-xl px-4 py-3 mb-4 flex-row items-center`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
               <SearchIcon />
               <TextInput
                 placeholder={`Search ${entityType === 'team' ? 'teams' : 'players'}...`}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                style={tailwind`flex-1 ml-2 text-base text-gray-900`}
-                placeholderTextColor="#9CA3AF"
+                style={[tailwind`flex-1 ml-2 text-base`, { color: '#f1f5f9' }]}
+                placeholderTextColor="#64748b"
                 autoCorrect={false}
                 autoCapitalize="none"
                 clearButtonMode="while-editing"
               />
               {searchQuery.length > 0 && (
                 <Pressable onPress={() => setSearchQuery('')} style={tailwind`ml-2 p-1`}>
-                  <Text style={tailwind`text-gray-400 text-sm`}>✕</Text>
+                  <Text style={[tailwind`text-sm`, { color: '#475569' }]}>✕</Text>
                 </Pressable>
               )}
             </View>
 
             {/* Error Message */}
             {error?.global && (
-              <View style={tailwind`bg-red-50 border border-red-200 rounded-lg p-3 mb-3`}>
-                <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
+              <View style={[tailwind`rounded-lg p-3 mb-3`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>{error.global}</Text>
               </View>
             )}
 
             {/* Content */}
             {loading ? (
               <View style={tailwind`py-10 items-center`}>
-                <ActivityIndicator size="large" color="#EF4444" />
-                <Text style={tailwind`text-gray-500 mt-3`}>Loading...</Text>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>Loading...</Text>
               </View>
             ) : filteredEntities.length === 0 ? (
               <View style={tailwind`py-10 items-center`}>
-                <MaterialIcons name="search" size={24} color="black" />
-                <Text style={tailwind`text-gray-500 text-base font-medium`}>
+                <MaterialIcons name="search" size={24} color="#475569" />
+                <Text style={[tailwind`text-base font-medium`, { color: '#64748b' }]}>
                   {searchQuery
                     ? `No results for "${searchQuery}"`
                     : `No ${entityType}s available`}
                 </Text>
                 {searchQuery ? (
                   <Pressable onPress={() => setSearchQuery('')} style={tailwind`mt-3`}>
-                    <Text style={tailwind`text-red-500 text-sm font-medium`}>Clear search</Text>
+                    <Text style={[tailwind`text-sm font-medium`, { color: '#f87171' }]}>Clear search</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -132,35 +132,36 @@ const AddParticipantModal = ({
                     onPress={() => onAdd(e.public_id)}
                     disabled={submitting}
                     style={({ pressed }) => [
-                      tailwind`p-4 bg-gray-50 rounded-xl mb-2 flex-row items-center`,
-                      pressed && tailwind`bg-gray-100`,
+                      tailwind`p-4 rounded-xl mb-2 flex-row items-center`,
+                      { backgroundColor: '#0f172a' },
+                      pressed && { backgroundColor: '#334155' },
                       submitting && tailwind`opacity-50`,
                     ]}
                   >
-                    <View style={tailwind`w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-3`}>
+                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
                       {e.media_url || e.avatar_url ? (
                         <Image
                           source={{ uri: e.media_url || e.avatar_url }}
                           style={tailwind`w-10 h-10 rounded-full`}
                         />
                       ) : (
-                        <Text style={tailwind`text-red-600 font-bold text-base`}>
+                        <Text style={[tailwind`font-bold text-base`, { color: '#f87171' }]}>
                           {(e.name || '?').charAt(0).toUpperCase()}
                         </Text>
                       )}
                     </View>
                     <View style={tailwind`flex-1`}>
-                      <Text style={tailwind`font-semibold text-gray-900`}>{e.name}</Text>
+                      <Text style={[tailwind`font-semibold`, { color: '#f1f5f9' }]}>{e.name}</Text>
                       {(e.short_name || e.shortname) && (
-                        <Text style={tailwind`text-sm text-gray-500 mt-0.5`}>
+                        <Text style={[tailwind`text-sm mt-0.5`, { color: '#64748b' }]}>
                           {e.short_name || e.shortname}
                         </Text>
                       )}
                     </View>
                     {submitting ? (
-                      <ActivityIndicator size="small" color="#EF4444" />
+                      <ActivityIndicator size="small" color="#f87171" />
                     ) : (
-                      <Text style={tailwind`text-red-500 font-bold text-lg`}>+</Text>
+                      <Text style={[tailwind`font-bold text-lg`, { color: '#f87171' }]}>+</Text>
                     )}
                   </Pressable>
                 ))}
@@ -325,45 +326,43 @@ const TournamentParticipants = ({
       onScroll={handlerScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight }}
+      contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight,  backgroundColor: '#0f172a' }}
     >
       {/* Action Buttons */}
-        <View style={tailwind`px-4 py-4 flex-row gap-3 bg-white border-b border-gray-100`}>
-          {['team', 'player'].map((type) => (
+        <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
             <Pressable
-              key={type}
+              key={'team'}
               onPress={() => {
-                setSelectedEntityType(type);
+                setSelectedEntityType('team');
                 setIsModalVisible(true);
               }}
-              style={tailwind`flex-1 bg-red-500 rounded-xl py-3.5 flex-row items-center justify-center shadow-sm`}
+              style={[tailwind`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-sm`, { backgroundColor: '#f87171' }]}
             >
-              {type === 'team' ? <TeamIcon /> : <PlayerIcon />}
+              {<TeamIcon />}
               <Text style={tailwind`text-white ml-2 font-semibold text-base`}>
-                Add {type === 'team' ? 'Teams' : 'Players'}
+                Add Teams
               </Text>
             </Pressable>
-          ))}
         </View>
 
       {/* Participants List */}
       {loading ? (
         <View style={tailwind`py-20 items-center`}>
-          <ActivityIndicator size="large" color="#EF4444" />
-          <Text style={tailwind`text-gray-500 mt-3`}>Loading participants...</Text>
+          <ActivityIndicator size="large" color="#f87171" />
+          <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>Loading participants...</Text>
         </View>
       ) : participantsError.global ? (
         <View style={tailwind`px-4 py-20 items-center`}>
           <Text style={tailwind`text-6xl mb-4`}>⚠️</Text>
-          <Text style={tailwind`text-red-600 text-center text-lg font-semibold mb-2`}>
+          <Text style={[tailwind`text-center text-lg font-semibold mb-2`, { color: '#f87171' }]}>
             Error Loading Participants
           </Text>
-          <Text style={tailwind`text-gray-500 text-center`}>
+          <Text style={[tailwind`text-center`, { color: '#64748b' }]}>
             {participantsError.global}
           </Text>
           <Pressable
             onPress={fetchParticipants}
-            style={tailwind`mt-4 bg-red-500 px-6 py-3 rounded-lg`}
+            style={[tailwind`mt-4 px-6 py-3 rounded-lg`, { backgroundColor: '#f87171' }]}
           >
             <Text style={tailwind`text-white font-semibold`}>Try Again</Text>
           </Pressable>
@@ -373,10 +372,10 @@ const TournamentParticipants = ({
           <Text style={tailwind`text-6xl mb-4`}>
             {tournament.user_id === authUser?.id ? '👥' : '🔍'}
           </Text>
-          <Text style={tailwind`text-gray-700 text-xl font-semibold mb-2`}>
+          <Text style={[tailwind`text-xl font-semibold mb-2`, { color: '#cbd5e1' }]}>
             No Participants Yet
           </Text>
-          <Text style={tailwind`text-gray-500 text-center`}>
+          <Text style={[tailwind`text-center`, { color: '#64748b' }]}>
             {tournament.user_id === authUser?.id
               ? 'Add teams or players to get started'
               : 'No participants have been added to this tournament'}
@@ -387,26 +386,26 @@ const TournamentParticipants = ({
           {participants.map((item) => (
             <View
               key={item.public_id}
-              style={tailwind`bg-white rounded-xl p-4 mb-3 flex-row items-center shadow-sm`}
+              style={[tailwind`rounded-xl p-4 mb-3 flex-row items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}
             >
-              <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center mr-3`}>
+              <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
                 {item.entity?.media_url || item.entity?.avatar_url ? (
                   <Image
                     source={{ uri: item.entity.media_url || item.entity.avatar_url }}
                     style={tailwind`w-12 h-12 rounded-full`}
                   />
                 ) : (
-                  <Text style={tailwind`text-gray-500 text-lg font-bold`}>
+                  <Text style={[tailwind`text-lg font-bold`, { color: '#94a3b8' }]}>
                     {(item.entity?.name).charAt(0).toUpperCase()}
                   </Text>
                 )}
               </View>
               <View style={tailwind`flex-1`}>
-                <Text style={tailwind`text-lg font-semibold text-gray-900`}>
+                <Text style={[tailwind`text-lg font-semibold`, { color: '#f1f5f9' }]}>
                   {item.entity?.name}
                 </Text>
                 {item.entity?.type && (
-                  <Text style={tailwind`text-sm text-gray-500 capitalize mt-1`}>
+                  <Text style={[tailwind`text-sm capitalize mt-1`, { color: '#64748b' }]}>
                     {item.entity.type}
                   </Text>
                 )}
