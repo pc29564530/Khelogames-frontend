@@ -29,12 +29,18 @@ const AddFootballIncident = ({ route }) => {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: `Add ${incidentType.charAt(0).toUpperCase() + incidentType.slice(1).replace(/_/g, ' ')}`,
-            headerLeft: () => (
-                <Pressable onPress={() => navigation.goBack()}>
-                    <AntDesign name="arrowleft" size={24} color="black" style={tailwind`ml-4`} />
+           headerLeft: () => (
+                <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                    <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
                 </Pressable>
             ),
-            headerStyle: tailwind`bg-red-400`,
+            headerStyle: {
+                backgroundColor: '#1e293b',
+                elevation: 0,
+                shadowOpacity: 0,
+            },
+            headerTintColor: '#e2e8f0',
+            headerTitleAlign: 'center',
         });
     }, [navigation, incidentType]);
 
@@ -66,7 +72,7 @@ const AddFootballIncident = ({ route }) => {
     };
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
+        <View style={[tailwind`flex-1`, {backgroundColor: "#0f172a"}]}>
             {renderComponent()}
         </View>
     );

@@ -93,7 +93,7 @@ const Thread = () => {
                     />
                 ))}
             </ScrollView>
-            <View style={tailwind`absolute bottom-14 right-5`}>
+            <View style={tailwind`absolute bottom-18 right-5`}>
                 <Pressable
                     style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
                     onPress={() => navigation.navigate("CreateThread")}

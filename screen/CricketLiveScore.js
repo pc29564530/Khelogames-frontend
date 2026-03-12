@@ -513,9 +513,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#0000ff" />
-                <Text>Loading...</Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={{color: '#94a3b8'}}>Loading...</Text>
             </View>
         );
     } else {
@@ -531,12 +531,12 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 }}
             >
                 <View>
-                    <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
+                    <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                         <View style={tailwind`flex-row items-start justify-between ml-2 mr-2 p-2`}>
                             {(match.status_code !== "not_started" && match.status_code !== "finished") && (
-                                <Text style={tailwind`text-red-400 text-lg`}>live</Text>
+                                <Text style={[tailwind`text-lg`, {color: '#f87171'}]}>live</Text>
                             )}
-                            <Text>{match.match_format}</Text>
+                            <Text style={{color: '#94a3b8'}}>{match.match_format}</Text>
                         </View>
                         <View>
                             <View>
@@ -565,40 +565,40 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     />
                 ): currentBatsman?.length > 0 && (currentBowler?.length > 0) ? (
                     <>
-                    <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
+                    <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                         {/* Header */}
-                        <View style={tailwind`flex-row justify-between px-4 py-2 border-b border-gray-200`}>
+                        <View style={[tailwind`flex-row justify-between px-4 py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
                             <View style={tailwind`flex-2`}>
-                                <Text style={tailwind`text-md text-gray-700`}>Batting</Text>
+                                <Text style={[tailwind`text-md`, {color: '#94a3b8'}]}>Batting</Text>
                             </View>
                             <View style={tailwind`flex-row flex-3 justify-evenly`}>
-                            <Text style={tailwind`text-md text-gray-700 text-center`}>R</Text>
-                            <Text style={tailwind`text-md text-gray-700 text-center`}>B</Text>
-                            <Text style={tailwind`text-md text-gray-700 text-center`}>4s</Text>
-                            <Text style={tailwind`text-md text-gray-700 text-center`}>6s</Text>
-                            <Text style={tailwind`text-md text-gray-700 text-center`}>S/R</Text>
+                            <Text style={[tailwind`text-md text-center`, {color: '#94a3b8'}]}>R</Text>
+                            <Text style={[tailwind`text-md text-center`, {color: '#94a3b8'}]}>B</Text>
+                            <Text style={[tailwind`text-md text-center`, {color: '#94a3b8'}]}>4s</Text>
+                            <Text style={[tailwind`text-md text-center`, {color: '#94a3b8'}]}>6s</Text>
+                            <Text style={[tailwind`text-md text-center`, {color: '#94a3b8'}]}>S/R</Text>
                             </View>
                         </View>
 
                         {/* Batsmen Data */}
                         {currentBatsman?.length > 0 && currentBatsman.map((item, index) => (
-                            <View 
-                            key={index} 
-                            style={tailwind`flex-row justify-between px-4 py-2 ${item.is_striker ? 'bg-red-100' : 'bg-white'} items-center`}
+                            <View
+                            key={index}
+                            style={[tailwind`flex-row justify-between px-4 py-2 items-center`, {backgroundColor: item.is_striker ? '#f8717120' : '#1e293b'}]}
                             >
                             {/* Player Name */}
                             <View style={tailwind`flex-2 flex-row`}>
-                                <Text style={tailwind`text-md text-gray-800 flex-shrink`}>{item?.player?.name}</Text>
-                                {item.is_striker && <Text style={tailwind`text-md text-red-500 font-bold ml-1`}>*</Text>}
+                                <Text style={[tailwind`text-md flex-shrink`, {color: '#f1f5f9'}]}>{item?.player?.name}</Text>
+                                {item.is_striker && <Text style={[tailwind`text-md font-bold ml-1`, {color: '#f87171'}]}>*</Text>}
                             </View>
 
                             {/* Stats */}
                             <View style={tailwind`flex-row flex-3 justify-evenly`}>
-                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.runs_scored}</Text>
-                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.balls_faced}</Text>
-                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.fours}</Text>
-                                <Text style={tailwind`text-md text-gray-800 text-center`}>{item.sixes}</Text>
-                                <Text style={tailwind`text-md text-gray-800 text-center`}>
+                                <Text style={[tailwind`text-md text-center`, {color: '#f1f5f9'}]}>{item.runs_scored}</Text>
+                                <Text style={[tailwind`text-md text-center`, {color: '#f1f5f9'}]}>{item.balls_faced}</Text>
+                                <Text style={[tailwind`text-md text-center`, {color: '#f1f5f9'}]}>{item.fours}</Text>
+                                <Text style={[tailwind`text-md text-center`, {color: '#f1f5f9'}]}>{item.sixes}</Text>
+                                <Text style={[tailwind`text-md text-center`, {color: '#f1f5f9'}]}>
                                 {item.balls_faced > 0 ? ((item.runs_scored / item.balls_faced) * 100).toFixed(1) : '0.0'}
                                 </Text>
                             </View>
@@ -607,39 +607,39 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
 
                         {/* Add Next Batsman Button */}
                         <View style={tailwind`p-4`}>
-                            <Pressable 
-                            onPress={() => { setIsModalBattingVisible(true) }} 
-                            style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}
+                            <Pressable
+                            onPress={() => { setIsModalBattingVisible(true) }}
+                            style={[tailwind`p-2 rounded-lg items-center`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}]}
                             >
-                            <Text style={tailwind`text-gray-800 text-center font-semibold`}>Add Next Batsman</Text>
+                            <Text style={[tailwind`text-center font-semibold`, {color: '#f1f5f9'}]}>Add Next Batsman</Text>
                             </Pressable>
                         </View>
                     </View>
 
-                    <View style={tailwind`bg-white mb-4 shadow-lg rounded-lg overflow-hidden`}>
+                    <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                     <View style={tailwind`flex-row justify-between px-4 py-2`}>
-                        <Text style={tailwind`flex-1 text-md text-gray-800`}>Bowling</Text>
+                        <Text style={[tailwind`flex-1 text-md`, {color: '#94a3b8'}]}>Bowling</Text>
                         <View style={tailwind`flex-row flex-[3] justify-between`}>
-                            <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>O</Text>
-                            <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>R</Text>
-                            <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>W</Text>
-                            <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>WD</Text>
-                            <Text style={tailwind`w-8 text-md text-gray-700 text-center`}>NB</Text>
+                            <Text style={[tailwind`w-8 text-md text-center`, {color: '#94a3b8'}]}>O</Text>
+                            <Text style={[tailwind`w-8 text-md text-center`, {color: '#94a3b8'}]}>R</Text>
+                            <Text style={[tailwind`w-8 text-md text-center`, {color: '#94a3b8'}]}>W</Text>
+                            <Text style={[tailwind`w-8 text-md text-center`, {color: '#94a3b8'}]}>WD</Text>
+                            <Text style={[tailwind`w-8 text-md text-center`, {color: '#94a3b8'}]}>NB</Text>
                         </View>
                     </View>
                     {currentBowler && currentBowler.map((item, index) => (
-                        <View key={index} style={tailwind`flex-row justify-between px-4 py-2 border-t border-gray-200`}>
+                        <View key={index} style={[tailwind`flex-row justify-between px-4 py-2`, {borderTopWidth: 1, borderColor: '#334155'}]}>
                             <View style={tailwind`flex-row`}>
-                                <Text style={tailwind`text-md text-gray-800`}>{item?.player?.name}</Text>
+                                <Text style={[tailwind`text-md`, {color: '#f1f5f9'}]}>{item?.player?.name}</Text>
                             </View>
                             <View style={tailwind`flex-row flex-[3] justify-between`}>
-                                <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>
+                                <Text style={[tailwind`w-8 text-md text-center`, {color: '#f1f5f9'}]}>
                                     {convertBallToOvers(item.ball_number)}
                                 </Text>
-                                <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.runs}</Text>
-                                <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wickets}</Text>
-                                <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.wide}</Text>
-                                <Text style={tailwind`w-8 text-md text-gray-800 text-center`}>{item.no_ball}</Text>
+                                <Text style={[tailwind`w-8 text-md text-center`, {color: '#f1f5f9'}]}>{item.runs}</Text>
+                                <Text style={[tailwind`w-8 text-md text-center`, {color: '#f1f5f9'}]}>{item.wickets}</Text>
+                                <Text style={[tailwind`w-8 text-md text-center`, {color: '#f1f5f9'}]}>{item.wide}</Text>
+                                <Text style={[tailwind`w-8 text-md text-center`, {color: '#f1f5f9'}]}>{item.no_ball}</Text>
                             </View>
                         </View>
                     ))}
@@ -647,9 +647,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     <View style={tailwind`p-4`}>
                         <Pressable
                         onPress={() => setIsModalBowlingVisible(true)}
-                        style={tailwind`p-2 bg-white rounded-lg shadow-md items-center`}
+                        style={[tailwind`p-2 rounded-lg items-center`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}]}
                         >
-                        <Text style={tailwind`text-gray text-center font-semibold`}>Add Next Bowler</Text>
+                        <Text style={[tailwind`text-center font-semibold`, {color: '#f1f5f9'}]}>Add Next Bowler</Text>
                         </Pressable>
                     </View>
                </View>
@@ -669,7 +669,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     onRequestClose={() => setIsModalBattingVisible(false)}
                 >  
                     <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-md p-4`}>
+                        <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b'}]}>
                             <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
                         </View>
                     </Pressable>
@@ -687,34 +687,34 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                             onPress={() => setIsModalBowlingVisible(false)} 
                             style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                         >
-                            <View style={tailwind`bg-white rounded-t-3xl p-6 pb-10 shadow-lg`}>
-                                <Text style={tailwind`text-lg font-semibold text-center mb-4 text-gray-800`}>
+                            <View style={[tailwind`rounded-t-3xl p-6 pb-10`, {backgroundColor: '#1e293b'}]}>
+                                <Text style={[tailwind`text-lg font-semibold text-center mb-4`, {color: '#f1f5f9'}]}>
                                     Select Next Bowlers
                                 </Text>
                                 <View style={tailwind`flex-row justify-around mb-6`}>
-                                    <Pressable 
-                                        onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}} 
-                                        style={[tailwind`px-4 py-2 bg-blue-500 rounded-full shadow-md`, selectedBowlerType === "newBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    <Pressable
+                                        onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}}
+                                        style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "newBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
                                     >
-                                        <Text style={tailwind`${selectedBowlerType === "newBowler" ? "text-white" : "text-gray-800"} font-semibold`}>New Bowler</Text>
+                                        <Text style={[tailwind`font-semibold`, {color: selectedBowlerType === "newBowler" ? '#ffffff' : '#94a3b8'}]}>New Bowler</Text>
                                     </Pressable>
-                                    <Pressable 
-                                        onPress={() => {setSelectedBowlerType("existingBowler"), handleToggle("existingBowler")}} 
-                                        style={[tailwind`px-4 py-2 bg-gray-300 rounded-full shadow-md`, selectedBowlerType === "existingBowler" ? tailwind`bg-blue-200` : tailwind`bg-gray-200`]}
+                                    <Pressable
+                                        onPress={() => {setSelectedBowlerType("existingBowler"), handleToggle("existingBowler")}}
+                                        style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "existingBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
                                     >
-                                        <Text style={tailwind`${selectedBowlerType === "existingBowler" ? "text-white" : "text-gray-800"} font-semibold`}>Existing Bowler</Text>
+                                        <Text style={[tailwind`font-semibold`, {color: selectedBowlerType === "existingBowler" ? '#ffffff' : '#94a3b8'}]}>Existing Bowler</Text>
                                     </Pressable>
                                 </View>
                                 <View style={tailwind`max-h-60`}>
-                                    <ScrollView style={tailwind`border border-gray-300 rounded-lg p-2`}>
+                                    <ScrollView style={[tailwind`rounded-lg p-2`, {borderWidth: 1, borderColor: '#334155'}]}>
                                         {handleSelectBowler()}
                                     </ScrollView>
                                 </View>
 
                                 {/* Close Button */}
-                                <Pressable 
+                                <Pressable
                                     onPress={() => setIsModalBowlingVisible(false)}
-                                    style={tailwind`mt-6 p-3 bg-red-500 rounded-full`}
+                                    style={[tailwind`mt-6 p-3 rounded-full`, {backgroundColor: '#f87171'}]}
                                 >
                                     <Text style={tailwind`text-white text-center font-semibold`}>Close</Text>
                                 </Pressable>
@@ -730,16 +730,16 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         onRequestClose={() => setIsModalBatsmanStrikeChange(false)}
                     >
                         <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsModalBatsmanStrikeChange(false)}>
-                            <View style={tailwind`p-10 bg-white rounded-xl`}>
+                            <View style={[tailwind`p-10 rounded-t-2xl`, {backgroundColor: '#1e293b'}]}>
                                 <View>
-                                    <Text>Is Strike Change</Text>
+                                    <Text style={[tailwind`text-lg font-semibold mb-4`, {color: '#f1f5f9'}]}>Is Strike Change</Text>
                                 </View>
                                 <View style={tailwind`flex-row justify-between`}>
-                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4`} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
-                                        <Text style={tailwind`text-lg`}>true</Text>
+                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#f87171'}]} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
+                                        <Text style={[tailwind`text-lg`, {color: '#ffffff'}]}>true</Text>
                                     </Pressable>
-                                    <Pressable style={tailwind`rounded-md bg-red-400 p-4 `}  onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
-                                        <Text style={tailwind`text-lg`}>false</Text>
+                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#334155'}]}  onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
+                                        <Text style={[tailwind`text-lg`, {color: '#f1f5f9'}]}>false</Text>
                                     </Pressable>
                                 </View>
                             </View>
@@ -758,20 +758,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
                         onPress={() => setIsFielder(false)}
                     >
-                        <View style={tailwind`bg-white rounded-t-2xl p-5 h-[100%]`}>
-                            <Text style={tailwind`text-lg font-semibold mb-3 text-center`}>Select Fielder</Text>
+                        <View style={[tailwind`rounded-t-2xl p-5 h-[100%]`, {backgroundColor: '#1e293b'}]}>
+                            <Text style={[tailwind`text-lg font-semibold mb-3 text-center`, {color: '#f1f5f9'}]}>Select Fielder</Text>
                             <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
                                 {currentFielder?.map((item, index) => (
                                     <Pressable
                                         key={index}
-                                        style={tailwind`p-3 border-b border-gray-200`}
+                                        style={[tailwind`p-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                         onPress={() => {
                                             setSelectedFielder(item);
                                             setIsFielder(false);
                                             setIsModalBatsmanStrikeChange(true);
                                         }}
                                     >
-                                        <Text style={tailwind`text-lg text-gray-600 text-center`}>{item.name}</Text>
+                                        <Text style={[tailwind`text-lg text-center`, {color: '#cbd5e1'}]}>{item.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
@@ -788,12 +788,12 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 >
                     <TouchableOpacity onPress={toggleMenu} style={tailwind``}>
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 gap-4`}>
+                            <View style={[tailwind`mt-12 mr-4 rounded-lg p-4 gap-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                                 <TouchableOpacity onPress={() => handleEndInning()}>
-                                    <Text style={tailwind`text-xl`}>Add New Batsman </Text>
+                                    <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Batsman </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => handleEndInning()}>
-                                    <Text style={tailwind`text-xl`}>Add New Bowler</Text>
+                                    <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Bowler</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -845,26 +845,26 @@ const InningActionModal = ({
 
   return (
     <View style={tailwind`flex-1 items-center`}>
-      <View style={tailwind`bg-white rounded-lg shadow-lg w-90`}>
+      <View style={[tailwind`rounded-lg w-90`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
         {/* Header */}
         <View style={tailwind`p-2`}>
-          <Text style={tailwind`text-lg font-bold`}>Match Inning Setup</Text>
+          <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>Match Inning Setup</Text>
         </View>
 
         {/* Match Info */}
-        <View style={tailwind`bg-gray-100 p-2 rounded-md`}>
-          <Text style={tailwind`text-md text-black`}>{match.homeTeam.name} vs {match.awayTeam.name}</Text>
-          <Text style={tailwind`text-md text-black`}>{match.match_format}</Text>
-          <Text style={tailwind`text-md text-black`}>{formattedDate(match.start_timestamp)}</Text>
+        <View style={[tailwind`p-2 rounded-md`, {backgroundColor: '#0f172a'}]}>
+          <Text style={[tailwind`text-md`, {color: '#f1f5f9'}]}>{match.homeTeam.name} vs {match.awayTeam.name}</Text>
+          <Text style={[tailwind`text-md`, {color: '#cbd5e1'}]}>{match.match_format}</Text>
+          <Text style={[tailwind`text-md`, {color: '#cbd5e1'}]}>{formattedDate(match.start_timestamp)}</Text>
         </View>
 
         {/* Current Inning */}
         <View style={tailwind`mb-4 p-4`}>
-          <Text style={tailwind`text-lg text-gray-800 mb-2`}>Current Inning</Text>
-          <View style={tailwind`rounded-2xl bg-white border border-gray-200`}>
+          <Text style={[tailwind`text-lg mb-2`, {color: '#f1f5f9'}]}>Current Inning</Text>
+          <View style={[tailwind`rounded-2xl`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}]}>
             <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
-              <Text style={tailwind`text-lg text-gray-800`}>{battingTeamName} Batting</Text>
-              <Text style={tailwind`text-md font-medium text-gray-500`}>Inning {currentInningNumber}</Text>
+              <Text style={[tailwind`text-lg`, {color: '#f1f5f9'}]}>{battingTeamName} Batting</Text>
+              <Text style={[tailwind`text-md font-medium`, {color: '#94a3b8'}]}>Inning {currentInningNumber}</Text>
             </View>
             {renderInningScore(currentScore)}
           </View>
@@ -873,20 +873,20 @@ const InningActionModal = ({
         {/* Next Inning Setup */}
         {inningStatus === "completed" && currentInningNumber < MAX_INNINGS[match.match_format] && (
           <View style={tailwind`p-4`}>
-            <Text style={tailwind`text-md text-gray-800 mb-2`}>
+            <Text style={[tailwind`text-md mb-2`, {color: '#f1f5f9'}]}>
               {followOn ? 'Follow-on Inning Setup' : 'Next Inning Setup'}
             </Text>
-            <View style={tailwind`rounded-2xl bg-white border border-gray-200 mb-4`}>
+            <View style={[tailwind`rounded-2xl mb-4`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}]}>
               <View style={tailwind`flex-row justify-between items-center px-4 pt-4`}>
                 <View style={tailwind`flex-1`}>
-                  <Text style={tailwind`text-lg font-semibold text-gray-800`}>
+                  <Text style={[tailwind`text-lg font-semibold`, {color: '#f1f5f9'}]}>
                     {followOn ? battingTeamName : bowlingTeamName}
                   </Text>
-                  <Text style={tailwind`text-sm text-gray-600`}>
+                  <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>
                     {followOn ? 'Continues Batting (Follow-on)' : 'Will Bat Next'}
                   </Text>
                 </View>
-                <Text style={tailwind`text-md font-medium text-gray-500`}>
+                <Text style={[tailwind`text-md font-medium`, {color: '#94a3b8'}]}>
                   {followOn ? 'Follow-on Inning' : `Inning ${getNextInning()}`}
                 </Text>
               </View>
@@ -897,24 +897,25 @@ const InningActionModal = ({
                   
                   {/* Follow-on Option for Test matches */}
                   {isFollowOnApplicable && (
-                    <View style={tailwind`mt-3 p-3 bg-yellow-100 rounded-lg border border-yellow-300`}>
-                      <Text style={tailwind`text-sm font-semibold text-yellow-800 mb-2`}>
+                    <View style={[tailwind`mt-3 p-3 rounded-lg`, {backgroundColor: '#f59e0b15', borderWidth: 1, borderColor: '#f59e0b30'}]}>
+                      <Text style={[tailwind`text-sm font-semibold mb-2`, {color: '#fbbf24'}]}>
                         Follow-on Available
                       </Text>
-                      <Text style={tailwind`text-xs text-yellow-700 mb-3`}>
-                        The batting team scored less than 200 runs and is more than 200 runs behind. 
+                      <Text style={[tailwind`text-xs mb-3`, {color: '#94a3b8'}]}>
+                        The batting team scored less than 200 runs and is more than 200 runs behind.
                         You can enforce the follow-on.
                       </Text>
-                      <Pressable 
+                      <Pressable
                         onPress={() => setFollowOn(!followOn)}
                         style={[
-                          tailwind`p-2 rounded-lg border`,
-                          followOn ? tailwind`bg-red-500 border-red-600` : tailwind`bg-gray-200 border-gray-300`
+                          tailwind`p-2 rounded-lg`,
+                          {borderWidth: 1},
+                          followOn ? {backgroundColor: '#f87171', borderColor: '#f87171'} : {backgroundColor: '#334155', borderColor: '#334155'}
                         ]}
                       >
                         <Text style={[
                           tailwind`text-center font-semibold`,
-                          followOn ? tailwind`text-white` : tailwind`text-gray-700`
+                          {color: followOn ? '#ffffff' : '#94a3b8'}
                         ]}>
                           {followOn ? 'Follow-on Enforced' : 'Enforce Follow-on'}
                         </Text>
@@ -924,7 +925,7 @@ const InningActionModal = ({
                 </View>
               ) : (
                 <View style={tailwind`px-4 pb-4 pt-2`}>
-                  <Text style={tailwind`text-lg font-semibold`}>
+                  <Text style={[tailwind`text-lg font-semibold`, {color: '#f1f5f9'}]}>
                     Target: {targetScore || 0} runs
                   </Text>
                 </View>
@@ -934,19 +935,19 @@ const InningActionModal = ({
             {/* Action Buttons */}
             <View style={tailwind`flex-row justify-between`}>
               <Pressable
-                style={tailwind`rounded-lg bg-gray-300 px-6 py-3 mr-2`}
+                style={[tailwind`rounded-lg px-6 py-3 mr-2`, {backgroundColor: '#334155'}]}
                 onPress={() => setInningVisible(false)}
               >
-                <Text style={tailwind`text-black font-medium text-center`}>Cancel</Text>
+                <Text style={[tailwind`font-medium text-center`, {color: '#e2e8f0'}]}>Cancel</Text>
               </Pressable>
 
               {/* {match.match_format !== "Test" ? (
-                <Pressable onPress={() => handleNextInning()} style={tailwind`rounded-lg bg-red-500 px-6 py-3 ml-2`}>
+                <Pressable onPress={() => handleNextInning()} style={[tailwind`rounded-lg px-6 py-3 ml-2`, {backgroundColor: '#f87171'}]}>
                     <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
                 </Pressable>
               ):( */}
                     <Pressable
-                        style={tailwind`rounded-lg bg-red-500 px-6 py-3 ml-2`}
+                        style={[tailwind`rounded-lg px-6 py-3 ml-2`, {backgroundColor: '#f87171'}]}
                         onPress={() => {
                         // If follow-on is enforced, the same team continues batting
                         // Otherwise, the opposite team bats

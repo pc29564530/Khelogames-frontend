@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, Pressable, ScrollView, TouchableOpacity, Dimensions, Image} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, Pressable, Dimensions, Image} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
-import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { Extrapolation, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import TopTabTeamPage from '../navigation/TopTabTeamPage';
+import LinearGradient from 'react-native-linear-gradient';
 
 const ClubPage = ({route}) => {
     const navigation = useNavigation();
@@ -15,17 +16,15 @@ const ClubPage = ({route}) => {
 
     const parentScrollY = useSharedValue(0);
 
-    const bgColor = tailwind.color('bg-red-400')
-    const bgColor2 = tailwind.color('bg-red-400')
     const headerHeight = 180;
     const collapsedHeader = 50;
-    const offsetValue = headerHeight-collapsedHeader;
+    const offsetValue = headerHeight - collapsedHeader;
 
     // Calculate available space for text in collapsed state
     const avatarCollapsedSize = 32;
     const backButtonSpace = 38;
     const rightPadding = 12;
-    const availableTextSpace = sWidth - backButtonSpace - avatarCollapsedSize - rightPadding
+    const availableTextSpace = sWidth - backButtonSpace - avatarCollapsedSize - rightPadding;
 
     const animatedHeader = useAnimatedStyle(() => {
       const height = interpolate(
@@ -34,15 +33,7 @@ const ClubPage = ({route}) => {
         [headerHeight, collapsedHeader],
         Extrapolation.CLAMP,
       )
-
-      const backgroundColor = interpolateColor(
-        parentScrollY.value,
-        [0, offsetValue],
-        [bgColor, bgColor2]
-      )
-      return {
-        backgroundColor, height
-      }
+      return { height }
     })
 
     const nameAnimatedStyles = useAnimatedStyle(() => {
@@ -128,40 +119,65 @@ const ClubPage = ({route}) => {
         Extrapolation.CLAMP,
       );
 
-      const color = interpolateColor(
-        parentScrollY.value,
-        [0, offsetValue],
-        ['red', 'red'],
-      );
-
       return {
         flex: 1,
         marginTop: top,
-        color: color,
       };
     });
 
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
             <Animated.View style={[animatedHeader, {
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               zIndex: 10,
+              overflow: 'hidden',
             }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind`absolute left-2 top-4`}>
-                  <MaterialIcons name="arrow-back" size={22} color="white" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('EditClub', { teamData })}
-                  style={tailwind`absolute right-2 top-4`}
+                {/* LinearGradient background */}
+                <LinearGradient
+                  colors={['#1e3a5f', '#1e293b']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                />
+
+                <Pressable
+                  onPress={() => navigation.goBack()}
+                  style={tailwind`absolute left-2 top-4 z-10 p-1`}
+                  hitSlop={12}
                 >
-                  <MaterialIcons name="edit" size={22} color="white" />
-                </TouchableOpacity>
+                  <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
+                </Pressable>
+                <Pressable
+                  onPress={() => navigation.navigate('EditClub', { teamData })}
+                  style={tailwind`absolute right-2 top-4 z-10 p-1`}
+                  hitSlop={12}
+                >
+                  <MaterialIcons name="edit" size={22} color="#e2e8f0" />
+                </Pressable>
+
                 <View style={tailwind`items-center`}>
                   <Animated.View
-                    style={[tailwind`w-22 h-22 rounded-full absolute z-10 self-center top-9 bg-white items-center justify-center overflow-hidden`, animImage]}
+                    style={[
+                      {
+                        width: 88,
+                        height: 88,
+                        borderRadius: 44,
+                        position: 'absolute',
+                        zIndex: 10,
+                        alignSelf: 'center',
+                        top: 36,
+                        backgroundColor: '#334155',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        borderWidth: 2,
+                        borderColor: '#475569',
+                      },
+                      animImage,
+                    ]}
                   >
                     {teamData.media_url ? (
                       <Image
@@ -170,7 +186,7 @@ const ClubPage = ({route}) => {
                         resizeMode="cover"
                       />
                     ) : (
-                      <Text style={tailwind`text-red-400 text-3xl font-bold`}>
+                      <Text style={{ color: '#f87171', fontSize: 30, fontWeight: 'bold' }}>
                         {teamData?.name?.charAt(0).toUpperCase()}
                       </Text>
                     )}
@@ -179,9 +195,10 @@ const ClubPage = ({route}) => {
                     onLayout={(e) => {
                       setNameWidth(e.nativeEvent.layout.width)
                     }}
-                  style={[tailwind`items-center justify-center bg-red-400`, nameAnimatedStyles]}>
+                    style={[{ alignItems: 'center', justifyContent: 'center' }, nameAnimatedStyles]}
+                  >
                       <Text
-                        style={tailwind`text-xl text-white`}
+                        style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -190,7 +207,7 @@ const ClubPage = ({route}) => {
                   </Animated.View>
                 </View>
             </Animated.View>
-            <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
+            <Animated.View style={[{ flex: 1, backgroundColor: '#0f172a' }, contentContainerStyle]}>
                 <TopTabTeamPage teamData={teamData} game={game} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
             </Animated.View>
         </View>

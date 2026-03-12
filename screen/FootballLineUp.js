@@ -40,7 +40,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       try {
         const storedUser = await AsyncStorage.getItem("User");
         if (storedUser) {
-          setAuthUser(JSON.parse(storedUser)); // parse because it’s stored as string
+          setAuthUser(JSON.parse(storedUser)); // parse because it's stored as string
         }
       } catch (err) {
         console.error("Failed to load user:", err);
@@ -48,7 +48,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     };
     fetchUser();
   }, []);
-    
+
   const currentScrollY = useSharedValue(0);
   // scroll handler for header animation
   const handlerScroll = useAnimatedScrollHandler({
@@ -158,7 +158,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     }
   };
 
-  // 🔹 fetch current squad for team
+  // fetch current squad for team
   useEffect(() => {
     const fetchSquad = async () => {
       try {
@@ -237,7 +237,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     if(currentTeamPlayer === homeTeamPublicID){
       return (
         <Pressable
-          style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
+          style={[tailwind`flex-row items-center justify-center py-3 rounded-xl`, { backgroundColor: '#f87171' }]}
           onPress={() => setIsPlayerModalVisible(true)}
         >
           <MaterialIcons name="add" size={20} color="white" />
@@ -249,7 +249,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     } else if(currentTeamPlayer === awayTeamPublicID){
       return (
         <Pressable
-          style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
+          style={[tailwind`flex-row items-center justify-center py-3 rounded-xl`, { backgroundColor: '#f87171' }]}
           onPress={() => setIsPlayerModalVisible(true)}
         >
           <MaterialIcons name="add" size={20} color="white" />
@@ -266,7 +266,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     <Animated.ScrollView
         onScroll={handlerScroll}
         scrollEventThrottle={16}
-        style={tailwind`flex-1 bg-gray-50`}
+        style={{ flex: 1, backgroundColor: '#0f172a' }}
         contentContainerStyle={{
             paddingTop: 0,
             paddingBottom: 100,
@@ -274,21 +274,21 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
         }}
         showsVerticalScrollIndicator={false}
     >
-      <Animated.View style={[contentStyle, tailwind`bg-white w-full px-4 py-3 mb-2`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}]}>
+      <Animated.View style={[contentStyle, tailwind`w-full px-4 py-3 mb-2`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
       {/* Team switcher */}
       <View style={tailwind`flex-row mb-2 items-center justify-between gap-2`}>
         <Pressable
           onPress={() => toggleTeam(homeTeamPublicID)}
           style={[
-            tailwind`flex-1 rounded-xl items-center py-3 border`,
+            tailwind`flex-1 rounded-xl items-center py-3`,
             homeTeamPublicID === currentTeamPlayer
-              ? tailwind`bg-red-400 border-red-400`
-              : tailwind`bg-white border-gray-200`,
+              ? { backgroundColor: '#f87171', borderWidth: 1, borderColor: '#f87171' }
+              : { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' },
           ]}
         >
           <Text style={[
             tailwind`text-sm font-semibold`,
-            homeTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+            homeTeamPublicID === currentTeamPlayer ? { color: '#ffffff' } : { color: '#94a3b8' }
           ]}>
             {match?.homeTeam?.name}
           </Text>
@@ -296,15 +296,15 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
         <Pressable
           onPress={() => toggleTeam(awayTeamPublicID)}
           style={[
-            tailwind`flex-1 rounded-xl items-center py-3 border`,
+            tailwind`flex-1 rounded-xl items-center py-3`,
             awayTeamPublicID === currentTeamPlayer
-              ? tailwind`bg-red-400 border-red-400`
-              : tailwind`bg-white border-gray-200`,
+              ? { backgroundColor: '#f87171', borderWidth: 1, borderColor: '#f87171' }
+              : { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' },
           ]}
         >
           <Text style={[
             tailwind`text-sm font-semibold`,
-            awayTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+            awayTeamPublicID === currentTeamPlayer ? { color: '#ffffff' } : { color: '#94a3b8' }
           ]}>
             {match?.awayTeam?.name}
           </Text>
@@ -316,47 +316,47 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       </Animated.View>
       {/* Current Lineup */}
       {!loading && currentLineUp.length === 0 && substitutionPlayer.length === 0 && (
-        <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
-          <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
-          <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+        <View style={[tailwind`mx-4 mt-4 p-4 rounded-2xl items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+          <MaterialIcons name="people-outline" size={32} color="#475569" />
+          <Text style={[tailwind`font-semibold text-sm mt-3 mb-1`, { color: '#f1f5f9' }]}>
             No Squad Selected
           </Text>
-          <Text style={tailwind`text-gray-400 text-xs text-center`}>
+          <Text style={[tailwind`text-xs text-center`, { color: '#64748b' }]}>
             {error.global || "No squad has been selected for this team yet."}
           </Text>
         </View>
       )}
       {currentLineUp.length > 0 && (
-        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
-          <View style={tailwind`p-4 border-b border-gray-100`}>
-            <Text style={tailwind`text-base font-bold text-gray-900`}>
+        <View style={[tailwind`mx-4 mb-3 rounded-2xl overflow-hidden`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+          <View style={[tailwind`p-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+            <Text style={[tailwind`text-base font-bold`, { color: '#f1f5f9' }]}>
               Starting XI
             </Text>
           </View>
           {currentLineUp?.map((itm, index) => (
-            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+            <View key={index} style={[tailwind`flex-row items-center px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: '#33415550' }]}>
               {itm?.player?.media_url ? (
                   <Image
                     source={{ uri: itm.player.media_url }}
-                    style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                    style={[tailwind`w-11 h-11 rounded-full`, { backgroundColor: '#334155' }]}
                   />
               ):(
-                <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
-                  <Text style={tailwind`text-red-400 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#f8717120' }]}>
+                  <Text style={[tailwind`font-semibold`, { color: '#f87171' }]}>{itm.player.name.charAt(0).toUpperCase()}</Text>
                 </View>
               )}
               <View style={tailwind`flex-1 ml-3`}>
-                <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
                   {itm.player.name}
                 </Text>
                 <View style={tailwind`flex-row items-center mt-0.5`}>
-                  <Text style={tailwind`text-xs text-gray-400`}>
+                  <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                     {selectPosition(itm.player.positions)}
                   </Text>
                   {itm.player.country && (
                     <>
-                      <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
-                      <Text style={tailwind`text-xs text-gray-400`}>
+                      <Text style={[tailwind`text-xs mx-1.5`, { color: '#475569' }]}>•</Text>
+                      <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                         {itm.player.country}
                       </Text>
                     </>
@@ -370,36 +370,36 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
       {/* Substitutions */}
       {substitutionPlayer.length > 0 && (
-        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
-          <View style={tailwind`p-4 border-b border-gray-100`}>
-            <Text style={tailwind`text-base font-bold text-gray-900`}>
+        <View style={[tailwind`mx-4 mb-3 rounded-2xl overflow-hidden`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+          <View style={[tailwind`p-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+            <Text style={[tailwind`text-base font-bold`, { color: '#f1f5f9' }]}>
               Substitutes
             </Text>
           </View>
           {substitutionPlayer.map((itm, index) => (
-            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+            <View key={index} style={[tailwind`flex-row items-center px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: '#33415550' }]}>
               {itm?.player?.media_url ? (
                 <Image
                   source={{ uri: itm.player.media_url }}
-                  style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                  style={[tailwind`w-11 h-11 rounded-full`, { backgroundColor: '#334155' }]}
                 />
               ):(
-                <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
-                  <Text style={tailwind`text-gray-500 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}>
+                  <Text style={[tailwind`font-semibold`, { color: '#94a3b8' }]}>{itm.player.name.charAt(0).toUpperCase()}</Text>
                 </View>
               )}
               <View style={tailwind`flex-1 ml-3`}>
-                <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
                   {itm.player.name}
                 </Text>
                 <View style={tailwind`flex-row items-center mt-0.5`}>
-                  <Text style={tailwind`text-xs text-gray-400`}>
+                  <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                     {selectPosition(itm.player.positions)}
                   </Text>
                   {itm.player.country && (
                     <>
-                      <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
-                      <Text style={tailwind`text-xs text-gray-400`}>
+                      <Text style={[tailwind`text-xs mx-1.5`, { color: '#475569' }]}>•</Text>
+                      <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                         {itm.player.country}
                       </Text>
                     </>
@@ -419,21 +419,21 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           animationType="slide"
           onRequestClose={() => setIsPlayerModalVisible(false)}
         >
-          <View style={tailwind`flex-1 bg-black bg-opacity-60 justify-end`}>
+          <View style={tailwind`flex-1 bg-black/60 justify-end`}>
             <View
-              style={tailwind`max-h-[80%] bg-white rounded-t-2xl shadow-xl p-4`}
+              style={[tailwind`max-h-[80%] rounded-t-2xl p-4`, { backgroundColor: '#1e293b' }]}
             >
               {/* Header */}
               <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                <Text style={tailwind`text-xl font-bold`}>Select Players</Text>
+                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Select Players</Text>
                 <Pressable onPress={() => setIsPlayerModalVisible(false)}>
-                  <AntDesign name="close" size={24} color="black" />
+                  <AntDesign name="close" size={24} color="#94a3b8" />
                 </Pressable>
               </View>
 
               {error?.global && (
-                <View style={tailwind`mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg`}>
-                  <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
+                <View style={[tailwind`mx-4 mb-4 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                  <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>{error.global}</Text>
                 </View>
               )}
 
@@ -445,34 +445,35 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                     <View
                       key={index}
                       style={[
-                        tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`,
-                        isSelected && tailwind`bg-green-50`
+                        tailwind`flex-row items-center px-4 py-3`,
+                        { borderBottomWidth: 1, borderBottomColor: '#33415550' },
+                        isSelected && { backgroundColor: '#10b98115' }
                       ]}
                     >
                       {itm?.media_url ? (
                         <Image
                           source={{ uri: itm.media_url }}
-                          style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                          style={[tailwind`w-11 h-11 rounded-full`, { backgroundColor: '#334155' }]}
                         />
                       ):(
-                        <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
-                          <Text style={tailwind`text-gray-500 font-semibold`}>
+                        <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}>
+                          <Text style={[tailwind`font-semibold`, { color: '#94a3b8' }]}>
                             {itm.name.charAt(0).toUpperCase()}
                           </Text>
                         </View>
                       )}
                       <View style={tailwind`flex-1 ml-3`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                        <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
                           {itm.name}
                         </Text>
                         <View style={tailwind`flex-row items-center mt-0.5`}>
-                          <Text style={tailwind`text-xs text-gray-400`}>
+                          <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                             {selectPosition(itm.position)}
                           </Text>
                           {itm.country && (
                             <>
-                              <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
-                              <Text style={tailwind`text-xs text-gray-400`}>
+                              <Text style={[tailwind`text-xs mx-1.5`, { color: '#475569' }]}>•</Text>
+                              <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
                                 {itm.country}
                               </Text>
                             </>
@@ -482,7 +483,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
                       {/* Substitute Toggle */}
                       <View style={tailwind`items-center mr-3`}>
-                        <Text style={tailwind`text-xs text-gray-400 mb-1`}>Sub</Text>
+                        <Text style={[tailwind`text-xs mb-1`, { color: '#64748b' }]}>Sub</Text>
                         <Switch
                           value={isSubstituted.includes(itm.public_id)}
                           disabled={!isSelected}
@@ -493,8 +494,8 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                               setIsSubstituted((prev) => prev.filter((pid) => pid !== itm.public_id));
                             }
                           }}
-                          trackColor={{ false: '#E5E7EB', true: '#FCA5A5' }}
-                          thumbColor={isSubstituted.includes(itm.public_id) ? '#f87171' : '#f4f3f4'}
+                          trackColor={{ false: '#334155', true: '#FCA5A5' }}
+                          thumbColor={isSubstituted.includes(itm.public_id) ? '#f87171' : '#64748b'}
                           style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                         />
                       </View>
@@ -504,7 +505,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                         <AntDesign
                           name={isSelected ? 'checkcircle' : 'pluscircleo'}
                           size={24}
-                          color={isSelected ? '#10B981' : '#D1D5DB'}
+                          color={isSelected ? '#10B981' : '#475569'}
                         />
                       </Pressable>
                     </View>
@@ -513,16 +514,17 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
               </ScrollView>
 
               {/* Submit Button */}
-              <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100`}>
+              <View style={[tailwind`absolute bottom-0 left-0 right-0 p-4`, { backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155' }]}>
                 <Pressable
                   onPress={() => handleSelectSquad()}
                   style={[
                     tailwind`py-3.5 rounded-xl items-center`,
-                    selectedSquad.length === 0 ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
-                    {shadowColor: '#f87171', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3}
+                    selectedSquad.length === 0
+                      ? { backgroundColor: '#334155' }
+                      : { backgroundColor: '#f87171' },
                   ]}
                 >
-                  <Text style={tailwind`text-white text-base font-semibold`}>
+                  <Text style={[tailwind`text-base font-semibold`, { color: selectedSquad.length === 0 ? '#64748b' : '#ffffff' }]}>
                     {selectedSquad.length > 0 ? `Add ${selectedSquad.length} Player(s)` : 'Select Players'}
                   </Text>
                 </Pressable>

@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Pressable, TextInput, Image, ScrollView, Platform, PermissionsAndroid, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -113,79 +113,93 @@ const EditClub = ({ route }) => {
         }
     };
 
+    useLayoutEffect(() => {
     navigation.setOptions({
         headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Edit Team</Text>
+        <Text style={{ color: '#f1f5f9', fontSize: 16, fontWeight: '600' }}>
+            Edit Team
+        </Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+        backgroundColor: '#1e293b',
+        elevation: 0,
+        shadowOpacity: 0,
         },
-        headerTintColor: 'white',
+        headerTintColor: '#e2e8f0',
         headerTitleAlign: 'center',
         headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
-            </Pressable>
+        <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+            <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
+        </Pressable>
         ),
     });
+    }, [navigation]);
 
     return (
         <ScrollView
-            style={tailwind`flex-1 bg-gray-50`}
+            style={{ flex: 1, backgroundColor: '#0f172a' }}
             contentContainerStyle={tailwind`p-5`}
             showsVerticalScrollIndicator={false}
         >
             {/* Header */}
-            <Text style={tailwind`text-base text-gray-500 mb-6`}>Update your team details</Text>
+            <Text style={{ color: '#64748b', fontSize: 14, marginBottom: 24 }}>Update your team details</Text>
 
             {/* Team Logo */}
-            <View style={tailwind`items-center mb-6 bg-white p-6 rounded-2xl shadow-sm`}>
+            <View style={{
+                alignItems: 'center', marginBottom: 24, padding: 24, borderRadius: 16,
+                backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155',
+            }}>
                 <Pressable
                     onPress={handleMediaSelection}
-                    style={tailwind`w-28 h-28 rounded-full bg-gray-100 items-center justify-center border-4 border-white shadow-md`}
+                    style={{
+                        width: 112, height: 112, borderRadius: 56,
+                        backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center',
+                        borderWidth: 3, borderColor: '#475569',
+                    }}
                 >
                     {mediaUrl ? (
                         <Image source={{ uri: mediaUrl }} style={tailwind`w-full h-full rounded-full`} />
                     ) : (
-                        <FontAwesome name="camera" size={36} color="#9CA3AF" />
+                        <FontAwesome name="camera" size={36} color="#64748b" />
                     )}
                 </Pressable>
-                <Text style={tailwind`text-sm text-gray-500 mt-3 font-medium`}>Change Team Logo</Text>
+                <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 12, fontWeight: '500' }}>Change Team Logo</Text>
             </View>
 
             {/* Team Details Card */}
-            <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-5`}>
-                <Text style={tailwind`text-lg font-bold text-gray-800 mb-4`}>Team Details</Text>
+            <View style={{
+                padding: 20, borderRadius: 16, marginBottom: 20,
+                backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155',
+            }}>
+                <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Team Details</Text>
 
                 {/* Team Name */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Team Name *</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>Team Name *</Text>
                     <TextInput
-                        style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                        style={{
+                            padding: 16, backgroundColor: '#0f172a', borderRadius: 12,
+                            borderWidth: 1, borderColor: '#334155', color: '#f1f5f9', fontSize: 15,
+                        }}
                         value={teamName}
                         onChangeText={setTeamName}
                         placeholder="Enter team name"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="#475569"
                     />
                 </View>
 
                 {/* Gender */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Gender *</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>Gender *</Text>
                     <View style={tailwind`flex-row gap-3`}>
                         <Pressable
                             onPress={() => setGender('M')}
                             style={[
                                 tailwind`flex-1 py-3 rounded-xl items-center`,
-                                gender === 'M' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                { backgroundColor: gender === 'M' ? '#f87171' : '#334155' },
                             ]}
                         >
-                            <Text style={[tailwind`font-semibold`, gender === 'M' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                            <Text style={{ fontWeight: '600', color: gender === 'M' ? '#ffffff' : '#94a3b8' }}>
                                 Male
                             </Text>
                         </Pressable>
@@ -193,10 +207,10 @@ const EditClub = ({ route }) => {
                             onPress={() => setGender('F')}
                             style={[
                                 tailwind`flex-1 py-3 rounded-xl items-center`,
-                                gender === 'F' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                { backgroundColor: gender === 'F' ? '#f87171' : '#334155' },
                             ]}
                         >
-                            <Text style={[tailwind`font-semibold`, gender === 'F' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                            <Text style={{ fontWeight: '600', color: gender === 'F' ? '#ffffff' : '#94a3b8' }}>
                                 Female
                             </Text>
                         </Pressable>
@@ -205,7 +219,7 @@ const EditClub = ({ route }) => {
 
                 {/* Category */}
                 <View style={tailwind`mb-0`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Category *</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>Category *</Text>
                     <View style={tailwind`flex-row gap-2`}>
                         {['team', 'individual', 'double'].map((item) => (
                             <Pressable
@@ -213,10 +227,10 @@ const EditClub = ({ route }) => {
                                 onPress={() => setCategory(item)}
                                 style={[
                                     tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    category === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                    { backgroundColor: category === item ? '#f87171' : '#334155' },
                                 ]}
                             >
-                                <Text style={[tailwind`font-semibold text-sm`, category === item ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                <Text style={{ fontWeight: '600', fontSize: 13, color: category === item ? '#ffffff' : '#94a3b8' }}>
                                     {item.charAt(0).toUpperCase() + item.slice(1)}
                                 </Text>
                             </Pressable>
@@ -226,87 +240,114 @@ const EditClub = ({ route }) => {
             </View>
 
             {/* Location Details Card */}
-            <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-5`}>
-                <Text style={tailwind`text-lg font-bold text-gray-800 mb-4`}>Location</Text>
+            <View style={[tailwind`p-5 rounded-2xl mb-5`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Location</Text>
 
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>City</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>City</Text>
                     <TextInput
-                        style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                        style={[tailwind`p-4 rounded-xl`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155', color: '#f1f5f9' }]}
                         value={city}
                         onChangeText={setCity}
                         placeholder="Enter city"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="#475569"
                     />
                 </View>
 
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>State/Province</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>State/Province</Text>
                     <TextInput
-                        style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                        style={[tailwind`p-4 rounded-xl`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155', color: '#f1f5f9' }]}
                         value={state}
                         onChangeText={setState}
                         placeholder="Enter state or province"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="#475569"
                     />
                 </View>
 
                 <View style={tailwind`mb-0`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Country</Text>
+                    <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>Country</Text>
                     <TextInput
-                        style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                        style={[tailwind`p-4 rounded-xl`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155', color: '#f1f5f9' }]}
                         value={country}
                         onChangeText={setCountry}
                         placeholder="Enter country"
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="#475569"
                     />
                 </View>
             </View>
 
             {/* GPS Location Card */}
-            <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-6`}>
+            <View
+                style={[
+                    tailwind`p-5 rounded-2xl mb-5`,
+                    { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                ]}
+            >
                 <View style={tailwind`flex-row items-center justify-between mb-3`}>
-                    <Text style={tailwind`text-lg font-bold text-gray-800`}>GPS Coordinates</Text>
+                    <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700' }}>
+                        Precise Location
+                    </Text>
+
                     {latitude && longitude && (
-                        <MaterialIcons name="check-circle" size={20} color="#10B981" />
+                    <MaterialIcons name="check-circle" size={20} color="#22c55e" />
                     )}
                 </View>
-                <Text style={tailwind`text-xs text-gray-500 mb-4`}>
-                    {latitude && longitude ? 'Update precise location' : 'Add precise location for better visibility'}
+
+                <Text style={{ color: '#94a3b8', fontSize: 12, marginBottom: 16 }}>
+                    {latitude && longitude
+                    ? 'Update precise location'
+                    : 'Add precise location for better visibility'}
                 </Text>
 
                 <Pressable
                     onPress={handleLocation}
                     disabled={isLoadingLocation}
                     style={[
-                        tailwind`p-4 rounded-xl flex-row items-center justify-between`,
-                        isLoadingLocation ? tailwind`bg-gray-100` : tailwind`bg-red-50`,
+                    tailwind`p-4 rounded-xl flex-row items-center justify-between`,
+                    {
+                        backgroundColor: '#0f172a',
+                        borderWidth: 1,
+                        borderColor: '#334155'
+                    }
                     ]}
                 >
                     <View style={tailwind`flex-row items-center flex-1`}>
-                        <MaterialIcons
-                            name="my-location"
-                            size={22}
-                            color={latitude && longitude ? "#10B981" : "#EF4444"}
-                        />
-                        <Text style={[tailwind`ml-3 flex-1`, latitude && longitude ? tailwind`text-green-600 font-semibold` : tailwind`text-red-500 font-medium`]}>
-                            {isLoadingLocation
-                                ? 'Getting location...'
-                                : latitude && longitude
-                                    ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-                                    : 'Tap to get location'}
-                        </Text>
+                    <MaterialIcons
+                        name="my-location"
+                        size={22}
+                        color={latitude && longitude ? '#22c55e' : '#f87171'}
+                    />
+
+                    <Text
+                        style={{
+                        marginLeft: 12,
+                        flex: 1,
+                        fontWeight: '500',
+                        color: latitude && longitude ? '#22c55e' : '#cbd5e1'
+                        }}
+                    >
+                        {isLoadingLocation
+                        ? 'Getting location...'
+                        : latitude && longitude
+                        ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+                        : 'Tap to get location'}
+                    </Text>
                     </View>
-                    <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
+
+                    <MaterialIcons name="chevron-right" size={20} color="#94a3b8" />
                 </Pressable>
-            </View>
+                </View>
 
             {/* Update Button */}
             <Pressable
                 onPress={handleSubmit}
-                style={tailwind`bg-red-400 py-4 rounded-2xl shadow-lg mb-6`}
+                style={{
+                    backgroundColor: '#f87171', paddingVertical: 16,
+                    borderRadius: 16, marginBottom: 24,
+                }}
             >
-                <Text style={tailwind`text-lg font-bold text-white text-center`}>
+                <Text style={{ fontSize: 17, fontWeight: '700', color: '#ffffff', textAlign: 'center' }}>
                     Update Team
                 </Text>
             </Pressable>

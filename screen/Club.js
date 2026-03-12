@@ -11,6 +11,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setGames, setGame, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 import { logSilentError } from '../utils/errorHandler';
+import SportSelector from '../components/SportSelector';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedScrollHandler,
+  withTiming
+} from "react-native-reanimated";
 
 const Club = () => {
     const navigation = useNavigation();
@@ -27,6 +34,34 @@ const Club = () => {
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const teams = useSelector((state) => state.teams.teamsBySports);
+
+    const scrollY = useSharedValue(0);
+    const pos = useSharedValue(0);
+    const FILTER_HEIGHT = 100;
+
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            const currentY = event.contentOffset.y;
+            if (currentY > scrollY.value + 5) {
+                // scrolling down
+                if (pos.value === 0) {
+                    pos.value = withTiming(-FILTER_HEIGHT, { duration: 250 });
+                }
+            } else if (currentY < scrollY.value - 5) {
+                // scrolling up
+                if (pos.value === -FILTER_HEIGHT) {
+                    pos.value = withTiming(0, { duration: 250 });
+                }
+            }
+            scrollY.value = currentY;
+        },
+    });
+
+    const animatedSportAndFilter = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: pos.value }],
+        };
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -107,12 +142,10 @@ const Club = () => {
             <Text style={tailwind`text-xl font-bold text-white`}>Team</Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 0,
         },
         headerTintColor: 'white',
         headerTitleAlign: 'center',
@@ -128,11 +161,11 @@ const Club = () => {
             <Pressable
                 onPress={() => handleClub(item)}
                 style={[
-                    tailwind`rounded-xl bg-white shadow-md mb-3 p-4 flex-row items-center`,
-                    { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }
+                    tailwind`rounded-xl mb-3 p-4 flex-row items-center`,
+                    { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1 }
                 ]}
             >
-                <View style={[tailwind`rounded-full h-14 w-14 overflow-hidden items-center justify-center`, { backgroundColor: '#f3f4f6' }]}>
+                <View style={[tailwind`rounded-full h-14 w-14 overflow-hidden items-center justify-center`, { backgroundColor: '#334155' }]}>
                     {item.media_url ? (
                         <Image source={{ uri: item.media_url }} style={tailwind`h-full w-full`} resizeMode="cover" />
                     ) : (
@@ -140,17 +173,17 @@ const Club = () => {
                     )}
                 </View>
                 <View style={tailwind`flex-1 ml-4`}>
-                    <Text style={tailwind`text-base font-bold text-gray-800`} numberOfLines={1}>{item.name}</Text>
+                    <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700'}} numberOfLines={1}>{item.name}</Text>
                     <View style={tailwind`flex-row items-center mt-1`}>
-                        <MaterialIcons name="location-on" size={14} color="#9ca3af" />
-                        <Text style={tailwind`text-sm text-gray-500 ml-1`} numberOfLines={1}>
+                        <MaterialIcons name="location-on" size={14} color="#64748b" />
+                        <Text style={{color: '#94a3b8', fontSize: 14, marginLeft: 4}} numberOfLines={1}>
                             {item.country}
                         </Text>
-                        <View style={tailwind`h-1 w-1 rounded-full bg-gray-400 mx-2`} />
-                        <Text style={tailwind`text-sm text-gray-500 capitalize`}>{game.name}</Text>
+                        <View style={[tailwind`h-1 w-1 rounded-full mx-2`, {backgroundColor: '#475569'}]} />
+                        <Text style={{color: '#94a3b8', fontSize: 14, textTransform: 'capitalize'}}>{game.name}</Text>
                     </View>
                 </View>
-                <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
+                <MaterialIcons name="chevron-right" size={24} color="#475569" />
             </Pressable>
         )
     }
@@ -160,7 +193,7 @@ const Club = () => {
             return (
                 <View style={tailwind`flex-1 items-center justify-center py-20`}>
                     <ActivityIndicator size="large" color="#f87171" />
-                    <Text style={tailwind`text-gray-500 mt-4 text-base`}>Loading teams...</Text>
+                    <Text style={{color: '#94a3b8', marginTop: 16, fontSize: 16}}>Loading teams...</Text>
                 </View>
             );
         }
@@ -168,18 +201,18 @@ const Club = () => {
         if (error?.global) {
             return (
                 <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
-                    <MaterialIcons name="error-outline" size={64} color="#9ca3af" />
-                    <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>Oops! Something went wrong</Text>
-                    <Text style={tailwind`text-gray-500 text-sm mt-2 text-center`}>{error.global}</Text>
+                    <MaterialIcons name="error-outline" size={64} color="#475569" />
+                    <Text style={{color: '#f1f5f9', fontSize: 18, fontWeight: '600', marginTop: 16, textAlign: 'center'}}>Oops! Something went wrong</Text>
+                    <Text style={{color: '#94a3b8', fontSize: 14, marginTop: 8, textAlign: 'center'}}>{error.global}</Text>
                 </View>
             );
         }
 
         return (
             <View style={tailwind`flex-1 items-center justify-center px-6 py-20`}>
-                <MaterialIcons name="sports-soccer" size={64} color="#9ca3af" />
-                <Text style={tailwind`text-gray-700 text-lg font-semibold mt-4 text-center`}>No Teams Yet</Text>
-                <Text style={tailwind`text-gray-500 text-sm mt-2 text-center mb-4`}>
+                <MaterialIcons name="sports-soccer" size={64} color="#475569" />
+                <Text style={{color: '#f1f5f9', fontSize: 18, fontWeight: '600', marginTop: 16, textAlign: 'center'}}>No Teams Yet</Text>
+                <Text style={{color: '#94a3b8', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 16}}>
                     Create your first team to get started
                 </Text>
                 <Pressable
@@ -193,38 +226,21 @@ const Club = () => {
     };
 
     return (
-        <View style={tailwind`flex-1 bg-gray-50`}>
+        <View style={{flex: 1, backgroundColor: '#0f172a'}}>
             {/* Sports Filter Section */}
-            <View style={{ marginTop: 4 }}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-                {games.map(s => {
-                  const active = game?.id === s.id;
-                  return (
-                    <Pressable
-                      key={s.id}
-                      onPress={() => handleSport(s)}
-                      style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        paddingHorizontal: 18, paddingVertical: 8,
-                        borderRadius: 20, gap: 6,
-                        backgroundColor: active ? '#f87171' : '#1e293b',
-                        borderWidth: active ? 0 : 1,
-                        borderColor: '#334155',
-                      }}
-                    >
-                      <Text style={{
-                        color: active ? '#fff' : '#94a3b8',
-                        fontWeight: active ? '700' : '500',
-                        fontSize: 13,
-                      }}>
-                        {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
+            <Animated.View
+              style={[
+                animatedSportAndFilter,
+                tailwind`shadow-lg`,
+                {
+                  backgroundColor: "#1e293b",
+                  borderBottomColor: "#334155",
+                  zIndex: 10
+                }
+              ]}
+            >
+              <SportSelector />
+            </Animated.View>
 
             {/* Teams List */}
             <FlatList
@@ -237,7 +253,7 @@ const Club = () => {
             />
 
             {/* Floating Action Button */}
-            <View style={tailwind`absolute bottom-14 right-5`}>
+            <View style={tailwind`absolute bottom-18 right-5`}>
                 <Pressable
                 style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
                 onPress={() => navigation.navigate('CreateClub')}

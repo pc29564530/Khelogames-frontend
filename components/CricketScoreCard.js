@@ -20,7 +20,7 @@ const convertBallToOvers = (item) => {
 };
 
 const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
-    
+
     const dispatch = useDispatch();
     const game = useSelector(state => state.sportReducers.game);
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
@@ -87,7 +87,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
             setIsLoading(false);
         }
     }, [match]);
-    
+
     const [yetToBat, setYetToBat] = useState([]);
 
     useEffect(() => {
@@ -143,13 +143,13 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
         const handleYetToBat = () => {
             let notBatted = [];
             const allBattedIDs = new Set();
-        
+
             Object.keys(batting?.innings || {}).forEach(key => {
                 batting.innings[key]?.forEach(batter => {
                     if (key === selectedInning && batter?.id) allBattedIDs.add(batter.id);
                 });
             });
-        
+
             if (currentScoreCard === homeTeamPublicID) {
                 if (Array.isArray(homePlayer)) {
                     notBatted = homePlayer.filter(item => !allBattedIDs.has(item.id));
@@ -159,15 +159,15 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                     notBatted = awayPlayer.filter(item => !allBattedIDs.has(item.id));
                 }
             }
-        
+
             setYetToBat(notBatted);
         };
-        
+
         handleYetToBat();
     }, [currentScoreCard, match.public_id]);
 
     const handleAddNextBatsman = async () => {
-        
+
         try{
             setIsLoading(true);
             const formData = {
@@ -252,15 +252,15 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
 
     if (isLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#0000ff" />
-                <Text>Loading...</Text>
+            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={[tailwind`mt-2`, {color: '#94a3b8'}]}>Loading...</Text>
             </View>
         );
     } else {
         return (
-            <View style={tailwind`flex-1 bg-white`}>
-                <Animated.ScrollView 
+            <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
+                <Animated.ScrollView
                     onScroll={handlerScroll}
                     scrollEventThrottle={16}
                     showsVerticalScrollIndicator={false}
@@ -269,35 +269,37 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                         paddingBottom: 100,
                         minHeight: sHeight + 100
                     }}
-                >   
-                    <Animated.View style={[tailwind`bg-white shadow-lg w-full px-2`, contentStyle]}>
+                >
+                    <Animated.View style={[tailwind`w-full px-2`, {backgroundColor: '#0f172a'}, contentStyle]}>
                         {/* Team switcher */}
-                        <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2 `}>
+                        <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
                             <Pressable
                             onPress={() => {
                                 setCurrentScoreCard(homeTeamPublicID);
                             }}
                             style={[
-                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                tailwind`rounded-lg w-1/2 items-center p-2`,
+                                {borderWidth: 1, borderColor: '#334155'},
                                 homeTeamPublicID === currentScoreCard
-                                ? tailwind`bg-red-400`
-                                : tailwind`bg-white`,
+                                ? {backgroundColor: '#f87171'}
+                                : {backgroundColor: '#0f172a'},
                             ]}
                             >
-                            <Text style={tailwind`text-lg font-bold`}>
+                            <Text style={[tailwind`text-lg font-bold`, {color: homeTeamPublicID === currentScoreCard ? '#ffffff' : '#94a3b8'}]}>
                                 {match?.homeTeam?.name}
                             </Text>
                             </Pressable>
                             <Pressable
                             onPress={() => setCurrentScoreCard(awayTeamPublicID)}
                             style={[
-                                tailwind`rounded-lg w-1/2 items-center shadow-lg bg-white p-2`,
+                                tailwind`rounded-lg w-1/2 items-center p-2`,
+                                {borderWidth: 1, borderColor: '#334155'},
                                 awayTeamPublicID === currentScoreCard
-                                ? tailwind`bg-red-400`
-                                : tailwind`bg-white`,
+                                ? {backgroundColor: '#f87171'}
+                                : {backgroundColor: '#0f172a'},
                             ]}
                             >
-                            <Text style={tailwind`text-lg font-bold`}>
+                            <Text style={[tailwind`text-lg font-bold`, {color: awayTeamPublicID === currentScoreCard ? '#ffffff' : '#94a3b8'}]}>
                                 {match?.awayTeam?.name}
                             </Text>
                             </Pressable>
@@ -309,65 +311,65 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                                  <>
                                     {Object.keys(batting?.innings).map((key, index) => (
                                         <Pressable key={key} onPress={() => setSelectedInning(key)}>
-                                            <Text style={tailwind`text-black`}>
+                                            <Text style={[tailwind`px-4 py-2`, {color: '#f1f5f9'}]}>
                                                 {index === 0 ? '1st Innings' : '2nd Innings'}
                                             </Text>
                                         </Pressable>
                                     ))}
                                     <View>
-                                        
+
                                         <CricketBattingScorecard batting={batting?.innings && batting.innings[selectedInning]} />
                                         <CricketBowlingScorecard bowling={batting?.innings && bowling.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
                                         <CricketWicketCard wickets={wickets.innings[selectedInning]} convertBallToOvers={convertBallToOvers} />
                                     </View>
                                  </>
                             ):(
-                                <Text style={tailwind`text-center text-gray-500`}>Inning Not Started</Text>
+                                <Text style={[tailwind`text-center py-4`, {color: '#64748b'}]}>Inning Not Started</Text>
                             )}
                         </>
                     ):(
                         <>
                             {batting?.innings && Object.keys(batting?.innings).length >  0 ? (
-                                <View style={tailwind``}>
+                                <View>
                                         {Object.keys(batting?.innings)?.map((key, index) => (
-                                            <View style={tailwind`bg-white mb-2 p-1`} key = {index}>
+                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]} key={index}>
                                                 <CricketBattingScorecard batting={batting?.innings[key]} />
                                             </View>
                                         ))}
                                         {Object.keys(batting?.innings).map((key, index) => (
-                                            <View style={tailwind`bg-white mb-2 p-1`} key= {index}>
+                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]} key={index}>
                                                 <CricketBowlingScorecard bowling={bowling?.innings[key]} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         ))}
                                         {yetToBat.length > 0 && (
-                                            <View style={tailwind`bg-white rounded-lg shadow-md p-4 mb-4`}>
-                                                <Text style={tailwind`text-black`}>Yet to bat:</Text>
+                                            <View style={[tailwind`rounded-lg p-4 mb-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                                                <Text style={[tailwind`font-semibold mb-2`, {color: '#f1f5f9'}]}>Yet to bat:</Text>
                                                 <View>
                                                         {yetToBat.map((item, index) => (
-                                                        <View key={index} style={tailwind`bg-red flex-1`}>
-                                                                <Text style={tailwind`text-black`}>{item.player_name}</Text>
+                                                        <View key={index} style={tailwind`flex-1`}>
+                                                                <Text style={[tailwind`py-1`, {color: '#cbd5e1'}]}>{item.player_name}</Text>
                                                         </View>
                                                         ))}
                                                 </View>
                                             </View>
                                         )}
                                         {wickets.length > 0 && (
-                                            <View style={tailwind`bg-white mb-2 p-1`}>
+                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]}>
                                                 <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         )}
                                 </View>
                             ):(
                                 <View style={tailwind`flex-1 p-4`}>
-                                    <View style={tailwind`bg-white rounded-lg shadow-lg items-center justify-center h-40 p-4`}>
-                                        <MaterialIcon name="info-outline" size={40} color="gray" />
-                                        <Text style={tailwind`text-lg font-bold text-gray mt-2`}>Inning Not Started</Text>
+                                    <View style={[tailwind`rounded-lg items-center justify-center h-40 p-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                                        <MaterialIcon name="info-outline" size={40} color="#475569" />
+                                        <Text style={[tailwind`text-lg font-bold mt-2`, {color: '#64748b'}]}>Inning Not Started</Text>
                                     </View>
                                 </View>
                             )}
                         </>
                     )}
-                    
+
                 </Animated.ScrollView>
                 {isYetToBatModalVisible && (
                         <Modal
@@ -375,12 +377,12 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                         animationType="slide"
                         visible={isYetToBatModalVisible}
                         onRequestClose={() => setIsYetToBatModalVisible(false)}
-                        >  
+                        >
                         <Pressable onPress={() => setIsYetToBatModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                            <View style={tailwind`bg-white rounded-md p-4`}>
+                            <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b'}]}>
                             {yetToBat.map((item, index) => (
-                                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={tailwind``}>
-                                    <Text style={tailwind`text-xl py-2 text-black`}>{item.player_name}</Text>
+                                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={[tailwind`py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                                    <Text style={[tailwind`text-xl py-2`, {color: '#f1f5f9'}]}>{item.player_name}</Text>
                                 </Pressable>
                             ))}
                             </View>

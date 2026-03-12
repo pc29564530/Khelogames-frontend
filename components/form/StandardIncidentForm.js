@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
+import { background } from 'native-base/lib/typescript/theme/styled-system';
 
 const StandardIncidentForm = ({
     match,
@@ -24,12 +25,12 @@ const StandardIncidentForm = ({
     // Props validation
     if (!match || !homeTeam || !awayTeam || !incidentType) {
         return (
-            <View style={tailwind`flex-1 items-center justify-center p-6`}>
-                <MaterialIcons name="error-outline" size={64} color="#ef4444" />
-                <Text style={tailwind`text-red-600 text-lg font-semibold mt-4 text-center`}>
+            <View style={[tailwind`flex-1 items-center justify-center p-6`, {backgroundColor: '#0f172a'}]}>
+                <MaterialIcons name="error-outline" size={64} color="#cbd5e1" />
+                <Text style={[tailwind`text-lg font-semibold mt-4 text-center`, {color: '#fca5a5'}]}>
                     Invalid match data
                 </Text>
-                <Text style={tailwind`text-gray-600 text-center mt-2`}>
+                <Text style={[tailwind`text-center mt-2`, {color: '#94a3b8'}]}>
                     Required information is missing. Please go back and try again.
                 </Text>
                 <Pressable
@@ -197,7 +198,7 @@ const StandardIncidentForm = ({
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={tailwind`flex-1 w-full`}
+            style={[tailwind`flex-1 w-full`, { backgroundColor: "#020617" }]}
         >
             <ScrollView
                 contentContainerStyle={tailwind`p-4`}
@@ -206,11 +207,11 @@ const StandardIncidentForm = ({
             >
                 {/* Global Error Banner */}
                 {error?.global && (
-                    <View style={tailwind`mb-4 bg-red-50 border border-red-200 rounded-xl p-4`}>
+                    <View style={[tailwind`mb-4 rounded-xl p-4`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
                         <View style={tailwind`flex-row items-start`}>
-                            <MaterialIcons name="error-outline" size={20} color="#DC2626" />
+                            <MaterialIcons name="error-outline" size={20} color="#f87171" />
                             <View style={tailwind`flex-1 ml-2`}>
-                                <Text style={tailwind`text-red-700 font-semibold text-sm`}>
+                                <Text style={[tailwind`font-semibold text-sm`, {color: '#fca5a5'}]}>
                                     {error.global}
                                 </Text>
                             </View>
@@ -218,25 +219,25 @@ const StandardIncidentForm = ({
                                 onPress={() => setError({ global: null, fields: {} })}
                                 style={tailwind`ml-2`}
                             >
-                                <MaterialIcons name="close" size={18} color="#DC2626" />
+                                <MaterialIcons name="close" size={18} color="#f87171" />
                             </Pressable>
                         </View>
                     </View>
                 )}
                 {/* Select Period */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>Select Period</Text>
-                    <View style={tailwind`flex-row items-center gap-3`}>
+                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: "#f1f5f9"}]}>Select Period</Text>
+                    <View style={[tailwind`flex-row items-center gap-3`]}>
                         <Pressable 
                             style={[
-                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`,
-                                selectedHalf === 'first_half' ? tailwind`bg-red-400` : tailwind`bg-gray-100`
+                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`, {borderWidth:1, borderColor:"#334155"},
+                                selectedHalf !== 'first_half' ? {backgroundColor: "#0f172a"} : {backgroundColor:"#f87171"},
                             ]} 
                             onPress={() => setSelectedHalf('first_half')}
                         >
                             <Text style={[
                                 tailwind`font-semibold text-base`,
-                                selectedHalf === 'first_half' ? tailwind`text-white` : tailwind`text-gray-700`
+                                selectedHalf === 'first_half' ? tailwind`text-white` : {color: "#94a3b8"}
                             ]}>
                                 1st Half
                             </Text>
@@ -244,14 +245,14 @@ const StandardIncidentForm = ({
                         
                         <Pressable 
                             style={[
-                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`,
-                                selectedHalf === 'second_half' ? tailwind`bg-red-400` : tailwind`bg-gray-100`
+                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`, {borderWidth:1, borderColor:"#334155"},
+                                selectedHalf !== 'second_half' ? {backgroundColor: "#0f172a"} : {backgroundColor:"#f87171"},
                             ]} 
                             onPress={() => setSelectedHalf('second_half')}
                         >
                             <Text style={[
                                 tailwind`font-semibold text-base`,
-                                selectedHalf === 'second_half' ? tailwind`text-white` : tailwind`text-gray-700`
+                                selectedHalf === 'second_half' ? tailwind`text-white font-semibold` : {color: "#94a3b8"}
                             ]}>
                                 2nd Half
                             </Text>
@@ -261,14 +262,15 @@ const StandardIncidentForm = ({
 
                 {/* Minute Selector */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>
+                    <Text style={[tailwind`text-lg font-semibold mb-3 text-gray-700`, {color: "#f1f5f9"}]}>
                         Incident Time (Minute)
                     </Text>
                     <TextInput
-                        style={tailwind`border border-gray-300 p-4 bg-white rounded-xl shadow-sm text-lg`}
+                        style={[tailwind`p-4 rounded-xl text-lg`, {backgroundColor: "#0f172a", borderWidth:1, borderColor:"#334155", color: "#f1f5f9"}]}
                         keyboardType="number-pad"
                         value={selectedMinute}
                         placeholder="Enter minute"
+                        placeholderTextColor="#94a3b8"
                         onChangeText={(text) => setSelectedMinute(text)}
                         maxLength={3} 
                     />
@@ -276,12 +278,12 @@ const StandardIncidentForm = ({
 
                 {/* Team Selector */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>Select Team</Text>
+                    <Text style={[tailwind`text-lg font-semibold mb-3 text-gray-700`, {color: "#f1f5f9"}]}>Select Team</Text>
                     <View style={tailwind`flex-row gap-3`}>
                         <Pressable 
                             style={[
-                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`,
-                                teamPublicID === homeTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-100`
+                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`, {borderWidth:1, borderColor:"#334155"},
+                                teamPublicID !== homeTeam.public_id ? {backgroundColor: "#0f172a"} : {backgroundColor:"#f87171"},
                             ]}
                             onPress={() => {
                                 setTeamPublicID(homeTeam.public_id);
@@ -290,7 +292,7 @@ const StandardIncidentForm = ({
                         >
                             <Text style={[
                                 tailwind`font-semibold text-center`,
-                                teamPublicID === homeTeam.public_id ? tailwind`text-white` : tailwind`text-gray-700`
+                                teamPublicID === homeTeam.public_id ? tailwind`text-white` : {color: '#94a3b8'}
                             ]} numberOfLines={2}>
                                 {homeTeam.name}
                             </Text>
@@ -298,8 +300,8 @@ const StandardIncidentForm = ({
                         
                         <Pressable 
                             style={[
-                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`,
-                                teamPublicID === awayTeam.public_id ? tailwind`bg-red-400` : tailwind`bg-gray-100`
+                                tailwind`flex-1 p-4 rounded-xl items-center shadow-sm`, {borderWidth:1, borderColor:"#334155"},
+                                teamPublicID !== awayTeam.public_id ? {backgroundColor: "#0f172a"} : {backgroundColor:"#f87171"},
                             ]}
                             onPress={() => {
                                 setTeamPublicID(awayTeam.public_id);
@@ -308,7 +310,7 @@ const StandardIncidentForm = ({
                         >
                             <Text style={[
                                 tailwind`font-semibold text-center`,
-                                teamPublicID === awayTeam.public_id ? tailwind`text-white` : tailwind`text-gray-700`
+                                teamPublicID === awayTeam.public_id ? tailwind`text-white` : {color: '#94a3b8'}
                             ]} numberOfLines={2}>
                                 {awayTeam.name}
                             </Text>
@@ -318,38 +320,38 @@ const StandardIncidentForm = ({
 
                 {/* Player Selector */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>
+                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: "#f1f5f9"}]}>
                         Select Player ({currentPlayers?.length || 0} available)
                     </Text>
 
                     {error?.fields?.player_public_id && (
-                        <View style={tailwind`mb-2 p-2 bg-red-50 rounded-lg border border-red-200`}>
-                            <Text style={tailwind`text-red-600 text-xs`}>
+                        <View style={[tailwind`mb-2 p-2 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
+                            <Text style={[tailwind`text-xs`, {color: '#fca5a5'}]}>
                                 {error.fields.player_public_id}
                             </Text>
                         </View>
                     )}
 
                     {currentPlayers?.length === 0 ? (
-                        <View style={tailwind`p-4 bg-yellow-50 rounded-xl border border-yellow-200`}>
-                            <MaterialIcons name="warning" size={24} color="#d97706" style={tailwind`self-center mb-2`} />
-                            <Text style={tailwind`text-yellow-800 text-center font-medium`}>
+                        <View style={[tailwind`p-4 rounded-xl border`, {backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155"}]}>
+                            <MaterialIcons name="warning" size={24} color="#f87171" style={tailwind`self-center mb-2`} />
+                            <Text style={[tailwind`text-yellow-800 text-center font-medium`, {color:"#f1f5f9"}]}>
                                 No players available
                             </Text>
-                            <Text style={tailwind`text-yellow-700 text-center text-xs mt-1`}>
+                            <Text style={[tailwind`text-yellow-700 text-center text-xs mt-1`, {color:"#f1f5f9"}]}>
                                 Please add lineup first
                             </Text>
                         </View>
                     ) : (
                         <Dropdown
-                            style={tailwind`bg-white rounded-xl shadow-sm border ${error?.fields?.player_public_id ? 'border-red-400' : 'border-gray-300'}`}
+                            style={[tailwind`rounded-xl`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: error?.fields?.player_public_id ? '#f87171' : '#334155'}]}
                             options={currentPlayers}
                             onSelect={(index, item) => {
                                 setSelectedPlayer(item);
                                 setError({ ...error, fields: { ...error.fields, player_public_id: null } });
                             }}
                             renderRow={(item) => (
-                                <View style={tailwind`flex-row items-center p-3 border-b border-gray-100`}>
+                                <View style={[tailwind`flex-row items-center p-3`, {borderBottomWidth:1, borderColor:"#334155"}]}>
                                     {item.player?.media_url ? (
                                         <Image
                                             source={{ uri: item.player.media_url }}
@@ -357,24 +359,24 @@ const StandardIncidentForm = ({
                                             resizeMode="cover"
                                         />
                                     ) : (
-                                        <View style={tailwind`rounded-full h-12 w-12 mr-3 bg-red-300 items-center justify-center`}>
+                                        <View style={[tailwind`rounded-full h-12 w-12 mr-3 items-center justify-center`, {backgroundColor: '#f8717120'}]}>
                                             <Text style={tailwind`text-white font-bold text-lg`}>
                                                 {item.player?.name?.charAt(0)?.toUpperCase()}
                                             </Text>
                                         </View>
                                     )}
                                     <View>
-                                        <Text style={tailwind`text-base font-semibold text-gray-800`}>
+                                        <Text style={[tailwind`text-base font-semibold`, {color:"#f1f5f9"}]}>
                                             {item.player?.name || "Unknown Player"}
                                         </Text>
-                                        <Text style={tailwind`text-sm text-gray-500`}>
+                                        <Text style={{color:"#94a3b8"}}>
                                             {item.player.positions}
                                         </Text>
                                     </View>
                                 </View>
                             )}
                         >
-                            <View style={tailwind`flex-row items-center justify-between p-4 rounded-xl bg-white border border-gray-300`}>
+                            <View style={[tailwind`flex-row items-center justify-between p-4 rounded-xl`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}]}>
                                 <View style={tailwind`flex-row items-center flex-1`}>
                                     {selectedPlayer ? (
                                         <>
@@ -385,23 +387,23 @@ const StandardIncidentForm = ({
                                                     resizeMode="cover"
                                                 />
                                             ) : (
-                                                <View style={tailwind`rounded-full h-10 w-10 mr-3 bg-red-300 items-center justify-center`}>
+                                                <View style={[tailwind`rounded-full h-10 w-10 mr-3 items-center justify-center`, {backgroundColor: '#f8717120'}]}>
                                                     <Text style={tailwind`text-white font-bold`}>
                                                         {selectedPlayer.player?.name?.charAt(0)?.toUpperCase()}
                                                     </Text>
                                                 </View>
                                             )}
-                                            <Text style={tailwind`text-base font-medium text-gray-800`}>
+                                            <Text style={[tailwind`text-base font-medium`, {color: '#f1f5f9'}]}>
                                                 {selectedPlayer.player?.name || selectedPlayer.name}
                                             </Text>
                                         </>
                                     ) : (
-                                        <Text style={tailwind`text-base text-gray-400`}>
+                                        <Text style={[tailwind`text-base`, {color: '#64748b'}]}>
                                             Select a player
                                         </Text>
                                     )}
                                 </View>
-                                <MaterialIcons name="arrow-drop-down" size={24} color="gray" />
+                                <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
                             </View>
                         </Dropdown>
                     )}
@@ -409,11 +411,11 @@ const StandardIncidentForm = ({
 
                 {/* Description Input */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>
-                        Description (Optional)
+                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: "#f1f5f9"}]}>
+                        Description
                     </Text>
                     <TextInput
-                        style={tailwind`border border-gray-300 p-4 rounded-xl bg-white shadow-sm text-base`}
+                        style={[tailwind`p-4 rounded-xl text-base`, {backgroundColor: "#0f172a", borderWidth:1, borderColor:"#334155", color: "#f1f5f9"}]}
                         placeholder={`Add details about the ${formatIncidentType(incidentType).toLowerCase()}...`}
                         value={description}
                         onChangeText={setDescription}
@@ -428,8 +430,8 @@ const StandardIncidentForm = ({
                     style={[
                         tailwind`p-4 rounded-xl shadow-lg flex-row items-center justify-center`,
                         loading || currentPlayers?.length === 0 || !selectedPlayer
-                            ? tailwind`bg-gray-300`
-                            : tailwind`bg-red-400`
+                            ? {backgroundColor: '#334155'}
+                            : {backgroundColor: '#f87171'}
                     ]}
                     onPress={handleAddIncident}
                     disabled={loading || currentPlayers?.length === 0 || !selectedPlayer}
@@ -453,18 +455,18 @@ const StandardIncidentForm = ({
 
                 {/* Summary Card */}
                 {selectedPlayer && (
-                    <View style={tailwind`mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200`}>
-                        <Text style={tailwind`text-blue-900 font-semibold mb-2`}>Summary:</Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                    <View style={[tailwind`mt-4 p-4 rounded-xl`, {backgroundColor: '#3b82f615', borderWidth: 1, borderColor: '#3b82f630'}]}>
+                        <Text style={[tailwind`font-semibold mb-2`, {color: '#93c5fd'}]}>Summary:</Text>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Incident: {formatIncidentType(incidentType)}
                         </Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Player: {selectedPlayer?.player?.name || selectedPlayer?.name}
                         </Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Team: {teamPublicID === homeTeam?.public_id ? homeTeam?.name : awayTeam?.name}
                         </Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Time: {selectedHalf === 'first_half' ? '1st Half' : '2nd Half'} - {selectedMinute}'
                         </Text>
                     </View>
@@ -474,35 +476,35 @@ const StandardIncidentForm = ({
             {/* Confirmation Modal */}
             {showConfirmation && (
                 <View style={tailwind`absolute inset-0 bg-black bg-opacity-50 items-center justify-center`}>
-                    <View style={tailwind`bg-white rounded-2xl p-6 mx-6 w-80`}>
-                        <MaterialIcons name="help-outline" size={48} color="#ef4444" style={tailwind`self-center mb-4`} />
-                        <Text style={tailwind`text-xl font-bold text-gray-800 text-center mb-2`}>
+                    <View style={[tailwind`rounded-2xl p-6 mx-6 w-80`, {backgroundColor: '#1e293b'}]}>
+                        <MaterialIcons name="help-outline" size={48} color="#f87171" style={tailwind`self-center mb-4`} />
+                        <Text style={[tailwind`text-xl font-bold text-center mb-2`, {color: '#f1f5f9'}]}>
                             Confirm {formatIncidentType(incidentType)}
                         </Text>
-                        <Text style={tailwind`text-gray-600 text-center mb-2`}>
+                        <Text style={[tailwind`text-center mb-2`, {color: '#e2e8f0'}]}>
                             <Text style={tailwind`font-semibold`}>
                                 {selectedPlayer?.player?.name || selectedPlayer?.name}
                             </Text>
                         </Text>
-                        <Text style={tailwind`text-gray-500 text-center text-sm mb-2`}>
+                        <Text style={[tailwind`text-center text-sm mb-2`, {color: '#94a3b8'}]}>
                             {teamPublicID === homeTeam?.public_id ? homeTeam?.name : awayTeam?.name}
                         </Text>
-                        <Text style={tailwind`text-gray-500 text-center text-sm mb-4`}>
+                        <Text style={[tailwind`text-center text-sm mb-4`, {color: '#94a3b8'}]}>
                             {selectedHalf === 'first_half' ? '1st Half' : '2nd Half'} - {selectedMinute}'
                         </Text>
 
                         <View style={tailwind`flex-row gap-3`}>
                             <Pressable
                                 onPress={() => setShowConfirmation(false)}
-                                style={tailwind`flex-1 p-3 rounded-xl bg-gray-200`}
+                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#334155'}]}
                             >
-                                <Text style={tailwind`text-gray-800 font-semibold text-center`}>
+                                <Text style={[tailwind`font-semibold text-center`, {color: '#e2e8f0'}]}>
                                     Cancel
                                 </Text>
                             </Pressable>
                             <Pressable
                                 onPress={confirmAddIncident}
-                                style={tailwind`flex-1 p-3 rounded-xl bg-red-400`}
+                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#f87171'}]}
                             >
                                 <Text style={tailwind`text-white font-semibold text-center`}>
                                     Confirm

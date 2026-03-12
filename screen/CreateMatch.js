@@ -154,25 +154,24 @@ const CreateMatch = ({ route }) => {
       headerTitle: "Create Match",
       headerTitleAlign: "center",
       headerStyle: {
-        backgroundColor: tailwind.color('red-400'),
+        backgroundColor: '#1e293b',
         height: 60,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 6,
-        elevation: 5,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: '#334155',
       },
       headerTitleStyle: {
         fontSize: 20,
         fontWeight: "700",
-        color: tailwind.color('bg-white'), // dark gray
+        color: '#f1f5f9',
       },
       headerLeft: () => (
         <Pressable
           onPress={() => navigation.goBack()}
           style={tailwind`p-3 ml-2`}
         >
-          <AntDesign name="arrowleft" size={22} color={tailwind.color('bg-white')} />
+          <AntDesign name="arrowleft" size={22} color="#f1f5f9" />
         </Pressable>
       ),
     });
@@ -195,10 +194,12 @@ const CreateMatch = ({ route }) => {
       );
   };
 
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <SafeAreaView style={tailwind`flex-1 bg-gray-100`}>
+    <SafeAreaView style={[tailwind`flex-1`, { backgroundColor:"#020617" }]}>
       <ScrollView
-        style={tailwind`flex-1 p-4`}
+        style={[tailwind`flex-1 p-4`, { backgroundColor:"#020617" }]}
         contentContainerStyle={tailwind`pb-6`}
         showsVerticalScrollIndicator={false}
       >
@@ -206,54 +207,58 @@ const CreateMatch = ({ route }) => {
         (!firstEntity?.group_id ||
         !secondEntity?.group_id ||
         firstEntity.group_id !== secondEntity.group_id) && (
-          <View style={tailwind`flex-row items-center bg-yellow-100 border border-yellow-400 rounded-lg p-3 my-2`}>
-            <AntDesign name="exclamationcircle" size={18} color="orange" style={tailwind`mr-2`} />
-            <Text style={tailwind`text-yellow-800 font-semibold`}>
+          <View style={[tailwind`flex-row items-center rounded-lg p-3 my-2`, { backgroundColor: '#f59e0b15', borderWidth: 1, borderColor: '#f59e0b30' }]}>
+            <AntDesign name="exclamationcircle" size={18} color="#fbbf24" style={tailwind`mr-2`} />
+            <Text style={[tailwind`font-semibold flex-1`, { color: '#fbbf24' }]}>
               Add both teams to the groups before match creation or added ignore.
             </Text>
           </View>
       )}
         <View style={tailwind`mb-2`}>
-            <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-              <Text style={tailwind`text-black text-lg`}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
-              <AntDesign name="down" size={24} color="black" />
+            <Pressable onPress={() => setIsModalTeamVisible(true)} style={[tailwind`flex-row p-4 rounded-lg justify-between`, {backgroundColor:"#0f172a",borderWidth:1, borderColor:"#334155"}]}>
+              <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
+              <AntDesign name="down" size={16} color="#94a3b8" />
             </Pressable>
             {(error.fields.firstEntity || error.fields.home_team_public_id) && (
               <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.firstEntity || error.fields.home_team_public_id}</Text>
             )}
         </View>
         <View style={tailwind`mb-2`}>
-            <Pressable onPress={() => setIsModalTeamVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-lg`}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
-                <AntDesign name="down" size={24} color="black" />
+            <Pressable onPress={() => setIsModalTeamVisible(true)} style={[tailwind`flex-row p-4 rounded-lg justify-between`, {backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155"}]}>
+                <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
+                <AntDesign name="down" size={16} color="#94a3b8" />
             </Pressable>
             {(error.fields.secondEntity || error.fields.away_team_public_id) && (
               <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.secondEntity || error.fields.away_team_public_id}</Text>
             )}
         </View>
         <View style={tailwind`mb-2`}>
-            <Pressable onPress={() => setIsModalStartTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-              <Text style={tailwind`text-black text-lg text-center`}>{startTime?startTime:'Start Time'}</Text>
-              <AntDesign name="calendar" size={24} color="black" />
+            <Pressable onPress={() => setIsModalStartTimeVisible(true)} 
+              style={[tailwind`flex-row p-4 rounded-lg justify-between`,
+                    { backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155" }
+              ]}>
+              <Text style={[tailwind` text-md text-center`, {color:"#94a3b8"}]}>{startTime?startTime:'Start Time'}</Text>
+              <AntDesign name="calendar" size={16} color="#94a3b8" />
             </Pressable>
             {(error.fields.startOn || error.fields.start_timestamp) && (
               <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.startOn || error.fields.start_timestamp}</Text>
             )}
         </View>
-        <View style={tailwind`mb-2`}>
-            <Pressable onPress={() => setIsModalEndTimeVisible(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                <Text style={tailwind`text-black text-center text-lg`}>{endTime?endTime:'End Time'}</Text>
-                <AntDesign name="calendar" size={24} color="black" />
+        {/* <View style={tailwind`mb-2`}>
+            <Pressable onPress={() => setIsModalEndTimeVisible(true)} 
+              style={[tailwind`flex-row p-4 rounded-lg justify-between`, { backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155" }]}>
+                <Text style={[tailwind` text-center text-md`, {color:"#94a3b8"}]}>{endTime?endTime:'End Time'}</Text>
+                <AntDesign name="calendar" size={16} color="#94a3b8" />
             </Pressable>
-        </View>
+        </View> */}
 
         {/* Match Type Selection */}
         <View style={tailwind`mb-2`}>
-          <Text style={tailwind`text-lg text-gray-700 mb-2`}>Match Type</Text>
-          <View style={tailwind`flex-row justify-between`}>
+          <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Match Type</Text>
+          <View style={[tailwind`flex-row rounded-xl p-1`, {backgroundColor: '#0f172a'}]}>
             {matchTypes.map((item, index) => (
-              <Pressable key={index} onPress={() => {setMatchType(item)}} style={[tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-md bg-white `, matchType===item?tailwind`bg-red-400`:tailwind`bg-white`]}>
-                <Text style={tailwind`text-black text-center`}>{item}</Text>
+              <Pressable key={index} onPress={() => {setMatchType(item)}} style={[tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-md `, matchType===item && tailwind`bg-red-400`]}>
+                <Text style={[tailwind`text-sm`, matchType===item?tailwind`text-white font-semibold`:{color: '#94a3b8'}]}>{item}</Text>
               </Pressable>
             ))}
           </View>
@@ -263,9 +268,9 @@ const CreateMatch = ({ route }) => {
         )}
         {matchType === 'Team' && game.name === "cricket" && (
           <View style={tailwind`mb-2`}>
-            <Pressable onPress={() => setIsModalMatchFormat(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-              <Text style={tailwind`text-black text-center text-lg`}>{matchFormat?matchFormat:'Select Match Format'}</Text>
-              <AntDesign name="down" size={24} color="black" />
+            <Pressable onPress={() => setIsModalMatchFormat(true)} style={[tailwind`flex-row p-4 rounded-lg justify-between`, { backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155" }]}>
+              <Text style={[tailwind` text-center text-lg`, {color:"#94a3b8"}]}>{matchFormat?matchFormat:'Select Match Format'}</Text>
+              <AntDesign name="down" size={24} color="#94a3b8" />
             </Pressable>
             {(error.fields.matchFormat || error.fields.match_format) && (
               <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.matchFormat || error.fields.match_format}</Text>
@@ -274,32 +279,34 @@ const CreateMatch = ({ route }) => {
         )}
 
         {/* Stage Selection */}
-        <View style={tailwind`mb-2`}>
-          <Text style={tailwind`text-lg text-gray-700 mb-2`}>Stage</Text>
-          <View style={tailwind`flex-row justify-between`}>
-            {Stages.map((item, index) => (
-              <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-3 rounded-lg mx-1 shadow-md bg-white`, stage===item?tailwind`bg-red-400`:tailwind`bg-white`]}>
-                <Text style={tailwind`text-black text-center`}>{item}</Text>
-              </Pressable>
-            ))}
-          </View>
-          {error.fields.stage && (
-              <Text style={tailwind`text-red-500 mb-2`}>*{error.fields.stage}</Text>
-          )}
+        <View style={tailwind`mb-5`}>
+            <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Stage</Text>
+            <View style={[tailwind`flex-row rounded-xl p-1`, {backgroundColor: '#0f172a'}]}>
+                {Stages.map((item, index) => (
+                <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-2.5 rounded-lg`, stage===item && tailwind`bg-red-400`]}>
+                    <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:{color: '#94a3b8'}]}>{item}</Text>
+                </Pressable>
+                ))}
+            </View>
+            {error?.fields.stage && (
+                <Text style={tailwind`text-red-400 text-xs mt-1.5`}>
+                    {error.fields.stage}
+                </Text>
+            )}
         </View>
 
         {/* Stage is knockout select level */}
         {stage === 'Knockout'  && (
           <>
             <View style={tailwind`mb-2`}>
-                <Pressable onPress={() => setIsModalKnockoutLevel(true)} style={tailwind`flex-row p-4 bg-white rounded-lg shadow-md justify-between`}>
-                    <Text style={tailwind`text-black text-center text-lg`}>
+                <Pressable onPress={() => setIsModalKnockoutLevel(true)} style={[tailwind`flex-row p-4 rounded-lg shadow-md justify-between`, {backgroundColor: "#0f172a"}]}>
+                    <Text style={[tailwind`text-center text-md`, {color: "#f1f5f9"}]}>
                       {knockoutLevel
                         ? filePath["knockout"].find(item => item.id === knockoutLevel)?.round_name.toUpperCase() || knockoutLevel
                         : 'Select Knockout Level'
                       }
                     </Text>
-                    <AntDesign name="down" size={24} color="black" />
+                    <AntDesign name="down" size={12} color="#f1f5f9" />
                 </Pressable>
             </View>
             {(error.fields.knockoutLevel || error.fields.knockout_level_id) && (
@@ -309,15 +316,15 @@ const CreateMatch = ({ route }) => {
         )}
 
         {/* GPS Location Card */}
-        <View style={tailwind`bg-white p-4 rounded-lg shadow-md mb-4`}>
+        <View style={[tailwind`bg-white p-4 rounded-lg shadow-md mb-4`, {backgroundColor:"#0f172a",borderWidth:1,borderColor:"#334155"}]}>
+          <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Location</Text>
             <View style={tailwind`flex-row items-center justify-between mb-2`}>
-                <Text style={tailwind`text-lg font-semibold text-gray-800`}>GPS Coordinates</Text>
                 {latitude && longitude && (
                     <MaterialIcons name="check-circle" size={20} color="#10B981" />
                 )}
             </View>
-            <Text style={tailwind`text-xs text-gray-500 mb-3`}>
-                Optional - Add match location
+            <Text style={[tailwind`text-xs text-gray-500 mb-3`, {color: "#94a3b8"}]}>
+                *Add match location
             </Text>
 
             <Pressable
@@ -325,16 +332,16 @@ const CreateMatch = ({ route }) => {
                 disabled={isLoadingLocation}
                 style={[
                     tailwind`p-3 rounded-lg flex-row items-center justify-between`,
-                    isLoadingLocation ? tailwind`bg-gray-100` : tailwind`bg-red-50`,
+                    { backgroundColor: '#020617', borderWidth: 1, borderColor: '#334155' }
                 ]}
             >
                 <View style={tailwind`flex-row items-center flex-1`}>
                     <MaterialIcons
                         name="my-location"
                         size={20}
-                        color={latitude && longitude ? "#10B981" : "#EF4444"}
+                        color={latitude && longitude ? "#4ade80" : "#f87171"}
                     />
-                    <Text style={[tailwind`ml-2 flex-1 text-sm`, latitude && longitude ? tailwind`text-green-600 font-semibold` : tailwind`text-red-500 font-medium`]}>
+                    <Text style={[tailwind`ml-2 flex-1 text-sm font-medium`, { color: latitude && longitude ? '#4ade80' : '#f87171' }]}>
                         {isLoadingLocation
                             ? 'Getting location...'
                             : latitude && longitude
@@ -342,7 +349,7 @@ const CreateMatch = ({ route }) => {
                                 : 'Tap to get location'}
                     </Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
+                <MaterialIcons name="chevron-right" size={18} color="#475569" />
             </Pressable>
         </View>
         {error.fields.location && (
@@ -353,7 +360,7 @@ const CreateMatch = ({ route }) => {
         <View style={tailwind`mb-4`}>
             <Pressable
               onPress={handleSetFixture}
-              style={tailwind`bg-red-400 py-4 rounded-xl shadow-lg`}
+              style={{ backgroundColor:"#f87171", paddingVertical:16, borderRadius:12 }}
             >
                 <Text style={tailwind`text-white text-center text-lg font-bold`}>
                   Create Match
@@ -370,19 +377,76 @@ const CreateMatch = ({ route }) => {
           visible={isModalMatchFormat}
           onRequestClose={() => setIsModalMatchFormat(false)}
         >
-          <Pressable onPress={() => setIsModalMatchFormat(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-            <View style={tailwind`bg-white rounded-md p-4`}>
-              <ScrollView nestedScrollEnabled={true}>
-                <Text style={tailwind`text-2xl`}>Select Format</Text>
+          <Pressable
+            onPress={() => setIsModalMatchFormat(false)}
+            style={tailwind`flex-1 justify-end bg-black/60`}
+          >
+            <View
+              style={[
+                tailwind`rounded-t-2xl p-4`,
+                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+              ]}
+            >
+              <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                
+                {/* Title */}
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: "700",
+                    color: "#f1f5f9",
+                    marginBottom: 10
+                  }}
+                >
+                  Select Format
+                </Text>
+
                 {matchFormatPath["match_format"].map((item, index) => (
-                  <Pressable key={index} onPress={() => { setMatchFormat(item.format_type); setIsModalMatchFormat(false)}} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
-                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
-                        <Text style={tailwind` text-black text-xl`}>{item.id}</Text>
-                      </View>
-                      <View style={tailwind`py-1`}>                                                  
-                          <Text style={tailwind`text-lg text-black`}>{item.format_type.toUpperCase()}</Text>
-                      </View>
-                  </Pressable> 
+                  <Pressable
+                    key={index}
+                    onPress={() => {
+                      setMatchFormat(item.format_type);
+                      setIsModalMatchFormat(false);
+                    }}
+                    style={[
+                      tailwind`p-4 flex-row items-center`,
+                      { borderBottomWidth: 1, borderColor: "#334155" }
+                    ]}
+                  >
+                    {/* Format ID Circle */}
+                    <View
+                      style={{
+                        height: 40,
+                        width: 40,
+                        borderRadius: 20,
+                        backgroundColor: "#1e293b",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 12
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#f87171",
+                          fontSize: 18,
+                          fontWeight: "700"
+                        }}
+                      >
+                        {item.id}
+                      </Text>
+                    </View>
+
+                    {/* Format Name */}
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        color: "#f1f5f9"
+                      }}
+                    >
+                      {item.format_type.toUpperCase()}
+                    </Text>
+                  </Pressable>
                 ))}
               </ScrollView>
             </View>
@@ -390,68 +454,183 @@ const CreateMatch = ({ route }) => {
         </Modal>
       )}
 
-
-      {isModalEndTimeVisible && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={isModalEndTimeVisible}
-        >
-          <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-            <View style={tailwind`bg-white rounded-md p-4`}>
-              <DateTimePicker
-                onSelectedChange={(endTime) => {
-                  setEndTime(endTime);
-                  setIsModalEndTimeVisible(false);
-                }}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
       {isModalStartTimeVisible && (
         <Modal
-          transparent={true}
+          transparent
           animationType="slide"
           visible={isModalStartTimeVisible}
+          onRequestClose={() => setIsModalStartTimeVisible(false)}
         >
-          <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-            <View style={tailwind`bg-white rounded-md p-4`}>
-              <DateTimePicker
-                onSelectedChange={(startTime) => {
-                  setStartTime(startTime);
-                  setIsModalStartTimeVisible(false);
+          <View style={tailwind`flex-1 justify-end bg-black/60`}>
+            <Pressable
+              style={tailwind`flex-1`}
+              onPress={() => setIsModalStartTimeVisible(false)}
+            />
+            <View
+              style={[
+                tailwind`p-4 rounded-t-3xl`,
+                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+              ]}
+            >
+
+              {/* Drag indicator */}
+              <View
+                style={{
+                  width: 40,
+                  height: 4,
+                  backgroundColor: "#475569",
+                  borderRadius: 2,
+                  alignSelf: "center",
+                  marginBottom: 10
                 }}
               />
+
+              {/* Header */}
+              <View style={tailwind`flex-row items-center justify-between mb-3`}>
+                <Text style={{ color: "#f1f5f9", fontSize: 18, fontWeight: "700" }}>
+                  Select Date & Time
+                </Text>
+
+                <Pressable onPress={() => setIsModalStartTimeVisible(false)}>
+                  <MaterialIcons name="close" size={22} color="#94a3b8" />
+                </Pressable>
+              </View>
+
+              {/* Calendar */}
+              <DateTimePicker
+                minimumDate={today}
+                onSelectedChange={(date) => {
+                  setStartTime(date);
+                  setIsModalStartTimeVisible(false);
+                }}
+                options={{
+                  backgroundColor: "#0f172a",
+                  textHeaderColor: "#f87171",
+                  textDefaultColor: "#f1f5f9",
+                  selectedTextColor: "#fff",
+                  mainColor: "#f87171",
+                  textSecondaryColor: "#94a3b8",
+                  borderColor: "#334155",
+                }}
+              />
+
             </View>
           </View>
         </Modal>
       )}
       {isModalTeamVisible && (
         <Modal
-          transparent={true}
+          transparent
           animationType="slide"
           visible={isModalTeamVisible}
+          onRequestClose={() => setIsModalTeamVisible(false)}
         >
-          <Pressable onPress={() => setIsModalTeamVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-            <View style={tailwind`bg-white rounded-md p-4`}>
-              <ScrollView nestedScrollEnabled={true}>
+          <Pressable
+            onPress={() => setIsModalTeamVisible(false)}
+            style={tailwind`flex-1 justify-end bg-black/60`}
+          >
+            <Pressable
+              style={[
+                tailwind`p-4 rounded-t-3xl`,
+                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+              ]}
+            >
+
+              {/* Drag Indicator */}
+              <View
+                style={{
+                  width: 40,
+                  height: 4,
+                  backgroundColor: "#334155",
+                  borderRadius: 2,
+                  alignSelf: "center",
+                  marginBottom: 10
+                }}
+              />
+
+              {/* Header */}
+              <View style={tailwind`flex-row items-center justify-between mb-3`}>
+                <Text style={{ color: "#f1f5f9", fontSize: 18, fontWeight: "700" }}>
+                  Select Team
+                </Text>
+
+                <Pressable onPress={() => setIsModalTeamVisible(false)}>
+                  <MaterialIcons name="close" size={22} color="#94a3b8" />
+                </Pressable>
+              </View>
+
+              {/* Team List */}
+              <ScrollView
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              >
                 {entities.map((item, index) => (
-                  <Pressable key={index} onPress={() => handleSelectTeam(item.entity)} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
-                    {item.entity.media_url !== "" ? (
-                      <Image source="" style={tailwind`rounded-full h-10 w-10 bg-orange-200`}/>
-                    ):(
-                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
-                        <Text style={tailwind` text-black text-xl`}>{item.entity.short_name}</Text>
+                  <Pressable
+                    key={index}
+                    onPress={() => handleSelectTeam(item.entity)}
+                    style={[
+                      tailwind`p-3 flex-row items-center mb-2 rounded-xl`,
+                      { backgroundColor: "#1e293b" }
+                    ]}
+                  >
+
+                    {/* Team Logo */}
+                    {item.entity.media_url ? (
+                      <Image
+                        source={{ uri: item.entity.media_url }}
+                        style={{
+                          height: 40,
+                          width: 40,
+                          borderRadius: 20,
+                          marginRight: 12
+                        }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          height: 40,
+                          width: 40,
+                          borderRadius: 20,
+                          backgroundColor: "#334155",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#f87171",
+                            fontSize: 16,
+                            fontWeight: "700"
+                          }}
+                        >
+                          {item.entity.short_name}
+                        </Text>
                       </View>
                     )}
-                    <View style={tailwind`py-1`}>
-                        <Text style={tailwind`text-lg text-black`}>{item.entity.name}</Text>
-                    </View>
-                  </Pressable> 
+
+                    {/* Team Name */}
+                    <Text
+                      style={{
+                        color: "#f1f5f9",
+                        fontSize: 16,
+                        fontWeight: "600",
+                        flex: 1
+                      }}
+                    >
+                      {item.entity.name}
+                    </Text>
+
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={20}
+                      color="#94a3b8"
+                    />
+                  </Pressable>
                 ))}
               </ScrollView>
-            </View>
+
+            </Pressable>
           </Pressable>
         </Modal>
       )}
@@ -461,19 +640,76 @@ const CreateMatch = ({ route }) => {
           animationType="slide"
           visible={isModalKnockoutLevel}
         >
-          <Pressable onPress={() => setIsModalKnockoutLevel(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-            <View style={tailwind`bg-white rounded-md p-4`}>
-              <ScrollView nestedScrollEnabled={true}>
-                <Text style={tailwind`text-2xl`}>Select Knockout Level</Text>
+          <Pressable
+            onPress={() => setIsModalKnockoutLevel(false)}
+            style={tailwind`flex-1 justify-end bg-black/60`}
+          >
+            <View
+              style={[
+                tailwind`rounded-t-2xl p-4`,
+                { backgroundColor: "#0f172a", borderTopWidth: 1, borderColor: "#334155" }
+              ]}
+            >
+              <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                
+                {/* Title */}
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: "700",
+                    color: "#f1f5f9",
+                    marginBottom: 10
+                  }}
+                >
+                  Select Knockout Level
+                </Text>
+
                 {filePath["knockout"].map((item, index) => (
-                  <Pressable key={index} onPress={() => {setKnockoutLevel(item.id); setIsModalKnockoutLevel(false)}} style={tailwind`p-4 border-b border-gray-200 flex-row items-start gap-4`}>
-                      <View style={tailwind`rounded-full h-10 w-10 bg-gray-200 items-center justify-center`}>
-                        <Text style={tailwind` text-black text-xl`}>{item.id}</Text>
-                      </View>
-                      <View style={tailwind`py-1`}>
-                          <Text style={tailwind`text-lg text-black`}>{item.round_name.toUpperCase()}</Text>
-                      </View>
-                  </Pressable> 
+                  <Pressable
+                    key={index}
+                    onPress={() => {
+                      setKnockoutLevel(item.id);
+                      setIsModalKnockoutLevel(false);
+                    }}
+                    style={[
+                      tailwind`p-4 flex-row items-center`,
+                      { borderBottomWidth: 1, borderColor: "#334155" }
+                    ]}
+                  >
+                    {/* Level Number */}
+                    <View
+                      style={{
+                        height: 40,
+                        width: 40,
+                        borderRadius: 20,
+                        backgroundColor: "#1e293b",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 12
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#f87171",
+                          fontSize: 18,
+                          fontWeight: "700"
+                        }}
+                      >
+                        {item.id}
+                      </Text>
+                    </View>
+
+                    {/* Round Name */}
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        color: "#f1f5f9"
+                      }}
+                    >
+                      {item.round_name.toUpperCase()}
+                    </Text>
+                  </Pressable>
                 ))}
               </ScrollView>
             </View>

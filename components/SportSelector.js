@@ -1,146 +1,108 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setGame } from '../redux/actions/actions';
+import tailwind from 'twrnc';
 
 const getIconForSport = (name) => {
   switch (name) {
     case 'football': return 'sports-soccer';
-    case 'cricket':  return 'sports-cricket';
-    default:         return 'sports';
+    case 'cricket': return 'sports-cricket';
+    default: return 'sports';
   }
 };
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
-const SportSelector = ({ variant = 'underline', containerStyle }) => {
+const SportSelector = ({ containerStyle }) => {
   const dispatch = useDispatch();
   const games = useSelector((state) => state.sportReducers.games);
-  const game  = useSelector((state) => state.sportReducers.game);
+  const game = useSelector((state) => state.sportReducers.game);
 
   const handlePress = (item) => {
     dispatch(setGame(item));
   };
 
-  // Dark variant (Home page)
-  if (variant === 'dark') {
-    return (
-      <View style={[{ marginTop: 24 }, containerStyle]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}
-        >
-          {games.map((s) => {
-            const active = game?.id === s.id;
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => handlePress(s)}
+  return (
+    <View
+      style={[
+        {
+          backgroundColor: '#1e293b',
+          borderBottomColor: '#1e2d3f',
+        },
+        containerStyle,
+      ]}
+    >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 4 }}
+      >
+        {games?.map((s) => {
+          const active = game?.id === s.id;
+
+          return (
+            <Pressable
+              key={s.id}
+              onPress={() => handlePress(s)}
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 10,
+                paddingVertical: 2,
+                minWidth: 56,
+              }}
+            >
+              {/* Icon container */}
+              <View
                 style={{
-                  flexDirection: 'row',
                   alignItems: 'center',
-                  paddingHorizontal: 18,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  gap: 6,
-                  backgroundColor: active ? '#f87171' : '#1e293b',
-                  borderWidth: active ? 0 : 1,
-                  borderColor: '#334155',
+                  justifyContent: 'center',
+                  backgroundColor: active ? '#f8717118' : 'transparent',
                 }}
               >
                 <MaterialIcons
                   name={getIconForSport(s.name)}
-                  color={active ? '#fff' : '#94a3b8'}
-                  size={18}
+                  size={16}
+                  color={active ? '#f87171' : '#4a6282'}
                 />
-                <Text style={{
-                  color: active ? '#fff' : '#94a3b8',
+              </View>
+
+              {/* Label */}
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontSize: 12,
                   fontWeight: active ? '700' : '500',
-                  fontSize: 13,
-                }}>
-                  {capitalize(s.name)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // Filled variant (Matches page)
-  if (variant === 'filled') {
-    return (
-      <View style={containerStyle}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tailwind`pb-3`}
-        >
-          {games.map((s) => {
-            const active = game?.id === s.id;
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => handlePress(s)}
-                style={[
-                  tailwind`border rounded-lg px-4 py-2 mr-2`,
-                  active ? tailwind`bg-orange-400` : tailwind`bg-orange-200`,
-                ]}
+                  color: active ? '#f1f5f9' : '#4a6282',
+                  letterSpacing: 0.2,
+                }}
               >
-                <Text style={tailwind`text-white font-semibold capitalize`}>
-                  {s.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-    );
-  }
+                {capitalize(s.name)}
+              </Text>
 
-  // Underline variant (Tournament/Club) — default
-  return (
-    <View style={[tailwind`flex-row items-center border-b border-gray-100`, containerStyle]}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tailwind`flex-row px-4`}
-      >
-        {games?.length > 0 ? (
-          games.map((s) => {
-            const active = game?.id === s.id;
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => handlePress(s)}
-                style={[
-                  tailwind`px-4 py-3 mr-1`,
-                  active && { borderBottomWidth: 2, borderBottomColor: '#f87171' },
-                ]}
-              >
-                <Text style={[
-                  tailwind`text-sm`,
-                  active
-                    ? tailwind`text-gray-900 font-bold`
-                    : tailwind`text-gray-400 font-medium`,
-                ]}>
-                  {capitalize(s.name)}
-                </Text>
-              </Pressable>
-            );
-          })
-        ) : (
-          <View style={tailwind`px-4 py-3`}>
-            <Text style={tailwind`text-gray-400 text-sm`}>Loading...</Text>
-          </View>
-        )}
+              {/* Active indicator */}
+              {active ? (
+                <View
+                  style={{
+                    marginTop: 2,
+                    height: 2,
+                    width: 22,
+                    minWidth: 64,
+                    borderRadius: 2,
+                    backgroundColor: '#f87171',
+                  }}
+                />
+              ) : (
+                <View style={{ marginTop: 2, height: 2 }} />
+              )}
+            </Pressable>
+          );
+        })}
       </ScrollView>
     </View>
   );
 };
 
-export default SportSelector;
+export default React.memo(SportSelector);

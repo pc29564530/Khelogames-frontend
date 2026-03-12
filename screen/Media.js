@@ -187,7 +187,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
-                style={tailwind`bg-white`}
+                style={{ backgroundColor: "#0f172a" }}
                 contentContainerStyle={{
                     paddingTop: 20,
                     paddingBottom: 100,
@@ -196,27 +196,22 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             >
                 <View style={tailwind`px-4`}>
                     {/* Header Section */}
-                    <Text style={tailwind`text-xl font-bold text-black`}>
-                        Match Videos
+                    <Text style={{ fontSize: 20, fontWeight: "700", color: "#f1f5f9" }}>
+                        Highlights
                     </Text>
-                    <View style={tailwind`bg-red-400 w-full h-0.5 rounded-full mt-1 mb-4`} />
+                    <View style={tailwind`bg-red-500 w-full h-0.5 rounded-full mt-1 mb-4`} />
 
                     {error?.global && (
-                        <View style={tailwind`mb-3 p-3 bg-red-50 border border-red-200 rounded-xl flex-row items-center`}>
-                            <MaterialIcons name="error-outline" size={16} color="#ef4444" />
-                            <Text style={tailwind`text-red-600 text-sm ml-2 flex-1`}>
+                        <View style={[tailwind`mb-3 p-3 rounded-xl flex-row items-center`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                            <MaterialIcons name="error-outline" size={16} color="#fca5a5" />
+                            <Text style={[tailwind`text-sm ml-2 flex-1`, { color: '#fca5a5' }]}>
                                 {error?.global}
                             </Text>
                         </View>
                     )}
 
                     {/* Highlights List */}
-                    {loading ? (
-                        <View style={tailwind`py-32 items-center`}>
-                            <ActivityIndicator size="large" color="#EF4444" />
-                            <Text style={tailwind`text-gray-500 mt-4 text-base`}>Loading highlights...</Text>
-                        </View>
-                    ) : highlights.length > 0 ? (
+                    { highlights.length > 0 ? (
                         <FlatList
                             data={highlights}
                             renderItem={renderHighlightItem}
@@ -225,13 +220,13 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                         />
                     ) : (
                         <View style={tailwind`py-32 items-center px-8`}>
-                            <View style={tailwind`w-20 h-20 rounded-full bg-gray-100 items-center justify-center mb-4`}>
+                            <View style={[tailwind`w-20 h-20 rounded-full items-center justify-center mb-4`, {backgroundColor:"#1e293b"}]}>
                                 <MaterialIcons name="videocam-off" size={36} color="#9ca3af" />
                             </View>
-                            <Text style={tailwind`text-gray-700 text-base font-semibold mb-1`}>
+                            <Text style={[tailwind`text-base font-semibold mb-1`, {color: "#f1f5f9"}]}>
                                 No highlights yet
                             </Text>
-                            <Text style={tailwind`text-gray-400 text-center text-sm`}>
+                            <Text style={[tailwind`text-center text-sm`, {color: "#94a3b8"}]}>
                                 Upload the first match highlight video.
                             </Text>
                         </View>
@@ -242,7 +237,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             {/* Floating Action Button */}
             <View style={tailwind`absolute bottom-8 right-6`}>
                 <Pressable
-                    style={tailwind`bg-red-400 rounded-full px-6 py-4 shadow-2xl items-center justify-center flex-row`}
+                    style={tailwind`bg-red-500 rounded-full px-6 py-4 shadow-2xl items-center justify-center flex-row`}
                     onPress={() => setAddMediaModalVisible(true)}
                 >
                     <MaterialIcons name="add" size={24} color="white" />
@@ -302,17 +297,17 @@ const UploadModal = ({
                     onPress={() => setAddMediaModalVisible(false)}
                 />
 
-                <View style={tailwind`bg-white rounded-t-3xl`}>
+                <View style={[tailwind`rounded-t-3xl`, { backgroundColor: '#1e293b' }]}>
                     {/* Handle bar */}
                     <View style={tailwind`items-center pt-3 pb-1`}>
-                        <View style={tailwind`w-10 h-1 rounded-full bg-gray-200`} />
+                        <View style={[tailwind`w-10 h-1 rounded-full`, { backgroundColor: '#475569' }]} />
                     </View>
 
                     {/* Header */}
-                    <View style={tailwind`flex-row items-center justify-between px-5 py-3 border-b border-gray-100`}>
-                        <Text style={tailwind`text-gray-900 text-lg font-bold`}>Add Highlight</Text>
+                    <View style={[tailwind`flex-row items-center justify-between px-5 py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>Add Highlight</Text>
                         <Pressable onPress={() => setAddMediaModalVisible(false)} hitSlop={8}>
-                            <MaterialIcons name="close" size={22} color="#6b7280" />
+                            <MaterialIcons name="close" size={22} color="#94a3b8" />
                         </Pressable>
                     </View>
 
@@ -321,7 +316,7 @@ const UploadModal = ({
                             {/* Media Preview / Picker */}
                             {mediaURL ? (
                                 <View style={tailwind`mb-5`}>
-                                    <View style={tailwind`h-48 bg-gray-100 rounded-2xl overflow-hidden`}>
+                                    <View style={[tailwind`h-48 rounded-2xl overflow-hidden`, { backgroundColor: '#0f172a' }]}>
                                         <Video
                                             style={tailwind`w-full h-full`}
                                             source={{ uri: mediaURL }}
@@ -338,45 +333,45 @@ const UploadModal = ({
                                 </View>
                             ) : (
                                 <Pressable
-                                    style={tailwind`mb-5 h-48 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-300`}
+                                    style={[tailwind`mb-5 h-48 rounded-2xl items-center justify-center`, { backgroundColor: '#0f172a', borderWidth: 2, borderStyle: 'dashed', borderColor: '#334155' }]}
                                     onPress={handleMediaSelection}
                                 >
-                                    <View style={tailwind`w-14 h-14 rounded-full bg-red-50 items-center justify-center mb-2`}>
+                                    <View style={[tailwind`w-14 h-14 rounded-full items-center justify-center mb-2`, { backgroundColor: '#f8717120' }]}>
                                         <MaterialIcons name="videocam" size={30} color="#f87171" />
                                     </View>
-                                    <Text style={tailwind`text-gray-700 font-semibold text-sm`}>
+                                    <Text style={[tailwind`font-semibold text-sm`, { color: '#cbd5e1' }]}>
                                         Tap to select video
                                     </Text>
-                                    <Text style={tailwind`text-gray-400 text-xs mt-1`}>MP4, MOV supported</Text>
+                                    <Text style={[tailwind`text-xs mt-1`, { color: '#64748b' }]}>MP4, MOV supported</Text>
                                 </Pressable>
                             )}
 
                             {/* Title Input */}
                             <View style={tailwind`mb-4`}>
-                                <Text style={tailwind`text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2`}>
+                                <Text style={[tailwind`text-xs font-semibold uppercase tracking-wide mb-2`, { color: '#64748b' }]}>
                                     Title *
                                 </Text>
                                 <TextInput
-                                    style={[tailwind`bg-gray-50 text-gray-900 text-sm px-4 py-3 rounded-xl`, { borderWidth: 1, borderColor: '#e5e7eb' }]}
+                                    style={[tailwind`text-sm px-4 py-3 rounded-xl`, { backgroundColor: '#0f172a', color: '#f1f5f9', borderWidth: 1, borderColor: '#334155' }]}
                                     value={title}
                                     onChangeText={setTitle}
                                     placeholder="e.g., Amazing Goal in 90th minute"
-                                    placeholderTextColor="#9ca3af"
+                                    placeholderTextColor="#475569"
                                 />
                             </View>
 
                             {/* Description Input */}
                             <View style={tailwind`mb-6`}>
-                                <Text style={tailwind`text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2`}>
+                                <Text style={[tailwind`text-xs font-semibold uppercase tracking-wide mb-2`, { color: '#64748b' }]}>
                                     Description (Optional)
                                 </Text>
                                 <TextInput
-                                    style={[tailwind`bg-gray-50 text-gray-900 text-sm px-4 py-3 rounded-xl`, { borderWidth: 1, borderColor: '#e5e7eb', height: 88, textAlignVertical: 'top' }]}
+                                    style={[tailwind`text-sm px-4 py-3 rounded-xl`, { backgroundColor: '#0f172a', color: '#f1f5f9', borderWidth: 1, borderColor: '#334155', height: 88, textAlignVertical: 'top' }]}
                                     multiline={true}
                                     value={description}
                                     onChangeText={setDescription}
                                     placeholder="Add details about this highlight..."
-                                    placeholderTextColor="#9ca3af"
+                                    placeholderTextColor="#475569"
                                     textAlignVertical="top"
                                 />
                             </View>
@@ -385,7 +380,9 @@ const UploadModal = ({
                             <Pressable
                                 style={[
                                     tailwind`py-4 rounded-xl items-center flex-row justify-center`,
-                                    (!mediaURL || !title.trim() || uploading) ? tailwind`bg-gray-200` : tailwind`bg-red-400`,
+                                    (!mediaURL || !title.trim() || uploading)
+                                        ? { backgroundColor: '#334155' }
+                                        : { backgroundColor: '#f87171' },
                                 ]}
                                 onPress={createMatchMedia}
                                 disabled={!mediaURL || !title.trim() || uploading}
@@ -397,9 +394,9 @@ const UploadModal = ({
                                         <MaterialIcons
                                             name="cloud-upload"
                                             size={18}
-                                            color={!mediaURL || !title.trim() ? '#9ca3af' : 'white'}
+                                            color={!mediaURL || !title.trim() ? '#64748b' : 'white'}
                                         />
-                                        <Text style={[tailwind`font-bold text-sm ml-2`, (!mediaURL || !title.trim()) ? tailwind`text-gray-400` : tailwind`text-white`]}>
+                                        <Text style={[tailwind`font-bold text-sm ml-2`, (!mediaURL || !title.trim()) ? { color: '#64748b' } : { color: '#ffffff' }]}>
                                             Upload Highlight
                                         </Text>
                                     </>

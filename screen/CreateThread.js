@@ -154,12 +154,12 @@ function CreateThread() {
         navigation.setOptions({
             headerTitle: 'New Thread',
             headerStyle: {
-                backgroundColor: '#f87171',
-                elevation: 2,
-                shadowOpacity: 0.1,
+                backgroundColor: '#1e293b',
+                elevation: 0,
+                shadowOpacity: 0,
             },
-            headerTintColor: '#ffffff',
-            headerTitleStyle: { fontSize: 18, fontWeight: '600' },
+            headerTintColor: '#e2e8f0',
+            headerTitleStyle: { fontSize: 18, fontWeight: '600', color: '#f1f5f9' },
             headerTitleAlign: 'center',
             headerLeft: () => (
                 <Pressable
@@ -167,19 +167,19 @@ function CreateThread() {
                     style={tailwind`ml-4 p-2`}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <AntDesign name="arrowleft" size={22} color="white" />
+                    <AntDesign name="arrowleft" size={22} color="#e2e8f0" />
                 </Pressable>
             ),
             headerRight: () => (
                 <Pressable
                     onPress={HandleSubmit}
                     disabled={loading}
-                    style={tailwind`mr-4 px-4 py-1.5 bg-white rounded-full`}
+                    style={[tailwind`mr-4 px-4 py-1.5 rounded-full`, { backgroundColor: '#f87171' }]}
                 >
                     {loading ? (
-                        <ActivityIndicator size="small" color="#f87171" />
+                        <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
-                        <Text style={tailwind`text-red-400 font-bold text-sm`}>POST</Text>
+                        <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>POST</Text>
                     )}
                 </Pressable>
             ),
@@ -187,13 +187,13 @@ function CreateThread() {
     }, [navigation, loading, title, content, mediaURL, mediaType]);
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
 
             {/* Global Error */}
             {error?.global && (
-                <View style={tailwind`mx-4 mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg flex-row items-center`}>
-                    <MaterialIcons name="error-outline" size={18} color="#dc2626" />
-                    <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>{error.global}</Text>
+                <View style={[tailwind`mx-4 mt-3 px-4 py-3 rounded-lg flex-row items-center`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                    <MaterialIcons name="error-outline" size={18} color="#f87171" />
+                    <Text style={{ color: '#fca5a5', fontSize: 13, marginLeft: 8, flex: 1 }}>{error.global}</Text>
                 </View>
             )}
 
@@ -203,52 +203,52 @@ function CreateThread() {
                 <View style={tailwind`px-4 pt-4`}>
                     <TouchableOpacity
                         onPress={handleOpenCommunityModal}
-                        style={tailwind`flex-row items-center self-start px-3 py-1.5 rounded-full border border-gray-300 bg-gray-50`}
+                        style={[tailwind`flex-row items-center self-start px-3 py-1.5 rounded-full`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}
                     >
-                        <MaterialIcons name="group" size={16} color="#6b7280" />
-                        <Text style={tailwind`text-gray-600 text-sm ml-1.5 mr-1`}>{communityLabel}</Text>
-                        <AntDesign name="down" size={12} color="#6b7280" />
+                        <MaterialIcons name="group" size={16} color="#94a3b8" />
+                        <Text style={{ color: '#cbd5e1', fontSize: 13, marginLeft: 6, marginRight: 4 }}>{communityLabel}</Text>
+                        <AntDesign name="down" size={12} color="#94a3b8" />
                     </TouchableOpacity>
                 </View>
 
                 {/* Title Input */}
                 <View style={tailwind`px-4 pt-3`}>
                     <TextInput
-                        style={tailwind`text-2xl font-bold text-gray-900`}
+                        style={[tailwind`text-2xl font-bold`, { color: '#f1f5f9' }]}
                         value={title}
                         onChangeText={setTitle}
                         placeholder="Title"
-                        placeholderTextColor="#d1d5db"
+                        placeholderTextColor="#475569"
                         multiline
                     />
                     {error?.fields?.title && (
-                        <Text style={tailwind`text-red-500 text-xs mt-1`}>* {error.fields.title}</Text>
+                        <Text style={{ color: '#f87171', fontSize: 11, marginTop: 4 }}>* {error.fields.title}</Text>
                     )}
                 </View>
 
                 {/* Divider */}
-                <View style={tailwind`mx-4 my-3 h-px bg-gray-100`} />
+                <View style={[tailwind`mx-4 my-3`, { height: 1, backgroundColor: '#334155' }]} />
 
                 {/* Content Input */}
                 <View style={tailwind`px-4`}>
                     <TextInput
-                        style={tailwind`text-base text-gray-800 leading-6`}
+                        style={[tailwind`text-base leading-6`, { color: '#e2e8f0' }]}
                         multiline
                         value={content}
                         onChangeText={setContent}
                         placeholder="What's on your mind?"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#475569"
                         textAlignVertical="top"
                         minHeight={120}
                     />
                     {error?.fields?.content && (
-                        <Text style={tailwind`text-red-500 text-xs mt-1`}>* {error.fields.content}</Text>
+                        <Text style={{ color: '#f87171', fontSize: 11, marginTop: 4 }}>* {error.fields.content}</Text>
                     )}
                 </View>
 
                 {/* Media Preview */}
                 {mediaURL ? (
-                    <View style={tailwind`mx-4 mt-4 rounded-xl overflow-hidden`}>
+                    <View style={[tailwind`mx-4 mt-4 rounded-xl overflow-hidden`, { borderWidth: 1, borderColor: '#334155' }]}>
                         {mediaType === 'image' && (
                             <Image
                                 source={{ uri: mediaURL }}
@@ -267,7 +267,7 @@ function CreateThread() {
                         {/* Remove media button */}
                         <Pressable
                             onPress={removeMedia}
-                            style={tailwind`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
+                            style={[tailwind`absolute top-2 right-2 rounded-full p-1`, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
                         >
                             <MaterialIcons name="close" size={18} color="white" />
                         </Pressable>
@@ -276,13 +276,13 @@ function CreateThread() {
             </ScrollView>
 
             {/* Bottom Toolbar */}
-            <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3`}>
+            <View style={[tailwind`absolute bottom-0 left-0 right-0 px-4 py-3`, { backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155' }]}>
 
                 {/* Progress bar — visible while compressing / uploading */}
                 {uploadStatus !== 'idle' && uploadStatus !== 'done' && (
                     <View style={tailwind`mb-2`}>
                         <View style={{
-                            height: 4, backgroundColor: '#e5e7eb',
+                            height: 4, backgroundColor: '#334155',
                             borderRadius: 2, overflow: 'hidden',
                         }}>
                             <View style={{
@@ -291,7 +291,7 @@ function CreateThread() {
                                 borderRadius: 2,
                             }} />
                         </View>
-                        <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 2, textAlign: 'right' }}>
+                        <Text style={{ fontSize: 10, color: '#64748b', marginTop: 2, textAlign: 'right' }}>
                             {uploadStatus === 'uploading'
                             && `Uploading ${Math.min(uploadProgress * 2, 100)}%`}
                         </Text>
@@ -304,11 +304,13 @@ function CreateThread() {
                     disabled={uploadStatus !== 'idle'}
                     style={[
                         tailwind`flex-row items-center px-3 py-2 rounded-full mr-3 self-start`,
-                        uploadStatus === 'done'
-                            ? tailwind`bg-green-100`
-                            : uploadStatus !== 'idle'
-                                ? tailwind`bg-red-50`
-                                : tailwind`bg-gray-100`,
+                        { backgroundColor:
+                            uploadStatus === 'done'
+                                ? '#22c55e20'
+                                : uploadStatus !== 'idle'
+                                    ? '#f8717120'
+                                    : '#334155'
+                        },
                     ]}
                 >
                     {/* Icon */}
@@ -317,18 +319,18 @@ function CreateThread() {
                     ) : uploadStatus !== 'idle' ? (
                         <ActivityIndicator size="small" color="#f87171" />
                     ) : (
-                        <MaterialIcons name="perm-media" size={20} color="#6b7280" />
+                        <MaterialIcons name="perm-media" size={20} color="#94a3b8" />
                     )}
 
                     {/* Label */}
-                    <Text style={[
-                        tailwind`text-sm ml-1.5 font-medium`,
-                        uploadStatus === 'done'
-                            ? tailwind`text-green-600`
+                    <Text style={{
+                        fontSize: 13, marginLeft: 6, fontWeight: '500',
+                        color: uploadStatus === 'done'
+                            ? '#22c55e'
                             : uploadStatus !== 'idle'
-                                ? tailwind`text-red-400`
-                                : tailwind`text-gray-600`,
-                    ]}>
+                                ? '#f87171'
+                                : '#94a3b8',
+                    }}>
                         {uploadStatus === 'idle'         ? 'Media'
                         : uploadStatus === 'uploading' && `Uploading ${Math.min(uploadProgress * 2, 100)}%`}
                     </Text>
@@ -346,18 +348,18 @@ function CreateThread() {
                     onPress={() => setIsCommunityModalVisible(false)}
                     style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                 >
-                    <Pressable style={tailwind`bg-white rounded-t-3xl max-h-120`}>
+                    <Pressable style={[tailwind`rounded-t-3xl max-h-120`, { backgroundColor: '#1e293b' }]}>
 
                         {/* Modal Handle */}
                         <View style={tailwind`items-center pt-3 pb-2`}>
-                            <View style={tailwind`w-10 h-1 bg-gray-300 rounded-full`} />
+                            <View style={[tailwind`w-10 h-1 rounded-full`, { backgroundColor: '#475569' }]} />
                         </View>
 
                         {/* Modal Header */}
-                        <View style={tailwind`px-4 pb-3 border-b border-gray-100 flex-row items-center justify-between`}>
-                            <Text style={tailwind`text-lg font-bold text-gray-900`}>Select Community</Text>
+                        <View style={[tailwind`px-4 pb-3 flex-row items-center justify-between`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                            <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700' }}>Select Community</Text>
                             <Pressable onPress={() => setIsCommunityModalVisible(false)}>
-                                <MaterialIcons name="close" size={22} color="#6b7280" />
+                                <MaterialIcons name="close" size={22} color="#94a3b8" />
                             </Pressable>
                         </View>
 
@@ -365,12 +367,12 @@ function CreateThread() {
                         {communityLoading ? (
                             <View style={tailwind`py-12 items-center`}>
                                 <ActivityIndicator size="large" color="#f87171" />
-                                <Text style={tailwind`text-gray-500 text-sm mt-3`}>Loading communities...</Text>
+                                <Text style={{ color: '#64748b', fontSize: 13, marginTop: 12 }}>Loading communities...</Text>
                             </View>
                         ) : communityList.length === 0 ? (
                             <View style={tailwind`py-12 items-center`}>
-                                <MaterialIcons name="group-off" size={40} color="#d1d5db" />
-                                <Text style={tailwind`text-gray-500 text-sm mt-3`}>No communities found</Text>
+                                <MaterialIcons name="group-off" size={40} color="#475569" />
+                                <Text style={{ color: '#64748b', fontSize: 13, marginTop: 12 }}>No communities found</Text>
                             </View>
                         ) : (
                             <ScrollView style={tailwind`px-4 py-2`} showsVerticalScrollIndicator={false}>
@@ -379,21 +381,23 @@ function CreateThread() {
                                         key={item.public_id || index}
                                         onPress={() => selectCommunity(item)}
                                         style={[
-                                            tailwind`flex-row items-center py-3 px-3 mb-2 rounded-xl border`,
-                                            selectedCommunity?.public_id === item.public_id
-                                                ? tailwind`border-red-300 bg-red-50`
-                                                : tailwind`border-gray-100 bg-gray-50`,
+                                            tailwind`flex-row items-center py-3 px-3 mb-2 rounded-xl`,
+                                            {
+                                                backgroundColor: selectedCommunity?.public_id === item.public_id ? '#f8717115' : '#0f172a',
+                                                borderWidth: 1,
+                                                borderColor: selectedCommunity?.public_id === item.public_id ? '#f8717140' : '#334155',
+                                            },
                                         ]}
                                     >
-                                        <View style={tailwind`w-11 h-11 rounded-full bg-red-400 items-center justify-center mr-3`}>
-                                            <Text style={tailwind`text-white text-base font-bold`}>
+                                        <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center mr-3`, { backgroundColor: '#f87171' }]}>
+                                            <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
                                                 {item.name?.charAt(0)?.toUpperCase() || '?'}
                                             </Text>
                                         </View>
                                         <View style={tailwind`flex-1`}>
-                                            <Text style={tailwind`text-gray-900 font-semibold text-sm`}>{item.name}</Text>
+                                            <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 14 }}>{item.name}</Text>
                                             {item.description ? (
-                                                <Text style={tailwind`text-gray-500 text-xs mt-0.5`} numberOfLines={1}>
+                                                <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }} numberOfLines={1}>
                                                     {item.description}
                                                 </Text>
                                             ) : null}

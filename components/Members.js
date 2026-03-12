@@ -277,9 +277,9 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
   };
 
   return (
-    <View style={tailwind`flex-1 bg-white`}>
+    <View style={[tailwind`flex-1`,{ backgroundColor:"#0f172a"}]}>
       <Animated.ScrollView
-        style={tailwind`flex-1 bg-gray-50`}
+        style={[tailwind`flex-1`,{backgroundColor:"#0f172a"}]}
         onScroll={handlerScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -290,13 +290,13 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         }}
       >
         {/* Add Player Button - Only for team owner */}
-        {authProfile && authProfile.id === teamData.user_id && players?.length > 0 && (
-          <View style={tailwind`px-4 mb-4`}>
+        {authProfile && authProfile.id === teamData.user_id && players?.length >= 0 && (
+          <View style={[tailwind`px-4 mb-4`]}>
             <Pressable
               onPress={() => setIsSelectPlayerModal(true)}
               style={[
-                tailwind`flex-row items-center justify-center py-3 rounded-lg bg-red-400`,
-                { shadowColor: '#f87171', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }
+                tailwind`flex-row items-center justify-center py-3 rounded-lg`,
+                { shadowColor: '#f87171', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3, backgroundColor:"#f87171" }
               ]}
             >
               <MaterialIcons name="person-add" size={20} color="white" />
@@ -307,7 +307,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
 
         {/* Error Message */}
         {error?.global && players?.length > 0 && (
-          <View style={tailwind`mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg`}>
+          <View style={[tailwind`mx-4 mb-4 p-3 rounded-lg border`,{backgroundColor:"#1e293b",borderColor:"#ef4444"}]}>
             <Text style={tailwind`text-red-600 text-sm`}>{error.global}</Text>
           </View>
         )}
@@ -315,15 +315,12 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         {/* Players List */}
         {!loading && !error?.global && players?.length > 0 ? (
           <View style={tailwind`px-4`}>
-            <Text style={tailwind`text-lg font-bold text-gray-900 mb-3`}>
-              Squad ({players.length})
-            </Text>
             {players.map((item, index) => (
               <Pressable
                 key={index}
                 style={[
-                  tailwind`flex-row items-center bg-white p-4 mb-2 rounded-xl`,
-                  { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1 }
+                  tailwind`flex-row items-center border p-4 mb-2 rounded-xl`,
+                  { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1, backgroundColor:"#1e293b", borderColor:"#334155" }
                 ]}
                 onPress={() => handleProfile(item)}
               >
@@ -335,9 +332,9 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                       source={{ uri: item.media_url }}
                     />
                   ) : (
-                    <View style={tailwind`w-14 h-14 rounded-full bg-gray-100 items-center justify-center`}>
-                      <Text style={tailwind`text-red-400 text-xl font-bold`}>
-                        {item?.short_name || item?.name?.charAt(0).toUpperCase()}
+                    <View style={[tailwind`w-14 h-14 rounded-full items-center justify-center`, {backgroundColor:"#020617"}]}>
+                      <Text style={[tailwind`text-xl font-bold`, {color:"#f87171"}]}>
+                        {item?.name?.charAt(0).toUpperCase()}
                       </Text>
                     </View>
                   )}
@@ -345,20 +342,20 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
 
                 {/* Player Info */}
                 <View style={tailwind`flex-1 ml-4`}>
-                  <Text style={tailwind`text-gray-900 text-base font-semibold`} numberOfLines={1}>
+                  <Text style={[tailwind`text-gray-900 text-base font-semibold`, {color:"#f1f5f9"}]} numberOfLines={1}>
                     {item?.name}
                   </Text>
                   <View style={tailwind`flex-row items-center mt-1`}>
                     {item?.position && (
                       <>
-                        <Text style={tailwind`text-gray-500 text-sm`}>{item.position}</Text>
+                        <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>{item.position}</Text>
                         {item?.country && (
                           <View style={tailwind`h-1 w-1 rounded-full bg-gray-400 mx-2`} />
                         )}
                       </>
                     )}
                     {item?.country && (
-                      <Text style={tailwind`text-gray-500 text-sm`}>{item.country}</Text>
+                      <Text style={[tailwind`text-sm`, {color: '#94a3b8'} ]}>{item.country}</Text>
                     )}
                   </View>
                 </View>
@@ -393,7 +390,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
           setSearchPlayer('');
         }}
       >
-        <View style={tailwind`flex-1 justify-end bg-black/50`}>
+        <View style={tailwind`flex-1 justify-end bg-black/60`}>
           <Pressable
             style={tailwind`flex-1`}
             onPress={() => {
@@ -401,32 +398,59 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
               setSearchPlayer('');
             }}
           />
-          <View style={[tailwind`bg-white rounded-t-3xl`, { minHeight:sHeight*0.6 }]}>
-            {/* Modal Header */}
-            <View style={tailwind`flex-row items-center justify-between p-4 border-b border-gray-100`}>
-              <Text style={tailwind`text-lg font-bold text-gray-900`}>Add Player</Text>
+
+          <View
+            style={[
+              tailwind`rounded-t-3xl border-t`,
+              { backgroundColor: "#1e293b", borderColor: "#334155", minHeight: sHeight * 0.6 }
+            ]}
+          >
+
+            {/* Header */}
+            <View
+              style={[
+                tailwind`flex-row items-center justify-between p-4 border-b`,
+                { borderColor: "#334155" }
+              ]}
+            >
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#f1f5f9" }}>
+                Add Player
+              </Text>
+
               <TouchableOpacity
                 onPress={() => {
                   setIsSelectPlayerModal(false);
                   setSearchPlayer('');
                 }}
               >
-                <MaterialIcons name="close" size={24} color="#6b7280" />
+                <MaterialIcons name="close" size={24} color="#94a3b8" />
               </TouchableOpacity>
             </View>
 
+            {/* Error */}
             {error?.global && (
-              <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
-                        {error.global}
-                    </Text>
-                </View>
+              <View
+                style={[
+                  tailwind`mx-3 mb-3 p-3 rounded-lg border`,
+                  { backgroundColor: "#020617", borderColor: "#ef4444" }
+                ]}
+              >
+                <Text style={{ color: "#ef4444", fontSize: 13 }}>
+                  {error.global}
+                </Text>
+              </View>
             )}
 
-            {/* Search Input */}
+            {/* Search */}
             <View style={tailwind`px-4 pt-4 pb-2`}>
-              <View style={tailwind`flex-row items-center bg-gray-100 rounded-lg px-4 py-3`}>
-                <MaterialIcons name="search" size={20} color="#9ca3af" />
+              <View
+                style={[
+                  tailwind`flex-row items-center rounded-lg px-4 py-3 border`,
+                  { backgroundColor: "#0f172a", borderColor: "#334155" }
+                ]}
+              >
+                <MaterialIcons name="search" size={20} color="#94a3b8" />
+
                 <TextInput
                   value={searchPlayer}
                   onChangeText={(text) => {
@@ -434,21 +458,24 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                     handleSearchPlayer(text);
                   }}
                   placeholder="Search player by name"
-                  placeholderTextColor="#9ca3af"
-                  style={tailwind`flex-1 ml-2 text-gray-900`}
+                  placeholderTextColor="#64748b"
+                  style={{ flex: 1, marginLeft: 8, color: "#94a3b8", padding: 16, fontSize: 15, }}
                 />
+
                 {searchPlayer.length > 0 && (
-                  <TouchableOpacity onPress={() => {
-                    setSearchPlayer('');
-                    setFiltered(playerProfile);
-                  }}>
-                    <MaterialIcons name="cancel" size={18} color="#9ca3af" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSearchPlayer('');
+                      setFiltered(playerProfile);
+                    }}
+                  >
+                    <MaterialIcons name="cancel" size={18} color="#94a3b8" />
                   </TouchableOpacity>
                 )}
               </View>
             </View>
 
-            {/* Players List */}
+            {/* Player list */}
             <ScrollView
               style={tailwind`flex-1`}
               contentContainerStyle={tailwind`px-4 pb-6`}
@@ -458,13 +485,19 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                 <View style={tailwind`items-center py-10`}>
                   <ActivityIndicator size="large" color="#f87171" />
                 </View>
-              ) : filtered.length > 0 ? (
+
+              ) : filtered?.length > 0 ? (
+
                 filtered.map((item, index) => (
                   <Pressable
                     key={index}
                     onPress={() => handleAddPlayer(item)}
-                    style={tailwind`flex-row items-center py-3 border-b border-gray-100`}
+                    style={[
+                      tailwind`flex-row items-center py-3 border-b`,
+                      { borderColor: "#334155" }
+                    ]}
                   >
+
                     {/* Avatar */}
                     {item.media_url ? (
                       <Image
@@ -472,35 +505,64 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                         source={{ uri: item.media_url }}
                       />
                     ) : (
-                      <View style={tailwind`w-12 h-12 rounded-full bg-gray-100 items-center justify-center`}>
-                        <Text style={tailwind`text-red-400 text-lg font-bold`}>
+                      <View
+                        style={[
+                          tailwind`w-12 h-12 rounded-full items-center justify-center`,
+                          { backgroundColor: "#020617" }
+                        ]}
+                      >
+                        <Text style={{ color: "#f87171", fontSize: 16, fontWeight: "700" }}>
                           {item?.name?.charAt(0).toUpperCase()}
                         </Text>
                       </View>
                     )}
 
-                    {/* Player Info */}
+                    {/* Player info */}
                     <View style={tailwind`flex-1 ml-3`}>
-                      <Text style={tailwind`text-gray-900 font-semibold`}>{item.name}</Text>
+                      <Text style={{ color: "#f1f5f9", fontWeight: "600" }}>
+                        {item.name}
+                      </Text>
+
                       {item.position && (
-                        <Text style={tailwind`text-gray-500 text-sm mt-0.5`}>{item.position}</Text>
+                        <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>
+                          {item.position}
+                        </Text>
                       )}
                     </View>
 
-                    {/* Add Icon */}
-                    <MaterialIcons name="add-circle-outline" size={24} color="#f87171" />
+                    {/* Add icon */}
+                    <MaterialIcons
+                      name="add-circle-outline"
+                      size={24}
+                      color="#f87171"
+                    />
                   </Pressable>
                 ))
+
               ) : (
+
                 <View style={tailwind`items-center py-10`}>
-                  <MaterialIcons name="person-search" size={64} color="#d1d5db" />
-                  <Text style={tailwind`text-gray-500 mt-4 text-center`}>
-                    {searchPlayer ? 'No players found' : 'No available players'}
+                  <MaterialIcons name="person-search" size={64} color="#475569" />
+
+                  <Text style={{ color: "#94a3b8", marginTop: 16, textAlign: "center" }}>
+                    {searchPlayer ? "No players found" : "No available players"}
                   </Text>
-                  <Text style={tailwind`text-gray-400 text-sm mt-1 text-center px-8`}>
-                    {searchPlayer ? 'Try a different search term' : 'Create player profiles first'}
+
+                  <Text
+                    style={{
+                      color: "#64748b",
+                      fontSize: 12,
+                      marginTop: 4,
+                      textAlign: "center",
+                      paddingHorizontal: 32
+                    }}
+                  >
+                    {searchPlayer
+                      ? "Try a different search term"
+                      : "Create player profiles first"}
                   </Text>
                 </View>
+
               )}
             </ScrollView>
           </View>

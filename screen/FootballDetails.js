@@ -12,7 +12,7 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Animated, {
-    useSharedValue, 
+    useSharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
     interpolate,
@@ -52,17 +52,17 @@ const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeight}) =
             opacity
         };
     });
-    
+
     const handleTournamentPage = async (tournamentData) => {
             navigation.navigate("TournamentPage", {
-                tournament: tournamentData, 
+                tournament: tournamentData,
                 currentRole: 'user'
             });
     };
 
     return (
-        <Animated.ScrollView 
-            style={tailwind`flex-1 bg-gray-50`}
+        <Animated.ScrollView
+            style={{ flex: 1, backgroundColor: '#0f172a' }}
             onScroll={handlerScroll}
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
@@ -75,79 +75,88 @@ const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeight}) =
             <Animated.View style={[contentStyle]}>
                 {/* Tournament Section */}
                 {matchData?.tournament && (
-                    <Pressable 
-                        style={tailwind`flex-row items-center justify-between shadow-lg p-4 bg-white rounded-xl mb-4`} 
+                    <Pressable
+                        style={[
+                            tailwind`flex-row items-center justify-between p-4 rounded-xl mb-4`,
+                            { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                        ]}
                         onPress={() => handleTournamentPage(matchData?.tournament.public_id)}
                         disabled={loading}
                     >
                         <View style={tailwind`flex-1`}>
-                            <Text style={tailwind`text-sm text-gray-500 mb-1`}>Tournament</Text>
-                            <Text style={tailwind`text-xl font-semibold text-gray-900`}>
+                            <Text style={[tailwind`text-sm mb-1`, { color: '#64748b' }]}>Tournament</Text>
+                            <Text style={[tailwind`text-xl font-semibold`, { color: '#f1f5f9' }]}>
                                 {matchData?.tournament.name}
                             </Text>
                         </View>
-                        <MaterialCommunityIcons 
-                            name="chevron-right" 
-                            size={24} 
-                            color="#6b7280" 
+                        <MaterialCommunityIcons
+                            name="chevron-right"
+                            size={24}
+                            color="#64748b"
                         />
                     </Pressable>
                 )}
 
                 {/* Teams Section */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-lg font-semibold text-gray-900 mb-3 px-1`}>
+                    <Text style={[tailwind`text-lg font-semibold mb-3 px-1`, { color: '#f1f5f9' }]}>
                         Teams
                     </Text>
                     <View style={tailwind`flex-row gap-3`}>
                         {/* Home Team */}
-                        <Pressable 
-                            style={tailwind`flex-1 bg-white rounded-xl p-4 shadow-sm border border-gray-100`}
+                        <View
+                            style={[
+                                tailwind`flex-1 rounded-xl p-4`,
+                                { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                            ]}
                         >
                             <View style={tailwind`items-center`}>
-                                <Text style={tailwind`text-lg font-semibold text-gray-900 text-center`}>
+                                <Text style={[tailwind`text-lg font-semibold text-center`, { color: '#f1f5f9' }]}>
                                     {matchData?.homeTeam?.name || 'Home Team'}
                                 </Text>
                                 {matchData?.homeTeam?.city && (
-                                    <Text style={tailwind`text-sm text-gray-500 mt-1`}>
+                                    <Text style={[tailwind`text-sm mt-1`, { color: '#64748b' }]}>
                                         {matchData.homeTeam.city}
                                     </Text>
                                 )}
                             </View>
-                        </Pressable>
+                        </View>
 
                         {/* VS Separator */}
                         <View style={tailwind`justify-center items-center px-2`}>
-                            <Text style={tailwind`text-gray-400 font-bold text-lg`}>VS</Text>
+                            <Text style={[tailwind`font-bold text-lg`, { color: '#475569' }]}>VS</Text>
                         </View>
 
                         {/* Away Team */}
-                        <Pressable 
-                            style={tailwind`flex-1 bg-white rounded-xl p-4 shadow-sm border border-gray-100`}
+                        <View
+                            style={[
+                                tailwind`flex-1 rounded-xl p-4`,
+                                { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                            ]}
                         >
                             <View style={tailwind`items-center`}>
-                                <Text style={tailwind`text-lg font-semibold text-gray-900 text-center`}>
+                                <Text style={[tailwind`text-lg font-semibold text-center`, { color: '#f1f5f9' }]}>
                                     {matchData?.awayTeam?.name || 'Away Team'}
                                 </Text>
                                 {matchData?.awayTeam?.city && (
-                                    <Text style={tailwind`text-sm text-gray-500 mt-1`}>
+                                    <Text style={[tailwind`text-sm mt-1`, { color: '#64748b' }]}>
                                         {matchData.awayTeam.city}
                                     </Text>
                                 )}
                             </View>
-                        </Pressable>
+                        </View>
                     </View>
                 </View>
 
                 {/* Match Details Section */}
-                <View style={tailwind`bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-4`}>
-                    <Text style={tailwind`text-lg font-semibold text-gray-900 mb-4`}>
+                <View style={[tailwind`rounded-xl p-6 mb-4`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                    <Text style={[tailwind`text-lg font-semibold mb-4`, { color: '#f1f5f9' }]}>
                         Match Details
                     </Text>
                     {/* Status */}
-                    <View style={tailwind`flex-row justify-between items-center py-3 border-b border-gray-100`}>
-                        <Text style={tailwind`text-gray-600`}>Status</Text>
-                        <Text style={tailwind`font-semibold text-gray-900 capitalize`}>
+                    <View style={[tailwind`flex-row justify-between items-center py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={[tailwind``, { color: '#94a3b8' }]}>Status</Text>
+                        <Text style={[tailwind`font-semibold capitalize`, { color: '#f1f5f9' }]}>
                             {matchData?.status_code || 'Not Started'}
                         </Text>
                     </View>
@@ -155,15 +164,15 @@ const FootballDetails = ({item, parentScrollY, headerHeight, collapsedHeight}) =
                     {/* Date and Time */}
                     {matchData?.start_timestamp && (
                         <>
-                            <View style={tailwind`flex-row justify-between items-center py-3 border-b border-gray-100`}>
-                                <Text style={tailwind`text-gray-600`}>Date</Text>
-                                <Text style={tailwind`font-semibold text-gray-900`}>
+                            <View style={[tailwind`flex-row justify-between items-center py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                                <Text style={[tailwind``, { color: '#94a3b8' }]}>Date</Text>
+                                <Text style={[tailwind`font-semibold`, { color: '#f1f5f9' }]}>
                                     {formattedDate(convertToISOString(matchData.start_timestamp))}
                                 </Text>
                             </View>
-                            <View style={tailwind`flex-row justify-between items-center py-3 border-b border-gray-100`}>
-                                <Text style={tailwind`text-gray-600`}>Time</Text>
-                                <Text style={tailwind`font-semibold text-gray-900`}>
+                            <View style={[tailwind`flex-row justify-between items-center py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                                <Text style={[tailwind``, { color: '#94a3b8' }]}>Time</Text>
+                                <Text style={[tailwind`font-semibold`, { color: '#f1f5f9' }]}>
                                     {formattedTime(convertToISOString(matchData.start_timestamp))}
                                 </Text>
                             </View>

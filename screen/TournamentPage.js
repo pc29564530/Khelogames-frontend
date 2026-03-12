@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Platform,Dimensions, ScrollView, TextInput } from 'react-native';
+import { View, Text, Pressable, Platform, Dimensions, ScrollView, TextInput } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import tailwind from 'twrnc';
@@ -7,11 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
 import { useSelector } from 'react-redux';
-import Animated, { Extrapolation, interpolate, interpolateColor, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import { current } from '@reduxjs/toolkit';
+import Animated, { Extrapolation, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
+import LinearGradient from 'react-native-linear-gradient';
 
 const TournamentPage = ({ route }) => {
       const { tournament, currentRole } = route.params;
@@ -26,8 +26,8 @@ const TournamentPage = ({ route }) => {
       const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
       const parentScrollY = useSharedValue(0);
-      const bgColor = '#ffffff';   // white
-      const bgColor2 = '#f87171'; //red-400
+      const bgColor = '#0f172a';   // dark navy
+      const bgColor2 = '#1e293b'; //red-400
       const headerHeight = 160;
       const collapsedHeader = 50;
       const offsetValue = headerHeight-collapsedHeader;
@@ -38,15 +38,7 @@ const TournamentPage = ({ route }) => {
           [headerHeight, collapsedHeader],
           Extrapolation.CLAMP,
         )
-    
-        const backgroundColor = interpolateColor(
-          parentScrollY.value,
-          [0, offsetValue],
-          [bgColor2, bgColor2]
-        )
-        return {
-          backgroundColor, height
-        }
+        return { height }
       })
 
       // Content container animation
@@ -69,21 +61,21 @@ const TournamentPage = ({ route }) => {
         const scale = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [1, 0.5], // big → small
+          [1, 0.5],
           Extrapolation.CLAMP,
         );
 
         const translateY = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [50, -3], // move up a bit
+          [50, -5],
           Extrapolation.CLAMP,
         );
 
         const translateX = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, -(sWidth/2)-80],
+          [0, -(sWidth / 2) - 80],
           Extrapolation.CLAMP,
         );
 
@@ -104,14 +96,14 @@ const TournamentPage = ({ route }) => {
         const translateY = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [60, -56],
+          [60, -54],
           Extrapolation.CLAMP,
         );
 
         const translateX = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [0, -(sWidth/2)+100], 
+          [0, -(sWidth / 2) + 95],
           Extrapolation.CLAMP,
         );
 
@@ -143,8 +135,11 @@ const TournamentPage = ({ route }) => {
         }
     }
 
+    console.log("AuthProfile: ", authProfile)
+    console.log("TournamentProfile: ", tournament)
+
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
           <Animated.View
             style={[
               headerStyle,
@@ -154,48 +149,57 @@ const TournamentPage = ({ route }) => {
                 left: 0,
                 right: 0,
                 zIndex: 10,
+                overflow: 'hidden',
               },
             ]}
           >
+            {/* LinearGradient background */}
+            <LinearGradient
+              colors={['#1e3a5f', '#1e293b']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+
             <Pressable
               onPress={() => navigation.goBack()}
-              style={tailwind`absolute left-3 top-2 p-1.5`}
+              style={tailwind`absolute left-3 top-2 p-1.5 z-10`}
               hitSlop={12}
             >
-              <MaterialIcons name="arrow-back" size={22} color="white" />
+              <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
             </Pressable>
 
             {/* Trophy + Title animated separately */}
             <View style={tailwind`items-center`}>
               <Animated.View style={trophyStyle}>
-                <FontAwesome name="trophy" size={56} color="white" />
+                <FontAwesome name="trophy" size={56} color="#f87171" />
               </Animated.View>
               <Animated.View style={titleStyle}>
-                <Text style={tailwind`text-xl text-white`}>
+                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>
                   {tournament.name}
                 </Text>
               </Animated.View>
             </View>
-            <View style={tailwind`absolute right-2 top-2 flex-row items-center`}>
+            <View style={tailwind`absolute right-2 top-2 flex-row items-center z-10`}>
               <Pressable
                 onPress={() => handleNavigation()}
                 style={tailwind`p-1.5 mr-1`}
                 hitSlop={8}
               >
-                <MaterialIcons name="message" size={22} color="white" />
+                <MaterialIcons name="message" size={22} color="#e2e8f0" />
               </Pressable>
-              {(authProfile.public_id === tournament.profile.public_id) && (
+              {(authProfile?.public_id === tournament?.profile?.public_id) && (
                 <Pressable
                   onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
                   style={tailwind`p-1.5`}
                   hitSlop={8}
                 >
-                  <MaterialIcons name="settings" size={22} color="white" />
+                  <MaterialIcons name="settings" size={22} color="#e2e8f0" />
                 </Pressable>
               )}
             </View>
           </Animated.View>
-          <Animated.View style={[contentContainerStyle, tailwind`bg-white`]}>
+          <Animated.View style={[contentContainerStyle, { backgroundColor: '#0f172a' }]}>
             {checkSport(game)}
           </Animated.View>
         </View>

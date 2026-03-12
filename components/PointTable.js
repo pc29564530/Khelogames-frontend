@@ -38,14 +38,14 @@ const PointTable = ({ standingsData, game }) => {
   return (
     <View style={tailwind`overflow-hidden`}>
       {/* Table Header */}
-      <View style={tailwind`flex-row px-3 py-2.5 bg-gray-50 border-b border-gray-100`}>
+      <View style={[tailwind`flex-row px-3 py-2.5`, { backgroundColor: '#0f172a', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
         <View style={tailwind`w-8 items-center justify-center`}>
-          <Text style={tailwind`text-gray-400 text-xs font-semibold`}>#</Text>
+          <Text style={[tailwind`text-xs font-semibold`, { color: '#64748b' }]}>#</Text>
         </View>
 
         {/* Team column header */}
         <View style={tailwind`flex-1 ml-2 justify-center`}>
-          <Text style={tailwind`text-gray-400 text-xs font-semibold`}>Team</Text>
+          <Text style={[tailwind`text-xs font-semibold`, { color: '#64748b' }]}>Team</Text>
         </View>
 
         {/* Stats headers */}
@@ -56,7 +56,7 @@ const PointTable = ({ standingsData, game }) => {
               <Text
                 style={[
                   tailwind`text-xs font-semibold text-center`,
-                  isLast ? tailwind`text-gray-900` : tailwind`text-gray-400`
+                  { color: isLast ? '#f1f5f9' : '#64748b' }
                 ]}
               >
                 {header}
@@ -76,17 +76,17 @@ const PointTable = ({ standingsData, game }) => {
             key={rowIndex}
             style={[
               tailwind`flex-row px-3 py-3 items-center`,
-              !isLast && tailwind`border-b border-gray-50`,
+              !isLast && { borderBottomWidth: 1, borderBottomColor: '#334155' },
             ]}
           >
             {/* Position with qualification indicator */}
             <View style={tailwind`w-8 justify-center items-center flex-row`}>
               {isQualified && (
-                <View style={tailwind`w-0.5 h-5 bg-red-400 rounded-full mr-1.5`} />
+                <View style={[tailwind`w-0.5 h-5 rounded-full mr-1.5`, { backgroundColor: '#f87171' }]} />
               )}
               <Text style={[
                 tailwind`text-sm`,
-                isQualified ? tailwind`text-red-400 font-bold` : tailwind`text-gray-400 font-medium`
+                { color: isQualified ? '#f87171' : '#64748b', fontWeight: isQualified ? '700' : '500' }
               ]}>
                 {rowIndex + 1}
               </Text>
@@ -94,13 +94,13 @@ const PointTable = ({ standingsData, game }) => {
 
             {/* Team name with initial circle */}
             <View style={tailwind`flex-1 ml-2 flex-row items-center`}>
-              <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center mr-2`}>
-                <Text style={tailwind`text-xs font-bold text-gray-400`}>
+              <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center mr-2`, { backgroundColor: '#334155' }]}>
+                <Text style={[tailwind`text-xs font-bold`, { color: '#64748b' }]}>
                   {row[0]?.charAt(0)?.toUpperCase() || '?'}
                 </Text>
               </View>
               <Text
-                style={tailwind`text-gray-900 text-sm font-medium flex-1`}
+                style={[tailwind`text-sm font-medium flex-1`, { color: '#f1f5f9' }]}
                 numberOfLines={1}
               >
                 {row[0]}
@@ -124,12 +124,12 @@ const PointTable = ({ standingsData, game }) => {
                     style={[
                       tailwind`text-sm text-center`,
                       isPoints
-                        ? tailwind`text-gray-900 font-bold`
+                        ? { color: '#f1f5f9', fontWeight: '700' }
                         : isGoalDiff && goalDiff > 0
-                        ? tailwind`text-green-600 font-semibold`
+                        ? { color: '#4ade80', fontWeight: '600' }
                         : isGoalDiff && goalDiff < 0
-                        ? tailwind`text-red-400 font-semibold`
-                        : tailwind`text-gray-500`
+                        ? { color: '#f87171', fontWeight: '600' }
+                        : { color: '#94a3b8' }
                     ]}
                   >
                     {isGoalDiff && goalDiff > 0 ? `+${stat}` : stat || 0}

@@ -143,12 +143,11 @@ const CreateClub = () => {
             <Text style={tailwind`text-xl font-bold text-white`}>Create Team</Text>
         ),
         headerStyle: {
-            backgroundColor: tailwind.color('red-400'),
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            backgroundColor: '#0f172a',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#1e293b',
         },
         headerTintColor: 'white',
         headerTitleAlign: 'center',
@@ -161,48 +160,48 @@ const CreateClub = () => {
 
     return (
             <ScrollView
-                style={tailwind`flex-1 bg-gray-100`}
+                style={{flex: 1, backgroundColor: '#0f172a'}}
                 contentContainerStyle={tailwind`p-5`}
                 showsVerticalScrollIndicator={false}
-            >   
+            >
                 {error.global && (
-                    <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                        <Text style={tailwind`text-red-700 text-sm`}>
+                    <View style={[tailwind`mx-3 mb-3 p-3 rounded-lg`, {backgroundColor: '#1e293b', borderColor: '#f87171', borderWidth: 1}]}>
+                        <Text style={tailwind`text-red-400 text-sm`}>
                             {error.global}
                         </Text>
                     </View>
                 )}
                 {/* Header */}
-                <Text style={tailwind`text-base text-gray-500 mb-6`}>Fill in the details to create your team</Text>
+                <Text style={{color: '#94a3b8', fontSize: 16, marginBottom: 24}}>Fill in the details to create your team</Text>
 
                 {/* Team Logo */}
-                <View style={tailwind`items-center mb-6 bg-white p-6 rounded-2xl shadow-sm`}>
+                <View style={[tailwind`items-center mb-6 p-6 rounded-2xl`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                     <Pressable
                         onPress={handleMediaSelection}
-                        style={tailwind`w-28 h-28 rounded-full bg-gray-100 items-center justify-center border-4 border-white shadow-md`}
+                        style={[tailwind`w-28 h-28 rounded-full items-center justify-center`, {backgroundColor: '#334155', borderWidth: 4, borderColor: '#1e293b'}]}
                     >
                         {mediaUrl ? (
                             <Image source={{ uri: mediaUrl }} style={tailwind`w-full h-full rounded-full`} />
                         ) : (
-                            <FontAwesome name="camera" size={36} color="#9CA3AF" />
+                            <FontAwesome name="camera" size={36} color="#64748b" />
                         )}
                     </Pressable>
-                    <Text style={tailwind`text-sm text-gray-500 mt-3 font-medium`}>Upload Team Logo</Text>
+                    <Text style={{color: '#94a3b8', fontSize: 14, marginTop: 12, fontWeight: '500'}}>Upload Team Logo</Text>
                 </View>
 
                 {/* Team Details Card */}
-                <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-5`}>
-                    <Text style={tailwind`text-lg font-bold text-gray-800 mb-4`}>Team Details</Text>
+                <View style={[tailwind`p-5 rounded-2xl mb-5`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
+                    <Text style={{color: '#f1f5f9', fontSize: 18, fontWeight: '700', marginBottom: 16}}>Team Details</Text>
 
                     {/* Team Name */}
                     <View style={tailwind`mb-4`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Team Name *</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>Team Name *</Text>
                         <TextInput
-                            style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                            style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, color: '#f1f5f9'}]}
                             value={name}
                             onChangeText={setName}
                             placeholder="Enter team name"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor="#475569"
                         />
                         {error?.fields?.name && (
                         <Text style={tailwind`text-red-500 text-sm`}>
@@ -212,16 +211,16 @@ const CreateClub = () => {
                     </View>
                     {/* Gender */}
                     <View style={tailwind`mb-4`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Gender *</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>Gender *</Text>
                         <View style={tailwind`flex-row gap-3`}>
                             <Pressable
                                 onPress={() => setGender('male')}
                                 style={[
                                     tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    gender === 'male' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                    gender === 'male' ? tailwind`bg-red-400` : {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1},
                                 ]}
                             >
-                                <Text style={[tailwind`font-semibold`, gender === 'male' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                <Text style={[tailwind`font-semibold`, gender === 'male' ? tailwind`text-white` : {color: '#94a3b8'}]}>
                                     Male
                                 </Text>
                             </Pressable>
@@ -229,22 +228,11 @@ const CreateClub = () => {
                                 onPress={() => setGender('female')}
                                 style={[
                                     tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    gender === 'female' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                    gender === 'female' ? tailwind`bg-red-400` : {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1},
                                 ]}
                             >
-                                <Text style={[tailwind`font-semibold`, gender === 'female' ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                <Text style={[tailwind`font-semibold`, gender === 'female' ? tailwind`text-white` : {color: '#94a3b8'}]}>
                                     Female
-                                </Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={() => setGender('mixed')}
-                                style={[
-                                    tailwind`flex-1 py-3 rounded-xl items-center`,
-                                    gender === 'mixed' ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
-                                ]}
-                            >
-                                <Text style={[tailwind`font-semibold`, gender === 'mixed' ? tailwind`text-white` : tailwind`text-gray-600`]}>
-                                    Mixed
                                 </Text>
                             </Pressable>
                         </View>
@@ -257,7 +245,7 @@ const CreateClub = () => {
 
                     {/* Category */}
                     <View style={tailwind`mb-0`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Category *</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>Category *</Text>
                         <View style={tailwind`flex-row gap-2`}>
                             {['team', 'individual', 'double'].map((item) => (
                                 <Pressable
@@ -265,10 +253,10 @@ const CreateClub = () => {
                                     onPress={() => setType(item)}
                                     style={[
                                         tailwind`flex-1 py-3 rounded-xl items-center`,
-                                        type === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`,
+                                        type === item ? tailwind`bg-red-400` : {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1},
                                     ]}
                                 >
-                                    <Text style={[tailwind`font-semibold text-sm`, type === item ? tailwind`text-white` : tailwind`text-gray-600`]}>
+                                    <Text style={[tailwind`font-semibold text-sm`, type === item ? tailwind`text-white` : {color: '#94a3b8'}]}>
                                         {item.charAt(0).toUpperCase() + item.slice(1)}
                                     </Text>
                                 </Pressable>
@@ -283,49 +271,49 @@ const CreateClub = () => {
                 </View>
 
                 {/* Location Details Card */}
-                <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-5`}>
-                    <Text style={tailwind`text-lg font-bold text-gray-800 mb-4`}>Location</Text>
+                <View style={[tailwind`p-5 rounded-2xl mb-5`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
+                    <Text style={{color: '#f1f5f9', fontSize: 18, fontWeight: '700', marginBottom: 16}}>Location</Text>
 
                     <View style={tailwind`mb-4`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>City</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>City</Text>
                         <TextInput
-                            style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                            style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, color: '#f1f5f9'}]}
                             value={city}
                             onChangeText={setCity}
                             placeholder="Enter city"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor="#475569"
                         />
                         {error?.fields?.city && (
-                            <Text style={tailwind`text-red-500 text-sm`}>
+                            <Text style={tailwind`text-red-400 text-sm`}>
                                 *{error.fields.city}
                             </Text>
                         )}
                     </View>
 
                     <View style={tailwind`mb-4`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>State/Province</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>State/Province</Text>
                         <TextInput
-                            style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                            style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, color: '#f1f5f9'}]}
                             value={state}
                             onChangeText={setState}
                             placeholder="Enter state or province"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor="#475569"
                         />
                         {error?.fields?.state && (
-                            <Text style={tailwind`text-red-500 text-sm`}>
+                            <Text style={tailwind`text-red-400 text-sm`}>
                                 *{error.fields.state}
                             </Text>
                         )}
                     </View>
 
                     <View style={tailwind`mb-0`}>
-                        <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Country</Text>
+                        <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>Country</Text>
                         <TextInput
-                            style={tailwind`p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800`}
+                            style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, color: '#f1f5f9'}]}
                             value={country}
                             onChangeText={setCountry}
                             placeholder="Enter country"
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor="#475569"
                         />
                         {error?.fields?.country && (
                             <Text style={tailwind`text-red-500 text-sm`}>
@@ -336,30 +324,30 @@ const CreateClub = () => {
                 </View>
 
                 {/* GPS Location Card */}
-                <View style={tailwind`bg-white p-5 rounded-2xl shadow-sm mb-6`}>
+                <View style={[tailwind`p-5 rounded-2xl mb-6`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                     <View style={tailwind`flex-row items-center justify-between mb-3`}>
-                        <Text style={tailwind`text-lg font-bold text-gray-800`}>GPS Coordinates</Text>
+                        <Text style={{color: '#f1f5f9', fontSize: 18, fontWeight: '700'}}>GPS Coordinates</Text>
                         {latitude && longitude && (
                             <MaterialIcons name="check-circle" size={20} color="#10B981" />
                         )}
                     </View>
-                    <Text style={tailwind`text-xs text-gray-500 mb-4`}>Optional - Get precise location</Text>
+                    <Text style={{color: '#64748b', fontSize: 12, marginBottom: 16}}>Optional - Get precise location</Text>
 
                     <Pressable
                         onPress={handleLocation}
                         disabled={isLoadingLocation}
                         style={[
                             tailwind`p-4 rounded-xl flex-row items-center justify-between`,
-                            isLoadingLocation ? tailwind`bg-gray-100` : tailwind`bg-red-50`,
+                            {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1},
                         ]}
                     >
                         <View style={tailwind`flex-row items-center flex-1`}>
                             <MaterialIcons
                                 name="my-location"
                                 size={22}
-                                color={latitude && longitude ? "#10B981" : "#EF4444"}
+                                color={latitude && longitude ? "#10B981" : "#f87171"}
                             />
-                            <Text style={[tailwind`ml-3 flex-1`, latitude && longitude ? tailwind`text-green-600 font-semibold` : tailwind`text-red-500 font-medium`]}>
+                            <Text style={[tailwind`ml-3 flex-1`, latitude && longitude ? {color: '#10B981', fontWeight: '600'} : {color: '#f87171', fontWeight: '500'}]}>
                                 {isLoadingLocation
                                     ? 'Getting location...'
                                     : latitude && longitude
@@ -367,7 +355,7 @@ const CreateClub = () => {
                                         : 'Tap to get location'}
                             </Text>
                         </View>
-                        <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
+                        <MaterialIcons name="chevron-right" size={20} color="#475569" />
                     </Pressable>
                 </View>
 

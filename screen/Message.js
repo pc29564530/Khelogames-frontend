@@ -312,7 +312,7 @@ function Message({ route }) {
     useLayoutEffect(() => {
       navigation.setOptions({
           headerTitle: "",
-          headerStyle: tailwind`bg-red-400`,
+          headerStyle: {backgroundColor: '#0f172a', borderBottomWidth: 1, borderBottomColor: '#1e293b'},
           headerLeft: ()=> (
               <View style={tailwind`flex-row items-center gap-4 p-6`}>
                   <AntDesign name="arrowleft" onPress={()=>navigation.goBack()} size={24} color="white" />
@@ -394,13 +394,13 @@ function Message({ route }) {
     const renderDateSeparator = (dateString) => {
       return(
         <View style={tailwind`flex-row items-center my-4`}>
-          <View style={tailwind`flex-1 h-px bg-gray-300`} />
-          <View style={tailwind`px-4 py-1 bg-gray-200 rounded-full mx-4`}>
-            <Text style={tailwind`text-xs text-gray-600 font-medium`}>
+          <View style={[tailwind`flex-1 h-px`, {backgroundColor: '#334155'}]} />
+          <View style={[tailwind`px-4 py-1 rounded-full mx-4`, {backgroundColor: '#1e293b'}]}>
+            <Text style={{color: '#94a3b8', fontSize: 12, fontWeight: '500'}}>
               {formatDateForSeparator(dateString)}
             </Text>
           </View>
-          <View style={tailwind`flex-1 h-px bg-gray-300`} />
+          <View style={[tailwind`flex-1 h-px`, {backgroundColor: '#334155'}]} />
         </View>
       )
     }
@@ -427,8 +427,8 @@ function Message({ route }) {
                     <View style={[
                             tailwind`p-3 rounded-2xl max-w-[80%]`,
                             isMyMessage
-                            ? tailwind`bg-blue-500`
-                            : tailwind`bg-gray-300`,
+                            ? tailwind`bg-red-400`
+                            : {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1},
                         ]}
                     >
                         {item?.media_type === 'image' && item?.media_url && (
@@ -456,7 +456,7 @@ function Message({ route }) {
                             <Text
                                 style={[
                                     tailwind`text-base leading-5`,
-                                    isMyMessage ? tailwind`text-white` : tailwind`text-gray-900`
+                                    isMyMessage ? tailwind`text-white` : {color: '#f1f5f9'}
                                 ]}
                             >
                                 {item.content}
@@ -464,7 +464,7 @@ function Message({ route }) {
                         )}
                         <Text style={[
                             tailwind`text-xs mt-1`,
-                            isMyMessage ? tailwind`text-blue-100` : tailwind`text-gray-500`
+                            isMyMessage ? {color: '#fecaca'} : {color: '#64748b'}
                         ]}>
                           {item?.created_at || item?.sent_at ?
                               new Date(item.created_at || item.sent_at).toLocaleTimeString([], {
@@ -487,24 +487,24 @@ function Message({ route }) {
 
     if (loading) {
       return (
-        <View style={tailwind`flex-1 justify-center items-center bg-white`}>
-          <ActivityIndicator size="large" color="#3b82f6" />
-          <Text style={tailwind`mt-4 text-gray-600`}>Loading messages...</Text>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a'}}>
+          <ActivityIndicator size="large" color="#f87171" />
+          <Text style={{color: '#94a3b8', marginTop: 16}}>Loading messages...</Text>
         </View>
       );
     }
 
     if (!receiverProfile?.public_id) {
         return (
-            <View style={tailwind`flex-1 justify-center items-center bg-white p-4`}>
-                <MaterialIcons name="error-outline" size={48} color="#ef4444" />
-                <Text style={tailwind`mt-4 text-lg text-gray-900 text-center`}>Invalid Chat</Text>
-                <Text style={tailwind`mt-2 text-sm text-gray-600 text-center`}>
+            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a', padding: 16}}>
+                <MaterialIcons name="error-outline" size={48} color="#f87171" />
+                <Text style={{color: '#f1f5f9', fontSize: 18, marginTop: 16, textAlign: 'center'}}>Invalid Chat</Text>
+                <Text style={{color: '#94a3b8', fontSize: 14, marginTop: 8, textAlign: 'center'}}>
                     Unable to load chat. Please go back and try again.
                 </Text>
                 <Pressable
                     onPress={() => navigation.goBack()}
-                    style={tailwind`mt-4 bg-blue-500 px-6 py-3 rounded-lg`}
+                    style={tailwind`mt-4 bg-red-400 px-6 py-3 rounded-lg`}
                 >
                     <Text style={tailwind`text-white font-semibold`}>Go Back</Text>
                 </Pressable>
@@ -514,13 +514,13 @@ function Message({ route }) {
 
 
   return (
-    <View style={tailwind`flex-1 bg-white`}>
+    <View style={{flex: 1, backgroundColor: '#0f172a'}}>
       {/* Global Error Banner */}
       {error?.global && (
-        <View style={tailwind`bg-red-50 border-b border-red-200 p-3`}>
+        <View style={[tailwind`p-3`, {backgroundColor: '#1e293b', borderBottomWidth: 1, borderColor: '#334155'}]}>
           <View style={tailwind`flex-row items-center`}>
-            <MaterialIcons name="error-outline" size={18} color="#ef4444" />
-            <Text style={tailwind`text-sm text-red-800 ml-2 flex-1`}>
+            <MaterialIcons name="error-outline" size={18} color="#f87171" />
+            <Text style={{color: '#f87171', fontSize: 14, marginLeft: 8, flex: 1}}>
               {error.global}
             </Text>
           </View>
@@ -529,7 +529,7 @@ function Message({ route }) {
 
       <ScrollView
         ref={scrollViewRef}
-        style={tailwind`flex-1 bg-white`}
+        style={{flex: 1, backgroundColor: '#0f172a'}}
         contentContainerStyle={tailwind`py-4 gap-1`}
         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
       >
@@ -537,25 +537,25 @@ function Message({ route }) {
             receivedMessage.map((item, index) => renderMessage(item, index))
         ) : (
             <View style={tailwind`flex-1 justify-center items-center py-20`}>
-                <MaterialIcons name="chat-bubble-outline" size={64} color="#d1d5db" />
-                <Text style={tailwind`mt-4 text-gray-500 text-center`}>
+                <MaterialIcons name="chat-bubble-outline" size={64} color="#334155" />
+                <Text style={{color: '#94a3b8', marginTop: 16, textAlign: 'center'}}>
                     No messages yet.{'\n'}Start the conversation!
                 </Text>
             </View>
         )}
       </ScrollView>
-      <View style={[tailwind`bg-white px-4 py-3 border-t border-gray-100`, { paddingBottom: Platform.OS === 'ios' ? 34 : 16 }]}>
+      <View style={[{backgroundColor: '#1e293b', paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderColor: '#334155'}, { paddingBottom: Platform.OS === 'ios' ? 34 : 16 }]}>
           {/* Media Preview */}
           {uploadImage && mediaURL && (
-              <View style={tailwind`mb-2 flex-row items-center bg-gray-50 p-2 rounded-lg`}>
+              <View style={[tailwind`mb-2 flex-row items-center p-2 rounded-lg`, {backgroundColor: '#0f172a'}]}>
                   {mediaType === 'image' ? (
                       <Image source={{uri: mediaURL}} style={tailwind`w-16 h-16 rounded-lg`} />
                   ) : (
-                      <View style={tailwind`w-16 h-16 bg-gray-300 rounded-lg items-center justify-center`}>
-                          <AntDesign name="playcircleo" size={24} color="#6b7280" />
+                      <View style={[tailwind`w-16 h-16 rounded-lg items-center justify-center`, {backgroundColor: '#334155'}]}>
+                          <AntDesign name="playcircleo" size={24} color="#94a3b8" />
                       </View>
                   )}
-                  <Text style={tailwind`flex-1 ml-3 text-sm text-gray-700`}>
+                  <Text style={{flex: 1, marginLeft: 12, fontSize: 14, color: '#cbd5e1'}}>
                       {mediaType === 'image' ? 'Image attached' : 'Video attached'}
                   </Text>
                   <Pressable
@@ -581,7 +581,7 @@ function Message({ route }) {
               <MaterialIcons
                 name="emoji-emotions"
                 size={24}
-                color={showEmojiSelect ? "#ef4444" : "#6b7280"}
+                color={showEmojiSelect ? "#f87171" : "#64748b"}
               />
             </Pressable>
 
@@ -589,8 +589,8 @@ function Message({ route }) {
             <View style={tailwind`flex-1 mr-2`}>
               <TextInput
                 style={[
-                  tailwind`bg-gray-100 rounded-2xl px-4 py-3 text-base text-gray-800`,
-                  { minHeight: 44, maxHeight: 120 }
+                  tailwind`rounded-2xl px-4 py-3 text-base`,
+                  { minHeight: 44, maxHeight: 120, backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1 }
                 ]}
                 multiline
                 value={newMessageContent}
@@ -609,7 +609,7 @@ function Message({ route }) {
                 disabled={sendingMessage}
                 style={[
                     tailwind`rounded-full p-3 shadow-sm`,
-                    sendingMessage ? tailwind`bg-gray-400` : tailwind`bg-blue-500`
+                    sendingMessage ? {backgroundColor: '#475569'} : tailwind`bg-red-400`
                 ]}
               >
                 {sendingMessage ? (
@@ -625,7 +625,7 @@ function Message({ route }) {
                   style={tailwind`p-3 mr-1`}
                   disabled={sendingMessage}
                 >
-                  <AntDesign name="camera" size={22} color="#6b7280" />
+                  <AntDesign name="camera" size={22} color="#64748b" />
                 </Pressable>
               </View>
             )}

@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents, setMatchSubStatus } from '../redux/actions/actions';
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
+import LinearGradient from 'react-native-linear-gradient';
 import { validateMatchStatus, validateMatchSubStatus, validateMatchForm } from '../utils/validation/matchValidation';
 import Animated, { 
     Extrapolation, 
@@ -69,7 +70,7 @@ const FootballMatchPage = ({ route }) => {
     const parentScrollY = useSharedValue(0);
     
     // Animation constants
-    const bgColor = '#ffffff';   // white
+    const bgColor = '#0f172a';   // dark navy
     const bgColor2 = '#f87171';  // red-400
     const headerHeight = 200;
     const collapsedHeader = 60;
@@ -394,9 +395,9 @@ const FootballMatchPage = ({ route }) => {
 
     if (loading && !match) {
         return (
-            <View style={tailwind`flex-1 justify-center items-center bg-white`}>
-                <ActivityIndicator size="large" color="#ef4444" />
-                <Text style={tailwind`mt-2 text-gray-600`}>Loading match data...</Text>
+            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={[tailwind`mt-2`, {color: '#94a3b8'}]}>Loading match data...</Text>
             </View>
         );
     }
@@ -439,7 +440,7 @@ const FootballMatchPage = ({ route }) => {
     }, [handleWebSocketMessage, subscribe])
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
+        <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
             {/* Animated Header */}
             <Animated.View
                 style={[
@@ -450,9 +451,16 @@ const FootballMatchPage = ({ route }) => {
                         left: 0, 
                         right: 0, 
                         zIndex: 10,
+                        backgroundColor: '#0f172a'
                     },
                 ]}
             >
+                <LinearGradient
+                    colors={['#1e3a5f', '#1e293b']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                />
                 {/* Header Controls */}
                 <View style={tailwind`flex-row justify-between items-center px-4 py-3 mt-1`}>
                     <Pressable onPress={() => navigation.goBack()}>
@@ -481,8 +489,8 @@ const FootballMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-red-200 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-lg font-bold`}>
+                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
                                     {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
                                 </Text>
                             </View>
@@ -532,8 +540,8 @@ const FootballMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-red-200 items-center justify-center`}>
-                                <Text style={tailwind`text-white text-lg font-bold`}>
+                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
                                     {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'A'}
                                 </Text>
                             </View>
@@ -549,23 +557,26 @@ const FootballMatchPage = ({ route }) => {
             <Animated.View style={[contentContainerStyle]}>
                 <TopTab.Navigator
                     screenOptions={{
-                        tabBarStyle: { 
-                            backgroundColor: '#f87171',
-                            elevation: 4,
-                            shadowOpacity: 0.1,
-                            zIndex:20, // used this more then top tab because not having proper touch
+                        tabBarStyle: {
+                            backgroundColor: '#1e293b',
+                            elevation: 0,
+                            shadowOpacity: 0,
+                            borderBottomWidth: 1,
+                            borderBottomColor: '#334155',
+                            zIndex:20,
                         },
                         tabBarLabelStyle: {
                             fontSize: 14,
                             fontWeight: '600',
                             textTransform: 'none',
-                            color: 'white',
                         },
                         tabBarIndicatorStyle: {
-                            backgroundColor: '#fff',
+                            backgroundColor: '#f87171',
+                            height: 3,
+                            borderRadius: 2,
                         },
-                        tabBarActiveTintColor: '#fff',
-                        tabBarInactiveTintColor: '#ffe4e6',
+                        tabBarActiveTintColor: '#f1f5f9',
+                        tabBarInactiveTintColor: '#64748b',
                     }}
                 >
                     <TopTab.Screen name="Details">
@@ -630,30 +641,30 @@ const FootballMatchPage = ({ route }) => {
                         />
 
                         {/* Modal Content - won't close on tap */}
-                        <View style={tailwind`bg-white rounded-t-2xl max-h-[75%]`}>
+                        <View style={[tailwind`rounded-t-2xl max-h-[75%]`, { backgroundColor: '#1e293b' }]}>
                             {/* Drag Handle */}
-                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mt-2 mb-3`} />
+                            <View style={[tailwind`w-12 h-1.5 rounded-full self-center mt-2 mb-3`, { backgroundColor: '#475569' }]} />
 
                             {/* Header */}
-                            <View style={tailwind`px-5 pb-4 border-b border-gray-100`}>
-                                <Text style={tailwind`text-xl font-bold text-gray-900`}>Update Match Status</Text>
-                                <Text style={tailwind`text-sm text-gray-600 mt-1`}>Select the current match status</Text>
+                            <View style={[tailwind`px-5 pb-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Update Match Status</Text>
+                                <Text style={[tailwind`text-sm mt-1`, { color: '#64748b' }]}>Select the current match status</Text>
                             </View>
 
                             {/* Search Bar */}
                             <View style={tailwind`px-5 py-4`}>
-                                <View style={tailwind`flex-row items-center bg-gray-100 rounded-lg px-4 py-3`}>
-                                    <MaterialIcon name="search" size={20} color="#9CA3AF" />
+                                <View style={[tailwind`flex-row items-center rounded-lg px-4 py-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
+                                    <MaterialIcon name="search" size={20} color="#64748b" />
                                     <TextInput
-                                        style={tailwind`flex-1 ml-2 text-base text-gray-900`}
+                                        style={[tailwind`flex-1 ml-2 text-base`, { color: '#f1f5f9' }]}
                                         placeholder="Search status..."
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor="#475569"
                                         value={searchQuery}
                                         onChangeText={handleSearch}
                                     />
                                     {searchQuery.length > 0 && (
                                         <Pressable onPress={() => setSearchQuery('')}>
-                                            <MaterialIcon name="close" size={20} color="#9CA3AF" />
+                                            <MaterialIcon name="close" size={20} color="#64748b" />
                                         </Pressable>
                                     )}
                                 </View>
@@ -661,10 +672,10 @@ const FootballMatchPage = ({ route }) => {
 
                             {/* Global Error Display */}
                             {error?.global && (
-                                <View style={tailwind`mx-5 mb-3 bg-red-50 border border-red-200 rounded-lg p-3`}>
+                                <View style={[tailwind`mx-5 mb-3 rounded-lg p-3`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                                     <View style={tailwind`flex-row items-center`}>
-                                        <MaterialIcon name="error-outline" size={18} color="#ef4444" />
-                                        <Text style={tailwind`text-sm font-semibold text-red-800 ml-2 flex-1`}>
+                                        <MaterialIcon name="error-outline" size={18} color="#fca5a5" />
+                                        <Text style={[tailwind`text-sm font-semibold ml-2 flex-1`, { color: '#fca5a5' }]}>
                                             {error.global}
                                         </Text>
                                     </View>
@@ -678,16 +689,16 @@ const FootballMatchPage = ({ route }) => {
                                         <Pressable
                                             key={index}
                                             onPress={() => {setStatusCode(item.type); handleUpdateStatus(item);}}
-                                            style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                            style={[tailwind`px-5 py-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                         >
                                             <View style={tailwind`flex-row items-center justify-between`}>
                                                 <View style={tailwind`flex-row items-center flex-1`}>
-                                                    <View style={tailwind`w-10 h-10 bg-blue-100 rounded-full items-center justify-center`}>
-                                                        <MaterialIcon name="sports-soccer" size={20} color="#2563eb" />
+                                                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center`, { backgroundColor: '#3b82f620' }]}>
+                                                        <MaterialIcon name="sports-soccer" size={20} color="#60a5fa" />
                                                     </View>
                                                     <View style={tailwind`ml-3 flex-1`}>
-                                                        <Text style={tailwind`text-base font-semibold text-gray-900`}>{item.label}</Text>
-                                                        <Text style={tailwind`text-xs text-gray-500 mt-0.5`}>
+                                                        <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>{item.label}</Text>
+                                                        <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
                                                             {item.type}
                                                         </Text>
                                                     </View>
@@ -700,8 +711,8 @@ const FootballMatchPage = ({ route }) => {
                                     ))
                                 ) : (
                                     <View style={tailwind`py-12 items-center`}>
-                                        <MaterialIcon name="search-off" size={48} color="#d1d5db" />
-                                        <Text style={tailwind`text-gray-500 mt-3`}>No status found</Text>
+                                        <MaterialIcon name="search-off" size={48} color="#475569" />
+                                        <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>No status found</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -726,30 +737,30 @@ const FootballMatchPage = ({ route }) => {
                         />
 
                         {/* Modal Content - won't close on tap */}
-                        <View style={tailwind`bg-white rounded-t-2xl max-h-[75%]`}>
+                        <View style={[tailwind`rounded-t-2xl max-h-[75%]`, { backgroundColor: '#1e293b' }]}>
                             {/* Drag Handle */}
-                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mt-2 mb-3`} />
+                            <View style={[tailwind`w-12 h-1.5 rounded-full self-center mt-2 mb-3`, { backgroundColor: '#475569' }]} />
 
                             {/* Header */}
-                            <View style={tailwind`px-5 pb-4 border-b border-gray-100`}>
-                                <Text style={tailwind`text-xl font-bold text-gray-900`}>Update Sub Status</Text>
-                                <Text style={tailwind`text-sm text-gray-600 mt-1`}>Select the detailed match sub-status</Text>
+                            <View style={[tailwind`px-5 pb-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Update Sub Status</Text>
+                                <Text style={[tailwind`text-sm mt-1`, { color: '#64748b' }]}>Select the detailed match sub-status</Text>
                             </View>
 
                             {/* Search Bar */}
                             <View style={tailwind`px-5 py-4`}>
-                                <View style={tailwind`flex-row items-center bg-gray-100 rounded-lg px-4 py-3`}>
-                                    <MaterialIcon name="search" size={20} color="#9CA3AF" />
+                                <View style={[tailwind`flex-row items-center rounded-lg px-4 py-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
+                                    <MaterialIcon name="search" size={20} color="#64748b" />
                                     <TextInput
-                                        style={tailwind`flex-1 ml-2 text-base text-gray-900`}
+                                        style={[tailwind`flex-1 ml-2 text-base`, { color: '#f1f5f9' }]}
                                         placeholder="Search sub status..."
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor="#475569"
                                         value={searchQuery}
                                         onChangeText={handleSearch}
                                     />
                                     {searchQuery.length > 0 && (
                                         <Pressable onPress={() => setSearchQuery('')}>
-                                            <MaterialIcon name="close" size={20} color="#9CA3AF" />
+                                            <MaterialIcon name="close" size={20} color="#64748b" />
                                         </Pressable>
                                     )}
                                 </View>
@@ -757,10 +768,10 @@ const FootballMatchPage = ({ route }) => {
 
                             {/* Global Error Display */}
                             {error?.global && (
-                                <View style={tailwind`mx-5 mb-3 bg-red-50 border border-red-200 rounded-lg p-3`}>
+                                <View style={[tailwind`mx-5 mb-3 rounded-lg p-3`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                                     <View style={tailwind`flex-row items-center`}>
-                                        <MaterialIcon name="error-outline" size={18} color="#ef4444" />
-                                        <Text style={tailwind`text-sm font-semibold text-red-800 ml-2 flex-1`}>
+                                        <MaterialIcon name="error-outline" size={18} color="#fca5a5" />
+                                        <Text style={[tailwind`text-sm font-semibold ml-2 flex-1`, { color: '#fca5a5' }]}>
                                             {error.global}
                                         </Text>
                                     </View>
@@ -774,16 +785,16 @@ const FootballMatchPage = ({ route }) => {
                                         <Pressable
                                             key={index}
                                             onPress={() => {setSubStatus(item.type); handleUpdateSubStatus(item)}}
-                                            style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                            style={[tailwind`px-5 py-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                         >
                                             <View style={tailwind`flex-row items-center justify-between`}>
                                                 <View style={tailwind`flex-row items-center flex-1`}>
-                                                    <View style={tailwind`w-10 h-10 bg-green-100 rounded-full items-center justify-center`}>
-                                                        <MaterialIcon name="timer" size={20} color="#16a34a" />
+                                                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center`, { backgroundColor: '#10b98120' }]}>
+                                                        <MaterialIcon name="timer" size={20} color="#4ade80" />
                                                     </View>
                                                     <View style={tailwind`ml-3 flex-1`}>
-                                                        <Text style={tailwind`text-base font-semibold text-gray-900`}>{item.label}</Text>
-                                                        <Text style={tailwind`text-xs text-gray-500 mt-0.5`}>
+                                                        <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>{item.label}</Text>
+                                                        <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
                                                             {item.type}
                                                         </Text>
                                                     </View>
@@ -796,8 +807,8 @@ const FootballMatchPage = ({ route }) => {
                                     ))
                                 ) : (
                                     <View style={tailwind`py-12 items-center`}>
-                                        <MaterialIcon name="search-off" size={48} color="#d1d5db" />
-                                        <Text style={tailwind`text-gray-500 mt-3`}>No sub status found</Text>
+                                        <MaterialIcon name="search-off" size={48} color="#475569" />
+                                        <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>No sub status found</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -816,53 +827,53 @@ const FootballMatchPage = ({ route }) => {
                 >
                     <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1 bg-black/30`}>
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={tailwind`mt-16 mr-4 bg-white rounded-xl shadow-2xl overflow-hidden w-56`}>
+                            <View style={[tailwind`mt-16 mr-4 rounded-xl overflow-hidden w-56`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                                 <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         setStatusVisible(true);
                                     }}
-                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                 >
-                                    <View style={tailwind`w-9 h-9 bg-blue-100 rounded-lg items-center justify-center mr-3`}>
-                                        <MaterialIcon name="edit" size={18} color="#2563eb" />
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#3b82f620' }]}>
+                                        <MaterialIcon name="edit" size={18} color="#60a5fa" />
                                     </View>
-                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Edit Main Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         setSubStatusVisible(true);
                                     }}
-                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                 >
-                                    <View style={tailwind`w-9 h-9 bg-green-100 rounded-lg items-center justify-center mr-3`}>
-                                        <MaterialIcon name="update" size={18} color="#16a34a" />
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#10b98120' }]}>
+                                        <MaterialIcon name="update" size={18} color="#4ade80" />
                                     </View>
-                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Edit Sub Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Sub Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                     }}
-                                    style={tailwind`px-4 py-4 flex-row items-center border-b border-gray-100 active:bg-gray-50`}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                 >
-                                    <View style={tailwind`w-9 h-9 bg-purple-100 rounded-lg items-center justify-center mr-3`}>
-                                        <MaterialIcon name="share" size={18} color="#9333ea" />
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#9333ea20' }]}>
+                                        <MaterialIcon name="share" size={18} color="#c084fc" />
                                     </View>
-                                    <Text style={tailwind`text-base font-medium text-gray-900`}>Share</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Share</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         // Handle delete
                                     }}
-                                    style={tailwind`px-4 py-4 flex-row items-center active:bg-red-50`}
+                                    style={tailwind`px-4 py-4 flex-row items-center`}
                                 >
-                                    <View style={tailwind`w-9 h-9 bg-red-100 rounded-lg items-center justify-center mr-3`}>
-                                        <MaterialIcon name="delete" size={18} color="#dc2626" />
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#ef444420' }]}>
+                                        <MaterialIcon name="delete" size={18} color="#f87171" />
                                     </View>
-                                    <Text style={tailwind`text-base font-medium text-red-600`}>Delete Match</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f87171' }]}>Delete Match</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -873,9 +884,9 @@ const FootballMatchPage = ({ route }) => {
             {/* Loading Overlay */}
             {loading && (
                 <View style={tailwind`absolute inset-0 bg-black bg-opacity-30 justify-center items-center z-50`}>
-                    <View style={tailwind`bg-white rounded-lg p-6 items-center`}>
-                        <ActivityIndicator size="large" color="#ef4444" />
-                        <Text style={tailwind`mt-2 text-gray-600`}>Updating...</Text>
+                    <View style={[tailwind`rounded-lg p-6 items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                        <ActivityIndicator size="large" color="#f87171" />
+                        <Text style={[tailwind`mt-2`, { color: '#94a3b8' }]}>Updating...</Text>
                     </View>
                 </View>
             )}

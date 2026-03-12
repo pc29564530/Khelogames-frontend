@@ -16,46 +16,46 @@ import { useWebSocket } from '../context/WebSocketContext';
 // change the code so that when no incident is done it does not show the header
 
 const PERIOD_ORDER = [
-    "penalty_shootout", 
+    "penalty_shootout",
     "extra_half_time",
     "full_time",
     "second_half",
     "half_time",
     "first_half"
 ];
-   
+
 const PERIOD_LABELS = {
-first_half: { label: "FIRST HALF", style: "bg-green-100 text-green-800" },
-half_time: { label: "HALF TIME", style: "bg-gray-100 text-gray-800" },
-second_half: { label: "SECOND HALF", style: "bg-blue-100 text-blue-800" },
-extra_half_time: { label: "EXTRA TIME", style: "bg-orange-100 text-orange-800" },
-penalty_shootout: { label: "PENALTY SHOOTOUT", style: "bg-yellow-100 text-yellow-800" },
-full_time: { label: "FULL TIME", style: "bg-red-100 text-red-800" },
+    first_half: { label: "FIRST HALF", bg: '#10b98120', text: '#4ade80' },
+    half_time: { label: "HALF TIME", bg: '#33415540', text: '#94a3b8' },
+    second_half: { label: "SECOND HALF", bg: '#3b82f620', text: '#60a5fa' },
+    extra_half_time: { label: "EXTRA TIME", bg: '#f59e0b20', text: '#fbbf24' },
+    penalty_shootout: { label: "PENALTY SHOOTOUT", bg: '#eab30820', text: '#fbbf24' },
+    full_time: { label: "FULL TIME", bg: '#f8717120', text: '#f87171' },
 };
 
 const PenaltyShootOutIncident = ({key, item, match}) => {
     return(
-        <View key={key} style={tailwind`p-2 bg-white`}>
+        <View key={key} style={[tailwind`p-2`, { backgroundColor: '#1e293b' }]}>
             {item.team_id === match.homeTeam.id ? (
                     <View style={tailwind`flex-row justify-start gap-2 items-center`}>
                         <Text style={tailwind`text-md`}>{item.penalty_shootout_scored ? '⚽' : '🚫'}</Text>
-                        <Text style={tailwind`h-10 w-0.2 bg-gray-400`} />
-                        <Text style={tailwind`text-md`}>{item.player.name}</Text>
-                        <View style={tailwind`rounded-lg bg-gray-200 p-1`}>
-                            <Text style={tailwind`text-lg font-bold`}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
+                        <View style={[tailwind`h-10`, { width: 1, backgroundColor: '#475569' }]} />
+                        <Text style={[tailwind`text-md`, { color: '#f1f5f9' }]}>{item.player.name}</Text>
+                        <View style={[tailwind`rounded-lg p-1`, { backgroundColor: '#0f172a' }]}>
+                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
                         </View>
                     </View>
             ) : (
                     <View style={tailwind`flex-row justify-end gap-2 ml-40 items-center`}>
-                        <View style={tailwind`rounded-lg bg-gray-200 p-1`}>
-                            <Text style={tailwind`text-lg font-bold`}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
+                        <View style={[tailwind`rounded-lg p-1`, { backgroundColor: '#0f172a' }]}>
+                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
                         </View>
-                        <Text style={tailwind`text-md`}>{item.player.name}</Text>
-                        <Text style={tailwind`h-10 w-0.2 bg-gray-400`} />
+                        <Text style={[tailwind`text-md`, { color: '#f1f5f9' }]}>{item.player.name}</Text>
+                        <View style={[tailwind`h-10`, { width: 1, backgroundColor: '#475569' }]} />
                         <Text style={tailwind`text-md`}>{item.penalty_shootout_scored ? '⚽' : '🚫'}</Text>
                     </View>
             )}
-            
+
         </View>
     );
 }
@@ -78,7 +78,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
         fields: {},
     });
     const {wsRef, subscribe} = useWebSocket()
-    
+
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
@@ -103,7 +103,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
             opacity
         };
     });
-    
+
     useEffect(() => {
         const fetchHSquad = async () => {
             try {
@@ -214,7 +214,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     //     setIncidents(dummyIncidents); // use dummy data
     //     setLoading(false);
     //   }, []);
-      
+
     const groupIncidents = useMemo(() => {
         if(!incidents){
             return [];
@@ -236,7 +236,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
           if (!groups[targetPeriod]) groups[targetPeriod] = [];
           groups[targetPeriod].push(inc);
         });
-    
+
         return PERIOD_ORDER.filter((p) => groups[p]).map((period) => ({
           type: "header",
           period,
@@ -254,7 +254,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                     console.error("Raw data is undefined");
                     return;
                 }
-        
+
                 try {
                     const message = JSON.parse(rawData);
                     console.log("WebSocket Message Received:", message);
@@ -262,7 +262,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                     switch(message.type) {
                         case "ADD_FOOTBALL_INCIDENT":
                             dispatch(addFootballIncidents(message.payload));
-                            
+
                         default:
                             console.log("Unhandled message type:", message.type);
                     }
@@ -274,21 +274,21 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
              useEffect(() => {
                 console.log("Football - Subscribing to WebSocket messages");
                 const unsubscribe = subscribe(handleWebSocketMessage);
-                return unsubscribe; 
+                return unsubscribe;
             }, [handleWebSocketMessage, subscribe])
 
 
 
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={[tailwind`flex-1`, { backgroundColor: '#0f172a' }]}>
             {groupIncidents.length === 0 ? (
-               <View style={tailwind`px-4 py-4 flex-1 bg-white`}>
+               <View style={[tailwind`px-4 py-4 flex-1`, { backgroundColor: '#0f172a' }]}>
                     {/* Add Incident Button */}
                     <Pressable
                         onPress={handleIncidentModal}
                         style={({ pressed }) => [
                         tailwind`rounded-xl p-4 flex-row items-center justify-center`,
-                        pressed ? tailwind`bg-red-600` : tailwind`bg-red-400`,
+                        { backgroundColor: pressed ? '#dc2626' : '#f87171' },
                         ]}
                     >
                         <MaterialIcons name="add" size={22} color="white" />
@@ -299,32 +299,33 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
 
                     {/* Empty State */}
                     <View style={tailwind`flex-1 justify-center items-center mt-10`}>
-                        <MaterialIcons name="sports-soccer" size={64} color="#d1d5db" />
-                        <Text style={tailwind`text-gray-400 text-lg font-medium mt-4`}>
+                        <MaterialIcons name="sports-soccer" size={64} color="#475569" />
+                        <Text style={[tailwind`text-lg font-medium mt-4`, { color: '#64748b' }]}>
                         No Incidents Yet
                         </Text>
-                        <Text style={tailwind`text-gray-400 text-sm mt-1 text-center px-10`}>
+                        <Text style={[tailwind`text-sm mt-1 text-center px-10`, { color: '#475569' }]}>
                         Tap the button above to add a new match incident.
                         </Text>
                     </View>
                 </View>
             ):(
-                <Animated.FlatList 
+                <Animated.FlatList
                     data = {groupIncidents}
                     keyExtractor={(item, index) => item.period + index}
                     renderItem={({item}) => {
+                        const periodConfig = PERIOD_LABELS[item.period];
                         if(item.period === "penalty_shootout"){
                             return (
                                 <Animated.View style={[tailwind`mb-4`, contentStyle]}>
                                 <View style={tailwind`items-center mb-4`}>
-                                    <View style={tailwind`bg-yellow-100 px-3 py-3 rounded-full`}>
-                                    <Text style={tailwind`text-yellow-800 font-bold text-md`}>
-                                        {PERIOD_LABELS[item.period].label}
+                                    <View style={[tailwind`px-3 py-3 rounded-full`, { backgroundColor: periodConfig.bg }]}>
+                                    <Text style={[tailwind`font-bold text-md`, { color: periodConfig.text }]}>
+                                        {periodConfig.label}
                                     </Text>
                                     </View>
                                 </View>
-                        
-                                <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
+
+                                <View style={[tailwind`rounded-xl overflow-hidden`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                                     {item.data.map((incident, index) => (
                                     <PenaltyShootOutIncident key={index} item={incident} match={match} />
                                     ))}
@@ -332,19 +333,19 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                                 </Animated.View>
                             );
                         }
-                                        
+
                         // Normal incidents (first_half, second_half, etc.)
                         return (
                                 <Animated.View style={[tailwind`mb-4`, contentStyle]}>
                                 <View style={tailwind`items-center mb-4`}>
-                                    <View style={tailwind`${PERIOD_LABELS[item.period].style} px-2 py-3 rounded-full`}>
-                                    <Text style={tailwind`font-bold text-md`}>
-                                        {PERIOD_LABELS[item.period].label}
+                                    <View style={[tailwind`px-3 py-3 rounded-full`, { backgroundColor: periodConfig.bg }]}>
+                                    <Text style={[tailwind`font-bold text-md`, { color: periodConfig.text }]}>
+                                        {periodConfig.label}
                                     </Text>
                                     </View>
                                 </View>
 
-                                <View style={tailwind`bg-white rounded-xl shadow-sm border border-gray-100 p-2`}>
+                                <View style={[tailwind`rounded-xl overflow-hidden`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
                                     {/* {console.log("Incident Map: ", item)} */}
                                     {item.data.map((incident, index) => (
                                     <IncidentCheck key={index} incident={incident} matchData={match} />
@@ -353,7 +354,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                                 </Animated.View>
                         );
                     }}
-                    style={tailwind`flex-1 bg-gray-50`}
+                    style={[tailwind`flex-1`, { backgroundColor: '#0f172a' }]}
                     onScroll={handlerScroll}
                     scrollEventThrottle={16}
                     nestedScrollEnabled={true}
@@ -368,7 +369,7 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                             onPress={() => setIncidentModalVisible(true)}
                             style={({ pressed }) => [
                                 tailwind`rounded-xl p-3.5 flex-row items-center justify-center mb-4`,
-                                pressed ? tailwind`bg-red-600` : tailwind`bg-red-500`,
+                                { backgroundColor: pressed ? '#dc2626' : '#f87171' },
                             ]}
                         >
                             <MaterialIcons name="add" size={22} color="white" />
@@ -386,12 +387,12 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                     visible={incidentModalVisible}
                     onRequestClose={() => setIncidentModalVisible(false)}
                 >
-                    <View style={tailwind`flex-1 bg-black bg-opacity-50 justify-end`}>
+                    <View style={tailwind`flex-1 bg-black/50 justify-end`}>
                     <Pressable
                         style={tailwind`flex-1`}
                         onPress={() => setIncidentModalVisible(false)}
                     />
-                    <View style={tailwind`bg-white rounded-t-2xl p-8 max-h-[80%]`}>
+                    <View style={[tailwind`rounded-t-2xl p-8 max-h-[80%]`, { backgroundColor: '#1e293b' }]}>
                             <AddFootballModalIncident
                                 tournament={tournament}
                                 match={match}

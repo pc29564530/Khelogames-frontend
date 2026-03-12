@@ -19,17 +19,17 @@ const PeriodIncidentForm = ({
     // Props validation
     if (!match) {
         return (
-            <View style={tailwind`flex-1 items-center justify-center p-6`}>
+            <View style={[tailwind`flex-1 items-center justify-center p-6`, {backgroundColor: '#0f172a'}]}>
                 <MaterialIcons name="error-outline" size={64} color="#ef4444" />
-                <Text style={tailwind`text-red-600 text-lg font-semibold mt-4 text-center`}>
+                <Text style={[tailwind`text-lg font-semibold mt-4 text-center`, {color: '#fca5a5'}]}>
                     Invalid match data
                 </Text>
-                <Text style={tailwind`text-gray-600 text-center mt-2`}>
+                <Text style={[tailwind`text-center mt-2`, {color: '#94a3b8'}]}>
                     Required information is missing. Please go back and try again.
                 </Text>
                 <Pressable
                     onPress={() => navigation?.goBack()}
-                    style={tailwind`mt-6 bg-red-400 px-6 py-3 rounded-xl`}
+                    style={[tailwind`mt-6 px-6 py-3 rounded-xl`, {backgroundColor: '#f87171'}]}
                 >
                     <Text style={tailwind`text-white font-semibold`}>Go Back</Text>
                 </Pressable>
@@ -176,7 +176,7 @@ const PeriodIncidentForm = ({
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={tailwind`flex-1 w-full`}
+            style={[tailwind`flex-1 w-full`, {backgroundColor: '#020617'}]}
         >
             <ScrollView
                 contentContainerStyle={tailwind`p-4`}
@@ -184,11 +184,11 @@ const PeriodIncidentForm = ({
             >
                 {/* Global Error Banner */}
                 {error?.global && (
-                    <View style={tailwind`mb-4 bg-red-50 border border-red-200 rounded-xl p-4`}>
+                    <View style={[tailwind`mb-4 rounded-xl p-4`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
                         <View style={tailwind`flex-row items-start`}>
-                            <MaterialIcons name="error-outline" size={20} color="#DC2626" />
+                            <MaterialIcons name="error-outline" size={20} color="#f87171" />
                             <View style={tailwind`flex-1 ml-2`}>
-                                <Text style={tailwind`text-red-700 font-semibold text-sm`}>
+                                <Text style={[tailwind`font-semibold text-sm`, {color: '#fca5a5'}]}>
                                     {error.global}
                                 </Text>
                             </View>
@@ -196,7 +196,7 @@ const PeriodIncidentForm = ({
                                 onPress={() => setError({ global: null, fields: {} })}
                                 style={tailwind`ml-2`}
                             >
-                                <MaterialIcons name="close" size={18} color="#DC2626" />
+                                <MaterialIcons name="close" size={18} color="#f87171" />
                             </Pressable>
                         </View>
                     </View>
@@ -204,24 +204,25 @@ const PeriodIncidentForm = ({
 
                 {/* Select Period */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>Select Period</Text>
+                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: '#f1f5f9'}]}>Select Period</Text>
                     <View style={tailwind`flex-row flex-wrap gap-3`}>
                         {periodsData.map((item, index) => (
-                            <Pressable 
+                            <Pressable
                                 key={index}
                                 style={[
-                                    tailwind`px-4 py-3 rounded-xl border shadow-sm`,
-                                    selectedHalf === item.slug 
-                                        ? tailwind`bg-red-400 border-red-500` 
-                                        : tailwind`bg-gray-100 border-gray-300`
-                                ]} 
+                                    tailwind`px-4 py-3 rounded-xl`,
+                                    {borderWidth: 1, borderColor: '#334155'},
+                                    selectedHalf === item.slug
+                                        ? {backgroundColor: '#f87171', borderColor: '#f87171'}
+                                        : {backgroundColor: '#0f172a'}
+                                ]}
                                 onPress={() => setSelectedHalf(item.slug)}
                             >
                                 <Text style={[
-                                    tailwind`font-semibold`, 
-                                    selectedHalf === item.slug 
-                                        ? tailwind`text-white` 
-                                        : tailwind`text-gray-800`
+                                    tailwind`font-semibold`,
+                                    selectedHalf === item.slug
+                                        ? tailwind`text-white`
+                                        : {color: '#94a3b8'}
                                 ]}>
                                     {item.name}
                                 </Text>
@@ -232,24 +233,25 @@ const PeriodIncidentForm = ({
 
                 {/* Minute Input */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-lg font-semibold mb-3 text-gray-700`}>
+                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: '#f1f5f9'}]}>
                         Incident Time (Minute)
                     </Text>
                     <TextInput
-                        style={tailwind`border border-gray-300 p-4 bg-white rounded-xl shadow-sm text-lg`}
+                        style={[tailwind`p-4 rounded-xl text-lg`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155', color: '#f1f5f9'}]}
                         keyboardType="number-pad"
                         value={selectedMinute}
                         placeholder="Enter minute"
+                        placeholderTextColor="#64748b"
                         onChangeText={(text) => setSelectedMinute(text)}
-                        maxLength={3} 
+                        maxLength={3}
                     />
                 </View>
 
                 {/* Confirm Button */}
                 <Pressable
                     style={[
-                        tailwind`p-4 rounded-xl shadow-lg flex-row items-center justify-center`,
-                        loading || !selectedMinute ? tailwind`bg-gray-300` : tailwind`bg-red-400`
+                        tailwind`p-4 rounded-xl flex-row items-center justify-center`,
+                        loading || !selectedMinute ? {backgroundColor: '#334155'} : {backgroundColor: '#f87171'}
                     ]}
                     onPress={handleAddIncident}
                     disabled={loading || !selectedMinute}
@@ -273,12 +275,12 @@ const PeriodIncidentForm = ({
 
                 {/* Summary Card */}
                 {selectedHalf && selectedMinute && (
-                    <View style={tailwind`mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200`}>
-                        <Text style={tailwind`text-blue-900 font-semibold mb-2`}>Summary:</Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                    <View style={[tailwind`mt-4 p-4 rounded-xl`, {backgroundColor: '#3b82f615', borderWidth: 1, borderColor: '#3b82f630'}]}>
+                        <Text style={[tailwind`font-semibold mb-2`, {color: '#93c5fd'}]}>Summary:</Text>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Period: {formatPeriodName(selectedHalf)}
                         </Text>
-                        <Text style={tailwind`text-blue-800 text-sm`}>
+                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
                             Time: {selectedMinute}'
                         </Text>
                     </View>
@@ -288,30 +290,30 @@ const PeriodIncidentForm = ({
             {/* Confirmation Modal */}
             {showConfirmation && (
                 <View style={tailwind`absolute inset-0 bg-black bg-opacity-50 items-center justify-center`}>
-                    <View style={tailwind`bg-white rounded-2xl p-6 mx-6 w-80`}>
-                        <MaterialIcons name="access-time" size={48} color="#ef4444" style={tailwind`self-center mb-4`} />
-                        <Text style={tailwind`text-xl font-bold text-gray-800 text-center mb-2`}>
+                    <View style={[tailwind`rounded-2xl p-6 mx-6 w-80`, {backgroundColor: '#1e293b'}]}>
+                        <MaterialIcons name="access-time" size={48} color="#f87171" style={tailwind`self-center mb-4`} />
+                        <Text style={[tailwind`text-xl font-bold text-center mb-2`, {color: '#f1f5f9'}]}>
                             Confirm Period Change
                         </Text>
-                        <Text style={tailwind`text-gray-600 text-center mb-2 font-semibold`}>
+                        <Text style={[tailwind`text-center mb-2 font-semibold`, {color: '#e2e8f0'}]}>
                             {formatPeriodName(selectedHalf)}
                         </Text>
-                        <Text style={tailwind`text-gray-500 text-center text-sm mb-4`}>
+                        <Text style={[tailwind`text-center text-sm mb-4`, {color: '#94a3b8'}]}>
                             At {selectedMinute} minutes
                         </Text>
 
                         <View style={tailwind`flex-row gap-3`}>
                             <Pressable
                                 onPress={() => setShowConfirmation(false)}
-                                style={tailwind`flex-1 p-3 rounded-xl bg-gray-200`}
+                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#334155'}]}
                             >
-                                <Text style={tailwind`text-gray-800 font-semibold text-center`}>
+                                <Text style={[tailwind`font-semibold text-center`, {color: '#e2e8f0'}]}>
                                     Cancel
                                 </Text>
                             </Pressable>
                             <Pressable
                                 onPress={confirmAddIncident}
-                                style={tailwind`flex-1 p-3 rounded-xl bg-red-400`}
+                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#f87171'}]}
                             >
                                 <Text style={tailwind`text-white font-semibold text-center`}>
                                     Confirm

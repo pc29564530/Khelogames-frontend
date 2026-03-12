@@ -12,15 +12,15 @@ const CommentItem = memo(({item}) => {
     const avatarInitial = item?.profile?.full_name?.charAt(0)?.toUpperCase() || '?';
 
     return (
-        <View style={tailwind`px-4 py-3 border-b border-gray-50`}>
+        <View style={[tailwind`px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
             <View style={tailwind`flex-row`}>
                 {item.profile?.avatar_url ? (
                     <Image
-                        style={tailwind`w-10 h-10 rounded-full bg-gray-200`}
+                        style={[tailwind`w-10 h-10 rounded-full`, { backgroundColor: '#334155' }]}
                         source={{uri: item.profile.avatar_url}}
                     />
                 ) : (
-                    <View style={tailwind`w-10 h-10 rounded-full bg-red-400 items-center justify-center`}>
+                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center`, { backgroundColor: '#f87171' }]}>
                         <Text style={tailwind`text-white text-sm font-bold`}>
                             {avatarInitial}
                         </Text>
@@ -28,14 +28,14 @@ const CommentItem = memo(({item}) => {
                 )}
                 <View style={tailwind`ml-3 flex-1`}>
                     <View style={tailwind`flex-row items-center`}>
-                        <Text style={tailwind`text-gray-900 font-semibold text-sm`}>
+                        <Text style={{ color: '#f1f5f9', fontWeight: '600', fontSize: 13 }}>
                             {item?.profile?.full_name}
                         </Text>
-                        <Text style={tailwind`text-gray-500 text-xs ml-2`}>
+                        <Text style={{ color: '#64748b', fontSize: 12, marginLeft: 8 }}>
                             @{item?.profile?.username}
                         </Text>
                     </View>
-                    <Text style={tailwind`text-gray-700 text-sm mt-1.5 leading-5`}>
+                    <Text style={{ color: '#cbd5e1', fontSize: 13, marginTop: 6, lineHeight: 20 }}>
                         {item.comment_text}
                     </Text>
                 </View>
@@ -86,28 +86,28 @@ function Comment({thread}) {
 
     const ListEmptyComponent = useCallback(() => (
         <View style={tailwind`items-center justify-center py-12`}>
-            <View style={tailwind`w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3`}>
-                <MaterialIcons name="chat-bubble-outline" size={32} color="#9ca3af" />
+            <View style={[tailwind`w-16 h-16 rounded-full items-center justify-center mb-3`, { backgroundColor: '#334155' }]}>
+                <MaterialIcons name="chat-bubble-outline" size={32} color="#64748b" />
             </View>
-            <Text style={tailwind`text-gray-500 text-sm`}>No comments yet</Text>
-            <Text style={tailwind`text-gray-400 text-xs mt-1`}>Be the first to comment!</Text>
+            <Text style={{ color: '#64748b', fontSize: 13 }}>No comments yet</Text>
+            <Text style={{ color: '#475569', fontSize: 12, marginTop: 4 }}>Be the first to comment!</Text>
         </View>
     ), []);
 
     const LoadingComponent = useCallback(() => (
         <View style={tailwind`items-center justify-center py-12`}>
             <ActivityIndicator size="small" color="#f87171" />
-            <Text style={tailwind`text-gray-500 text-sm mt-3`}>Loading comments...</Text>
+            <Text style={{ color: '#64748b', fontSize: 13, marginTop: 12 }}>Loading comments...</Text>
         </View>
     ), []);
 
     return (
         <View>
             {error?.global && !isLoading && comments.length === 0 && (
-                <View style={tailwind`mx-4 my-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg`}>
+                <View style={[tailwind`mx-4 my-3 px-4 py-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                     <View style={tailwind`flex-row items-center`}>
-                        <MaterialIcons name="error-outline" size={18} color="#dc2626" />
-                        <Text style={tailwind`text-red-700 text-sm ml-2 flex-1`}>
+                        <MaterialIcons name="error-outline" size={18} color="#f87171" />
+                        <Text style={{ color: '#fca5a5', fontSize: 13, marginLeft: 8, flex: 1 }}>
                             {error?.global}
                         </Text>
                     </View>

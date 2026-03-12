@@ -188,11 +188,11 @@ function MessagePage() {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: '',
-            headerStyle: tailwind`bg-red-400`,
+            headerStyle: {backgroundColor: '#1e293b'},
             headerLeft: () => (
                 <View style={tailwind`flex-row items-center gap-35 p-2`}>
-                    <AntDesign name="arrowleft" onPress={() => navigation.goBack()} size={24} color="white" />
-                    <Text style={tailwind`text-white text-xl`}>Messages</Text>
+                    <AntDesign name="arrowleft" onPress={() => navigation.goBack()} size={24} color="#e2e8f0" />
+                    <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Messages</Text>
                 </View>
             ),
         });
@@ -205,53 +205,53 @@ function MessagePage() {
         !isSearching && !loading && previousContacts.length === 0 && communities.length === 0;
 
     return (
-        <ScrollView style={tailwind`bg-white flex-1`}>
+        <ScrollView style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
 
-            <View style={tailwind`bg-white p-4`}>
-                <View style={tailwind`flex-row items-center border border-gray-300 rounded-lg px-3 py-2`}>
-                    <AntDesign name="search1" size={18} color="#666" style={tailwind`mr-2`} />
+            <View style={[tailwind`p-4`, {backgroundColor: '#0f172a'}]}>
+                <View style={[tailwind`flex-row items-center rounded-lg px-3 py-2`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                    <AntDesign name="search1" size={18} color="#64748b" style={tailwind`mr-2`} />
                     <TextInput
                         value={searchUser}
                         onChangeText={handleSearch}
                         placeholder="Search users or communities"
-                        style={tailwind`flex-1 text-base`}
-                        placeholderTextColor="#999"
+                        style={[tailwind`flex-1 text-base`, {color: '#f1f5f9'}]}
+                        placeholderTextColor="#64748b"
                         autoCorrect={false}
                         autoCapitalize="none"
                     />
                     {searchLoading && (
-                        <ActivityIndicator size="small" color="#999" style={tailwind`mr-2`} />
+                        <ActivityIndicator size="small" color="#64748b" style={tailwind`mr-2`} />
                     )}
                     {searchUser.length > 0 && !searchLoading && (
                         <Pressable onPress={clearSearch}>
-                            <AntDesign name="close" size={18} color="#666" />
+                            <AntDesign name="close" size={18} color="#64748b" />
                         </Pressable>
                     )}
                 </View>
             </View>
 
-            <View style={tailwind`flex-1 bg-white px-4`}>
+            <View style={[tailwind`flex-1 px-4`, {backgroundColor: '#0f172a'}]}>
                 {loading && (
                     <View style={tailwind`items-center py-8`}>
                         <ActivityIndicator size="large" color="#f87171" />
                     </View>
                 )}
                 {error.global && !loading && (
-                    <View style={tailwind`mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                        <Text style={tailwind`text-red-700 text-sm`}>{error.global}</Text>
+                    <View style={[tailwind`mb-3 p-3 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
+                        <Text style={[tailwind`text-sm`, {color: '#fca5a5'}]}>{error.global}</Text>
                     </View>
                 )}
                 {showNoResults && (
                     <View style={tailwind`items-center py-8`}>
-                        <Text style={tailwind`text-lg text-gray-500`}>No results found</Text>
-                        <Text style={tailwind`text-sm text-gray-400 mt-1`}>Try a different name</Text>
+                        <Text style={[tailwind`text-lg`, {color: '#64748b'}]}>No results found</Text>
+                        <Text style={[tailwind`text-sm mt-1`, {color: '#475569'}]}>Try a different name</Text>
                     </View>
                 )}
                 {showEmptyState && (
                     <View style={tailwind`items-center py-12`}>
-                        <AntDesign name="message1" size={48} color="#d1d5db" />
-                        <Text style={tailwind`text-lg text-gray-400 mt-4`}>No messages yet</Text>
-                        <Text style={tailwind`text-sm text-gray-400 mt-1`}>
+                        <AntDesign name="message1" size={48} color="#475569" />
+                        <Text style={[tailwind`text-lg mt-4`, {color: '#64748b'}]}>No messages yet</Text>
+                        <Text style={[tailwind`text-sm mt-1`, {color: '#475569'}]}>
                             Search for a user above to start chatting
                         </Text>
                     </View>
@@ -260,28 +260,28 @@ function MessagePage() {
                 {filteredCommunities.length > 0 && (
                     <View style={tailwind`mb-4`}>
                         {isSearching && (
-                            <Text style={tailwind`text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide`}>
+                            <Text style={[tailwind`text-xs font-semibold mb-2 uppercase tracking-wide`, {color: '#64748b'}]}>
                                 Communities
                             </Text>
                         )}
                         {filteredCommunities.map((item, index) => (
                             <Pressable
                                 key={`community-${index}`}
-                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`}
+                                style={[tailwind`flex-row items-center py-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                 onPress={() => handleMessageCommunity(item)}
                             >
-                                <View style={tailwind`w-12 h-12 rounded-full bg-red-400 items-center justify-center mr-3`}>
+                                <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, {backgroundColor: '#f87171'}]}>
                                     <Text style={tailwind`text-white text-lg font-semibold`}>
                                         {getCommunityInitials(item)}
                                     </Text>
                                 </View>
                                 <View style={tailwind`flex-1`}>
-                                    <Text style={tailwind`text-black font-semibold text-base`}>{item.name}</Text>
-                                    <Text style={tailwind`text-gray-500 text-sm mt-0.5`} numberOfLines={1}>
+                                    <Text style={[tailwind`font-semibold text-base`, {color: '#f1f5f9'}]}>{item.name}</Text>
+                                    <Text style={[tailwind`text-sm mt-0.5`, {color: '#94a3b8'}]} numberOfLines={1}>
                                         {item.description || item.discription || ''}
                                     </Text>
                                 </View>
-                                <AntDesign name="right" size={14} color="#ccc" />
+                                <AntDesign name="right" size={14} color="#475569" />
                             </Pressable>
                         ))}
                     </View>
@@ -290,14 +290,14 @@ function MessagePage() {
                 {filteredUsers.length > 0 && (
                     <View>
                         {isSearching && filteredCommunities.length > 0 && (
-                            <Text style={tailwind`text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide`}>
+                            <Text style={[tailwind`text-xs font-semibold mb-2 uppercase tracking-wide`, {color: '#64748b'}]}>
                                 People
                             </Text>
                         )}
                         {filteredUsers.map((item, i) => (
                             <Pressable
                                 key={`user-${i}`}
-                                style={tailwind`flex-row items-center py-3 border-b border-gray-100`}
+                                style={[tailwind`flex-row items-center py-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                 onPress={() => handleMessage(item)}
                             >
                                 {item?.avatar_url ? (
@@ -306,21 +306,21 @@ function MessagePage() {
                                         source={{ uri: item.avatar_url }}
                                     />
                                 ) : (
-                                    <View style={tailwind`w-12 h-12 rounded-full bg-gray-200 items-center justify-center mr-3`}>
-                                        <Text style={tailwind`text-gray-600 text-lg font-semibold`}>
+                                    <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, {backgroundColor: '#334155'}]}>
+                                        <Text style={[tailwind`text-lg font-semibold`, {color: '#94a3b8'}]}>
                                             {getUserInitials(item)}
                                         </Text>
                                     </View>
                                 )}
                                 <View style={tailwind`flex-1`}>
-                                    <Text style={tailwind`text-black font-semibold text-base`}>
+                                    <Text style={[tailwind`font-semibold text-base`, {color: '#f1f5f9'}]}>
                                         {item?.full_name || item?.name || 'Unknown'}
                                     </Text>
-                                    <Text style={tailwind`text-gray-500 text-sm mt-0.5`}>
+                                    <Text style={[tailwind`text-sm mt-0.5`, {color: '#94a3b8'}]}>
                                         @{item?.username || 'unknown'}
                                     </Text>
                                 </View>
-                                <AntDesign name="right" size={14} color="#ccc" />
+                                <AntDesign name="right" size={14} color="#475569" />
                             </Pressable>
                         ))}
                     </View>
