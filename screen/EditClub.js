@@ -114,25 +114,25 @@ const EditClub = ({ route }) => {
     };
 
     useLayoutEffect(() => {
-    navigation.setOptions({
-        headerTitle: () => (
-        <Text style={{ color: '#f1f5f9', fontSize: 16, fontWeight: '600' }}>
-            Edit Team
-        </Text>
-        ),
-        headerStyle: {
-        backgroundColor: '#1e293b',
-        elevation: 0,
-        shadowOpacity: 0,
-        },
-        headerTintColor: '#e2e8f0',
-        headerTitleAlign: 'center',
-        headerLeft: () => (
-        <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-            <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
-        </Pressable>
-        ),
-    });
+        navigation.setOptions({
+            headerTitle: () => (
+            <Text style={{ color: '#f1f5f9', fontSize: 16, fontWeight: '600' }}>
+                Edit Team
+            </Text>
+            ),
+            headerStyle: {
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
+            },
+            headerTintColor: '#e2e8f0',
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
+            </Pressable>
+            ),
+        });
     }, [navigation]);
 
     return (

@@ -6,10 +6,16 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { getCommunityMember } from '../services/communityServices';
 
-function CommunityMember({ item, parentScrollY, headerHeight, collapsedHeader }) {
+const DARK_BG = "#020617";
+const CARD_BG = "#0f172a";
+const BORDER = "#1e293b";
+
+function CommunityMember({ item, parentScrollY }) {
+
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState({ global: null, fields: {} });
+
     const navigation = useNavigation();
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -26,11 +32,18 @@ function CommunityMember({ item, parentScrollY, headerHeight, collapsedHeader })
         try {
             setLoading(true);
             setError({ global: null, fields: {} });
-            const response = await getCommunityMember({ communityPublicID: item?.public_id });
+
+            const response = await getCommunityMember({
+                communityPublicID: item?.public_id
+            });
+
             setMembers(response.data || []);
+
         } catch (err) {
+
             setError({ global: 'Unable to load members', fields: {} });
             console.error('unable to fetch community member list', err);
+
         } finally {
             setLoading(false);
         }
@@ -40,90 +53,145 @@ function CommunityMember({ item, parentScrollY, headerHeight, collapsedHeader })
         navigation.navigate('Profile', { profilePublicID: member?.public_id });
     };
 
-    // ── Loading state ──
+    /* Loading */
+
     if (loading) {
         return (
-            <View style={tailwind`flex-1 items-center justify-center`}>
+            <View style={[tailwind`flex-1 items-center justify-center`, { backgroundColor: DARK_BG }]}>
                 <ActivityIndicator size="large" color="#ef4444" />
             </View>
         );
     }
 
-    // ── Error state ──
+    /* Error */
+
     if (error.global) {
         return (
-            <View style={tailwind`flex-1 items-center justify-center px-6`}>
-                <View style={tailwind`w-14 h-14 rounded-full bg-red-50 items-center justify-center mb-3`}>
-                    <MaterialIcons name="error-outline" size={28} color="#ef4444" />
+            <View style={[tailwind`flex-1 items-center justify-center px-6`, { backgroundColor: DARK_BG }]}>
+
+                <View style={tailwind`w-14 h-14 rounded-full bg-red-900 items-center justify-center mb-3`}>
+                    <MaterialIcons name="error-outline" size={28} color="#f87171" />
                 </View>
-                <Text style={tailwind`text-gray-800 font-semibold text-sm mb-1`}>Something went wrong</Text>
-                <Text style={tailwind`text-gray-400 text-xs text-center mb-4`}>{error.global}</Text>
+
+                <Text style={tailwind`text-slate-200 font-semibold text-sm mb-1`}>
+                    Something went wrong
+                </Text>
+
+                <Text style={tailwind`text-slate-400 text-xs text-center mb-4`}>
+                    {error.global}
+                </Text>
+
                 <Pressable
                     onPress={fetchCommunityMember}
-                    style={tailwind`bg-red-400 px-5 py-2.5 rounded-xl`}
+                    style={tailwind`bg-red-500 px-5 py-2.5 rounded-xl`}
                 >
-                    <Text style={tailwind`text-white font-semibold text-sm`}>Retry</Text>
+                    <Text style={tailwind`text-white font-semibold text-sm`}>
+                        Retry
+                    </Text>
                 </Pressable>
+
             </View>
         );
     }
 
-    // ── Empty state ──
+    /* Empty */
+
     const ListEmpty = () => (
-        <View style={tailwind`flex-1 items-center justify-center px-6 mt-16`}>
-            <View style={tailwind`w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-3`}>
-                <MaterialIcons name="people-outline" size={32} color="#9ca3af" />
+        <View style={[tailwind`flex-1 items-center justify-center px-6 mt-16`, { backgroundColor: DARK_BG }]}>
+
+            <View style={tailwind`w-16 h-16 rounded-full bg-slate-800 items-center justify-center mb-3`}>
+                <MaterialIcons name="people-outline" size={32} color="#94a3b8" />
             </View>
-            <Text style={tailwind`text-gray-700 font-semibold text-sm mb-1`}>No Members Yet</Text>
-            <Text style={tailwind`text-gray-400 text-xs text-center`}>
+
+            <Text style={tailwind`text-slate-200 font-semibold text-sm mb-1`}>
+                No Members Yet
+            </Text>
+
+            <Text style={tailwind`text-slate-400 text-xs text-center`}>
                 Be the first to join this community!
             </Text>
+
         </View>
     );
 
-    // ── Member card ──
+    /* Member Card */
+
     const renderMemberItem = ({ item: member }) => (
+
         <Pressable
             onPress={() => handleProfile(member)}
             style={[
-                tailwind`flex-row items-center bg-white mx-4 mb-3 px-4 py-3 rounded-2xl`,
-                { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
+                tailwind`flex-row items-center mx-4 mb-3 px-4 py-3 rounded-2xl`,
+                {
+                    backgroundColor: CARD_BG,
+                    borderWidth: 1,
+                    borderColor: BORDER
+                }
             ]}
         >
+
             {/* Avatar */}
+
             {member?.avatar_url ? (
+
                 <Image
                     source={{ uri: member.avatar_url }}
-                    style={tailwind`w-12 h-12 rounded-full bg-gray-100`}
+                    style={tailwind`w-12 h-12 rounded-full`}
                 />
-            ) : (
-                <View style={tailwind`w-12 h-12 rounded-full bg-red-100 items-center justify-center`}>
-                    <Text style={tailwind`text-red-500 text-lg font-bold`}>
-                        {member?.full_name?.charAt(0)?.toUpperCase() ?? '?'}
-                    </Text>
-                </View>
-            )}
 
-            {/* Info */}
-            <View style={tailwind`flex-1 ml-3`}>
-                <Text style={tailwind`text-sm font-semibold text-gray-900`} numberOfLines={1}>
-                    {member?.full_name}
-                </Text>
-                <Text style={tailwind`text-xs text-gray-400 mt-0.5`} numberOfLines={1}>
-                    @{member?.username}
+            ) : (
+
+            <View
+                style={[
+                    tailwind`w-12 h-12 rounded-full items-center justify-center`,
+                    { backgroundColor: "#f87171" }
+                ]}
+            >
+                <Text style={tailwind`text-white text-lg font-bold`}>
+                    {member?.full_name?.charAt(0)?.toUpperCase() ?? '?'}
                 </Text>
             </View>
 
-            {/* Chevron */}
-            <MaterialIcons name="chevron-right" size={20} color="#d1d5db" />
+            )}
+
+            {/* Info */}
+
+            <View style={tailwind`flex-1 ml-3`}>
+
+                <Text
+                    style={tailwind`text-sm font-semibold text-slate-100`}
+                    numberOfLines={1}
+                >
+                    {member?.full_name}
+                </Text>
+
+                <Text
+                    style={tailwind`text-xs text-slate-400 mt-0.5`}
+                    numberOfLines={1}
+                >
+                    @{member?.username}
+                </Text>
+
+            </View>
+
+            <MaterialIcons
+                name="chevron-right"
+                size={20}
+                color="#64748b"
+            />
+
         </Pressable>
+
     );
 
     return (
+
         <Animated.FlatList
             data={members}
             keyExtractor={(member, index) =>
-                member?.public_id ? member.public_id.toString() : index.toString()
+                member?.public_id
+                    ? member.public_id.toString()
+                    : index.toString()
             }
             renderItem={renderMemberItem}
             ListEmptyComponent={ListEmpty}
@@ -132,11 +200,14 @@ function CommunityMember({ item, parentScrollY, headerHeight, collapsedHeader })
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
                 paddingTop: 12,
-                paddingBottom: 60,
+                paddingBottom: 80,
                 flexGrow: 1,
+                backgroundColor: DARK_BG
             }}
         />
+
     );
+
 }
 
 export default CommunityMember;

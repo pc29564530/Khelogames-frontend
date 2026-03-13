@@ -13,27 +13,28 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
     return (
         <TopTab.Navigator
             screenOptions={{
-                tabBarScrollEnabled: true,
-                tabBarStyle: { 
-                backgroundColor: '#f87171',
-                elevation: 4,
-                shadowOpacity: 0.1,
-                zIndex:20,
+                headerShown: false,
+                tabBarStyle: {
+                    backgroundColor: '#1e293b',
+                    elevation: 0,
+                    shadowOpacity: 0,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#334155',
+                    zIndex:20,
                 },
                 tabBarLabelStyle: {
-                fontSize: 12,
-                fontWeight: '600',
-                textTransform: 'none',
-                color: 'white',
-                },
-                tabBarItemStyle: {
-                width: 86,
+                    width:100,
+                    fontSize: 14,
+                    fontWeight: '600',
+                    textTransform: 'none',
                 },
                 tabBarIndicatorStyle: {
-                backgroundColor: '#fff',
+                    backgroundColor: '#f87171',
+                    height: 3,
+                    borderRadius: 2,
                 },
-                tabBarActiveTintColor: '#fff',
-                tabBarInactiveTintColor: '#ffe4e6',
+                tabBarActiveTintColor: '#f1f5f9',
+                tabBarInactiveTintColor: '#64748b',
             }}
         >
                 <TopTab.Screen name="Details">
@@ -92,7 +93,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                         )}
                     </TopTab.Screen>
 
-                    <TopTab.Screen name="Standing">
+                    {/* <TopTab.Screen name="Standing">
                         {() => (
                             <TournamentStanding
                                 match={match}
@@ -101,7 +102,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                                 collapsedHeader={collapsedHeader}
                             />
                         )}
-                    </TopTab.Screen>
+                    </TopTab.Screen> */}
         </TopTab.Navigator>
     );
 }

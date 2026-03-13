@@ -14,7 +14,7 @@ import RFNS from 'react-native-fs';
 import axiosInstance from './axios_config';
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// helpers
 function getMediaTypeFromURL(url) {
     const ext = url.match(/\.([0-9a-z]+)$/i)?.[1]?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
@@ -31,7 +31,7 @@ const fileToBase64 = async (filePath) => {
     }
 };
 
-// ── component — works as a TopTab screen ─────────────────────────────────────
+// component — works as a TopTab screen
 function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }) {
     const community = item;
     const flatListRef = useRef(null);
@@ -196,7 +196,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
         }
     };
 
-    // ── render one message bubble ─────────────────────────────────────────────
+    // render one message bubble
     const renderMessage = ({ item: msg }) => {
         const isMine = msg.sender_username === currentUser;
         return (
@@ -207,8 +207,8 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                 <View style={[
                     tailwind`max-w-4/5 px-4 py-3 rounded-2xl`,
                     isMine
-                        ? tailwind`bg-red-400 rounded-tr-sm`
-                        : tailwind`bg-white rounded-tl-sm`,
+                        ? [tailwind`rounded-tr-sm`, { backgroundColor:"#f87171" }]
+                        : [tailwind` rounded-tl-sm`, { backgroundColor:"#0f172a", borderWidth:1, borderColor:"#1e293b" }],
                     { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
                 ]}>
                     {!isMine && (
@@ -226,14 +226,14 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                     {msg.content ? (
                         <Text style={[
                             tailwind`text-sm`,
-                            isMine ? tailwind`text-white` : tailwind`text-gray-800`,
+                            isMine ? tailwind`text-white` : tailwind`text-slate-100`,
                         ]}>
                             {msg.content}
                         </Text>
                     ) : null}
                     <Text style={[
                         tailwind`text-xs mt-1`,
-                        isMine ? tailwind`text-red-100` : tailwind`text-gray-400`,
+                        isMine ? tailwind`text-red-100` : tailwind`text-slate-400`,
                     ]}>
                         {msg.sent_at}
                     </Text>
@@ -242,13 +242,13 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
         );
     };
 
-    // ── empty state ───────────────────────────────────────────────────────────
+    // empty state
     const ListEmpty = () => (
         <View style={tailwind`flex-1 items-center justify-center mt-16`}>
-            <View style={tailwind`w-14 h-14 rounded-full bg-gray-100 items-center justify-center mb-3`}>
+            <View style={tailwind`w-14 h-14 rounded-full bg-slate-800 items-center justify-center mb-3`}>
                 <MaterialIcons name="campaign" size={28} color="#9ca3af" />
             </View>
-            <Text style={tailwind`text-gray-700 font-semibold text-sm mb-1`}>No Announcements Yet</Text>
+            <Text style={tailwind`text-slate-200 font-semibold text-sm mb-1`}>No Announcements Yet</Text>
             <Text style={tailwind`text-gray-400 text-xs text-center px-8`}>
                 {isAdmin
                     ? 'Send the first announcement to your community.'
@@ -257,16 +257,16 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
         </View>
     );
 
-    // ── main render ───────────────────────────────────────────────────────────
+    // main render
     return (
         <KeyboardAvoidingView
-            style={tailwind`flex-1 bg-gray-50`}
+            style={{ flex: 1, backgroundColor: "#020617" }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
             {/* Error banner */}
             {error && (
-                <View style={tailwind`mx-4 mt-2 p-3 bg-red-50 border border-red-200 rounded-xl flex-row items-center`}>
+                <View style={[tailwind`mx-4 mt-2 p-3 border rounded-xl flex-row items-center`, {backgroundColor: "#7f1d1d", borderColor: "#ef4444"}]}>
                     <MaterialIcons name="error-outline" size={16} color="#ef4444" />
                     <Text style={tailwind`text-red-600 text-xs ml-2 flex-1`}>{error}</Text>
                     <Pressable onPress={() => setError(null)}>
@@ -304,7 +304,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
 
             {/* Preview of selected media */}
             {mediaURL ? (
-                <View style={tailwind`mx-4 mb-2 flex-row items-center bg-white rounded-xl p-2`}>
+                <View style={[tailwind`mx-4 mb-2 flex-row items-center rounded-xl p-2`, {backgroundColor:"#0f172a", borderColor:"#1e293b", borderWidth:1}]}>
                     <Image
                         source={{ uri: `data:image/${mediaType};base64,${mediaURL}` }}
                         style={tailwind`w-12 h-12 rounded-lg mr-2`}
@@ -320,7 +320,8 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
             {/* Input bar — only admin can send */}
             {isAdmin ? (
                 <View style={[
-                    tailwind`flex-row items-end px-3 py-2 bg-white border-t border-gray-100`,
+                    tailwind`flex-row items-end px-3 py-2 border-t`,
+                    {backgroundColor:"#020617", borderColor:"#1e293b",borderTopWidth:1},
                     { shadowColor: '#000', shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 4 },
                 ]}>
                     <Pressable onPress={handleUpload} style={tailwind`p-2 mr-1`}>
@@ -328,14 +329,14 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                     </Pressable>
                     <TextInput
                         style={[
-                            tailwind`flex-1 bg-gray-100 rounded-2xl px-4 py-2 text-sm text-gray-900`,
-                            { maxHeight: 100 },
+                            tailwind`flex-1 rounded-2xl px-4 py-2 text-sm`,
+                            { maxHeight: 100, backgroundColor:"#0f172a", color:"#f1f5f9" },
                         ]}
                         multiline
                         value={content}
                         onChangeText={setContent}
                         placeholder="Write an announcement..."
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#64748b"
                     />
                     <Pressable
                         onPress={handleSend}
@@ -352,8 +353,8 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                     </Pressable>
                 </View>
             ) : (
-                <View style={tailwind`px-4 py-3 bg-white border-t border-gray-100 items-center`}>
-                    <Text style={tailwind`text-gray-400 text-xs`}>
+                <View style={[tailwind`px-4 py-3 border-t items-center`, {backgroundColor:"#020617", borderTopWidth:1, borderColor:"#1e293b"}]}>
+                    <Text style={tailwind`text-slate-400 text-xs`}>
                         Only the community admin can post announcements.
                     </Text>
                 </View>

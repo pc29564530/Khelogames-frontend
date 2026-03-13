@@ -16,6 +16,7 @@ import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { fetchTeamPlayers } from '../services/teamServices';
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
+import LinearGradient from 'react-native-linear-gradient';
 const filePath = require('../assets/status_code.json');
 import Animated, { 
     Extrapolation, 
@@ -625,7 +626,7 @@ const CricketMatchPage = ({ route }) => {
     if (loading) {
         return (
             <View style={tailwind`flex-1 justify-center items-center`}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#f87171" />
                 <Text>Loading...</Text>
             </View>
         );
@@ -634,10 +635,10 @@ const CricketMatchPage = ({ route }) => {
     if (error.global) {
         return (
             <View style={tailwind`flex-1 justify-center items-center`}>
-                <Text style={tailwind`text-red-500`}>{error.global}</Text>
+                <Text style={{color:'#f87171'}}>{error.global}</Text>
                 <Pressable
                     onPress={() => navigation.goBack()}
-                    style={tailwind`mt-4 bg-red-400 px-4 py-2 rounded-lg`}
+                    style={[tailwind`mt-4 px-4 py-2 rounded-lg`, {backgroundColor:'#f87171'}]}
                 >
                     <Text style={tailwind`text-white`}>Go Back</Text>
                 </Pressable>
@@ -646,7 +647,7 @@ const CricketMatchPage = ({ route }) => {
     }
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
+        <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
             {/* Animated Header */}
             <Animated.View
                 style={[
@@ -657,9 +658,16 @@ const CricketMatchPage = ({ route }) => {
                         left: 0, 
                         right: 0, 
                         zIndex: 10,
+                        backgroundColor: '#0f172a'
                     },
                 ]}
             >
+                <LinearGradient
+                    colors={['#0f172a', '#1e293b']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                />
                 {/* Header Controls */}
                 <View style={tailwind`flex-row justify-between items-center px-4 py-3`}>
                     <Pressable onPress={() => navigation.goBack()}>
@@ -672,7 +680,7 @@ const CricketMatchPage = ({ route }) => {
 
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
-                    <Text style={tailwind`text-white text-lg font-semibold`}>
+                    <Text style={{color:'#f1f5f9',fontSize:18,fontWeight:'600'}}>
                         {match?.status_code}
                     </Text>
                 </Animated.View>
@@ -688,7 +696,7 @@ const CricketMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, {backgroundColor:'#334155'}]}>
                                 <Text style={tailwind`text-white text-sm font-bold`}>
                                     {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
                                 </Text>
@@ -717,7 +725,7 @@ const CricketMatchPage = ({ route }) => {
                                 ))}
                             </Animated.View>
                             <Animated.View style={[tailwind`items-center justify-center px-2 py-2`, scoreStyle]}>
-                                <View  style={tailwind`h-10 w-0.5 bg-white`}/>
+                                <View style={{height:40,width:1,backgroundColor:'#334155'}} />
                             </Animated.View>
                             {/* second score style */}
                             <Animated.View style={[tailwind`items-center justify-center px-2 py-2`, scoreStyle]}>
@@ -742,7 +750,7 @@ const CricketMatchPage = ({ route }) => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tailwind`rounded-full h-12 w-12 bg-yellow-400 items-center justify-center`}>
+                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, {backgroundColor:'#334155'}]}>
                                 <Text style={tailwind`text-white text-sm font-bold`}>
                                     {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'A'}
                                 </Text>
@@ -774,12 +782,14 @@ const CricketMatchPage = ({ route }) => {
                         onPress={() => setStatusVisible(false)} 
                         style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                     >
-                        <View style={tailwind`bg-white rounded-t-lg max-h-[70%]`}>
+                        <View style={[tailwind`rounded-t-lg max-h-[70%]`, {backgroundColor:'#1e293b',borderTopWidth:1,borderColor:'#334155'}]}>
                             <View style={tailwind`p-4 border-b border-gray-200`}>
-                                <Text style={tailwind`text-lg font-semibold text-center`}>Update Match Status</Text>
+                                <Text style={{color:'#f1f5f9',fontSize:16}}>
+                                    Update Match Status
+                                </Text>
                             </View>
                             <TextInput
-                                style={tailwind`bg-gray-100 p-3 m-4 rounded-md text-black`}
+                                style={[tailwind`bg-gray-100 p-3 m-4 rounded-md`, {color:'#f1f5f9'}]}
                                 placeholder="Search status..."
                                 value={searchQuery}
                                 onChangeText={handleSearch}
@@ -792,7 +802,7 @@ const CricketMatchPage = ({ route }) => {
                                         style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
                                     >
                                         <MaterialIcon name="sports-football" size={22} color="#4b5563" />
-                                        <Text style={tailwind`text-lg text-gray-700 ml-3`}>{item.label}</Text>
+                                        <Text style={[tailwind`text-lg ml-3`, {color:'#f1f5f9'}]}>{item.label}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
@@ -810,12 +820,14 @@ const CricketMatchPage = ({ route }) => {
                 >
                     <TouchableOpacity onPress={() => setMenuVisible(false)} style={tailwind`flex-1`}>
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`}>
+                            <View style={[tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`, 
+                                {backgroundColor:'#1e293b',borderWidth:1,borderColor:'#334155'}
+                            ]}>
                                 <TouchableOpacity onPress={() => setStatusVisible(true)}>
-                                    <Text style={tailwind`text-xl`}>Edit Match</Text>
+                                    <Text style={[tailwind`text-xl`, {color:'#f1f5f9'}]}>Edit Match</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {}}>
-                                    <Text style={tailwind`text-xl`}>Delete Match</Text>
+                                    <Text style={[tailwind`text-xl`, {color:'#f1f5f9'}]}>Delete Match</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

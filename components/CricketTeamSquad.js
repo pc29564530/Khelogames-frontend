@@ -294,13 +294,14 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
+                style={{flex: 1, backgroundColor: '#0f172a'}}
                 contentContainerStyle={{
                     paddingTop: 0,
                     paddingBottom: 100,
                     minHeight: sHeight + 100
                 }}
             >
-                    <Animated.View style={[tailwind`bg-white w-full px-4 py-3 mb-2`, contentStyle, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}]}>
+                    <Animated.View style={[tailwind` w-full px-4 py-3 mb-2`, contentStyle, {backgroundColor: '#1e293b', shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}]}>
                         {/* Team switcher */}
                         <View style={tailwind`flex-row mb-2 items-center justify-between gap-2`}>
                             <Pressable
@@ -308,29 +309,29 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             style={[
                                 tailwind`flex-1 rounded-xl items-center py-3 border`,
                                 homeTeamPublicID === currentTeamPlayer
-                                ? tailwind`bg-red-400 border-red-400`
-                                : tailwind`bg-white border-gray-200`,
+                                ? { backgroundColor: '#f87171', borderWidth: 1, borderColor: '#f87171' }
+                                : { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' },
                             ]}
                             >
                             <Text style={[
                                 tailwind`text-sm font-semibold`,
-                                homeTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+                                homeTeamPublicID === currentTeamPlayer ? { color: '#ffffff' } : { color: '#94a3b8' }
                             ]}>
                                 {match?.homeTeam?.name}
                             </Text>
                             </Pressable>
                             <Pressable
-                            onPress={() => toggleTeam(awayTeamPublicID)}
-                            style={[
-                                tailwind`flex-1 rounded-xl items-center py-3 border`,
-                                awayTeamPublicID === currentTeamPlayer
-                                ? tailwind`bg-red-400 border-red-400`
-                                : tailwind`bg-white border-gray-200`,
-                            ]}
+                                onPress={() => toggleTeam(awayTeamPublicID)}
+                                style={[
+                                    tailwind`flex-1 rounded-xl items-center py-3 border`,
+                                    awayTeamPublicID === currentTeamPlayer
+                                    ? { backgroundColor: '#f87171', borderWidth: 1, borderColor: '#f87171' }
+                                    : { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' },
+                                ]}
                             >
                             <Text style={[
                                 tailwind`text-sm font-semibold`,
-                                awayTeamPublicID === currentTeamPlayer ? tailwind`text-white` : tailwind`text-gray-600`
+                                awayTeamPublicID === currentTeamPlayer ? { color: '#ffffff' } : { color: '#94a3b8' }
                             ]}>
                                 {match?.awayTeam?.name}
                             </Text>
@@ -338,19 +339,19 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         </View>
                         {/* Squad selector */}
                         {/* Add scorer check and manager check and tournament host check */}
-                        {(authProfile?.id === match.user_id || authProfile.id === match.tournament.id) && (
+                        {/* {(authProfile?.id === match.user_id || authProfile.id === match.tournament.id) && ( */}
                             <AddTeamPlayerButton />
-                        )}
+                        {/* )} */}
                     </Animated.View>
 
                 {/* Empty State Display */}
                 {!loading && currentPlayingXI.length === 0 && currentOnBench.length === 0 && (
-                    <View style={tailwind`mx-4 mt-4 p-4 bg-white rounded-2xl items-center`}>
-                        <MaterialIcons name="people-outline" size={32} color="#D1D5DB" />
-                        <Text style={tailwind`text-gray-900 font-semibold text-sm mt-3 mb-1`}>
+                    <View style={[tailwind`mx-4 mt-4 p-4 rounded-2xl items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                        <MaterialIcons name="people-outline" size={32} color="#475569" />
+                        <Text style={[tailwind`font-semibold text-sm mt-3 mb-1`, { color: '#f1f5f9' }]}>
                             No Squad Selected
                         </Text>
-                        <Text style={tailwind`text-gray-400 text-xs text-center`}>
+                        <Text style={[tailwind`text-xs text-center`, { color: '#64748b' }]}>
                             {error.global || "No squad has been selected for this team yet."}
                         </Text>
                     </View>
@@ -361,31 +362,37 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                 </View>
                 {isPlayerModalVisible && (
                     <Modal
-                    visible={isPlayerModalVisible}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setIsPlayerModalVisible(false)}
-                  >
+                        visible={isPlayerModalVisible}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setIsPlayerModalVisible(false)}
+                    >
                     <View style={tailwind`flex-1 bg-black/60 justify-end`}>
-                      <View style={tailwind`max-h-[85%] bg-white rounded-t-3xl shadow-2xl p-4`}>
+                      <View style={[tailwind`max-h-[80%] rounded-t-2xl p-4`, { backgroundColor: '#1e293b' }]}>
                         
                         {/* Header */}
                         <View style={tailwind`flex-row justify-between items-center pb-3 border-b border-gray-200`}>
-                          <Text style={tailwind`text-xl font-bold`}>Select Team Squad</Text>
+                          <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Select Players</Text>
                           <Pressable onPress={() => setIsPlayerModalVisible(false)}>
-                            <AntDesign name="closecircle" size={26} color="black" />
+                            <AntDesign name="close" size={24} color="#94a3b8" />
                           </Pressable>
                         </View>
 
+                        {error?.global && (
+                            <View style={[tailwind`mx-4 mb-4 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                                <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>{error.global}</Text>
+                            </View>
+                        )}
+
                         {/* Search Player */}
-                        <View>
+                        {/* <View>
                             <TextInput
                                 style={tailwind`bg-gray-100 rounded-lg px-4 py-2 mb-3 mt-2`}
                                 placeholder="Search players..."
                                 value={searchText}
                                 onChangeText={setSearchText}
                             />
-                        </View>
+                        </View> */}
                   
                         {/* Player List */}
                         <FlatList
@@ -403,41 +410,46 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             return (
                               <View
                                 style={[
-                                  tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`,
-                                  isSelected && tailwind`bg-green-50`
+                                    tailwind`flex-row items-center px-4 py-3`,
+                                    { borderBottomWidth: 1, borderBottomColor: '#33415550' },
+                                    isSelected && { backgroundColor: '#10b98115' }
                                 ]}
-                              >
+                                >
                                 {item.media_url ? (
                                     <Image
                                         source={{ uri: item.media_url }}
-                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                                        style={[tailwind`w-11 h-11 rounded-full`, { backgroundColor: '#334155' }]}
                                   />
                                 ):(
-                                    <View style={tailwind`w-11 h-11 rounded-full items-center justify-center bg-gray-100`}>
-                                        <Text style={tailwind`text-gray-500 font-semibold`}>
+                                    <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                        <Text style={[tailwind`font-semibold`, { color: '#94a3b8' }]}>
                                             {item.name.charAt(0).toUpperCase()}
                                         </Text>
                                     </View>
                                 )}
 
                                 <View style={tailwind`flex-1 ml-3`}>
-                                  <Text style={tailwind`text-sm font-semibold text-gray-900`}>{item.name}</Text>
-                                  <View style={tailwind`flex-row items-center mt-0.5`}>
-                                    <Text style={tailwind`text-xs text-gray-400`}>
-                                      {selectPosition(item.position)}
+                                    <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
+                                        {item.name}
                                     </Text>
-                                    {item.country && (
-                                      <>
-                                        <Text style={tailwind`text-gray-300 text-xs mx-1.5`}>•</Text>
-                                        <Text style={tailwind`text-xs text-gray-400`}>{item.country}</Text>
-                                      </>
-                                    )}
-                                  </View>
+                                    <View style={tailwind`flex-row items-center mt-0.5`}>
+                                        <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
+                                            {selectPosition(item.position)}
+                                        </Text>
+                                        {item.country && (
+                                            <>
+                                                <Text style={[tailwind`text-xs mx-1.5`, { color: '#475569' }]}>•</Text>
+                                                <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
+                                                    {item.country}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </View>
                                 </View>
 
                                 {/* Bench Toggle */}
                                 <View style={tailwind`items-center mr-3`}>
-                                  <Text style={tailwind`text-xs text-gray-400 mb-1`}>Bench</Text>
+                                  <Text style={[tailwind`text-xs text-gray-400 mb-1`, { color: '#64748b' }]}>Bench</Text>
                                   <Switch
                                         value={isSelected ? selectedSquad.find(p => p.public_id === item.public_id)?.on_bench : false}
                                         onValueChange={(value) => {
@@ -449,8 +461,8 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                                             );
                                         }}
                                         disabled={!isSelected}
-                                        trackColor={{ false: "#E5E7EB", true: "#FCA5A5" }}
-                                        thumbColor={isSelected && selectedSquad.find(p => p.public_id === item.public_id)?.on_bench ? "#f87171" : "#f4f3f4"}
+                                        trackColor={{ false: '#334155', true: '#FCA5A5' }}
+                                        thumbColor={isSelected && selectedSquad.find(p => p.public_id === item.public_id)?.on_bench ? "#f87171" : "#64748b"}
                                         style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                     />
                                 </View>
@@ -460,7 +472,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                                   <AntDesign
                                     name={isSelected ? "checkcircle" : "pluscircleo"}
                                     size={24}
-                                    color={isSelected ? "#10B981" : "#D1D5DB"}
+                                    color={isSelected ? "#10B981" : "#475569"}
                                   />
                                 </Pressable>
                               </View>
@@ -469,7 +481,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         />
                   
                         {/* Submit Button */}
-                        <View style={tailwind`absolute bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100`}>
+                        <View style={[tailwind`absolute bottom-0 left-0 right-0 p-4 border-t-100`, { backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155' }]}>
                           {error.global && (
                             <View style={tailwind`mb-2 p-2 bg-red-50 rounded-lg`}>
                               <Text style={tailwind`text-red-600 text-xs text-center`}>
@@ -482,11 +494,11 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                             disabled={selectedSquad.length === 0 || loading}
                             style={[
                               tailwind`py-3.5 rounded-xl items-center`,
-                              selectedSquad.length === 0 || loading ? tailwind`bg-gray-300` : tailwind`bg-red-400`,
+                              selectedSquad.length === 0 || loading ? { backgroundColor: '#334155' } : { backgroundColor: '#f87171' },
                               {shadowColor: '#f87171', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3}
                             ]}
                           >
-                            <Text style={tailwind`text-white text-base font-semibold`}>
+                            <Text style={[tailwind` text-base font-semibold`, { color: selectedSquad.length === 0 ? '#64748b' : '#ffffff' }]}>
                               {loading ? 'Saving...' : selectedSquad.length > 0
                                 ? `Add ${selectedSquad.length} Player(s)`
                                 : "Select Players"}

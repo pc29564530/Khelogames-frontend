@@ -11,11 +11,12 @@ import { convertToISOString } from '../utils/FormattedDateTime';
 import { setCricketMatchToss } from '../redux/actions/actions';
 import validateCricketTossForm from '../utils/validation/cricketTossValidation';
 import Animated, {useSharedValue, useAnimatedStyle, Extrapolation, interpolate, useAnimatedScrollHandler} from 'react-native-reanimated';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [isTossed, setIsTossed] = useState(false);
     const dispatch = useDispatch();
-    
+
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
     const [teamID, setTeamId] = useState('');
@@ -112,7 +113,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                         'Content-Type': 'application/json',
                     }
                 });
-               
+
                 if (response.data && response.data.tossWonTeam) {
                     setIsTossed(true);
                 }
@@ -142,10 +143,10 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     const updateTossOption = (item) => {
         setTossOption(item);
     }
-    
+
     return (
-        <View style={tailwind`flex-1 p-4 bg-white`}>
-            <Animated.ScrollView 
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+            <Animated.ScrollView
                onScroll={handlerScroll}
                scrollEventThrottle={16}
                showsVerticalScrollIndicator={false}
@@ -156,33 +157,74 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                    minHeight: sHeight + 100
                }}
             >
+                {/* Header + Update Toss Button */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-2xl font-bold text-gray-600`}>Update Match Details</Text>
-                    <Pressable onPress={handleModalVisible} style={tailwind`bg-white shadow-lg rounded-full p-3 mt-4`}>
-                        <Text style={tailwind`text-gray text-center text-lg`}>Update Toss</Text>
+                    <Text style={[tailwind`text-2xl font-bold`, { color: '#f1f5f9' }]}>Match Details</Text>
+                    <Pressable
+                        onPress={handleModalVisible}
+                        style={[
+                            tailwind`rounded-xl p-4 mt-4 flex-row items-center justify-center`,
+                            { backgroundColor: '#f87171' }
+                        ]}
+                    >
+                        <MaterialIcons name="swap-horiz" size={20} color="#fff" />
+                        <Text style={[tailwind`text-center text-base font-semibold ml-2`, { color: '#fff' }]}>Update Toss</Text>
                     </Pressable>
                 </View>
-                <View style={tailwind`bg-white rounded-lg p-4 mb-4 shadow-lg`}>
-                    <Text style={tailwind`text-lg font-bold text-gray-600`}>Match Information</Text>
-                    <View style={tailwind`mt-2`}>
-                        <Text style={tailwind`text-gray-700`}>Venue: </Text>
+
+                {/* Error Banner */}
+                {error?.global && (
+                    <View style={[tailwind`rounded-xl p-3 mb-4 flex-row items-center`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                        <MaterialIcons name="error-outline" size={18} color="#f87171" />
+                        <Text style={[tailwind`text-sm ml-2 flex-1`, { color: '#fca5a5' }]}>{error.global}</Text>
                     </View>
-                    <View style={tailwind`flex-row`}>
-                        <Text>Date: </Text>
-                        <Text>{match?.start_timestamp ? formattedDate(convertToISOString(match?.start_timestamp)) : '-'}</Text>
+                )}
+
+                {/* Match Information Card */}
+                <View style={[tailwind`rounded-2xl p-5 mb-4`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                    <Text style={[tailwind`text-lg font-bold mb-3`, { color: '#f1f5f9' }]}>Match Information</Text>
+
+                    <View style={[tailwind`py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={[tailwind`text-xs font-medium mb-1`, { color: '#64748b' }]}>Venue</Text>
+                        <Text style={[tailwind`text-sm`, { color: '#cbd5e1' }]}>-</Text>
                     </View>
-                    <View style={tailwind`flex-row`}>
-                        <Text>Time: </Text>
-                        <Text>{match?.start_timestamp ? formattedTime(convertToISOString(match?.start_timestamp)) : '-'}</Text>
+
+                    <View style={[tailwind`py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={[tailwind`text-xs font-medium mb-1`, { color: '#64748b' }]}>Date</Text>
+                        <Text style={[tailwind`text-sm`, { color: '#cbd5e1' }]}>
+                            {match?.start_timestamp ? formattedDate(convertToISOString(match?.start_timestamp)) : '-'}
+                        </Text>
                     </View>
-                    {isTossed &&  (
-                        <View style={tailwind`mt-4`}>
-                            <Text style={tailwind`text-gray-700`}>Toss Won By: {cricketToss?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}</Text>
-                            <Text style={tailwind`text-gray-700`}>Decision: {cricketToss?.tossDecision}</Text>
+
+                    <View style={[tailwind`py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                        <Text style={[tailwind`text-xs font-medium mb-1`, { color: '#64748b' }]}>Time</Text>
+                        <Text style={[tailwind`text-sm`, { color: '#cbd5e1' }]}>
+                            {match?.start_timestamp ? formattedTime(convertToISOString(match?.start_timestamp)) : '-'}
+                        </Text>
+                    </View>
+
+                    {isTossed && (
+                        <View style={tailwind`pt-3`}>
+                            <Text style={[tailwind`text-xs font-medium mb-2`, { color: '#64748b' }]}>Toss Result</Text>
+                            <View style={[tailwind`rounded-xl p-3 flex-row items-center`, { backgroundColor: '#0f172a' }]}>
+                                <View style={[tailwind`w-8 h-8 rounded-full items-center justify-center mr-3`, { backgroundColor: '#f8717120' }]}>
+                                    <MaterialIcons name="swap-horiz" size={18} color="#f87171" />
+                                </View>
+                                <View style={tailwind`flex-1`}>
+                                    <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
+                                        {cricketToss?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}
+                                    </Text>
+                                    <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
+                                        Chose to {cricketToss?.tossDecision}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                     )}
                 </View>
             </Animated.ScrollView>
+
+            {/* Toss Modal */}
             {isTossedModalVisible && (
                 <Modal
                     transparent={true}
@@ -190,37 +232,135 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     visible={isTossedModalVisible}
                     onRequestClose={() => setIsTossedModalVisible(false)}
                 >
-                    <Pressable onPress={() => setIsTossedModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={tailwind`bg-white rounded-t-lg p-3`}>
-                            <Text style={tailwind`text-xl font-bold text-gray-600 mb-4`}>Select Team for Toss</Text>
-                            <View style={tailwind`flex-row justify-between mb-4 `}>
-                                <Pressable onPress={() => handleTeam(match.homeTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.homeTeam.public_id && tailwind`bg-red-400`]}>
-                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{match.homeTeam.name}</Text>
+                    <View style={tailwind`flex-1 justify-end bg-black/50`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsTossedModalVisible(false)}
+                        />
+                        <View style={[tailwind`rounded-t-3xl p-6`, { backgroundColor: '#1e293b' }]}>
+                            {/* Drag handle */}
+                            <View style={[tailwind`w-10 h-1 rounded-full self-center mb-5`, { backgroundColor: '#475569' }]} />
+
+                            {/* Select Team */}
+                            <Text style={[tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }]}>Who Won the Toss?</Text>
+
+                            {error?.fields?.toss_win && (
+                                <Text style={[tailwind`text-xs mb-2`, { color: '#fca5a5' }]}>*{error.fields.toss_win}</Text>
+                            )}
+
+                            <View style={tailwind`flex-row justify-between mb-5 gap-3`}>
+                                <Pressable
+                                    onPress={() => handleTeam(match.homeTeam.public_id)}
+                                    style={[
+                                        tailwind`flex-1 p-4 rounded-xl items-center`,
+                                        {
+                                            backgroundColor: teamID === match.homeTeam.public_id ? '#f87171' : '#0f172a',
+                                            borderWidth: 1,
+                                            borderColor: teamID === match.homeTeam.public_id ? '#f87171' : '#334155',
+                                        }
+                                    ]}
+                                >
+                                    <Text style={[
+                                        tailwind`text-base text-center font-semibold`,
+                                        { color: teamID === match.homeTeam.public_id ? '#fff' : '#f1f5f9' }
+                                    ]}>
+                                        {match.homeTeam.name}
+                                    </Text>
                                 </Pressable>
-                                <Pressable onPress={() => handleTeam(match.awayTeam.public_id)} style={[tailwind`p-4 rounded-md bg-white shadow-lg`, teamID === match.awayTeam.public_id && tailwind`bg-red-400`]}>
-                                    <Text style={tailwind`text-lg text-center text-blue-900`}>{match.awayTeam.name}</Text>
+                                <Pressable
+                                    onPress={() => handleTeam(match.awayTeam.public_id)}
+                                    style={[
+                                        tailwind`flex-1 p-4 rounded-xl items-center`,
+                                        {
+                                            backgroundColor: teamID === match.awayTeam.public_id ? '#f87171' : '#0f172a',
+                                            borderWidth: 1,
+                                            borderColor: teamID === match.awayTeam.public_id ? '#f87171' : '#334155',
+                                        }
+                                    ]}
+                                >
+                                    <Text style={[
+                                        tailwind`text-base text-center font-semibold`,
+                                        { color: teamID === match.awayTeam.public_id ? '#fff' : '#f1f5f9' }
+                                    ]}>
+                                        {match.awayTeam.name}
+                                    </Text>
                                 </Pressable>
                             </View>
-                            <Text style={tailwind`text-lg font-bold text-gray-600 mb-2`}>Choose Decision</Text>
-                            <View style={tailwind`flex-row items-center mb-2`}>
-                                <CheckBox
-                                    value={tossOption === 'Batting'}
-                                    onValueChange={() => updateTossOption("Batting")}
-                                />
-                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Batting</Text>
+
+                            {/* Choose Decision */}
+                            <Text style={[tailwind`text-lg font-bold mb-3`, { color: '#f1f5f9' }]}>Choose Decision</Text>
+
+                            {error?.fields?.toss_decision && (
+                                <Text style={[tailwind`text-xs mb-2`, { color: '#fca5a5' }]}>*{error.fields.toss_decision}</Text>
+                            )}
+
+                            <View style={tailwind`flex-row mb-5 gap-3`}>
+                                <Pressable
+                                    onPress={() => updateTossOption("Batting")}
+                                    style={[
+                                        tailwind`flex-1 p-4 rounded-xl flex-row items-center justify-center`,
+                                        {
+                                            backgroundColor: tossOption === 'Batting' ? '#f87171' : '#0f172a',
+                                            borderWidth: 1,
+                                            borderColor: tossOption === 'Batting' ? '#f87171' : '#334155',
+                                        }
+                                    ]}
+                                >
+                                    <MaterialIcons name="sports-cricket" size={18} color={tossOption === 'Batting' ? '#fff' : '#94a3b8'} />
+                                    <Text style={[
+                                        tailwind`text-base font-semibold ml-2`,
+                                        { color: tossOption === 'Batting' ? '#fff' : '#f1f5f9' }
+                                    ]}>
+                                        Batting
+                                    </Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => updateTossOption("Bowling")}
+                                    style={[
+                                        tailwind`flex-1 p-4 rounded-xl flex-row items-center justify-center`,
+                                        {
+                                            backgroundColor: tossOption === 'Bowling' ? '#f87171' : '#0f172a',
+                                            borderWidth: 1,
+                                            borderColor: tossOption === 'Bowling' ? '#f87171' : '#334155',
+                                        }
+                                    ]}
+                                >
+                                    <MaterialIcons name="sports" size={18} color={tossOption === 'Bowling' ? '#fff' : '#94a3b8'} />
+                                    <Text style={[
+                                        tailwind`text-base font-semibold ml-2`,
+                                        { color: tossOption === 'Bowling' ? '#fff' : '#f1f5f9' }
+                                    ]}>
+                                        Bowling
+                                    </Text>
+                                </Pressable>
                             </View>
-                            <View style={tailwind`flex-row items-center mb-4`}>
-                                <CheckBox
-                                    value={tossOption === 'Bowling'}
-                                    onValueChange={() => updateTossOption("Bowling")}
-                                />
-                                <Text style={tailwind`ml-2 text-lg text-blue-900`}>Bowling</Text>
-                            </View>
-                            <Pressable onPress={() => addToss()} style={tailwind`bg-white p-2 shadow-lg rounded-lg`}>
-                                <Text style={tailwind`text-gray-600 text-center text-lg`}>Submit</Text>
+
+                            {/* Submit Button */}
+                            <Pressable
+                                onPress={() => addToss()}
+                                disabled={!teamID || !tossOption}
+                                style={[
+                                    tailwind`p-4 rounded-xl items-center`,
+                                    { backgroundColor: teamID && tossOption ? '#f87171' : '#334155' }
+                                ]}
+                            >
+                                <Text style={[
+                                    tailwind`text-base font-semibold`,
+                                    { color: teamID && tossOption ? '#fff' : '#475569' }
+                                ]}>
+                                    {loading ? 'Submitting...' : 'Submit Toss'}
+                                </Text>
+                            </Pressable>
+
+                            {/* Cancel */}
+                            <Pressable
+                                onPress={() => setIsTossedModalVisible(false)}
+                                style={tailwind`p-3 mt-2 items-center`}
+                            >
+                                <Text style={[tailwind`font-medium`, { color: '#94a3b8' }]}>Cancel</Text>
                             </Pressable>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
             )}
         </View>

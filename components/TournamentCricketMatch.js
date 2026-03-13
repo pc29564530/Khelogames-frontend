@@ -117,7 +117,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
                     {matches?.length > 0 ? (
                         matches.map((stage, index) => (
                             <View key={index} style={{ backgroundColor: '#0f172a' }}>
-                                {Object.keys(stage?.group_stage).length > 0 &&
+                                {Object?.keys(stage?.group_stage).length > 0 &&
                                     Object.entries(stage.group_stage).map(([stageName, matchs]) => (
                                         matchesData(matchs, stageName, navigation)
                                     ))

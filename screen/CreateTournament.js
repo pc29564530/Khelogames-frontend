@@ -173,15 +173,19 @@ const CreateTournament = () => {
 
     const modifyDateTime = (newDateTime) => {
         if (!newDateTime) {
-            console.error('new date time is undefined');
+            console.error("newDateTime is undefined");
             return null;
-          }
-          const [datePart, timePart] = newDateTime.split(' ');
-          const [year, month, day] = datePart.split('/').map(Number);
-          const [hour, minute] = timePart.split(':').map(Number);
-          const matchDateTime = new Date(Date.UTC(year, month - 1, day, hour, minute));
-          return matchDateTime;
-      };
+        }
+        const parts = newDateTime.split(" ");
+
+        const datePart = parts[0];
+        const timePart = parts[1] || "00:00"; // default time
+
+        const [year, month, day] = datePart.split("/").map(Number);
+        const [hour, minute] = timePart.split(":").map(Number);
+
+        return new Date(Date.UTC(year, month - 1, day, hour, minute));
+    };
 
       useFocusEffect(
             React.useCallback(() => {

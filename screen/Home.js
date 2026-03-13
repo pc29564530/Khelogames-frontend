@@ -14,6 +14,7 @@ import { sportsServices } from '../services/sportsServices';
 import { getTournamentBySportAndTrending } from '../services/tournamentServices';
 import { getMatches, setGames, setGame } from '../redux/actions/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SportSelector from '../components/SportSelector';
 
 const QUICK_ACTIONS = [
   { id: 'tournament', icon: 'emoji-events', label: 'Create\nTournament', color: '#f87171', screen: 'CreateTournament' },
@@ -272,36 +273,8 @@ function Home() {
       >
 
         {/* SPORT SELECTOR */}
-        <View style={{ marginTop: 16 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-            {games?.map(s => {
-              const active = game?.id === s.id;
-              return (
-                <Pressable
-                  key={s.id}
-                  onPress={() => dispatch(setGame(s))}
-                  style={{
-                    flexDirection: 'row', alignItems: 'center',
-                    paddingHorizontal: 18, paddingVertical: 8,
-                    borderRadius: 20, gap: 6,
-                    backgroundColor: active ? '#f87171' : '#1e293b',
-                    borderWidth: active ? 0 : 1,
-                    borderColor: '#334155',
-                  }}
-                >
-                  <MaterialIcons name={getIconForSport(s.name)} color={active ? '#fff' : '#94a3b8'} size={18} />
-                  <Text style={{
-                    color: active ? '#fff' : '#94a3b8',
-                    fontWeight: active ? '700' : '500',
-                    fontSize: 13,
-                  }}>
-                    {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+        <View style={{ marginTop: 0 }}>
+          <SportSelector />
         </View>
 
         {/* QUICK ACTIONS */}
