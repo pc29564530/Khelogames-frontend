@@ -85,7 +85,7 @@ const SignUp = () => {
 
     navigation.setOptions({
         title: '',
-        headerStyle: { backgroundColor: '#f87171' },
+        headerStyle: { backgroundColor: '#0f172a' },
         headerTintColor: 'white',
         headerRight: () => (
             <View style={tailwind`mr-4`}>
@@ -98,155 +98,227 @@ const SignUp = () => {
 
     return (
         <ScrollView
-            style={tailwind`flex-1 bg-white`}
+            style={tailwind`flex-1`}
+            contentContainerStyle={{ backgroundColor: '#0f172a' }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
         >
-            {/* Red header banner */}
-            <View style={tailwind`bg-red-400 pt-8 pb-10 px-6 items-center`}>
-                <View style={tailwind`bg-white w-14 h-14 rounded-2xl items-center justify-center mb-3`}>
-                    <MaterialIcons name="emoji-events" size={30} color="#f87171" />
+
+            {/* Header */}
+            <View style={tailwind`pt-14 pb-12 px-6 items-center`}>
+                
+                <View style={tailwind`bg-slate-800 w-16 h-16 rounded-2xl items-center justify-center mb-4`}>
+                <MaterialIcons name="emoji-events" size={32} color="#ef4444" />
                 </View>
-                <Text style={tailwind`text-white text-2xl font-bold`}>Create Account</Text>
-                <Text style={tailwind`text-red-100 text-sm mt-1 text-center`}>
-                    Join KheloGames and start your journey
+
+                <Text style={tailwind`text-slate-100 text-2xl font-bold`}>
+                Create Account
                 </Text>
+
+                <Text style={tailwind`text-slate-400 text-sm mt-2 text-center`}>
+                Join Kridagram and start your journey
+                </Text>
+
             </View>
 
-            {/* Form */}
-            <View style={tailwind`bg-white px-6 pt-6 pb-10`}>
+            {/* Form Card */}
+            <View style={tailwind`mx-5 bg-slate-800 px-6 pt-6 pb-10 rounded-2xl border border-slate-700`}>
 
-                {/* Global error */}
+                {/* Global Error */}
                 {error.global && (
-                    <View style={tailwind`mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl`}>
-                        <Text style={tailwind`text-red-500 text-sm text-center`}>{error.global}</Text>
-                    </View>
+                <View style={tailwind`mb-4 px-4 py-3 bg-red-900/30 border border-red-500/40 rounded-xl`}>
+                    <Text style={tailwind`text-red-400 text-sm text-center`}>
+                    {error.global}
+                    </Text>
+                </View>
                 )}
+
                 {/* Full Name */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Full Name</Text>
-                    <View style={[
-                        tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-                        { borderColor: error.full_name ? '#f87171' : '#e5e7eb' }
-                    ]}>
-                        <MaterialIcons name="person" size={20} color="#9ca3af" />
-                        <TextInput
-                            style={tailwind`flex-1 text-gray-900 text-base ml-3`}
-                            placeholder="Enter your full name"
-                            placeholderTextColor="#9ca3af"
-                            value={formData.full_name}
-                            onChangeText={text => handleInputChange('full_name', text)}
-                            autoCapitalize="words"
-                        />
-                    </View>
-                    {error.full_name && (
-                        <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.full_name}</Text>
-                    )}
+                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+                    Full Name
+                </Text>
+
+                <View
+                    style={[
+                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+                    {
+                        backgroundColor: '#020617',
+                        borderColor: error.full_name ? '#ef4444' : '#334155'
+                    }
+                    ]}
+                >
+                    <MaterialIcons name="person" size={20} color="#64748b" />
+
+                    <TextInput
+                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
+                    placeholder="Enter your full name"
+                    placeholderTextColor="#64748b"
+                    value={formData.full_name}
+                    onChangeText={text => handleInputChange('full_name', text)}
+                    autoCapitalize="words"
+                    />
+                </View>
+
+                {error.full_name && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+                    {error.full_name}
+                    </Text>
+                )}
                 </View>
 
                 {/* Email */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Email</Text>
-                    <View style={[
-                        tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-                        { borderColor: error.email ? '#f87171' : '#e5e7eb' }
-                    ]}>
-                        <MaterialIcons name="email" size={20} color="#9ca3af" />
-                        <TextInput
-                            style={tailwind`flex-1 text-gray-900 text-base ml-3`}
-                            placeholder="Enter your email"
-                            placeholderTextColor="#9ca3af"
-                            value={formData.email}
-                            onChangeText={text => handleInputChange('email', text)}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-                    </View>
-                    {error.email && (
-                        <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.email}</Text>
-                    )}
+                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+                    Email
+                </Text>
+
+                <View
+                    style={[
+                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+                    {
+                        backgroundColor: '#020617',
+                        borderColor: error.email ? '#ef4444' : '#334155'
+                    }
+                    ]}
+                >
+                    <MaterialIcons name="email" size={20} color="#64748b" />
+
+                    <TextInput
+                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#64748b"
+                    value={formData.email}
+                    onChangeText={text => handleInputChange('email', text)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    />
+                </View>
+
+                {error.email && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+                    {error.email}
+                    </Text>
+                )}
                 </View>
 
                 {/* Password */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Password</Text>
-                    <View style={[
-                        tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-                        { borderColor: error.password ? '#f87171' : '#e5e7eb' }
-                    ]}>
-                        <MaterialIcons name="lock" size={20} color="#9ca3af" />
-                        <TextInput
-                            style={tailwind`flex-1 text-gray-900 text-base ml-3`}
-                            placeholder="Min 8 chars, uppercase & number"
-                            placeholderTextColor="#9ca3af"
-                            value={formData.password}
-                            onChangeText={text => handleInputChange('password', text)}
-                            secureTextEntry={!showPassword}
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)} style={tailwind`p-1`}>
-                            <MaterialIcons
-                                name={showPassword ? 'visibility' : 'visibility-off'}
-                                size={20}
-                                color="#9ca3af"
-                            />
-                        </Pressable>
-                    </View>
-                    {error.password && (
-                        <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.password}</Text>
-                    )}
+                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+                    Password
+                </Text>
+
+                <View
+                    style={[
+                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+                    {
+                        backgroundColor: '#020617',
+                        borderColor: error.password ? '#ef4444' : '#334155'
+                    }
+                    ]}
+                >
+                    <MaterialIcons name="lock" size={20} color="#64748b" />
+
+                    <TextInput
+                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
+                    placeholder="Min 8 chars, uppercase & number"
+                    placeholderTextColor="#64748b"
+                    value={formData.password}
+                    onChangeText={text => handleInputChange('password', text)}
+                    secureTextEntry={!showPassword}
+                    />
+
+                    <Pressable onPress={() => setShowPassword(!showPassword)}>
+                    <MaterialIcons
+                        name={showPassword ? 'visibility' : 'visibility-off'}
+                        size={20}
+                        color="#64748b"
+                    />
+                    </Pressable>
+                </View>
+
+                {error.password && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+                    {error.password}
+                    </Text>
+                )}
                 </View>
 
                 {/* Confirm Password */}
                 <View style={tailwind`mb-6`}>
-                    <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Confirm Password</Text>
-                    <View style={[
-                        tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-                        { borderColor: error.confirm_password ? '#f87171' : '#e5e7eb' }
-                    ]}>
-                        <MaterialIcons name="lock" size={20} color="#9ca3af" />
-                        <TextInput
-                            style={tailwind`flex-1 text-gray-900 text-base ml-3`}
-                            placeholder="Re-enter your password"
-                            placeholderTextColor="#9ca3af"
-                            value={formData.confirm_password}
-                            onChangeText={text => handleInputChange('confirm_password', text)}
-                            secureTextEntry={!showConfirmPassword}
-                        />
-                        <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={tailwind`p-1`}>
-                            <MaterialIcons
-                                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
-                                size={20}
-                                color="#9ca3af"
-                            />
-                        </Pressable>
-                    </View>
-                    {error.confirm_password && (
-                        <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.confirm_password}</Text>
-                    )}
-                </View>
+                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+                    Confirm Password
+                </Text>
 
-                {/* Create Account button */}
-                <Pressable
+                <View
                     style={[
-                        tailwind`py-4 rounded-xl items-center justify-center mb-4`,
-                        { backgroundColor: loading ? '#fca5a5' : '#f87171' }
-                    ]}
-                    onPress={handleEmailSignUp}
-                    disabled={loading}
-                >
-                    {loading
-                        ? <ActivityIndicator size="small" color="white" />
-                        : <Text style={tailwind`text-white text-base font-bold`}>Create Account</Text>
+                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+                    {
+                        backgroundColor: '#020617',
+                        borderColor: error.confirm_password ? '#ef4444' : '#334155'
                     }
-                </Pressable>
-                <View style={tailwind`flex-row justify-center items-center`}>
-                    <Text style={tailwind`text-gray-500 text-sm`}>Already have an account? </Text>
-                    <Pressable onPress={handleNavigateLogin}>
-                        <Text style={tailwind`text-red-400 text-sm font-semibold`}>Sign In</Text>
+                    ]}
+                >
+                    <MaterialIcons name="lock" size={20} color="#64748b" />
+
+                    <TextInput
+                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
+                    placeholder="Re-enter your password"
+                    placeholderTextColor="#64748b"
+                    value={formData.confirm_password}
+                    onChangeText={text => handleInputChange('confirm_password', text)}
+                    secureTextEntry={!showConfirmPassword}
+                    />
+
+                    <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <MaterialIcons
+                        name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                        size={20}
+                        color="#64748b"
+                    />
                     </Pressable>
                 </View>
 
+                {error.confirm_password && (
+                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+                    {error.confirm_password}
+                    </Text>
+                )}
+                </View>
+
+                {/* Create Account Button */}
+                <Pressable
+                style={[
+                    tailwind`py-4 rounded-xl items-center justify-center mb-4`,
+                    { backgroundColor: loading ? '#f87171aa' : '#ef4444' }
+                ]}
+                onPress={handleEmailSignUp}
+                disabled={loading}
+                >
+                {loading ? (
+                    <ActivityIndicator size="small" color="white" />
+                ) : (
+                    <Text style={tailwind`text-white text-base font-bold`}>
+                    Create Account
+                    </Text>
+                )}
+                </Pressable>
+
+                {/* Login Link */}
+                <View style={tailwind`flex-row justify-center items-center`}>
+                <Text style={tailwind`text-slate-400 text-sm`}>
+                    Already have an account?
+                </Text>
+
+                <Pressable onPress={handleNavigateLogin}>
+                    <Text style={tailwind`text-red-400 text-sm font-semibold ml-1`}>
+                    Sign In
+                    </Text>
+                </Pressable>
+                </View>
+
             </View>
+
         </ScrollView>
     );
 };

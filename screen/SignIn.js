@@ -135,74 +135,113 @@ function SignIn() {
 
   return (
     <ScrollView
-      style={tailwind`flex-1 bg-white`}
-      contentContainerStyle={tailwind`flex-grow`}
+      style={tailwind`flex-1`}
+      contentContainerStyle={[tailwind`flex-grow`, { backgroundColor: '#0f172a' }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Red header banner */}
-      <View style={tailwind`bg-red-400 pt-14 pb-10 px-6 items-center`}>
-        <View style={tailwind`bg-white w-14 h-14 rounded-2xl items-center justify-center mb-3`}>
-          <MaterialIcons name="emoji-events" size={30} color="#f87171" />
+
+      {/* Header */}
+      <View style={tailwind`pt-16 pb-12 px-6 items-center`}>
+        <View style={tailwind`bg-slate-800 w-16 h-16 rounded-2xl items-center justify-center mb-4`}>
+          <MaterialIcons name="emoji-events" size={32} color="#ef4444" />
         </View>
-        <Text style={tailwind`text-white text-2xl font-bold`}>KheloGames</Text>
-        <Text style={tailwind`text-red-100 text-sm mt-1`}>Welcome back! Sign in to continue</Text>
+
+        <Text style={tailwind`text-slate-100 text-2xl font-bold`}>
+          Kridagram
+        </Text>
+
+        <Text style={tailwind`text-slate-400 text-sm mt-2`}>
+          Welcome back! Sign in to continue
+        </Text>
       </View>
 
-      {/* Form card */}
-      <View style={tailwind`bg-white px-6 pt-6 pb-10`}>
+      {/* Form Card */}
+      <View style={tailwind`mx-5 bg-slate-800 px-6 pt-6 pb-10 rounded-2xl border border-slate-700`}>
 
         {/* Global error */}
         {error.global && (
-          <View style={tailwind`mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl`}>
-            <Text style={tailwind`text-red-500 text-sm text-center`}>{error.global}</Text>
+          <View style={tailwind`mb-4 px-4 py-3 bg-red-900/30 border border-red-500/40 rounded-xl`}>
+            <Text style={tailwind`text-red-400 text-sm text-center`}>
+              {error.global}
+            </Text>
           </View>
         )}
+
         {/* Email */}
         <View style={tailwind`mb-4`}>
-          <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Email</Text>
-          <View style={[
-            tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-            { borderColor: error.fields.email ? '#f87171' : '#e5e7eb' }
-          ]}>
-            <MaterialIcons name="email" size={20} color="#9ca3af" />
+          <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+            Email
+          </Text>
+
+          <View
+            style={[
+              tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+              {
+                backgroundColor: '#020617',
+                borderColor: error.fields.email ? '#ef4444' : '#334155'
+              }
+            ]}
+          >
+            <MaterialIcons name="email" size={20} color="#64748b" />
+
             <TextInput
-              style={tailwind`flex-1 text-gray-900 text-base ml-3`}
+              style={tailwind`flex-1 text-slate-100 text-base ml-3`}
               placeholder="Enter your email"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#64748b"
               value={formData.email}
               onChangeText={t => handleInputChange('email', t)}
               autoCapitalize="none"
               keyboardType="email-address"
             />
           </View>
+
           {error.fields.email && (
-            <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.fields.email}</Text>
+            <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+              {error.fields.email}
+            </Text>
           )}
         </View>
 
         {/* Password */}
         <View style={tailwind`mb-6`}>
-          <Text style={tailwind`text-gray-600 text-sm font-medium mb-2`}>Password</Text>
-          <View style={[
-            tailwind`flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border`,
-            { borderColor: error.fields.password ? '#f87171' : '#e5e7eb' }
-          ]}>
-            <MaterialIcons name="lock" size={20} color="#9ca3af" />
+          <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
+            Password
+          </Text>
+
+          <View
+            style={[
+              tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
+              {
+                backgroundColor: '#020617',
+                borderColor: error.fields.password ? '#ef4444' : '#334155'
+              }
+            ]}
+          >
+            <MaterialIcons name="lock" size={20} color="#64748b" />
+
             <TextInput
-              style={tailwind`flex-1 text-gray-900 text-base ml-3`}
+              style={tailwind`flex-1 text-slate-100 text-base ml-3`}
               placeholder="Enter your password"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#64748b"
               secureTextEntry={!showPassword}
               value={formData.password}
               onChangeText={t => handleInputChange('password', t)}
             />
-            <Pressable onPress={() => setShowPassword(p => !p)} style={tailwind`p-1`}>
-              <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} color="#9ca3af" />
+
+            <Pressable onPress={() => setShowPassword(p => !p)}>
+              <MaterialIcons
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color="#64748b"
+              />
             </Pressable>
           </View>
+
           {error.fields.password && (
-            <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>{error.fields.password}</Text>
+            <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
+              {error.fields.password}
+            </Text>
           )}
         </View>
 
@@ -210,40 +249,62 @@ function SignIn() {
         <Pressable
           onPress={handleEmailSignIn}
           disabled={loading}
-          style={[tailwind`py-4 rounded-xl items-center justify-center mb-4`, { backgroundColor: loading ? '#fca5a5' : '#f87171' }]}
+          style={[
+            tailwind`py-4 rounded-xl items-center justify-center mb-4`,
+            { backgroundColor: loading ? '#f87171aa' : '#ef4444' }
+          ]}
         >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={tailwind`text-white text-base font-bold`}>Sign In</Text>
-          }
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={tailwind`text-white text-base font-bold`}>
+              Sign In
+            </Text>
+          )}
         </Pressable>
 
         {/* Divider */}
-        <View style={tailwind`flex-row items-center my-2`}>
-          <View style={tailwind`flex-1 h-px bg-gray-100`} />
-          <Text style={tailwind`text-gray-400 text-xs px-3`}>or continue with</Text>
-          <View style={tailwind`flex-1 h-px bg-gray-100`} />
+        <View style={tailwind`flex-row items-center my-4`}>
+          <View style={tailwind`flex-1 h-px bg-slate-700`} />
+          <Text style={tailwind`text-slate-500 text-xs px-3`}>
+            or continue with
+          </Text>
+          <View style={tailwind`flex-1 h-px bg-slate-700`} />
         </View>
 
         {/* Google button */}
         <Pressable
           onPress={handleGoogleSignIn}
           disabled={loading}
-          style={[tailwind`flex-row items-center justify-center bg-white border border-gray-200 py-4 rounded-xl mt-4 mb-8`, loading && { opacity: 0.6 }]}
+          style={[
+            tailwind`flex-row items-center justify-center py-4 rounded-xl border`,
+            {
+              backgroundColor: '#020617',
+              borderColor: '#334155'
+            }
+          ]}
         >
           <AntDesign name="google" size={20} color="#EA4335" />
-          <Text style={tailwind`text-gray-700 text-base font-semibold ml-3`}>Sign in with Google</Text>
+          <Text style={tailwind`text-slate-200 text-base font-semibold ml-3`}>
+            Sign in with Google
+          </Text>
         </Pressable>
 
         {/* Sign Up link */}
-          <View style={tailwind`flex-row justify-center items-center`}>
-          <Text style={tailwind`text-gray-500 text-sm`}>Don't have an account? </Text>
+        <View style={tailwind`flex-row justify-center items-center mt-8`}>
+          <Text style={tailwind`text-slate-400 text-sm`}>
+            Don't have an account?
+          </Text>
+
           <Pressable onPress={() => navigation.navigate('SignUp')}>
-            <Text style={tailwind`text-red-400 text-sm font-semibold`}>Create Account</Text>
+            <Text style={tailwind`text-red-400 text-sm font-semibold ml-1`}>
+              Create Account
+            </Text>
           </Pressable>
         </View>
 
       </View>
+
     </ScrollView>
   );
 }
