@@ -146,13 +146,14 @@ const Matches = () => {
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [permissionGranted, setPermissionGranted] = useState(null);
     const dispatch = useDispatch();
-    const today = new Date();
+
     const [selectedDate, setSelectedDate] = useState(new Date());
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
 
     const matches = useSelector((state) => state.matches.matches)
+    const today = new Date().toISOString().split("T")[0];
 
     const scrollY = useSharedValue(0);
     const pos = useSharedValue(0);
@@ -569,7 +570,9 @@ const Matches = () => {
                                 </Pressable>
                             </View>
                             <DatePicker
-                                date={formatDateToDatePicker(selectedDate)}
+                                date={formatDateToDatePicker(selectedDate) || today}
+                                current={today}
+                                minimumDate={today}
                                 mode="calendar"
                                 onDateChange={(dateString) => {
                                     setSelectedDate(formatDatePickerToDate(dateString));
