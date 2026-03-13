@@ -75,6 +75,8 @@ const PlayerDetails = ({
           fields: backendError,
         })
         console.log("Error fetching team:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchTeamByPlayer();
@@ -170,7 +172,7 @@ const PlayerDetails = ({
 
   // Normal scrollable content
   return (
-    <View style={tailwind`flex-1 bg-gray-50`}>
+    <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
       <Animated.ScrollView
         onScroll={handlerScroll}
         scrollEventThrottle={16}
@@ -179,7 +181,7 @@ const PlayerDetails = ({
       >
         {/* Current Club */}
         <View
-          style={tailwind`bg-white rounded-2xl shadow-md mx-3 mt-4 p-4 flex-row items-center`}
+          style={[tailwind`rounded-2xl shadow-md mx-3 mt-4 p-4 flex-row items-center`, {backgroundColor: '#1e293b'}]}
         >
           {currentClub?.media_url ? (
             <Image
@@ -189,19 +191,19 @@ const PlayerDetails = ({
             />
           ) : (
             <View
-              style={tailwind`h-14 w-14 rounded-full bg-indigo-500 items-center justify-center mr-4`}
+              style={[tailwind`h-14 w-14 rounded-full items-center justify-center mr-4`, { backgroundColor: '#334155' }]}
             >
-              <Text style={tailwind`text-white font-bold text-lg`}>
+              <Text style={[tailwind`font-bold text-lg`, { color: '#f1f5f9' }]}>
                 {currentClub?.name?.charAt(0).toUpperCase() ?? "?"}
               </Text>
             </View>
           )}
 
           <View>
-            <Text style={tailwind`text-base font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>
               {currentClub?.name ?? "No Club"}
             </Text>
-            <Text style={tailwind`text-xs text-gray-500`}>
+            <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
               Current Club
             </Text>
           </View>
@@ -209,25 +211,25 @@ const PlayerDetails = ({
 
         {/* Player Info Row */}
         <View
-          style={tailwind`bg-white rounded-2xl shadow-md mx-3 mt-4 p-4 flex-row justify-between`}
+          style={[tailwind` rounded-2xl shadow-md mx-3 mt-4 p-4 flex-row justify-between`, {backgroundColor: '#1e293b'}]}
         >
           <View>
-            <Text style={tailwind`text-xs text-gray-500 mb-1`}>Nationality</Text>
-            <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-xs mb-1`, { color: '#94a3b8' }]}>Nationality</Text>
+            <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
               {player?.country ?? "-"}
             </Text>
           </View>
 
           <View>
-            <Text style={tailwind`text-xs text-gray-500 mb-1`}>Position</Text>
-            <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-xs mb-1`, { color: '#94a3b8' }]}>Position</Text>
+            <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
               {player?.positions ?? "-"}
             </Text>
           </View>
 
           <View>
-            <Text style={tailwind`text-xs text-gray-500 mb-1`}>Joined</Text>
-            <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-xs mb-1`, { color: '#94a3b8' }]}>Joined</Text>
+            <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
               {currentClub?.join_date
                 ? formatToDDMMYY(convertToISOString(currentClub.join_date))
                 : "-"}
@@ -237,22 +239,22 @@ const PlayerDetails = ({
 
         {/* Player Profile Card */}
         <View
-          style={tailwind`bg-white rounded-2xl shadow-md mx-3 mt-4 p-5`}
+          style={[tailwind`rounded-2xl shadow-md mx-3 mt-4 p-5`, {backgroundColor: '#1e293b'}]}
         >
-          <Text style={tailwind`text-lg font-bold text-gray-900 mb-3`}>
+          <Text style={[tailwind`text-lg font-bold mb-3`, { color: '#94a3b8' }]}>
             Player Profile
           </Text>
 
           <View style={tailwind`mb-3`}>
-            <Text style={tailwind`text-xs text-gray-500 mb-1`}>Name</Text>
-            <Text style={tailwind`text-base font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-xs mb-1`, { color: '#94a3b8' }]}>Name</Text>
+            <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>
               {player?.name ?? "-"}
             </Text>
           </View>
 
           <View>
-            <Text style={tailwind`text-xs text-gray-500 mb-1`}>Country</Text>
-            <Text style={tailwind`text-base font-semibold text-gray-900`}>
+            <Text style={[tailwind`text-xs text-gray-500 mb-1`, { color: '#94a3b8' }]}>Country</Text>
+            <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>
               {player?.country ?? "-"}
             </Text>
           </View>

@@ -18,12 +18,10 @@ function Follower() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  // State
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState({global: null, fields: {}});
+  const [error, setError] = useState({ global: null, fields: {} });
 
-  // Redux
   const follower = useSelector((state) => state.user.follower);
 
   const fetchFollower = async (isRefreshing = false) => {
@@ -33,26 +31,27 @@ function Follower() {
       setLoading(true);
     }
 
-    setError(null);
-
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
+
       const response = await axiosInstance.get(`${BASE_URL}/getFollower`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       const item = response.data;
+
       if (item.success) {
         dispatch(getFollowerUser(item.data || []));
       }
     } catch (err) {
       setError({
         global: "Unable to get follower",
-        fields: err?.response.data?.error || {}
-      })
+        fields: err?.response?.data?.error || {},
+      });
+
       console.error("Unable to get follower: ", err);
     } finally {
       setLoading(false);
@@ -60,50 +59,43 @@ function Follower() {
     }
   };
 
-  // Fetch on mount
   useEffect(() => {
     fetchFollower();
   }, []);
 
-  //Handle pull to refresh
   const handleRefresh = () => {
     fetchFollower(true);
   };
 
-  // Navigate to user profile
   const handleProfile = (profilePublicID) => {
     navigation.navigate('Profile', { profilePublicID });
   };
 
-  // Render loading state
   if (loading && !refreshing) {
     return <LoadingState />;
   }
 
-  // Render error state
-  if (error && !follower?.length) {
-    return <ErrorState message={error} onRetry={() => fetchFollower()} />;
+  if (error.global && !follower?.length) {
+    return <ErrorState message={error.global} onRetry={() => fetchFollower()} />;
   }
 
-  // Render empty state
   if (!loading && !follower?.length) {
     return <EmptyState type="followers" />;
   }
 
-  // Render list
   return (
     <ScrollView
-      style={tailwind`flex-1 bg-gray-50`}
+      style={tailwind`flex-1 bg-slate-900`}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={['#f87171']}
-          tintColor="#f87171"
+          colors={['#ef4444']}
+          tintColor="#ef4444"
         />
       }
     >
-      <View style={tailwind`bg-white`}>
+      <View style={tailwind`bg-slate-900`}>
         {follower?.map((item, index) => (
           <UserListItem
             key={item?.profile?.public_id || index}

@@ -36,24 +36,30 @@ const TopTabPlayer = ({ player, parentScrollY, headerHeight, collapsedHeader }) 
 
   return (
     <TopTab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: "#f87171", // red-400
-          elevation: 4,
-          shadowOpacity: 0.2,
-        },
-        tabBarLabelStyle: {
-          fontSize: 14,
-          fontWeight: "600",
-          textTransform: "none",
-        },
-        tabBarIndicatorStyle: {
-          backgroundColor: "#fff",
-        },
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "#ffe4e6",
-      }}
+          screenOptions={{
+                headerShown: false,
+                tabBarStyle: {
+                    backgroundColor: '#1e293b',
+                    elevation: 0,
+                    shadowOpacity: 0,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#334155',
+                    zIndex: 20,
+                },
+                tabBarLabelStyle: {
+                    width: 100,
+                    fontSize: 14,
+                    fontWeight: '600',
+                    textTransform: 'none',
+                },
+                tabBarIndicatorStyle: {
+                    backgroundColor: '#f87171',
+                    height: 3,
+                    borderRadius: 2,
+                },
+                tabBarActiveTintColor: '#f1f5f9',
+                tabBarInactiveTintColor: '#64748b',
+        }}
     >
       <TopTab.Screen name="Details">
         {(props) => (

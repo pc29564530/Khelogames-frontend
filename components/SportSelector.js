@@ -39,7 +39,7 @@ const SportSelector = ({ containerStyle }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 4 }}
       >
-        {games?.map((s) => {
+        {games?.length > 0 && games?.map((s) => {
           const active = game?.id === s.id;
 
           return (
