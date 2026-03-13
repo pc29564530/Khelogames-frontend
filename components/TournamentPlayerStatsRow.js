@@ -9,7 +9,7 @@ const TournamentPlayerStatsRow = ({ player, type, rank }) => {
     const value = player.stat_value;
     switch(type) {
       case 'mostRuns':
-        return `${value} Runs`; 
+        return `${value} Runs`;
       case 'highestRuns':
         return `${value} Runs`;
       case 'battingStrike':
@@ -45,51 +45,53 @@ const TournamentPlayerStatsRow = ({ player, type, rank }) => {
     }
   };
 
-  const getRankStyle = () => {
+  const getRankColors = () => {
     switch(rank) {
       case 1:
-        return 'bg-yellow-100 text-yellow-700';
+        return { bg: '#854d0e20', text: '#fbbf24' };
       case 2:
-        return 'bg-gray-200 text-gray-700';
+        return { bg: '#33415530', text: '#94a3b8' };
       case 3:
-        return 'bg-orange-100 text-orange-700';
+        return { bg: '#9a340050', text: '#fb923c' };
       default:
-        return 'bg-gray-100 text-gray-600';
+        return { bg: '#334155', text: '#64748b' };
     }
   };
+
+  const rankColors = getRankColors();
 
   return (
     <View
       key={player.id}
-      style={tailwind`flex-row justify-between items-center py-3 border-b border-gray-100 last:border-b-0`}>
+      style={[tailwind`flex-row justify-between items-center py-3`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
       <View style={tailwind`flex-row items-center flex-1`}>
         {rank && (
-          <View style={tailwind`w-6 h-6 rounded-full ${getRankStyle()} items-center justify-center mr-2`}>
-            <Text style={tailwind`text-xs font-bold`}>{rank}</Text>
+          <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center mr-2`, { backgroundColor: rankColors.bg }]}>
+            <Text style={[tailwind`text-xs font-bold`, { color: rankColors.text }]}>{rank}</Text>
           </View>
         )}
-        <View style={tailwind`w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-3`}>
+        <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
           {player.image ? (
             <Image
               source={{ uri: player.image }}
               style={tailwind`w-10 h-10 rounded-full`}
             />
           ) : (
-            <Text style={tailwind`text-gray-600 font-bold`}>
+            <Text style={[tailwind`font-bold`, { color: '#94a3b8' }]}>
               {player.player_name?.charAt(0).toUpperCase() || '?'}
             </Text>
           )}
         </View>
         <View style={tailwind`flex-1`}>
-          <Text style={tailwind`font-semibold text-base text-gray-900`} numberOfLines={1}>
+          <Text style={[tailwind`font-semibold text-base`, { color: '#f1f5f9' }]} numberOfLines={1}>
             {player.player_name || 'Unknown Player'}
           </Text>
-          <Text style={tailwind`text-xs text-gray-500 mt-0.5`} numberOfLines={1}>
+          <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]} numberOfLines={1}>
             {player.team_name || 'No Team'}
           </Text>
         </View>
       </View>
-      <Text style={tailwind`text-base font-bold text-gray-900 ml-2`}>
+      <Text style={[tailwind`text-base font-bold ml-2`, { color: '#f1f5f9' }]}>
         {getStatDisplay()}
       </Text>
     </View>

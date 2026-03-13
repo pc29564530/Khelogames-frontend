@@ -1,7 +1,5 @@
 import React from "react";
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import ThreadProfileComponent from "../components/ThreadProfileCompement";
-import ThreadRepliesComponent from "../components/ThreadRepliesComponent";
 import Members from "../components/Members";
 import TeamMatches from "../screen/TeamMatches";
 import tailwind from "twrnc";
