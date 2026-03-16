@@ -4,9 +4,9 @@ import { addThreads, setThreads } from "../redux/actions/actions";
 import axiosInstance from "../screen/axios_config";
 import { handleInlineError, logSilentError } from "../utils/errorHandler";
 
-export const getAllThreadServices = async () => {
+export const getAllThreadServices = async ({limit, offset}) => {
         const authToken = await AsyncStorage.getItem("AccessToken");
-        const response = await axiosInstance.get(`${BASE_URL}/GetAllThreadDetailFunc`, {
+        const response = await axiosInstance.get(`${BASE_URL}/threads?limit=${limit}&offset=${offset}`, {
             headers: {
                 "Authorization": `Bearer ${authToken}`,
                 "Content-Type": 'application/json',

@@ -7,14 +7,17 @@ import { handleLikes, handleThreadComment, handleUser } from '../utils/ThreadUti
 import {getAllThreadServices} from '../services/threadsServices';
 import { handleInlineError } from '../utils/errorHandler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { setThreads } from '../redux/actions/actions';
+import { addThreads, setThreads } from '../redux/actions/actions';
 import { useNavigation } from '@react-navigation/native';
 
 const Thread = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const threads = useSelector((state) => state.threads.threads);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const limit = 10;
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -24,17 +27,29 @@ const Thread = () => {
     }, []);
 
     const fetchData = async () => {
+        if (isLoading || !hasMore) return;
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            const threadData = await getAllThreadServices();
-            const item = threadData.data;
-            if(item.success && item.data.length === 0) {
-                setError({
-                    global: null,
-                    fields: {},
-                });
+            const res = await getAllThreadServices({limit, offset});
+            const newThreads = Array.isArray(res?.data) ? res.data : [];
+
+            if (newThreads.length === 0) {
+                setError({ global: null, fields: {} });
+                setHasMore(false);
+                if (offset === 0) dispatch(setThreads([]));
+                return;
             }
-            dispatch(setThreads(item || []))
+
+            if (offset === 0) {
+                dispatch(setThreads(newThreads));
+            } else {
+                dispatch(addThreads(newThreads));
+            }
+            setOffset(prev => prev + newThreads.length);
+
+            // if fewer than limit received, no more threads
+            if (newThreads.length < limit) setHasMore(false);
+
         } catch (err) {
             setError({
                 global: "Unable to get all thread",
@@ -46,7 +61,9 @@ const Thread = () => {
         }
     };
 
-    if (isLoading && threads.length === 0) {
+    const threadList = Array.isArray(threads) ? threads : [];
+
+    if (isLoading && threadList.length === 0) {
         return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a'}}>
             <ActivityIndicator size="large" color="#f87171" />
@@ -54,7 +71,7 @@ const Thread = () => {
         );
     }
 
-    if (error.global && threads.length === 0) {
+    if (error.global && threadList.length === 0) {
         return (
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', paddingHorizontal: 32}}>
                 <MaterialIcons name="wifi-off" size={40} color="#475569" />
@@ -66,24 +83,31 @@ const Thread = () => {
             </View>
         );
     }
-
     return (
         <>
-            <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}} vertical={true}>
-                {threads.length === 0 && !error.global && (
+            <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}} vertical={true}
+                onScroll={({nativeEvent}) => {
+                    const {layoutMeasurement, contentOffset, contentSize} = nativeEvent;
+                    const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+                    if(isBottom){
+                        fetchData();
+                    }
+                }}
+            >
+                {threadList.length === 0 && !error.global && (
                     <View style={tailwind`flex-1 items-center justify-center py-20`}>
                         <MaterialIcons name="chat-bubble-outline" size={40} color="#475569" />
                         <Text style={{color: '#94a3b8', marginTop: 16, textAlign: 'center', fontSize: 14}}>No posts yet.{'\n'}Be the first to share something!</Text>
                     </View>
                 )}
-                {error.global && threads.length === 0 && (
+                {error.global && threadList.length === 0 && (
                     <View style={[tailwind`mx-4 mb-3 p-3 rounded-xl`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                         <Text style={tailwind`text-red-400 text-sm`}>
                             {error.global}
                         </Text>
                     </View>
                 )}
-                {threads.length > 0 && threads?.map((item) => (
+                {threadList.length > 0 && threadList.map((item) => (
                     <ThreadItem
                         key={item.public_id}
                         item={item}

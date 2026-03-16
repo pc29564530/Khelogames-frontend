@@ -10,7 +10,7 @@ const threadsReducers = (state=initialState, action) => {
         case actionTypes.SET_THREADS:
             return {
                 ...state,
-                threads: action.payload,
+                threads: Array.isArray(action.payload) ? action.payload : [],
             };
         case actionTypes.SET_LIKES:
             const threadPublicID = action.payload.threadPublicID;
@@ -29,9 +29,10 @@ const threadsReducers = (state=initialState, action) => {
                 threads: updateLikes,
             }
         case actionTypes.ADD_THREADS:
+            const newItems = Array.isArray(action.payload) ? action.payload : [action.payload];
             return {
                 ...state,
-                threads: [...state.threads, action.payload]
+                threads: [...state.threads, ...newItems]
             }
         default:
             return state

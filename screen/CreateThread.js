@@ -124,8 +124,8 @@ function CreateThread() {
             };
 
             const threadCreated = await addNewThreadServices({ thread });
-            if(threadCreated.success === true) {
-                dispatch(addThreads(threadCreated.data || []));
+            if(threadCreated.success === true && threadCreated.data) {
+                dispatch(addThreads(threadCreated.data));
             }
             navigation.goBack();
         } catch (err) {
