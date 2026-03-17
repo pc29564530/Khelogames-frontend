@@ -30,7 +30,7 @@ import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from
 import { handleInlineError } from '../utils/errorHandler';
 
 // get lead and trail status
-const getLeadTrailStatus = (match, batTeam) => {
+export const getLeadTrailStatus = (match, batTeam) => {
     if (!match?.homeScore?.length || !match?.awayScore?.length) return '';
     const homeTeam = match.homeTeam;
     const awayTeam = match.awayTeam;
@@ -105,7 +105,7 @@ const CricketMatchPage = ({ route }) => {
     const cricketToss = useSelector(state => state.cricketToss.cricketToss);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
-    const inningStatus = useSelector(state => state.cricketMatchScore.inningStatus);
+    const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState({
@@ -348,7 +348,7 @@ const CricketMatchPage = ({ route }) => {
         const isBatting = cricketToss?.tossDecision === "Batting";
         const batTeamId = isBatting
             ? (tossWonTeamPublicId === match?.homeTeam?.public_id ? match?.homeTeam?.public_id : match?.awayTeam?.public_id)
-            : (tossWonTeamPublicId !== match?.homeTeam?.public_id ? match?.awayTeam?.public_id : match?.awayTeam?.public_id);
+            : (tossWonTeamPublicId === match?.homeTeam?.public_id ? match?.awayTeam?.public_id : match?.homeTeam?.public_id);
 
         dispatch(setBatTeam(batTeamId));
     }, [match, cricketToss, batTeam]);
@@ -402,7 +402,7 @@ const CricketMatchPage = ({ route }) => {
             await axiosInstance.post(`${BASE_URL}/${game.name}/endInning`, {
                 match_public_id: match.public_id,
                 team_public_id: batTeam,
-                inning: currentInningNumber
+                inning_number: currentInningNumber
             }, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
@@ -500,8 +500,8 @@ const CricketMatchPage = ({ route }) => {
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
                     if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
+                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
                     }
                 } else if(message.payload.event_type === "no_ball") {
                     if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
@@ -509,8 +509,8 @@ const CricketMatchPage = ({ route }) => {
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
                     if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
+                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
                     }
                 } else if(message.payload.event_type === "wicket") {
                     if(message.payload.out_batsman) dispatches.push(setBatsmanScore(message.payload.out_batsman));
@@ -519,8 +519,8 @@ const CricketMatchPage = ({ route }) => {
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
                     if(message.payload.wickets) dispatches.push(addCricketWicketFallen(message.payload.wickets));
                     if(message.payload.inning_score.inning_status !== "in_progress"){
-                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                        dispatchRef.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
+                        dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
+                        dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
                     }
                 }
                 
@@ -536,8 +536,8 @@ const CricketMatchPage = ({ route }) => {
             
             if(message.type === "INNING_STATUS"){
                 const payload = message.payload;
-                    dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number));
-                    
+                    dispatchRef.current(setInningStatus(payload.inning_score.inning_status, payload.inning_score.inning_number));
+
                     // Also update batsman and bowler data from INNING_STATUS message
                     if(payload.striker) {
                         dispatchRef.current(setBatsmanScore(payload.striker));
@@ -550,7 +550,7 @@ const CricketMatchPage = ({ route }) => {
                     }
                     if(payload.inning_score) {
                         dispatchRef.current(setInningScore(payload.inning_score));
-                        dispatchRef.current(setInningStatus(payload.inning_score.inning_status, message.payload.inning_score.innning_number))
+                        dispatchRef.current(setInningStatus(payload.inning_score.inning_status, payload.inning_score.inning_number))
                         dispatchRef.current(setCurrentInningNumber(payload.inning_score.inning_number))
                     }
                 // }

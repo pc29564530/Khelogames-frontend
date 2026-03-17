@@ -76,7 +76,7 @@ const cricketMatchScoreReducers = (state = initialstate, action) => {
                     awayScore: action.payload.team_id === state.match.awayTeam.id ? action.payload : state.match.awayScore
                 }
 
-            }
+            };
         case actionTypes.SET_MATCH_STATUS: {
             console.log("🔄 SET_MATCH_STATUS - Received payload:", action.payload);
             

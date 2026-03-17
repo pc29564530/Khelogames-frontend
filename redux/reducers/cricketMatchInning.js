@@ -27,6 +27,7 @@ const cricketMatchInningReducer = (state = initialState, action) => {
             console.log("Inning Lien no 31: ", action.payload)
             if(nextInningNumber < state.currentInningNumber) {
                 console.warn("Ignoring outdated status for inning", nextInningNumber)
+                return state;
             }
             if (state.inningStatus === "completed" && status === "in_progress") {
                 console.warn("Ignoring in_progress because inning already completed");

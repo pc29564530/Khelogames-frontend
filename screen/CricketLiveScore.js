@@ -24,7 +24,7 @@ import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, inter
 import { current } from '@reduxjs/toolkit';
 import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
 import { useWebSocket } from '../context/WebSocketContext';
-import getLeadTrailStatus from '../screen/CricketMatchPage'
+import { getLeadTrailStatus } from '../screen/CricketMatchPage'
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
@@ -137,7 +137,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 const item = response.data;
                 dispatch(setBatTeam(item.data.batting_team.public_id))
                 dispatch(setCurrentInningNumber(item.data.inning.inning_number))
-                dispatch(setInningStatus(item.data.inning.inning_status, item.inning.inning_number))
+                dispatch(setInningStatus(item.data.inning.inning_status, item.data.inning.inning_number))
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields;
                 setError({
@@ -253,7 +253,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 const data = {
                     match_public_id: match.public_id,
                     team_public_id: batTeam,
-                    inning: currentInningNumber
+                    inning_number: currentInningNumber
                 }
     
                 const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketEndInning`, data,{
@@ -558,7 +558,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     </View>
                 </View>
                 {inningStatus === "completed" ? (
-                    <InningActionModal 
+                    <InningActionModal
                         match={match}
                         currentInning={currentInning}
                         inningStatus={inningStatus}
@@ -567,6 +567,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         currentInningNumber={currentInningNumber}
                         MAX_INNINGS={MAX_INNINGS}
                         getNextInning={getNextInning}
+                        setInningVisible={setInningVisible}
                         isFollowOnApplicable={isFollowOnApplicable}
                         followOn={followOn}
                         setFollowOn={setFollowOn}
@@ -746,7 +747,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                                     <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#f87171'}]} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
                                         <Text style={[tailwind`text-lg`, {color: '#ffffff'}]}>true</Text>
                                     </Pressable>
-                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#334155'}]}  onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
+                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#334155'}]}  onPress={() => {setIsBatsmanStrikeChange(false); setIsModalBatsmanStrikeChange(false) }}>
                                         <Text style={[tailwind`text-lg`, {color: '#f1f5f9'}]}>false</Text>
                                     </Pressable>
                                 </View>
@@ -797,10 +798,10 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     <TouchableOpacity onPress={toggleMenu} style={tailwind``}>
                         <View style={tailwind`flex-row justify-end`}>
                             <View style={[tailwind`mt-12 mr-4 rounded-lg p-4 gap-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
-                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                <TouchableOpacity onPress={() => { setIsModalBattingVisible(true); toggleMenu(); }}>
                                     <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Batsman </Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleEndInning()}>
+                                <TouchableOpacity onPress={() => { setIsModalBowlingVisible(true); toggleMenu(); }}>
                                     <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Bowler</Text>
                                 </TouchableOpacity>
                             </View>
@@ -830,6 +831,7 @@ const InningActionModal = ({
   setFollowOn
 }) => {
 
+  const dispatch = useDispatch();
   const battingTeamName = batTeam === match.homeTeam.public_id ? match.homeTeam.name : match.awayTeam.name;
   const bowlingTeamName = batTeam === match.homeTeam.public_id ? match.awayTeam.name : match.homeTeam.name;
 
