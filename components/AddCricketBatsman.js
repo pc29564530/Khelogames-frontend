@@ -34,6 +34,11 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
                 })
                 dispatch(getCricketMatchSquad(response.data || []));
             } catch (err) {
+                const backendErrors = err?.response?.data?.error?.fields;
+                setError({
+                    global: "Unable to get batting squad",
+                    fields: backendErrors,
+                });
                 console.error("Failed to fetch batting squad", err);
             }
     }
@@ -62,7 +67,7 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
                 is_currently_batting: true,
                 inning_number: currentInningNumber,
             }
-            console.log("Add Batsman Data: ", data)
+
             const authToken = await AsyncStorage.getItem("AccessToken")
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBatScore`, data, {
                 headers: {
@@ -70,13 +75,23 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
                     'Content-Type': 'application/json',
                 },
             })
-            console.log("Batsman: ", response.data)
-            if(response.data){
-                setSelectedBatsman(response.data)
+            if(response.data.success && response.data.data){
+                setSelectedBatsman(response.data.data)
                 handleAddBatsmanWebSocket()
-                // dispatch(addBatsman(response.data || {}));
             }
         } catch (err) {
+             const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add new cricket batsman",
+                    fields: backendErrors,
+                });
+            }
             console.log("Failed to add the batsman: ", err);
         }
     }

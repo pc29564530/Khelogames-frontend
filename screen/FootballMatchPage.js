@@ -287,10 +287,17 @@ const FootballMatchPage = ({ route }) => {
             });
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields || {};
-            setError({
-                global: err?.response?.data?.error?.message || "Unable to update match status. Please try again.",
-                fields: backendErrors,
-            });
+            if(err?.response?.data?.error?.code === "FORBIDDEN"){
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to update match status. Please try again.",
+                    fields: backendErrors,
+                });
+            }
             setStatusVisible(true);
             console.error("Unable to update the match status: ", err);
         } finally {
@@ -343,10 +350,17 @@ const FootballMatchPage = ({ route }) => {
             });
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields || {};
-            setError({
-                global: err?.response?.data?.error?.message || "Unable to update match sub-status. Please try again.",
-                fields: backendErrors,
-            });
+            if(err?.response?.data?.error?.code === "FORBIDDEN"){
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to update match sub-status. Please try again",
+                    fields: backendErrors,
+                });
+            }
 
             // Re-open modal to show error
             setSubStatusVisible(true);

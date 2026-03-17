@@ -122,10 +122,17 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             setDescription('');
             fetchHighlights();
         } catch (err) {
-            setError({
-                global: err?.response?.data?.error?.message || 'Failed to upload highlight',
-                fields: err?.response?.data?.error?.fields || {},
-            });
+            if(err?.response?.data?.error?.code === "FORBIDDEN"){
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: 'Failed to upload highlight',
+                    fields: err?.response?.data?.error?.fields || {},
+                });
+            }
             console.log("Failed to create match media: ", err);
         } finally {
             setUploading(false);

@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useLayoutEffect} from 'react';
 import {View, Text, Pressable, Modal, ScrollView} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -110,93 +110,106 @@ const CreatePlayerProfile = () => {
         }
     }
 
-    navigation.setOptions({
-        headerTitle: 'Create Player',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" size={24} color="white" style={tailwind`ml-4`} />
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+            <Text style={{ color: '#f1f5f9', fontSize: 16, fontWeight: '600' }}>
+                Add Player
+            </Text>
+            ),
+            headerStyle: {
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
+            },
+            headerTintColor: '#e2e8f0',
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                <AntDesign name="arrowleft" size={24} color="#e2e8f0" />
             </Pressable>
-        ),
-    });
+            ),
+        });
+    }, [navigation]);
 
     const handleCloseModal = () => {
         setIsSportVisible(false);
     }
 
     return (
-        <View style={tailwind`flex-1 bg-gray-50`}>
+        <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
             {error?.global && (
-                <View style={tailwind`mx-3 mb-3 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-                    <Text style={tailwind`text-red-700 text-sm`}>
+                <View style={[tailwind`mx-4 mb-3 p-3 rounded-xl`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#ef4444'}]}>
+                    <Text style={{color: '#f87171', fontSize: 13}}>
                         {error?.global}
                     </Text>
                 </View>
             )}
             <ScrollView style={tailwind`flex-1`} contentContainerStyle={tailwind`px-5 pt-6 pb-8`}>
                 <View style={tailwind`items-center mb-8`}>
-                    <Pressable style={tailwind`w-28 h-28 bg-white rounded-full items-center justify-center border-2 border-gray-200`}>
-                        <FontAwesome name="user-plus" size={32} color="#6B7280" />
+                    <Pressable style={[tailwind`w-28 h-28 rounded-full items-center justify-center`, {backgroundColor: '#1e293b', borderWidth: 2, borderColor: '#334155'}]}>
+                        <FontAwesome name="user-plus" size={32} color="#94a3b8" />
                     </Pressable>
-                    <Text style={tailwind`text-sm text-gray-600 mt-3 font-medium`}>Add Player Photo</Text>
+                    <Text style={{color: '#94a3b8', fontSize: 13, marginTop: 12, fontWeight: '500'}}>Add Player Photo</Text>
                 </View>
 
                 <View style={tailwind`mb-5`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Sport</Text>
+                    <Text style={{color: '#e2e8f0', fontSize: 13, fontWeight: '600', marginBottom: 8}}>Sport</Text>
                     <Pressable
                         onPress={() => setIsSportVisible(true)}
-                        style={tailwind`bg-white border ${error?.game_id ? 'border-red-400' : 'border-gray-300'} rounded-lg px-4 py-4 flex-row items-center justify-between`}
+                        style={[tailwind`rounded-xl px-4 py-4 flex-row items-center justify-between`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: error?.game_id ? '#ef4444' : '#334155'}]}
                     >
-                        <Text style={tailwind`text-base ${game.name ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text style={{color: game.name ? '#f1f5f9' : '#64748b', fontSize: 15}}>
                             {game.name || 'Select sport'}
                         </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color="#9CA3AF" />
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
                     </Pressable>
                     {error?.fields?.game_id && (
-                        <Text style={tailwind`text-red-500 text-xs mt-1.5 ml-1`}>{error?.fields?.game_id}</Text>
+                        <Text style={{color: '#f87171', fontSize: 11, marginTop: 6, marginLeft: 4}}>{error?.fields?.game_id}</Text>
                     )}
                 </View>
 
                 <View style={tailwind`mb-5`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Position</Text>
+                    <Text style={{color: '#e2e8f0', fontSize: 13, fontWeight: '600', marginBottom: 8}}>Position</Text>
                     <Pressable
                         onPress={() => {
                             setIsPositionsVisible(true);
                         }}
-                        style={tailwind`bg-white border ${error?.position ? 'border-red-400' : 'border-gray-300'} rounded-lg px-4 py-4 flex-row items-center justify-between`}
+                        style={[tailwind`rounded-xl px-4 py-4 flex-row items-center justify-between`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: error?.position ? '#ef4444' : '#334155'}]}
                     >
-                        <Text style={tailwind`text-base ${position ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text style={{color: position ? '#f1f5f9' : '#64748b', fontSize: 15}}>
                             {position || 'Select position'}
                         </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color="#9CA3AF" />
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
                     </Pressable>
                     {error?.fields?.position && (
-                        <Text style={tailwind`text-red-500 text-xs mt-1.5 ml-1`}>{error.position}</Text>
+                        <Text style={{color: '#f87171', fontSize: 11, marginTop: 6, marginLeft: 4}}>{error.position}</Text>
                     )}
                 </View>
 
                 <View style={tailwind`mb-8`}>
-                    <Text style={tailwind`text-sm font-semibold text-gray-700 mb-2`}>Country</Text>
+                    <Text style={{color: '#e2e8f0', fontSize: 13, fontWeight: '600', marginBottom: 8}}>Country</Text>
                     <Pressable
                         onPress={() => {
                             setIsCountryPicker(true);
                         }}
-                        style={tailwind`bg-white border ${error?.country ? 'border-red-400' : 'border-gray-300'} rounded-lg px-4 py-4 flex-row items-center justify-between`}
+                        style={[tailwind`rounded-xl px-4 py-4 flex-row items-center justify-between`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: error?.country ? '#ef4444' : '#334155'}]}
                     >
-                        <Text style={tailwind`text-base ${playerCountry?.name ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <Text style={{color: playerCountry?.name ? '#f1f5f9' : '#64748b', fontSize: 15}}>
                             {playerCountry?.name || 'Select country'}
                         </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color="#9CA3AF" />
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
                     </Pressable>
                     {error?.fields?.country && (
-                        <Text style={tailwind`text-red-500 text-xs mt-1.5 ml-1`}>{error?.fields?.country}</Text>
+                        <Text style={{color: '#f87171', fontSize: 11, marginTop: 6, marginLeft: 4}}>{error?.fields?.country}</Text>
                     )}
                 </View>
 
                 <Pressable
-                    style={tailwind`bg-blue-600 rounded-lg py-4 items-center shadow-sm`}
+                    style={[tailwind`rounded-xl py-4 items-center`, {backgroundColor: '#ef4444'}]}
                     onPress={() => handleAddPlayer()}
                 >
-                    <Text style={tailwind`text-white text-base font-semibold`}>Create Player Profile</Text>
+                    <Text style={{color: '#ffffff', fontSize: 15, fontWeight: '600'}}>Create Player Profile</Text>
                 </Pressable>
             </ScrollView>
 
@@ -222,18 +235,18 @@ const CreatePlayerProfile = () => {
                     visible={isSportVisible}
                     onRequestClose={handleCloseModal}
                 >
-                    <Pressable onPress={() => setIsSportVisible(false)} style={tailwind`flex-1 justify-end bg-black/50`}>
-                        <View style={tailwind`bg-white rounded-t-2xl pt-2 pb-8 max-h-96`}>
-                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mb-4`} />
-                            <Text style={tailwind`text-lg font-semibold text-gray-900 px-5 mb-3`}>Select Sport</Text>
+                    <Pressable onPress={() => setIsSportVisible(false)} style={tailwind`flex-1 justify-end bg-black/60`}>
+                        <View style={[tailwind`rounded-t-2xl pt-2 pb-8 max-h-96`, {backgroundColor: '#1e293b'}]}>
+                            <View style={[tailwind`w-12 h-1.5 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
+                            <Text style={{color: '#f1f5f9', fontSize: 17, fontWeight: '600', paddingHorizontal: 20, marginBottom: 12}}>Select Sport</Text>
                             <ScrollView>
                                 {games.map((item, index) => (
                                     <Pressable
                                         key={index}
                                         onPress={() => handleSportSelection(item)}
-                                        style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                        style={[tailwind`px-5 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                     >
-                                        <Text style={tailwind`text-base text-gray-900`}>{item.name}</Text>
+                                        <Text style={{color: '#e2e8f0', fontSize: 15}}>{item.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>
@@ -249,18 +262,18 @@ const CreatePlayerProfile = () => {
                     visible={isPositionsVisible}
                     onRequestClose={handleCloseModal}
                 >
-                    <Pressable onPress={() => setIsPositionsVisible(false)} style={tailwind`flex-1 justify-end bg-black/50`}>
-                        <View style={tailwind`bg-white rounded-t-2xl pt-2 pb-8 max-h-96`}>
-                            <View style={tailwind`w-12 h-1.5 bg-gray-300 rounded-full self-center mb-4`} />
-                            <Text style={tailwind`text-lg font-semibold text-gray-900 px-5 mb-3`}>Select Position</Text>
+                    <Pressable onPress={() => setIsPositionsVisible(false)} style={tailwind`flex-1 justify-end bg-black/60`}>
+                        <View style={[tailwind`rounded-t-2xl pt-2 pb-8 max-h-96`, {backgroundColor: '#1e293b'}]}>
+                            <View style={[tailwind`w-12 h-1.5 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
+                            <Text style={{color: '#f1f5f9', fontSize: 17, fontWeight: '600', paddingHorizontal: 20, marginBottom: 12}}>Select Position</Text>
                             <ScrollView>
                                 {game.name && filePath[`${game.name}`]?.map((item, index) => (
                                     <Pressable
                                         key={index}
                                         onPress={() => {setPosition(item.code), setIsPositionsVisible(false)}}
-                                        style={tailwind`px-5 py-4 border-b border-gray-100 active:bg-gray-50`}
+                                        style={[tailwind`px-5 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                                     >
-                                        <Text style={tailwind`text-base text-gray-900`}>{item.name}</Text>
+                                        <Text style={{color: '#e2e8f0', fontSize: 15}}>{item.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>

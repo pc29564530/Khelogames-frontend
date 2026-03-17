@@ -26,7 +26,19 @@ const SetCurrentBowler = ({match, batTeam, homePlayer, awayPlayer, game, dispatc
            dispatch(setBowlerScore(response.data.current_bowler || {}));
            
         } catch (err) {
-            console.error("Failed to update bowler bowling status; ", err);
+            const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to update bowler bowling status",
+                    fields: backendErrors,
+                });
+            }
+            console.error("Unable to update bowler bowling status; ", err);
         }
     }
     return (

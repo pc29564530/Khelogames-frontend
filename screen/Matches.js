@@ -564,10 +564,6 @@ const Matches = () => {
                                 <Text style={{ color: "#f1f5f9", fontSize: 18, fontWeight: "700" }}>
                                 Select Date
                                 </Text>
-
-                                <Pressable onPress={() => setIsModalStartTimeVisible(false)}>
-                                <MaterialIcons name="close" size={22} color="#94a3b8" />
-                                </Pressable>
                             </View>
                             <DatePicker
                                 date={formatDateToDatePicker(selectedDate) || today}

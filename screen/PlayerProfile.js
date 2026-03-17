@@ -32,7 +32,8 @@ import TopTabPlayer from '../navigation/TopTabPlayer';
 const PlayerProfile = ({ route }) => {
   const dispatch = useDispatch();
   const { publicID, from } = route.params;
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [playerExists, setPlayerExists] = useState(null);
   const [player, setPlayer] = useState(null);
   const [nameWidth, setNameWidth] = useState(0);
   const navigation = useNavigation();
@@ -174,7 +175,6 @@ const PlayerProfile = ({ route }) => {
   useEffect(() => {
     const fetchPlayer = async () => {
       try {
-        setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
 
         let url =
@@ -191,9 +191,11 @@ const PlayerProfile = ({ route }) => {
 
         if (response.data.success && response.data.data) {
           setPlayer(response.data.data);
-        } else if(response.data.success && response.data.data === null) {
+          setPlayerExists(true);
+        } else {
+          setPlayerExists(false);
           if(authProfilePublicID === publicID) {
-            navigation.navigate("CreatePlayerProfile")
+            navigation.replace("CreatePlayerProfile");
           }
         }
       } catch (err) {
@@ -202,6 +204,7 @@ const PlayerProfile = ({ route }) => {
           fields: {},
         })
         console.error('Failed to get player profile: ', err);
+        setPlayerExists(false);
       } finally {
         setLoading(false);
       }
@@ -209,12 +212,16 @@ const PlayerProfile = ({ route }) => {
     fetchPlayer();
   }, []);
 
-  if (loading) {
+  if (loading || playerExists === null) {
     return (
       <View style={tailwind`flex-1 items-center justify-center`}>
         <ActivityIndicator size="large" color="#ef4444" />
       </View>
     );
+  }
+
+  if (!playerExists) {
+    return null;
   }
 
   return (

@@ -91,11 +91,18 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             dispatch(setCricketMatchToss(response.data))
             setIsTossedModalVisible(false);
         } catch (err) {
-            const backendErrors = err.response.data.error.fields;
-            setError({
-                global: "Unable to create cricket toss",
-                fields: backendErrors,
-            });
+             const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add the cricket match toss",
+                    fields: backendErrors,
+                });
+            }
             console.error("unable to add the toss: ", err);
         } finally {
             setLoading(false);
@@ -114,10 +121,18 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     }
                 });
 
-                if (response.data && response.data.tossWonTeam) {
-                    setIsTossed(true);
+                const item = response.data;
+                if(item.success && !item.data) {
+                    setIsTossed(false);
+                    dispatch(setCricketMatchToss(item.data));
+                } else {
+                    if (response.succes && item.data) {
+                        setIsTossed(true);
+                    }
+                    dispatch(setCricketMatchToss(item.data))
                 }
-                dispatch(setCricketMatchToss(response.data))
+
+                
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields;
                 setError({

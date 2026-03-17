@@ -87,7 +87,6 @@ const CreateTournament = () => {
             }
 
             const validation = validateTournamentForm(formData);
-            console.log("Validation Result: ", validation);
             if (!validation.isValid) {
                 setError({
                     global: null,
@@ -133,14 +132,14 @@ const CreateTournament = () => {
             }
         } catch (err) {
             const backendErrors = err.response?.data?.error?.fields || {};
-            if (backendErrors.global) {
+            if (err?.response?.data?.error?.code === "FORBIDDEN") {
                 setError({
-                    global: backendErrors.global,
+                    global: err?.response?.data?.error?.message,
                     fields: {},
                 });
             } else {
                 setError({
-                    global: err?.response?.data?.error?.message || "Unable to create tournament",
+                    global: "Unable to create tournament",
                     fields: backendErrors,
                 });
             }
@@ -309,9 +308,9 @@ const CreateTournament = () => {
                     <Text style={{color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14}}>Stage</Text>
                     <View style={[tailwind`flex-row rounded-xl p-1`, {backgroundColor: '#0f172a'}]}>
                         {Stages.map((item, index) => (
-                        <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-2.5 rounded-lg`, stage===item && tailwind`bg-red-400`]}>
-                            <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:{color: '#94a3b8'}]}>{item}</Text>
-                        </Pressable>
+                            <Pressable key={index} onPress={() => {setStage(item)}} style={[tailwind`flex-1 items-center py-2.5 rounded-lg`, stage===item && tailwind`bg-red-400`]}>
+                                <Text style={[tailwind`text-sm`, stage===item?tailwind`text-white font-semibold`:{color: '#94a3b8'}]}>{item}</Text>
+                            </Pressable>
                         ))}
                     </View>
                     {error?.fields.stage && (

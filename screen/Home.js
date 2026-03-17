@@ -15,6 +15,7 @@ import { getTournamentBySportAndTrending } from '../services/tournamentServices'
 import { getMatches, setGames, setGame } from '../redux/actions/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SportSelector from '../components/SportSelector';
+import { convertToISOString, formatToDDMMYY } from '../utils/FormattedDateTime';
 
 const QUICK_ACTIONS = [
   { id: 'tournament', icon: 'emoji-events', label: 'Create\nTournament', color: '#f87171', screen: 'CreateTournament' },
@@ -116,7 +117,7 @@ const EmptyState = ({ icon, title, subtitle, buttonLabel, onPress }) => (
   <View style={{
     backgroundColor: '#1e293b', borderRadius: 16,
     padding: 28, alignItems: 'center',
-    borderWidth: 1, borderColor: '#334155', borderStyle: 'dashed',
+    borderWidth: 1, borderColor: '#334155'
   }}>
     <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
       <MaterialIcons name={icon} size={28} color="#475569" />
@@ -144,21 +145,22 @@ const getIconForSport = (name) => {
 
 const getTeamScore = (match, side) => {
   const score = side === 'home' ? match.homeScore : match.awayScore;
-  if (match.sport === 'football') return score?.goals?.toString() || '0';
+  if (match.sport === 'football') return score?.goals?.toString();
   if (match.sport === 'cricket' && Array.isArray(score) && score.length > 0) {
     const latest = score[score.length - 1];
     return `${latest.score ?? 0}/${latest.wickets ?? 0}`;
   }
-  return '-';
+  return;
 };
 
 const getMatchTime = (match) => {
-  if (match.sub_status) return match.sub_status;
-  if (match.sport === 'cricket') {
-    const scores = match.homeScore;
-    if (Array.isArray(scores) && scores.length > 0) return `${scores[scores.length - 1].overs ?? 0} Ov`;
+  if(match.status_code === "not_started"){
+    return formatToDDMMYY(convertToISOString(match.start_timestamp))
+  } else if(match_status_code === "in_progress") {
+    if(game.name === "cricket"){
+      if(match.sub_status) return match.sub_status;
+    }
   }
-  return 'Live';
 };
 
 // Main Component
@@ -168,7 +170,7 @@ function Home() {
   const games = useSelector((state) => state.sportReducers.games);
   const game  = useSelector((state) => state.sportReducers.game);
 
-  const [liveMatches, setLiveMatches]      = useState([]);
+  const [trendingMatches, setTrendingMatches]      = useState([]);
   const [tournaments, setTournaments]      = useState([]);
   const [topPerformers, setTopPerformers]  = useState({ batting: [], bowling: [], goals: [] });
   const [highlights, setHighlights]        = useState([]);
@@ -228,10 +230,10 @@ function Home() {
     setLoading(true);
     try {
       // Live Matches
-      const liveRes = await axiosInstance.get(`${BASE_URL}/${game.name}/getLiveMatches`);
+      const liveRes = await axiosInstance.get(`${BASE_URL}/${game.name}/get-trending-matches`);
       const liveData = (liveRes.data?.data || []).map(m => ({ ...m, sport: game.name }));
       dispatch(getMatches(liveRes.data));
-      setLiveMatches(liveData.slice(0, 5));
+      setTrendingMatches(liveData.slice(0, 5));
       // Tournaments
       const tournRes = await getTournamentBySportAndTrending({ game });
       const tournamentList = tournRes?.data?.tournament || [];
@@ -258,10 +260,28 @@ function Home() {
     || topPerformers.goals.length > 0;
 
   const isEverythingEmpty = !loading
-    && liveMatches.length === 0
+    && trendingMatches.length === 0
     && tournaments.length === 0
     && highlights.length === 0
     && !hasPerformers;
+
+  const checkMatchStatus = (item) => {
+    if(item.status_code === "not_started") {
+      return "Upcoming"
+    } else if(item.status_code === "in_progress") {
+      return "Live"
+    } else {
+      return "Finished"
+    }
+  }
+
+  const checkMatchSport = (item) => {
+    if(game.name==="cricket") {
+      navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id});
+    } else if(game.name === "football") {
+      navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id})
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
@@ -324,27 +344,28 @@ function Home() {
           </View>
         )}
 
-        {/* LIVE MATCHES */}
+        {/* TRENDING MATCHES */}
         <View style={{ marginTop: 20 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 10 }}>
-            <LiveDot />
-            <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>LIVE MATCHES</Text>
+            {/* <LiveDot /> */}
+            <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>TRENDING MATCHES</Text>
           </View>
 
           {loading && <SkeletonHero />}
 
-          {!loading && liveMatches.length > 0 && (
+          {!loading && trendingMatches.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-              {liveMatches.map((item, index) => (
+              {trendingMatches.map((item, index) => (
                 <Pressable
                   key={item.public_id || index}
                   style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}
                   onPress={() => navigation.navigate("ClubPage")}
                 >
+                  {console.log("Line no 370: ", item)}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <LiveDot />
-                      <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>LIVE</Text>
+                      <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>{checkMatchStatus(item)}</Text>
                     </View>
                     <View style={{ backgroundColor: sportColor(item.sport) + '22', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 }}>
                       <Text style={{ color: sportColor(item.sport), fontSize: 11, fontWeight: '600' }}>
@@ -354,33 +375,42 @@ function Home() {
                   </View>
 
                   <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 14 }} numberOfLines={1}>
-                    {item.tournament?.name || ''}
+                    {item.tournament?.name}
                   </Text>
 
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: '#cbd5e1', fontSize: 14, fontWeight: '500' }} numberOfLines={1}>
-                        {item.homeTeam?.short_name || item.homeTeam?.name || 'Home'}
+                  <View style={tailwind`flex-row items-start`}>
+                    {/* HOME TEAM */}
+                    <View style={tailwind`flex-1`}>
+                      <Text numberOfLines={1} style={{ color: '#cbd5e1', fontSize: 14, fontWeight: '500' }}>
+                        {item.homeTeam?.name}
                       </Text>
-                      <Text style={{ color: '#f1f5f9', fontSize: 28, fontWeight: '800', marginTop: 2 }}>
-                        {getTeamScore(item, 'home')}
+                      {item.homeScore && (
+                        <Text style={{ color: '#f1f5f9', fontSize: 28, fontWeight: '800', marginTop: 2 }}>
+                          {getTeamScore(item, 'home')}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* CENTER */}
+                    <View style={tailwind`flex-1 items-center`}>
+                      <Text style={{ color: '#475569', fontSize: 11, fontWeight: '600' }}>
+                        {getMatchTime(item)}
                       </Text>
                     </View>
-                    <View style={{ alignItems: 'center', paddingHorizontal: 12 }}>
-                      <Text style={{ color: '#475569', fontSize: 11, fontWeight: '600' }}>{getMatchTime(item)}</Text>
-                      <Text style={{ color: '#334155', fontSize: 20, fontWeight: '700', marginTop: 2 }}>VS</Text>
-                    </View>
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                      <Text style={{ color: '#cbd5e1', fontSize: 14, fontWeight: '500' }} numberOfLines={1}>
-                        {item.awayTeam?.short_name || item.awayTeam?.name || 'Away'}
+
+                    {/* AWAY TEAM */}
+                    <View style={tailwind`flex-1 items-end`}>
+                      <Text numberOfLines={1} style={{ color: '#cbd5e1', fontSize: 14, fontWeight: '500' }}>
+                        {item.awayTeam?.name}
                       </Text>
-                      <Text style={{ color: '#f1f5f9', fontSize: 28, fontWeight: '800', marginTop: 2 }}>
-                        {getTeamScore(item, 'away')}
-                      </Text>
+                      {item.awayScore && (
+                        <Text style={{ color: '#f1f5f9', fontSize: 28, fontWeight: '800', marginTop: 2 }}>
+                          {getTeamScore(item, 'away')}
+                        </Text>
+                      )}
                     </View>
                   </View>
-
-                  <Pressable style={{ marginTop: 18, backgroundColor: '#f87171', borderRadius: 12, paddingVertical: 10, alignItems: 'center' }}>
+                  <Pressable onPress={() => checkMatchSport(item)} style={{ marginTop: 18, backgroundColor: '#f87171', borderRadius: 12, paddingVertical: 10, alignItems: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>View Full Scorecard</Text>
                   </Pressable>
                 </Pressable>
@@ -388,7 +418,7 @@ function Home() {
             </ScrollView>
           )}
 
-          {!loading && liveMatches.length === 0 && (
+          {!loading && trendingMatches.length === 0 && (
             <View style={{ paddingHorizontal: 16 }}>
               <EmptyState icon="sports-score" title="No Live Matches Right Now"
                 subtitle="Check back later or explore upcoming tournaments and local leagues."
@@ -450,7 +480,7 @@ function Home() {
             <Text style={{ color: '#94a3b8', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>TOP PERFORMERS</Text>
           </View>
 
-          {loading && <SkeletonPerformers />}
+          {/* {loading && <SkeletonPerformers />} */}
 
           {/* Football — Goals */}
           {!loading && game?.name === 'football' && topPerformers.goals.length > 0 && (
@@ -460,7 +490,7 @@ function Home() {
                 <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 13, marginLeft: 6 }}>Top Scorers</Text>
               </View>
               {topPerformers.goals.map((p, i) => (
-                <View key={p.player?.public_id || i} style={{ backgroundColor: '#1e293b', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#334155', flexDirection: 'row', alignItems: 'center' }}>
+                <View key={p.player?.public_id || i} style={{ backgroundColor: '#1e293b', borderRadius: 14, padding: 14, marginBottom: 10, borderColor: '#334155', flexDirection: 'row', alignItems: 'center', shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 6, elevation: 4 }}>
                   <Text style={{ color: '#475569', fontWeight: '800', fontSize: 16, width: 28 }}>#{i + 1}</Text>
                   <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
                     <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{p.player?.name?.charAt(0)?.toUpperCase() || '?'}</Text>

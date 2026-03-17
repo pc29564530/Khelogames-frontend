@@ -84,7 +84,7 @@ function CreateCommunity() {
     return (
 
         <ScrollView
-            style={{ flex: 1, backgroundColor: '#020617' }}
+            style={{ flex: 1, backgroundColor: '#0f172a' }}
             contentContainerStyle={tailwind`p-4`}
             keyboardShouldPersistTaps="handled"
         >
@@ -284,13 +284,12 @@ function CreateCommunity() {
 
 
             {/* Create Button */}
-
             <Pressable
                 onPress={handleCreateCommunity}
                 disabled={loading}
                 style={[
                     tailwind`mt-5 rounded-2xl py-4 items-center flex-row justify-center`,
-                    loading ? { backgroundColor: '#334155' } : tailwind`bg-red-400`
+                    loading ? { backgroundColor: '#334155' } : {backgroundColor: '#ef4444'}
                 ]}
             >
 

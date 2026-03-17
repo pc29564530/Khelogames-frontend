@@ -94,8 +94,8 @@ const EditClub = ({ route }) => {
             console.log("Updated team: ", updatedTeam);
             const authToken = await AsyncStorage.getItem('AccessToken');
             console.log("team public id: ", teamData.public_id.toString())
-            const response = await axiosInstance.put(
-                `${BASE_URL}/${game.name}/update-team-location/${teamData.public_id.toString()}`,
+            const res = await axiosInstance.put(
+                `${BASE_URL}/${game.name}/update-team/${teamData.public_id.toString()}`,
                 updatedTeam,
                 {
                     headers: {
@@ -104,12 +104,23 @@ const EditClub = ({ route }) => {
                     },
                 }
             );
-
-            Alert.alert('Success', 'Team updated successfully!');
-            navigation.goBack();
+            if(res.data.success && res.data.data) {
+                navigation.goBack();
+            }
         } catch (err) {
+            const backendErrors = err?.response?.data?.error?.fields || {};
+            if(err?.response?.data?.error?.code === "FORBIDDEN"){
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to update team. Please try again.",
+                    fields: backendErrors,
+                });
+            }
             console.error('Unable to update the team: ', err);
-            Alert.alert('Error', 'Failed to update team. Please try again.');
         }
     };
 

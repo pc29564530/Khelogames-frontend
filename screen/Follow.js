@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -16,7 +16,7 @@ function Follow() {
     navigation.setOptions({
       headerTitle: 'Connections',
       headerStyle: {
-        backgroundColor: '#0f172a',
+        backgroundColor: '#1e293b',
         elevation: 0,
         shadowOpacity: 0,
       },
@@ -31,7 +31,6 @@ function Follow() {
         <Pressable
           onPress={() => navigation.goBack()}
           style={tailwind`ml-4 p-2`}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <AntDesign name="arrowleft" size={22} color="#f1f5f9" />
         </Pressable>
@@ -40,35 +39,41 @@ function Follow() {
   }, [navigation]);
 
   return (
-    <TopTab.Navigator
-      screenOptions={{
-          headerShown: false,
+    <View style={tailwind`flex-1 bg-slate-900`}>
+      <TopTab.Navigator
+        screenOptions={{
           tabBarStyle: {
-              backgroundColor: '#1e293b',
-              elevation: 0,
-              shadowOpacity: 0,
-              borderBottomWidth: 1,
-              borderBottomColor: '#334155',
-              zIndex:20,
+            backgroundColor: '#1e293b',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#334155',
           },
+
           tabBarLabelStyle: {
-              width:100,
-              fontSize: 14,
-              fontWeight: '600',
-              textTransform: 'none',
+            fontSize: 14,
+            fontWeight: '600',
+            textTransform: 'none',
           },
+
           tabBarIndicatorStyle: {
-              backgroundColor: '#f87171',
-              height: 3,
-              borderRadius: 2,
+            backgroundColor: '#f87171',
+            height: 3,
+            borderRadius: 2,
           },
+
           tabBarActiveTintColor: '#f1f5f9',
           tabBarInactiveTintColor: '#64748b',
-      }}
-    >
-      <TopTab.Screen name="Followers" component={Follower} />
-      <TopTab.Screen name="Following" component={Following} />
-    </TopTab.Navigator>
+
+          sceneContainerStyle: {
+            backgroundColor: '#0f172a',
+          },
+        }}
+      >
+        <TopTab.Screen name="Followers" component={Follower} />
+        <TopTab.Screen name="Following" component={Following} />
+      </TopTab.Navigator>
+    </View>
   );
 }
 

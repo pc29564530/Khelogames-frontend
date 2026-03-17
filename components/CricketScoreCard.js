@@ -244,7 +244,8 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 dispatch(getCricketWicketFallen(response?.data?.data || []))
                 setWicketsData(response.data.data || []);
             } catch (err) {
-                console.error("failed to get the wickets: ", err)
+
+                console.log("failed to get the wickets: ", err)
             }
         }
         fetchTeamWickets()

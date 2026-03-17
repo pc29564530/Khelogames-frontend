@@ -312,10 +312,17 @@ const TournamentParticipants = ({
       await fetchParticipants();
       setIsModalVisible(false);
     } catch (err) {
-      setModalError({
-        global: 'Unable to add participant',
-        fields: err?.response?.data?.error?.fields || {},
-      });
+      if(err?.response?.data?.error?.code === "FORBIDDEN"){
+          setModalError({
+              global: err?.response?.data?.error?.message,
+              fields: {},
+          })
+      } else {
+        setModalError({
+          global: 'Unable to add participant',
+          fields: err?.response?.data?.error?.fields || {},
+        });
+      }
     } finally {
       setSubmitting(false);
     }

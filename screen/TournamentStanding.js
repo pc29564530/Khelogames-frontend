@@ -229,10 +229,17 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
 
     } catch (err) {
       const backendError = err?.response?.data?.error?.fields || {};
-      setModalError({
-        global: err?.response?.data?.error?.message || 'Failed to add teams. Please try again.',
-        fields: backendError,
-      });
+      if(err?.response?.data?.error?.code === "FORBIDDEN"){
+          setModalError({
+              global: err?.response?.data?.error?.message,
+              fields: {},
+          })
+      } else {
+        setModalError({
+          global: 'Failed to add teams to standing. Please try again.',
+          fields: backendError,
+        });
+      }
       console.log("Unable to add teams to group: ", err);
     } finally {
       setLoading(false);

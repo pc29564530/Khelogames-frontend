@@ -11,6 +11,7 @@ import { getTeamPlayers } from '../redux/actions/actions';
 const positions = require('../assets/position.json');
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 import { validateFootballLineUp } from '../utils/validation/footballLineupValidation';
+import { useFocusEffect } from '@react-navigation/native';
 
 //TODO: Squad selection should display the current squad selected
 const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) => {
@@ -34,6 +35,12 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const players = useSelector((state) => state.players.players);
 
   const {height: sHeight, width: sWidth} = Dimensions.get("window");
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setCurrentTeamPlayer(homeTeamPublicID)
+  },[]))
+
   //checking for auth user
   useEffect(() => {
     const fetchUser = async () => {
@@ -109,14 +116,12 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     try {
       setLoading(true);
       setError({ global: null, fields: {} });
-
+      //Remove substitue for validation
       const payload = {
         match_public_id: match.public_id,
         team_public_id: currentTeamPlayer,
-        player: selectedSquad,
-        is_substitute: isSubstituted,
+        player: selectedSquad
       };
-
       const validation = validateFootballLineUp(payload);
       if (!validation.isValid) {
         setError({ global: null, fields: validation.errors });
@@ -145,13 +150,19 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           },
         }
       );
-      console.log("Squad added successfully: ", response.data);
       setCurrentSquad(response.data.data || []);
     } catch (err) {
-      setError({
-        global: err?.response?.data?.error?.message || "Unable to create squad for match",
-        fields: err?.response?.data?.error?.fields || {}
-      })
+      if(err?.response.data?.error?.code === "FORBIDDEN"){
+        setError({
+          global: err?.response?.data?.error?.message,
+          fields: {},
+        })
+      } else {
+        setError({
+          global: "Unable to create squad for match",
+          fields: err?.response?.data?.error?.fields || {}
+        })
+      }
       console.log('Unable to create squad for match: ', err);
     } finally {
       setLoading(false);
@@ -312,6 +323,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       </View>
 
       {/* Squad selector */}
+      {/* Check for team manager */}
       <AddTeamPlayerButton />
       </Animated.View>
       {/* Current Lineup */}
@@ -436,6 +448,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                   <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>{error.global}</Text>
                 </View>
               )}
+              {error?.fields.player && (
+                <View style={[tailwind`mx-4 mb-4 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                  <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>{error.fields.player}</Text>
+                </View>
+              )}
 
               {/* Player list */}
               <ScrollView contentContainerStyle={tailwind`pb-20 pt-2`}>
@@ -450,6 +467,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                         isSelected && { backgroundColor: '#10b98115' }
                       ]}
                     >
+
                       {itm?.media_url ? (
                         <Image
                           source={{ uri: itm.media_url }}

@@ -95,10 +95,17 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: "Unable to update regular score",
-                    fields: backendErrors,
-                });
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: "Unable to update batting and runs and ball",
+                        fields: backendErrors,
+                    });
+                }
                 console.log("Failed to add the runs and balls: ", err.response.data.error)
             }
         }
@@ -146,14 +153,21 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     global: null,
                     fields: {},
                 });
-                console.log("No Ball: ", response.data)
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to update no ball score",
-                    fields: backendErrors,
-                });
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: "Unable to add no ball",
+                        fields: backendErrors,
+                    });
+                }
+                console.log("Unable to add no ball: ", err);
                 console.error("Failed to add no ball: ", err)
             }
         }
@@ -205,11 +219,18 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to update wide ball score",
-                    fields: backendErrors,
-                });
-                console.error("Failed to add wide ball: ", err);
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: "Unable to update wide ball",
+                        fields: backendErrors,
+                    });
+                }
+                console.log("Unable to update wide ball: ", err);
             }
         }
         // Wicket Update
@@ -242,38 +263,67 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     console.log("Unable to add wicket", validation.errors);
                     return;
                 }
-
-                const newMessage = {
-                    "type": "UPDATE_SCORE",
-                    "payload": {
-                        match_public_id: formData.match_public_id,
-                        batting_team_public_id: formData.batsman_team_public_id,
-                        bowling_team_public_id: formData.bowling_team_public_id,
-                        batsman_public_id: formData.batsman_public_id,
-                        bowler_public_id: formData.bowler_public_id,
-                        wicket_type: formData.wicket_type,
-                        fielder_public_id: formData.fielder_public_id,
-                        runs_scored: formData.runs_scored,
-                        bowl_type: formData.bowl_type,
-                        toggle_striker: isBatsmanStrikeChange,
-                        inning: formData.inning_number,
-                        "event_type": "wicket"
-                    }
+                const data = {
+                    match_public_id: match.public_id,
+                    batsman_team_public_id: batTeam,
+                    bowling_team_public_id: bowlingTeamId,
+                    batsman_public_id: batting?.player.public_id,
+                    bowler_public_id: currentBowler[0]?.player?.public_id,
+                    wicket_type: wicketType,
+                    fielder_public_id: wicketType === "Stamp" ? currentWicketKeeper?.public_id :
+                                       (wicketType === 'Run Out' || wicketType === "Catch") ? selectedFielder?.public_id : null,
+                    runs_scored: temp,
+                    bowl_type: addCurrentScoreEvent.length === 2 ? addCurrentScoreEvent[1] : null,
+                    inning_number: currentInningNumber,
                 }
+
+                const response = await axiosInstance.put(`${BASE_URL}/${game.name}/wickets`, {data}, {
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                // const newMessage = {
+                //     "type": "UPDATE_SCORE",
+                //     "payload": {
+                //         match_public_id: formData.match_public_id,
+                //         batting_team_public_id: formData.batsman_team_public_id,
+                //         bowling_team_public_id: formData.bowling_team_public_id,
+                //         batsman_public_id: formData.batsman_public_id,
+                //         bowler_public_id: formData.bowler_public_id,
+                //         wicket_type: formData.wicket_type,
+                //         fielder_public_id: formData.fielder_public_id,
+                //         runs_scored: formData.runs_scored,
+                //         bowl_type: formData.bowl_type,
+                //         toggle_striker: isBatsmanStrikeChange,
+                //         inning: formData.inning_number,
+                //         event_type: "wicket"
+                //     }
+                // }
+
+                
 
                 // Check if WebSocket is ready before sending
-                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify(newMessage));
-                }
+                // if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                //     wsRef.current.send(JSON.stringify(newMessage));
+                // }
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: "Unable to update wicket",
-                    fields: backendErrors,
-                })
-                console.error("Failed to add the wickets: ", err)
-            }
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                        setError({
+                            global: err?.response?.data?.error?.message,
+                            fields: {},
+                        })
+                    } else {
+                        setError({
+                            global: "Unable to update wicket",
+                            fields: backendErrors,
+                        });
+                    }
+                    console.log("Unable to update wicket: ", err);
+                }
         }
     }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInningNumber, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange, game, setError]);
 

@@ -164,12 +164,19 @@ const StandardIncidentForm = ({
             }
         } catch (err) {
             if (isMountedRef.current) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Failed to add incident. Please try again.",
-                    fields: backendErrors,
-                });
-                console.error("Unable to add the incident:", err);
+                const backendErrors = err?.response?.data?.error?.fields;
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: "Unable to add football incident",
+                        fields: backendErrors,
+                    });
+                }
+                console.error("Unable to add football incident:", err);
             }
         } finally {
             if (isMountedRef.current) {

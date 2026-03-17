@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions, Image, FlatList, ActivityIndicator } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -137,24 +137,26 @@ const Club = () => {
         dispatch(setGame(item));
     }
 
-    navigation.setOptions({
-        headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Team</Text>
-        ),
-        headerStyle: {
-            backgroundColor: '#1e293b',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 0,
-        },
-        headerTintColor: 'white',
-        headerTitleAlign: 'center',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
-            </Pressable>
-        ),
-    });
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+                <Text style={tailwind`text-xl font-bold text-white`}>Team</Text>
+            ),
+            headerStyle: {
+                backgroundColor: '#1e293b',
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: 0,
+            },
+            headerTintColor: 'white',
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+                <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                    <AntDesign name="arrowleft" size={24} color="white" />
+                </Pressable>
+            ),
+        });
+    }, [navigation]);
 
     const renderFilterTeams = ({ item }) => {
         return (

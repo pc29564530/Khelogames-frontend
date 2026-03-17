@@ -1,326 +1,364 @@
 import { useState } from 'react';
-import { Text, View, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import {
+  Text,
+  View,
+  TextInput,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions
+} from 'react-native';
+
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useDispatch } from 'react-redux';
-import tailwind from 'twrnc';
-import { AUTH_URL } from '../constants/ApiConstants';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { setAuthenticated, setUser } from '../redux/actions/actions';
+
+import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { AUTH_URL } from '../constants/ApiConstants';
+import { setAuthenticated, setUser } from '../redux/actions/actions';
+
 import { storeRefreshToken, storeRefreshTokenExpiresAt } from '../utils/SecureStorage';
 import { validateAuthForm } from '../utils/validation/authValidation';
-import { WEB_CLIENT_ID } from '@env';
+
+const { width, height } = Dimensions.get("window");
+
+/* responsive helpers */
+
+const CARD_WIDTH = Math.min(width * 0.92, 420);
+const ICON_SIZE = Math.min(width * 0.08, 32);
+const FONT_TITLE = Math.min(width * 0.065, 26);
+const FONT_TEXT = Math.min(width * 0.04, 16);
 
 const SignUp = () => {
-    const dispatch = useDispatch();
-    const navigation = useNavigation();
 
-    const [formData, setFormData] = useState({
-        full_name: '',
-        email: '',
-        password: '',
-        confirm_password: ''
-    });
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState({
-        global: null,
-        fields: {},
-    });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    password: '',
+    confirm_password: ''
+  });
 
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        if (error[field]) {
-            setError(prev => { const e = { ...prev }; delete e[field]; return e; });
-        }
-        if (error.global) {
-            setError(prev => ({ ...prev, global: null }));
-        }
-    };
+  const [loading, setLoading] = useState(false);
 
-    const handleEmailSignUp = async () => {
-        try {
-            const validation = validateAuthForm(formData);
-            if (!validation.isValid) {
-                setError(validation.errors);
-                return;
-            }
-            setLoading(true);
-            const signupData = {
-                full_name: formData.full_name.trim(),
-                email: formData.email.toLowerCase().trim(),
-                password: formData.password
-            };
-            const response = await axios.post(`${AUTH_URL}/google/createEmailSignUp`, signupData);
-            if (response.data.success) {
-                const item = response.data;
-                await AsyncStorage.setItem("AccessToken", item.accessToken);
-                await AsyncStorage.setItem("Role", item.user?.role);
-                await AsyncStorage.setItem("UserPublicID", item?.user?.public_id);
-                await AsyncStorage.setItem("AccessTokenExpiresAt", item.accessTokenExpiresAt);
-                await storeRefreshToken(item.refreshToken);
-                await storeRefreshTokenExpiresAt(item.refreshTokenExpiresAt);
-                dispatch(setAuthenticated(true));
-                dispatch(setUser(item.user));
-                navigation.navigate("Home");
-            }
-        } catch (err) {
-            setError({ 
-                global: err.response?.data?.error?.message || 'Unable to create account. Please try again.',
-                fields: {}
-             });
-            console.log("Unable to create account:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const handleNavigateLogin = () => navigation.navigate('SignIn');
+  const [error, setError] = useState({
+    global: null,
+    fields: {},
+  });
 
-    navigation.setOptions({
-        title: '',
-        headerStyle: { backgroundColor: '#0f172a' },
-        headerTintColor: 'white',
-        headerRight: () => (
-            <View style={tailwind`mr-4`}>
-                <Pressable onPress={handleNavigateLogin}>
-                    <FontAwesome name="close" size={22} color="white" />
-                </Pressable>
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleEmailSignUp = async () => {
+
+    try {
+
+      const validation = validateAuthForm(formData);
+
+      if (!validation.isValid) {
+        setError(validation.errors);
+        return;
+      }
+
+      setLoading(true);
+
+      const signupData = {
+        full_name: formData.full_name.trim(),
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password
+      };
+
+      const response = await axios.post(`${AUTH_URL}/google/createEmailSignUp`, signupData);
+
+      if (response.data.success) {
+
+        const item = response.data;
+
+        await AsyncStorage.setItem("AccessToken", item.accessToken);
+        await AsyncStorage.setItem("Role", item.user?.role);
+        await AsyncStorage.setItem("UserPublicID", item?.user?.public_id);
+        await AsyncStorage.setItem("AccessTokenExpiresAt", item.accessTokenExpiresAt);
+
+        await storeRefreshToken(item.refreshToken);
+        await storeRefreshTokenExpiresAt(item.refreshTokenExpiresAt);
+
+        dispatch(setAuthenticated(true));
+        dispatch(setUser(item.user));
+
+        navigation.navigate("Home");
+      }
+
+    } catch (err) {
+
+      setError({
+        global: err.response?.data?.error?.message || "Unable to create account",
+        fields: {}
+      });
+
+    } finally {
+      setLoading(false);
+    }
+
+  };
+
+  navigation.setOptions({
+    title: '',
+    headerStyle: { backgroundColor: '#0f172a' },
+    headerTintColor: 'white',
+    headerRight: () => (
+      <View style={{ marginRight: 16 }}>
+        <Pressable onPress={() => navigation.navigate('SignIn')}>
+          <FontAwesome name="close" size={22} color="white" />
+        </Pressable>
+      </View>
+    )
+  });
+
+  return (
+
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#0f172a" }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
+
+      {/* Header */}
+
+      <View
+        style={{
+          paddingTop: height * 0.1,
+          paddingBottom: height * 0.05,
+          alignItems: "center",
+          paddingHorizontal: 20
+        }}
+      >
+
+        <View
+          style={{
+            backgroundColor: "#1e293b",
+            width: width * 0.16,
+            height: width * 0.16,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 16
+          }}
+        >
+          <MaterialIcons name="emoji-events" size={ICON_SIZE} color="#ef4444" />
+        </View>
+
+        <Text style={{ color: "#f1f5f9", fontSize: FONT_TITLE, fontWeight: "bold" }}>
+          Create Account
+        </Text>
+
+        <Text style={{ color: "#94a3b8", marginTop: 6, textAlign: "center" }}>
+          Join Kridagram and start your journey
+        </Text>
+
+      </View>
+
+      {/* Card */}
+
+      <View
+        style={{
+          width: CARD_WIDTH,
+          alignSelf: "center",
+          backgroundColor: "#1e293b",
+          borderRadius: 20,
+          padding: 20,
+          borderWidth: 1,
+          borderColor: "#334155"
+        }}
+      >
+
+        {error.global && (
+          <View style={{ marginBottom: 14 }}>
+            <Text style={{ color: "#f87171", textAlign: "center" }}>
+              {error.global}
+            </Text>
+          </View>
+        )}
+
+        {/* INPUT FUNCTION */}
+
+        {[
+          { key: "full_name", label: "Full Name", icon: "person" },
+          { key: "email", label: "Email", icon: "email" }
+        ].map(item => (
+
+          <View key={item.key} style={{ marginBottom: 16 }}>
+
+            <Text style={{ color: "#cbd5f5", marginBottom: 6 }}>
+              {item.label}
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#020617",
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 12
+              }}
+            >
+
+              <MaterialIcons name={item.icon} size={20} color="#64748b" />
+
+              <TextInput
+                style={{
+                  flex: 1,
+                  marginLeft: 10,
+                  color: "white",
+                  fontSize: FONT_TEXT
+                }}
+                placeholder={`Enter ${item.label}`}
+                placeholderTextColor="#64748b"
+                value={formData[item.key]}
+                onChangeText={(text) => handleInputChange(item.key, text)}
+              />
+
             </View>
-        )
-    });
 
-    return (
-        <ScrollView
-            style={tailwind`flex-1`}
-            contentContainerStyle={{ backgroundColor: '#0f172a' }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+          </View>
+
+        ))}
+
+        {/* PASSWORD */}
+
+        <View style={{ marginBottom: 16 }}>
+
+          <Text style={{ color: "#cbd5f5", marginBottom: 6 }}>
+            Password
+          </Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#020617",
+              borderRadius: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 12
+            }}
+          >
+
+            <MaterialIcons name="lock" size={20} color="#64748b" />
+
+            <TextInput
+              style={{ flex: 1, marginLeft: 10, color: "white", fontSize: FONT_TEXT }}
+              placeholder="Enter password"
+              placeholderTextColor="#64748b"
+              secureTextEntry={!showPassword}
+              value={formData.password}
+              onChangeText={(text) => handleInputChange("password", text)}
+            />
+
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <MaterialIcons
+                name={showPassword ? "visibility" : "visibility-off"}
+                size={20}
+                color="#64748b"
+              />
+            </Pressable>
+
+          </View>
+
+        </View>
+
+        {/* CONF PASSWORD */}
+        <View style={{ marginBottom: 16 }}>
+
+          <Text style={{ color: "#cbd5f5", marginBottom: 6 }}>
+            Password
+          </Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#020617",
+              borderRadius: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 12
+            }}
+          >
+
+            <MaterialIcons name="lock" size={20} color="#64748b" />
+
+            <TextInput
+              style={{ flex: 1, marginLeft: 10, color: "white", fontSize: FONT_TEXT }}
+              placeholder="Enter password"
+              placeholderTextColor="#64748b"
+              secureTextEntry={!showPassword}
+              value={formData.password}
+              onChangeText={(text) => handleInputChange("password", text)}
+            />
+
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <MaterialIcons
+                name={showPassword ? "visibility" : "visibility-off"}
+                size={20}
+                color="#64748b"
+              />
+            </Pressable>
+
+          </View>
+
+        </View>
+
+        {/* BUTTON */}
+
+        <Pressable
+          style={{
+            backgroundColor: "#ef4444",
+            borderRadius: 12,
+            paddingVertical: 14,
+            alignItems: "center"
+          }}
+          onPress={handleEmailSignUp}
         >
 
-            {/* Header */}
-            <View style={tailwind`pt-14 pb-12 px-6 items-center`}>
-                
-                <View style={tailwind`bg-slate-800 w-16 h-16 rounded-2xl items-center justify-center mb-4`}>
-                <MaterialIcons name="emoji-events" size={32} color="#ef4444" />
-                </View>
-
-                <Text style={tailwind`text-slate-100 text-2xl font-bold`}>
+          {loading
+            ? <ActivityIndicator color="white" />
+            : <Text style={{ color: "white", fontWeight: "bold", fontSize: FONT_TEXT }}>
                 Create Account
+              </Text>
+          }
+
+        </Pressable>
+
+        {/* Login Link */}
+        <View style={tailwind`flex-row justify-center items-center`}>
+            <Text style={tailwind`text-slate-400 text-sm`}>
+                Already have an account?
+            </Text>
+
+            <Pressable onPress={() => navigation.navigate("SignIn")}>
+                <Text style={tailwind`text-red-400 text-sm font-semibold ml-1`}>
+                Sign In
                 </Text>
+            </Pressable>
+        </View>
 
-                <Text style={tailwind`text-slate-400 text-sm mt-2 text-center`}>
-                Join Kridagram and start your journey
-                </Text>
+      </View>
 
-            </View>
+    </ScrollView>
 
-            {/* Form Card */}
-            <View style={tailwind`mx-5 bg-slate-800 px-6 pt-6 pb-10 rounded-2xl border border-slate-700`}>
+  );
 
-                {/* Global Error */}
-                {error.global && (
-                <View style={tailwind`mb-4 px-4 py-3 bg-red-900/30 border border-red-500/40 rounded-xl`}>
-                    <Text style={tailwind`text-red-400 text-sm text-center`}>
-                    {error.global}
-                    </Text>
-                </View>
-                )}
-
-                {/* Full Name */}
-                <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
-                    Full Name
-                </Text>
-
-                <View
-                    style={[
-                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
-                    {
-                        backgroundColor: '#020617',
-                        borderColor: error.full_name ? '#ef4444' : '#334155'
-                    }
-                    ]}
-                >
-                    <MaterialIcons name="person" size={20} color="#64748b" />
-
-                    <TextInput
-                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
-                    placeholder="Enter your full name"
-                    placeholderTextColor="#64748b"
-                    value={formData.full_name}
-                    onChangeText={text => handleInputChange('full_name', text)}
-                    autoCapitalize="words"
-                    />
-                </View>
-
-                {error.full_name && (
-                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
-                    {error.full_name}
-                    </Text>
-                )}
-                </View>
-
-                {/* Email */}
-                <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
-                    Email
-                </Text>
-
-                <View
-                    style={[
-                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
-                    {
-                        backgroundColor: '#020617',
-                        borderColor: error.email ? '#ef4444' : '#334155'
-                    }
-                    ]}
-                >
-                    <MaterialIcons name="email" size={20} color="#64748b" />
-
-                    <TextInput
-                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
-                    placeholder="Enter your email"
-                    placeholderTextColor="#64748b"
-                    value={formData.email}
-                    onChangeText={text => handleInputChange('email', text)}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    />
-                </View>
-
-                {error.email && (
-                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
-                    {error.email}
-                    </Text>
-                )}
-                </View>
-
-                {/* Password */}
-                <View style={tailwind`mb-4`}>
-                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
-                    Password
-                </Text>
-
-                <View
-                    style={[
-                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
-                    {
-                        backgroundColor: '#020617',
-                        borderColor: error.password ? '#ef4444' : '#334155'
-                    }
-                    ]}
-                >
-                    <MaterialIcons name="lock" size={20} color="#64748b" />
-
-                    <TextInput
-                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
-                    placeholder="Min 8 chars, uppercase & number"
-                    placeholderTextColor="#64748b"
-                    value={formData.password}
-                    onChangeText={text => handleInputChange('password', text)}
-                    secureTextEntry={!showPassword}
-                    />
-
-                    <Pressable onPress={() => setShowPassword(!showPassword)}>
-                    <MaterialIcons
-                        name={showPassword ? 'visibility' : 'visibility-off'}
-                        size={20}
-                        color="#64748b"
-                    />
-                    </Pressable>
-                </View>
-
-                {error.password && (
-                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
-                    {error.password}
-                    </Text>
-                )}
-                </View>
-
-                {/* Confirm Password */}
-                <View style={tailwind`mb-6`}>
-                <Text style={tailwind`text-slate-300 text-sm font-medium mb-2`}>
-                    Confirm Password
-                </Text>
-
-                <View
-                    style={[
-                    tailwind`flex-row items-center rounded-xl px-4 py-3 border`,
-                    {
-                        backgroundColor: '#020617',
-                        borderColor: error.confirm_password ? '#ef4444' : '#334155'
-                    }
-                    ]}
-                >
-                    <MaterialIcons name="lock" size={20} color="#64748b" />
-
-                    <TextInput
-                    style={tailwind`flex-1 text-slate-100 text-base ml-3`}
-                    placeholder="Re-enter your password"
-                    placeholderTextColor="#64748b"
-                    value={formData.confirm_password}
-                    onChangeText={text => handleInputChange('confirm_password', text)}
-                    secureTextEntry={!showConfirmPassword}
-                    />
-
-                    <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    <MaterialIcons
-                        name={showConfirmPassword ? 'visibility' : 'visibility-off'}
-                        size={20}
-                        color="#64748b"
-                    />
-                    </Pressable>
-                </View>
-
-                {error.confirm_password && (
-                    <Text style={tailwind`text-red-400 text-xs mt-1 ml-1`}>
-                    {error.confirm_password}
-                    </Text>
-                )}
-                </View>
-
-                {/* Create Account Button */}
-                <Pressable
-                style={[
-                    tailwind`py-4 rounded-xl items-center justify-center mb-4`,
-                    { backgroundColor: loading ? '#f87171aa' : '#ef4444' }
-                ]}
-                onPress={handleEmailSignUp}
-                disabled={loading}
-                >
-                {loading ? (
-                    <ActivityIndicator size="small" color="white" />
-                ) : (
-                    <Text style={tailwind`text-white text-base font-bold`}>
-                    Create Account
-                    </Text>
-                )}
-                </Pressable>
-
-                {/* Login Link */}
-                <View style={tailwind`flex-row justify-center items-center`}>
-                <Text style={tailwind`text-slate-400 text-sm`}>
-                    Already have an account?
-                </Text>
-
-                <Pressable onPress={handleNavigateLogin}>
-                    <Text style={tailwind`text-red-400 text-sm font-semibold ml-1`}>
-                    Sign In
-                    </Text>
-                </Pressable>
-                </View>
-
-            </View>
-
-        </ScrollView>
-    );
 };
 
 export default SignUp;

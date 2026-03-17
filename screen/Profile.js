@@ -15,6 +15,7 @@ import { logoutServies } from '../services/authServies';
 import { handleUser } from '../utils/ThreadUtils';
 import { current } from '@reduxjs/toolkit';
 import ToastManager from '../utils/ToastManager';
+import { CommentValidationFields } from '../utils/validation/commentValidation';
 
 function Profile({route}) {
   const dispatch = useDispatch();
@@ -288,9 +289,9 @@ const handleReduxUnFollow = async () => {
             <Text style={tailwind`text-white text-2xl font-bold`}>{currentProfile?.full_name?.charAt(0)?.toUpperCase()}</Text>
           </View>
         )}
-        <Text style={tailwind`mt-3 text-lg font-bold text-white`}>{currentProfile?.full_name || 'Loading...'}</Text>
-        <Text style={tailwind`text-white/100 text-sm mt-0.5`}>@{currentProfile?.username || '...'}</Text>
-        <View style={tailwind`flex-row mt-5 bg-white/15 rounded-2xl px-6 py-3`}>
+        <Text numberOfLines={1} style={tailwind`mt-3 text-lg font-bold text-white`}>{currentProfile?.full_name || 'Loading...'}</Text>
+        <Text numberOfLines={1} style={tailwind`text-white/100 text-sm mt-0.5`}>@{currentProfile?.username || '...'}</Text>
+        <View style={[tailwind`flex-row mt-5 bg-white/15 rounded-2xl px-6 py-3`, {maxWidth: 260, alignSelf: 'center'}]}>
           <Pressable style={tailwind`items-center px-4`}>
             <Text style={tailwind`text-white text-lg font-bold`}>{followerCount}</Text>
             <Text style={tailwind`text-white/100 text-sm mt-0.5`}>Followers</Text>
@@ -304,8 +305,8 @@ const handleReduxUnFollow = async () => {
       </View>
 
       {/* Menu */}
-      <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}}>
-        <View style={[tailwind`mx-4 mt-4 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]} >
+      <ScrollView style={{flex: 1, backgroundColor: '#0f172a'}} contentContainerStyle={{paddingBottom: 40}}>
+        <View style={[tailwind`mx-4 mt-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
           {/* Menu Items */}
 
           <Pressable onPress={() => navigation.navigate("PlayerProfile", {publicID: currentProfile?.public_id, from: "profile_menu"})}style={tailwind`flex-row items-center py-4 px-4`}>
@@ -328,11 +329,6 @@ const handleReduxUnFollow = async () => {
           </Pressable>
         </View>
 
-        {/* {isPlayer && ( */}
-          <View style={[tailwind`mx-4 mt-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
-
-          </View>
-        {/* )} */}
 
         {/* My Community Section */}
         <View style={[tailwind`mx-4 mt-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>

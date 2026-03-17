@@ -148,12 +148,19 @@ const ShootoutIncidentForm = ({
             }
         } catch (err) {
             if (isMountedRef.current) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to add incident. Please try again.",
-                    fields: backendErrors
-                });
-                console.error("Unable to add penalty shootout:", err);
+                const backendErrors = err?.response?.data?.error?.fields;
+                if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    })
+                } else {
+                    setError({
+                        global: "Unable to add football incident",
+                        fields: backendErrors,
+                    });
+                }
+                console.log("Unable to add football shootout incident:", err);
             }
         } finally {
             if (isMountedRef.current) {

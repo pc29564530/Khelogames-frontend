@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -141,46 +141,48 @@ const CreateMatch = ({ route }) => {
         } catch (err) {
           //Extract validation errors from backend response
           const backendErrors = err?.response?.data?.error?.fields || {};
-          setError({
-            global: "Unable to create match",
-            fields: backendErrors,
-          })
+          if(err?.response?.data?.error?.code === "FORBIDDEN"){
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+          } else {
+            setError({
+              global: "Unable to create match",
+              fields: backendErrors,
+            })
+          }
         } finally {
           setLoading(false);
         }
     };
-
-    navigation.setOptions({
-      headerTitle: "Create Match",
-      headerTitleAlign: "center",
-      headerStyle: {
-        backgroundColor: '#1e293b',
-        height: 60,
-        elevation: 0,
-        shadowOpacity: 0,
-        borderBottomWidth: 1,
-        borderBottomColor: '#334155',
-      },
-      headerTitleStyle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: '#f1f5f9',
-      },
-      headerLeft: () => (
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={tailwind`p-3 ml-2`}
-        >
-          <AntDesign name="arrowleft" size={22} color="#f1f5f9" />
-        </Pressable>
-      ),
-    });
-    
-    
-
-    useEffect(() => {
-      console.log("stage: ", stage)
-    })
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        headerTitle: "Create Match",
+        headerTitleAlign: "center",
+        headerStyle: {
+          backgroundColor: '#1e293b',
+          height: 60,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#334155',
+        },
+        headerTitleStyle: {
+          fontSize: 20,
+          fontWeight: "700",
+          color: '#f1f5f9',
+        },
+        headerLeft: () => (
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={tailwind`p-3 ml-2`}
+          >
+            <AntDesign name="arrowleft" size={22} color="#f1f5f9" />
+          </Pressable>
+        ),
+      });
+    }, [navigation]);
 
 
   const handleLocation = async () => {

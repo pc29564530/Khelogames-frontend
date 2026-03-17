@@ -116,7 +116,7 @@ const CreateClub = () => {
             const authToken = await AsyncStorage.getItem('AccessToken');
 
             const response = await axiosInstance.post(
-                `${BASE_URL}/${game.name}/newTeams`,
+                `${BASE_URL}/${game.name}/create-team`,
                 newTeam,
                 {
                     headers: {

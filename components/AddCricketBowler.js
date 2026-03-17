@@ -73,7 +73,19 @@ export const AddCricketBowler = ({match, batTeam, homeTeam, awayTeam, game, disp
             }
 
         } catch (err) {
-            console.log("Failed to add the bowler: ", err);
+            const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add new cricket bowler",
+                    fields: backendErrors,
+                });
+            }
+            console.log("Failed to add new cricket bowler: ", err);
         }
 
             const handleAddBatsmanWebSocket = useCallback((event) => {

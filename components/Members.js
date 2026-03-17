@@ -149,7 +149,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         };
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.post(
-          `${BASE_URL}/${game.name}/addTeamsMemberFunc`,
+          `${BASE_URL}/${game.name}/addTeamsMember`,
           data,
           {
             headers: {
@@ -167,12 +167,19 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         setSearchPlayer('');
       } catch (err) {
         logSilentError(err);
-        console.log("Error: ", err?.response?.data?.error?.message)
-        setError({
-          global: err?.response.data.error.message,
-          fields: err.response?.data?.error?.fields || {},
-        });
-        console.error('unable to add the player data: ', err);
+         const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add player to team",
+                    fields: backendErrors,
+                });
+            }
+        console.error('Unable to add player to team', err);
       } finally {
         setLoading(false);
       }
@@ -218,11 +225,19 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         dispatch(getTeamPlayers(updatedPlayers));
       } catch (err) {
         logSilentError(err);
-        setError({
-          global: 'Unable to remove player. Please try again.',
-          fields: {},
-        });
-        console.error('Unable to remove the player from team: ', err);
+         const backendErrors = err?.response?.data?.error?.fields;
+          if(err?.response?.data?.error?.code === "FORBIDDEN") {
+              setError({
+                  global: err?.response?.data?.error?.message,
+                  fields: {},
+              })
+          } else {
+              setError({
+                  global: "Unable to remove player from team",
+                  fields: backendErrors,
+              });
+          }
+        console.error('Unable to remove player from team: ', err);
       } finally {
         setLoading(false);
       }

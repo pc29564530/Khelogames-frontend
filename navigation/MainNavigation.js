@@ -205,13 +205,14 @@ export default function MainNavigation() {
                         <Stack.Screen name="CreateTournament" component={CreateTournament} />
                         <Stack.Screen name="TournamentDesciption" component={TournamentDescription} />
                         <Stack.Screen name="CommunityMessage" component={CommunityMessage} />
-                        <Stack.Screen name="CreatePlayerProfile" component={CreatePlayerProfile} 
+                        <Stack.Screen name="CreatePlayerProfile" component={CreatePlayerProfile}
                             options={{
                                 headerShown: true,
-                                headerTitle: '',
+                                headerTitle: 'Create Player Profile',
                                 headerBackTitleVisible: false,
-                                headerStyle: { backgroundColor: tailwind.color('bg-red-400') },
-                                headerTintColor: tailwind.color('bg-black'),
+                                headerStyle: { backgroundColor: '#1e293b', elevation: 0, shadowOpacity: 0 },
+                                headerTintColor: '#f1f5f9',
+                                headerTitleStyle: { color: '#f1f5f9', fontWeight: '600' },
                             }}
                         />
                         <Stack.Screen name="PlayerProfile" component={PlayerProfile} 
@@ -269,7 +270,7 @@ export default function MainNavigation() {
                         {__DEV__ && (
                             <Stack.Screen name="SignUp" component={SignUp}
                                 options={() => ({
-                                headerShown: true,
+                                headerShown: false,
                                 headerTitle: null,
                                 headerBackTitleVisible: false,
                                 headerLeft: false

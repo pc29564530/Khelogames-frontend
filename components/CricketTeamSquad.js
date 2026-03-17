@@ -165,11 +165,19 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
             setIsPlayerModalVisible(false);
             setSelectedSquad([]);
         } catch (err) {
-            setError({
-                global: "Unable to add squad to match",
-                fields: err?.response?.data?.error?.fields || {},
-            })
-            console.error("Failed to create the squad for match: ", err)
+             const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add cricket match squad",
+                    fields: backendErrors,
+                });
+            }
+            console.error("Failed to add the squad for match: ", err)
         } finally {
             setLoading(false);
         }

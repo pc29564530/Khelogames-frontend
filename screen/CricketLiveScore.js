@@ -365,10 +365,18 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             const matchPublicID = match.public_id;
             await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
         } catch (err) {
-            setError({
-                global: "Unable to start next inning",
-                backendError: {},
-            })
+            const backendErrors = err?.response?.data?.error?.fields;
+            if(err?.response?.data?.error?.code === "FORBIDDEN") {
+                setError({
+                    global: err?.response?.data?.error?.message,
+                    fields: {},
+                })
+            } else {
+                setError({
+                    global: "Unable to add cricket score for next inning",
+                    fields: backendErrors,
+                });
+            }
             console.error("Failed to start next inning: ", err);
             dispatch(setCurrentInningNumber(currentInningNumber-1))
         }
