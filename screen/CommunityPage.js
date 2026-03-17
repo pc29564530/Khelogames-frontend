@@ -38,8 +38,10 @@ export default function CommunityPage({ route }) {
     const fetchCommunityJoinedByUser = async () => {
         try {
             setLoading(true);
-            const response = await fetchCommunityJoinedByUserService();
-            dispatch(getJoinedCommunity(response.data || []));
+            const res = await fetchCommunityJoinedByUserService();
+            if(res.success && res.data) {
+                dispatch(getJoinedCommunity(res.data))
+            }
         } catch (err) {
             setError({ global: "Unable to load community info", fields: {} });
             console.error('unable to get the joined communities', err);
@@ -49,10 +51,16 @@ export default function CommunityPage({ route }) {
     };
 
     const handleJoinCommunity = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const response = await addUserToCommunity({ communityPublicID: item.public_id });
-            dispatch(addJoinedCommunity(response.data));
+            setError({
+                global: null,
+                fields: {},
+            })
+            const res = await addUserToCommunity({ communityPublicID: item.public_id });
+            if(res.success && res.data) {
+                dispatch(addJoinedCommunity(res.data));
+            }
         } catch (err) {
             setError({ global: "Unable to join community", fields: {} });
             console.error('unable to join community', err);
@@ -156,7 +164,6 @@ export default function CommunityPage({ route }) {
 
     return (
         <View style={[tailwind`flex-1`, { backgroundColor: "#020617" }]}>
-            {/* ── Collapsing red header ── */}
             <Animated.View style={[headerStyle, { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }]}>
                 <LinearGradient
                     colors={['#1e3a5f', '#1e293b']}
@@ -164,8 +171,6 @@ export default function CommunityPage({ route }) {
                     end={{ x: 0, y: 1 }}
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 />
-
-                {/* Back button — absolute top-left, always white */}
                 <Pressable
                     onPress={() => navigation.goBack()}
                     style={tailwind`absolute left-3 top-2 p-1.5 z-10`}
@@ -174,7 +179,6 @@ export default function CommunityPage({ route }) {
                     <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
                 </Pressable>
 
-                {/* Avatar + name animate together from centre → left */}
                 <View style={tailwind`items-center`}>
                     <Animated.View style={[
                         tailwind`w-20 h-20 rounded-full bg-white/20 items-center justify-center`,
@@ -192,7 +196,6 @@ export default function CommunityPage({ route }) {
                     </Animated.View>
                 </View>
 
-                {/* Right-side: Join pill */}
                 <View style={tailwind`absolute right-2 top-2 flex-row items-center`}>
                     <Pressable
                         onPress={() => !isJoined && handleJoinCommunity()}
@@ -214,7 +217,6 @@ export default function CommunityPage({ route }) {
 
             </Animated.View>
 
-            {/* ── Top Tabs — pushed down by animated marginTop ── */}
             <Animated.View style={[contentContainerStyle, { backgroundColor: "#020617" }]}>
                 <TopTab.Navigator
                     screenOptions={{

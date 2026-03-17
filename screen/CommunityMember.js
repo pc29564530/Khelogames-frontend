@@ -64,12 +64,11 @@ function CommunityMember({ item, parentScrollY }) {
     }
 
     /* Error */
-
     if (error.global) {
         return (
             <View style={[tailwind`flex-1 items-center justify-center px-6`, { backgroundColor: DARK_BG }]}>
 
-                <View style={tailwind`w-14 h-14 rounded-full bg-red-900 items-center justify-center mb-3`}>
+                <View style={[tailwind`w-14 h-14 rounded-full items-center justify-center mb-3`, { backgroundColor: '#1e293b' }]}>
                     <MaterialIcons name="error-outline" size={28} color="#f87171" />
                 </View>
 
@@ -95,29 +94,22 @@ function CommunityMember({ item, parentScrollY }) {
     }
 
     /* Empty */
-
     const ListEmpty = () => (
-        <View style={[tailwind`flex-1 items-center justify-center px-6 mt-16`, { backgroundColor: DARK_BG }]}>
-
-            <View style={tailwind`w-16 h-16 rounded-full bg-slate-800 items-center justify-center mb-3`}>
+        <View style={[tailwind`flex-1 items-center justify-center px-6 mt-16`, { backgroundColor: '#1e293b' }]}>
+            <View style={[tailwind`w-16 h-16 rounded-full items-center justify-center mb-3`]}>
                 <MaterialIcons name="people-outline" size={32} color="#94a3b8" />
             </View>
-
             <Text style={tailwind`text-slate-200 font-semibold text-sm mb-1`}>
                 No Members Yet
             </Text>
-
             <Text style={tailwind`text-slate-400 text-xs text-center`}>
                 Be the first to join this community!
             </Text>
-
         </View>
     );
 
     /* Member Card */
-
     const renderMemberItem = ({ item: member }) => (
-
         <Pressable
             onPress={() => handleProfile(member)}
             style={[
@@ -129,18 +121,12 @@ function CommunityMember({ item, parentScrollY }) {
                 }
             ]}
         >
-
-            {/* Avatar */}
-
             {member?.avatar_url ? (
-
                 <Image
                     source={{ uri: member.avatar_url }}
                     style={tailwind`w-12 h-12 rounded-full`}
                 />
-
             ) : (
-
             <View
                 style={[
                     tailwind`w-12 h-12 rounded-full items-center justify-center`,
@@ -151,41 +137,31 @@ function CommunityMember({ item, parentScrollY }) {
                     {member?.full_name?.charAt(0)?.toUpperCase() ?? '?'}
                 </Text>
             </View>
-
             )}
-
-            {/* Info */}
-
             <View style={tailwind`flex-1 ml-3`}>
-
                 <Text
-                    style={tailwind`text-sm font-semibold text-slate-100`}
+                    style={[tailwind`text-sm font-semibold`, {color:'#f1f5f9'}]}
                     numberOfLines={1}
                 >
                     {member?.full_name}
                 </Text>
-
                 <Text
-                    style={tailwind`text-xs text-slate-400 mt-0.5`}
+                    style={[tailwind`text-xs mt-0.5`, {color:'#94a3b8'}]}
                     numberOfLines={1}
                 >
                     @{member?.username}
                 </Text>
 
             </View>
-
             <MaterialIcons
                 name="chevron-right"
                 size={20}
-                color="#64748b"
+                color="#94a3b8"
             />
-
         </Pressable>
-
     );
 
     return (
-
         <Animated.FlatList
             data={members}
             keyExtractor={(member, index) =>
@@ -202,10 +178,9 @@ function CommunityMember({ item, parentScrollY }) {
                 paddingTop: 12,
                 paddingBottom: 80,
                 flexGrow: 1,
-                backgroundColor: DARK_BG
+                backgroundColor: '#0f172a'
             }}
         />
-
     );
 
 }

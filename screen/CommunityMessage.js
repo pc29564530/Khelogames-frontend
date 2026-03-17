@@ -13,6 +13,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import RFNS from 'react-native-fs';
 import axiosInstance from './axios_config';
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 
 // helpers
 function getMediaTypeFromURL(url) {
@@ -35,7 +36,7 @@ const fileToBase64 = async (filePath) => {
 function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }) {
     const community = item;
     const flatListRef = useRef(null);
-
+    const authUserPublicID = useSelector(state => state.profile.authUserPublicID);
     const [content, setContent] = useState('');
     const [mediaURL, setMediaURL] = useState('');
     const [mediaType, setMediaType] = useState('');
@@ -93,9 +94,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
     const checkIsAdmin = async () => {
         try {
             const authToken = await AsyncStorage.getItem('AccessToken');
-            const user = await AsyncStorage.getItem('User');
-            const parsedUser = user ? JSON.parse(user) : null;
-            const response = await axiosInstance.get(
+            const res = await axiosInstance.get(
                 `${BASE_URL}/getCommunityByCommunityName/${community?.name}`,
                 {
                     headers: {
@@ -104,8 +103,11 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                     },
                 }
             );
-            if (response.data?.owner === parsedUser?.username) {
-                setIsAdmin(true);
+            const item = res.data;
+            if(item.success && item.data) {
+                if(item.data.user_public_id === authUserPublicID){
+                    setIsAdmin(true);
+                }
             }
         } catch (err) {
             console.error('Unable to check admin status:', err);
@@ -207,12 +209,12 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                 <View style={[
                     tailwind`max-w-4/5 px-4 py-3 rounded-2xl`,
                     isMine
-                        ? [tailwind`rounded-tr-sm`, { backgroundColor:"#f87171" }]
-                        : [tailwind` rounded-tl-sm`, { backgroundColor:"#0f172a", borderWidth:1, borderColor:"#1e293b" }],
+                        ? [tailwind`rounded-tr-sm`, { backgroundColor:"#f87171", borderWidth:1, borderColor:"#334155" }]
+                        : [tailwind` rounded-tl-sm`, { backgroundColor:"#1e293b", borderWidth:1, borderColor:"#334155" }],
                     { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
                 ]}>
                     {!isMine && (
-                        <Text style={tailwind`text-xs font-semibold text-red-400 mb-1`}>
+                        <Text style={[tailwind`text-xs font-semibold mb-1`, {color: '#ef4444'}]}>
                             {msg.sender_username}
                         </Text>
                     )}
@@ -226,14 +228,14 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                     {msg.content ? (
                         <Text style={[
                             tailwind`text-sm`,
-                            isMine ? tailwind`text-white` : tailwind`text-slate-100`,
+                            isMine ? {color:"#ffffff"} : {color:"#f1f5f9"},
                         ]}>
                             {msg.content}
                         </Text>
                     ) : null}
                     <Text style={[
                         tailwind`text-xs mt-1`,
-                        isMine ? tailwind`text-red-100` : tailwind`text-slate-400`,
+                        isMine ? {color:"#fecaca"} : {color:"#94a3b8"}
                     ]}>
                         {msg.sent_at}
                     </Text>
@@ -260,7 +262,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
     // main render
     return (
         <KeyboardAvoidingView
-            style={{ flex: 1, backgroundColor: "#020617" }}
+            style={{ flex: 1, backgroundColor: "#0f172a" }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
@@ -304,7 +306,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
 
             {/* Preview of selected media */}
             {mediaURL ? (
-                <View style={[tailwind`mx-4 mb-2 flex-row items-center rounded-xl p-2`, {backgroundColor:"#0f172a", borderColor:"#1e293b", borderWidth:1}]}>
+                <View style={[tailwind`mx-4 mb-2 flex-row items-center rounded-xl p-2`, {backgroundColor:"#1e293b", borderColor:"#334155"}]}>
                     <Image
                         source={{ uri: `data:image/${mediaType};base64,${mediaURL}` }}
                         style={tailwind`w-12 h-12 rounded-lg mr-2`}
@@ -318,10 +320,10 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
             ) : null}
 
             {/* Input bar — only admin can send */}
-            {isAdmin ? (
+            {!isAdmin ? (
                 <View style={[
                     tailwind`flex-row items-end px-3 py-2 border-t`,
-                    {backgroundColor:"#020617", borderColor:"#1e293b",borderTopWidth:1},
+                    {backgroundColor:"#0f172a", borderColor:"#334155",borderTopWidth:1},
                     { shadowColor: '#000', shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 4 },
                 ]}>
                     <Pressable onPress={handleUpload} style={tailwind`p-2 mr-1`}>

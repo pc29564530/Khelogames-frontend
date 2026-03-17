@@ -62,8 +62,10 @@ function Community() {
 
   const handleJoinCommunity = async (communityPublicID) => {
     try {
-      const response = await addUserToCommunity({ communityPublicID });
-      dispatch(addJoinedCommunity(response.data || {}));
+      const res = await addUserToCommunity({ communityPublicID });
+      if(res.success && res.data) {
+        dispatch(addJoinedCommunity(res.data));
+      }
     } catch (err) {
       const errorMessage = handleInlineError(err);
       setError({ global: errorMessage || 'Unable to join community', fields: {} });
@@ -80,7 +82,7 @@ function Community() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#020617' }}
+      style={{ flex: 1, backgroundColor: '#0f172a' }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={tailwind`pb-10`}
     >
@@ -89,14 +91,14 @@ function Community() {
       <View
         style={[
           tailwind`mx-4 mt-4 mb-4 rounded-2xl p-5`,
-          { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }
+          { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
         ]}
       >
         <View style={tailwind`flex-row items-center mb-3`}>
           <View
             style={[
               tailwind`w-10 h-10 rounded-full items-center justify-center mr-3`,
-              { backgroundColor: '#1e293b' }
+              { backgroundColor: '#334155' }
             ]}
           >
             <MaterialIcons name="group-add" size={22} color="#f87171" />
@@ -113,7 +115,7 @@ function Community() {
 
         <Pressable
           onPress={() => navigation.navigate('CreateCommunity')}
-          style={tailwind`bg-red-400 py-3 rounded-xl items-center`}
+          style={[tailwind`py-3 rounded-xl items-center`, { backgroundColor: '#ef4444' }]}
         >
           <Text style={tailwind`text-white font-semibold text-sm`}>
             Get Started
@@ -127,7 +129,7 @@ function Community() {
           Communities For You
         </Text>
 
-        {loading && <ActivityIndicator size="small" color="#f87171" />}
+        {loading && <ActivityIndicator size="small" color="#ef4444" />}
       </View>
 
       {/* Error */}
@@ -180,7 +182,7 @@ function Community() {
               key={i}
               style={[
                 tailwind`rounded-2xl p-4 flex-row items-center`,
-                { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }
+                { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
               ]}
             >
 
@@ -188,7 +190,7 @@ function Community() {
               <View
                 style={[
                   tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`,
-                  { backgroundColor: '#1e293b' }
+                  { backgroundColor: '#334155' }
                 ]}
               >
                 <Text style={{ color: '#f87171', fontSize: 18, fontWeight: '700' }}>
@@ -224,14 +226,14 @@ function Community() {
                 style={[
                   tailwind`px-4 py-2 rounded-xl ml-2`,
                   isJoined
-                    ? { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                    ? { backgroundColor: '#334155' }
                     : tailwind`bg-red-400`
                 ]}
               >
                 <Text
                   style={[
                     tailwind`text-xs font-semibold`,
-                    { color: isJoined ? '#94a3b8' : '#ffffff' }
+                    { color: isJoined ? '#cbd5e1' : '#ffffff' }
                   ]}
                 >
                   {isJoined ? 'Joined' : 'Join'}

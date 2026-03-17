@@ -3,6 +3,7 @@ import { Modal, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import Home from '../screen/Home';
@@ -70,8 +71,8 @@ const BottomTab = () => {
           const color = focused ? '#f87171' : '#64748b';
           const size = 22;
 
-          if (route.name === "Home") {
-            return <FontAwesome name="home" size={size} color={color} />;
+          if (route.name === "Trending") {
+            return <MaterialIcons name="local-fire-department" size={size} color={color} />;
           }
 
           if (route.name === "Matches") {
@@ -96,7 +97,7 @@ const BottomTab = () => {
         },
       })}
     >
-     <Tab.Screen name="Home" component={Home} />
+     <Tab.Screen name="Trending" component={Home} />
      <Tab.Screen name="Matches" component={Matches} 
       listeners={() => ({
         tabPress: (e) => {
