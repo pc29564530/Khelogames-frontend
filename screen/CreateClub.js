@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, FlatList, Image, ScrollView, Platform, PermissionsAndroid, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, TextInput, FlatList, Image, ScrollView, Platform, PermissionsAndroid, Alert, Modal, Dimensions, TouchableOpacity, ActivityIndicator} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useFocusEffect } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -29,13 +29,22 @@ const CreateClub = () => {
     const [state, setState] = useState('');
     const [gender, setGender] = useState('');
     const [type, setType] = useState('');
+    const [selectedPlayer, setSelectedPlayer] = useState([]);
+    const [player, setPlayer] = useState([]);
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
+    const [playerProfile, setPlayerProfile] = useState([]);
+    const [filtered, setFiltered] = useState([]);
+    const [searchPlayer, setSearchPlayer] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [isSelectPlayerModal, setIsSelectPlayerModal] = useState(false);
     const [error, setError] = useState({
         global: null,
         fields: {},
     });
+
+    const {height: sHeight, width: sWidth} = Dimensions.get("window");
 
     const dispatch = useDispatch();
     const game = useSelector((state) => state.sportReducers.game)
@@ -45,6 +54,33 @@ const CreateClub = () => {
         setMediaUrl(mediaURL);
         setMediaType(mediaType)
     };
+
+    useEffect(() => {
+        const fetchPlayerProfile = async () => {
+        try {
+            setLoading(true);
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(
+            `${BASE_URL}/getPlayersBySport/${game.id}`,
+            {
+                headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                },
+            }
+            );
+            const item = response.data || [];
+            setPlayerProfile(item.data);
+            setFiltered(item.data);
+        } catch (err) {
+            logSilentError(err);
+            console.error('unable to get the player profile: ', err);
+        } finally {
+            setLoading(false);
+        }
+        };
+        fetchPlayerProfile();
+    }, [game.id]);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -79,17 +115,53 @@ const CreateClub = () => {
         );
     };
 
+    const formatPlayerName = (playerName) => {
+        if (!playerName) return '';
+
+        const parts = playerName.trim().split(" ");
+
+        if (parts.length === 1) return parts[0];
+
+        return `${parts[0]} ${parts[1].charAt(0)}.`;
+    };
+
+    const getTeamNameFromPlayer = (players) => {
+        if (!players || players.length === 0) return '';
+
+        if (type === "individual") {
+            return formatPlayerName(players[0]?.name);
+        } 
+        
+        if (type === "double") {
+            if (players.length < 2) return '';
+
+            return `${formatPlayerName(players[0]?.name)}/${formatPlayerName(players[1]?.name)}`;
+        }
+    };
+
+    useEffect(() => {
+        if (type !== "team" && selectedPlayer.length > 0) {
+            const generatedName = getTeamNameFromPlayer(selectedPlayer);
+            setName(generatedName);
+        }
+    }, [selectedPlayer, type]);
+
     const handleSubmit = async () => {
         try {
             const userPublicID = await AsyncStorage.getItem('UserPublicID');
+            let finalName = name;
+
+            if (type !== "team") {
+                finalName = getTeamNameFromPlayer(selectedPlayer);
+            }
             const formData = {
-                name,
+                name: finalName,
                 city,
                 state,
                 country,
                 gender,
                 type,
-            }
+            };
             const validation = validateTeamForm(formData)
             if(!validation.isValid){
                 setError({
@@ -105,14 +177,15 @@ const CreateClub = () => {
                 national: national,
                 country: country,
                 type: type,
-                player_count: 0,
+                player_count: player.length,
                 game_id: game.id,
                 latitude: latitude != null ? latitude.toString() : '',
                 longitude: longitude != null ? longitude.toString() : '',
                 city: city,
                 state: state,
+                player: player,
             };
-            console.log("new team: ", newTeam)
+
             const authToken = await AsyncStorage.getItem('AccessToken');
 
             const response = await axiosInstance.post(
@@ -158,6 +231,49 @@ const CreateClub = () => {
         ),
     });
 
+    const handleSearchPlayer = (text) => {
+        if (Array.isArray(playerProfile)) {
+        const filterData = playerProfile.filter((item) =>
+            item.name.toLowerCase().includes(text.toLowerCase())
+        );
+        const filterBySport = filterData.filter((item) =>
+            item.game_id === game.id ? item : []
+        );
+        setFiltered(filterBySport);
+        }
+    };
+
+    const checkTeamCategory = (item) => {
+
+        if(item === "individual" || item === "double") {
+            setIsSelectPlayerModal(true);
+        }
+    }
+
+    const handleAddPlayer = (item) => {
+        if (type === "individual") {
+            setSelectedPlayer([item]);
+            setPlayer([item.public_id]);
+            setIsSelectPlayerModal(false);
+        } 
+        else if (type === "double") {
+            setSelectedPlayer(prev => {
+                if (prev.length >= 2) return prev;
+
+                const updated = [...prev, item];
+                if (updated.length === 2) {
+                    setIsSelectPlayerModal(false);
+                }
+                return updated;
+            });
+
+            setPlayer(prev => {
+                if (prev.length >= 2) return prev;
+                return [...prev, item.public_id];
+            });
+        }
+    };
+
     return (
             <ScrollView
                 style={{flex: 1, backgroundColor: '#0f172a'}}
@@ -198,6 +314,7 @@ const CreateClub = () => {
                         <Text style={{color: '#cbd5e1', fontSize: 14, fontWeight: '600', marginBottom: 8}}>Team Name *</Text>
                         <TextInput
                             style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, color: '#f1f5f9'}]}
+                            editable={type=="team"}
                             value={name}
                             onChangeText={setName}
                             placeholder="Enter team name"
@@ -250,7 +367,7 @@ const CreateClub = () => {
                             {['team', 'individual', 'double'].map((item) => (
                                 <Pressable
                                     key={item}
-                                    onPress={() => setType(item)}
+                                    onPress={() => {setType(item); checkTeamCategory(item)}}
                                     style={[
                                         tailwind`flex-1 py-3 rounded-xl items-center`,
                                         type === item ? tailwind`bg-red-400` : {backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1},
@@ -385,6 +502,185 @@ const CreateClub = () => {
                         visible={isCountryPicker}
                         onClose={() => setIsCountryPicker(false)}
                     />
+                )}
+                {isSelectPlayerModal && (
+                    <Modal
+                        transparent
+                        animationType="slide"
+                        visible={isSelectPlayerModal}
+                        onRequestClose={() => {
+                        setIsSelectPlayerModal(false);
+                        setSearchPlayer('');
+                        }}
+                    >
+                        <View style={tailwind`flex-1 justify-end bg-black/60`}>
+                            <Pressable
+                                style={tailwind`flex-1`}
+                                onPress={() => {
+                                    setIsSelectPlayerModal(false);
+                                    setSearchPlayer('');
+                                }}
+                            />
+                            <View
+                                style={[
+                                tailwind`rounded-t-3xl border-t`,
+                                { backgroundColor: "#1e293b", borderColor: "#334155", minHeight: sHeight * 0.6 }
+                                ]}
+                            >
+                                {/* Header */}
+                                <View
+                                    style={[
+                                        tailwind`flex-row items-center justify-between p-4 border-b`,
+                                        { borderColor: "#334155" }
+                                    ]}
+                                >
+                                    <Text style={{ fontSize: 18, fontWeight: "700", color: "#f1f5f9" }}> Add Player </Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                        setIsSelectPlayerModal(false);
+                                        setSearchPlayer('');
+                                        }}
+                                    >
+                                        <MaterialIcons name="close" size={24} color="#94a3b8" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Error */}
+                                {error?.global && (
+                                <View
+                                    style={[
+                                    tailwind`mx-3 mb-3 p-3 rounded-lg border`,
+                                    { backgroundColor: "#020617", borderColor: "#ef4444" }
+                                    ]}
+                                >
+                                    <Text style={{ color: "#ef4444", fontSize: 13 }}>
+                                    {error.global}
+                                    </Text>
+                                </View>
+                                )}
+
+                                {/* Search */}
+                                <View style={tailwind`px-4 pt-4 pb-2`}>
+                                    <View
+                                        style={[
+                                        tailwind`flex-row items-center rounded-lg px-4 py-3 border`,
+                                        { backgroundColor: "#0f172a", borderColor: "#334155" }
+                                        ]}
+                                    >
+                                        <MaterialIcons name="search" size={20} color="#94a3b8" />
+                                        <TextInput
+                                            value={searchPlayer}
+                                            onChangeText={(text) => {
+                                                setSearchPlayer(text);
+                                                handleSearchPlayer(text);
+                                            }}
+                                            placeholder="Search player by name"
+                                            placeholderTextColor="#64748b"
+                                            style={{ flex: 1, marginLeft: 8, color: "#94a3b8", padding: 16, fontSize: 15, }}
+                                        />
+                                        {searchPlayer.length > 0 && (
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                setSearchPlayer('');
+                                                setFiltered(playerProfile);
+                                                }}
+                                            >
+                                                <MaterialIcons name="cancel" size={18} color="#94a3b8" />
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                </View>
+
+                                {/* Player list */}
+                                <ScrollView
+                                    style={tailwind`flex-1`}
+                                    contentContainerStyle={tailwind`px-4 pb-6`}
+                                    showsVerticalScrollIndicator={false}
+                                >
+                                {loading ? (
+                                    <View style={tailwind`items-center py-10`}>
+                                        <ActivityIndicator size="large" color="#f87171" />
+                                    </View>
+
+                                ) : filtered?.length > 0 ? (
+                                    filtered.map(item => {
+                                        const isSelected = selectedPlayer.some(p => p.public_id===item.public_id)
+                                        return (
+                                            <View
+                                                style={[
+                                                tailwind`flex-row items-center py-3 border-b`,
+                                                { borderColor: "#334155" }
+                                                ]}
+                                            >
+                                                {/* Avatar */}
+                                                {item.media_url ? (
+                                                <Image
+                                                    style={tailwind`w-12 h-12 rounded-full`}
+                                                    source={{ uri: item.media_url }}
+                                                />
+                                                ) : (
+                                                <View
+                                                    style={[
+                                                    tailwind`w-12 h-12 rounded-full items-center justify-center`,
+                                                    { backgroundColor: "#020617" }
+                                                    ]}
+                                                >
+                                                    <Text style={{ color: "#f87171", fontSize: 16, fontWeight: "700" }}>
+                                                    {item?.name?.charAt(0).toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                                )}
+
+                                                {/* Player info */}
+                                                <View style={tailwind`flex-1 ml-3`}>
+                                                <Text style={{ color: "#f1f5f9", fontWeight: "600" }}>
+                                                    {item.name}
+                                                </Text>
+
+                                                {item.position && (
+                                                    <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>
+                                                    {item.position}
+                                                    </Text>
+                                                )}
+                                                </View>
+
+                                                {/* Add icon */}
+                                                <Pressable onPress={() => handleAddPlayer(item)}>
+                                                    <MaterialIcons 
+                                                        name={isSelected ? "check-circle" : "add-circle-outline"}
+                                                        size={24}
+                                                        color={isSelected ? "#10B981" : "#f87171"}
+                                                    />
+                                                </Pressable>
+                                            </View>
+                                        )
+                                    })
+                                ) : (
+
+                                    <View style={tailwind`items-center py-10`}>
+                                        <MaterialIcons name="person-search" size={64} color="#475569" />
+                                        <Text style={{ color: "#94a3b8", marginTop: 16, textAlign: "center" }}>
+                                            {searchPlayer ? "No players found" : "No available players"}
+                                        </Text>
+                                        <Text
+                                            style={{
+                                            color: "#64748b",
+                                            fontSize: 12,
+                                            marginTop: 4,
+                                            textAlign: "center",
+                                            paddingHorizontal: 32
+                                            }}
+                                        >
+                                            {searchPlayer
+                                            ? "Try a different search term"
+                                            : "Create player profiles first"}
+                                        </Text>
+                                    </View>
+                                )}
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </Modal>
                 )}
             </ScrollView>
     );

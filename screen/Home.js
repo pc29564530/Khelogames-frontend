@@ -139,6 +139,7 @@ const getIconForSport = (name) => {
   switch (name) {
     case 'football': return 'sports-soccer';
     case 'cricket':  return 'sports-cricket';
+    case 'badminton': return 'sports-badminton';
     default:         return 'sports';
   }
 };
@@ -361,7 +362,6 @@ function Home() {
                   style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}
                   onPress={() => navigation.navigate("ClubPage")}
                 >
-                  {console.log("Line no 370: ", item)}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <LiveDot />

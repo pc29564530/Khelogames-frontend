@@ -31,7 +31,6 @@ export const getTournamentBySportAndTrending = async ({ game}) => {
             },
         })
         const item = response?.data;
-        console.log("Tour Item: ", item)
         return item;
 }
 
