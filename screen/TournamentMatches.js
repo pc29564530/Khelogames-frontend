@@ -6,6 +6,7 @@ import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 import TournamentCricketMatch from '../components/TournamentCricketMatch';
+import TournamentBadmintonMatch from './TournamentBadmintonMatch';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -17,6 +18,17 @@ const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeigh
 
     const tournamentMatchBySport = () => {
         switch (game.name) {
+            case "badminton":
+                return (
+                    <TournamentBadmintonMatch
+                        tournament={tournament}
+                        AsyncStorage={AsyncStorage}
+                        axiosInstance={axiosInstance}
+                        BASE_URL={BASE_URL}
+                        parentScrollY={parentScrollY}
+                        collapsedHeight={collapsedHeight}
+                    />
+                )
             case "cricket":
                 return (
                     <TournamentCricketMatch

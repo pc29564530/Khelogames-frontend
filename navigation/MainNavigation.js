@@ -44,6 +44,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import ManageRole from '../screen/ManageRole';
 import EditClub from '../screen/EditClub';
 import UserThreads from '../screen/UserThreads';
+import BadmintonMatchPage from '../screen/BadmintonMatchPage';
 import { clearSecureStorage, getRefreshToken } from '../utils/SecureStorage';
 
 const Stack = createStackNavigator();
@@ -161,6 +162,14 @@ export default function MainNavigation() {
                         />
                         <Stack.Screen name="ThreadComment" component={ThreadComment} />
                         <Stack.Screen name="CommunityPage" component={CommunityPage} 
+                            options={() => ({
+                                headerShown: false,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+                        <Stack.Screen name="BadmintonMatchPage" component={BadmintonMatchPage} 
                             options={() => ({
                                 headerShown: false,
                                 headerTitle: null,

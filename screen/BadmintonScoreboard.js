@@ -1,0 +1,527 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Pressable, ActivityIndicator, Dimensions } from 'react-native';
+import tailwind from 'twrnc';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from './axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
+import { useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import Animated, {
+    useAnimatedScrollHandler,
+    interpolate,
+    useSharedValue,
+    useAnimatedStyle,
+    Extrapolation,
+} from 'react-native-reanimated';
+import { current } from '@reduxjs/toolkit';
+
+const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
+    const [sets, setSets] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [updating, setUpdating] = useState(null);
+    const [currentSet, setCurrentSet] = useState(sets.length);
+    const [currentSetScore, setCurrentSetScore] = useState({});
+    const [error, setError] = useState(null);
+    const game = useSelector((state) => state.sportReducers.game);
+    const { height: sHeight } = Dimensions.get('window');
+
+    const matchPublicID = item?.public_id;
+    const homeTeam = item?.homeTeam;
+    const awayTeam = item?.awayTeam;
+    const homeScore = item?.homeScore;
+    const awayScore = item?.awayScore;
+
+    const fetchSetScores = async () => {
+        if (!matchPublicID) return;
+        try {
+            setLoading(true);
+            setError(null);
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(
+                `${BASE_URL}/${game.name}/get-badminton-set-score/${matchPublicID}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            const item = response.data;
+            console.log("Sets: ", item)
+            setSets(item.data || []);
+
+            const setsData = item.data.find((it) => it.set_status === "in_progress");
+
+            setCurrentSet(setsData.set_number)
+            setCurrentSetScore(setsData);
+
+        } catch (err) {
+            console.error('Failed to fetch set scores:', err);
+            setError('Failed to load scores');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    console.log("Current Set: ", currentSet )
+    console.log("Current Set Score: ", currentSetScore)
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchSetScores();
+        }, [matchPublicID, game.name])
+    );
+
+    const handleAddSet = async () => {
+        if (!matchPublicID) return;
+        try {
+            setUpdating('add_set');
+            setError(null);
+            const newSetNumber = sets.length + 1;
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            await axiosInstance.post(
+                `${BASE_URL}/${game.name}/add-badminton-score`,
+                {
+                    match_public_id: matchPublicID,
+                    set_number: newSetNumber,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            await fetchSetScores();
+        } catch (err) {
+            console.error('Failed to add set:', err);
+            setError('Failed to add set');
+        } finally {
+            setUpdating(null);
+        }
+    };
+
+    const handleUpdateScore = async (teamPublicID, setNumber) => {
+        console.log("Team; ", teamPublicID)
+        console.log("Set Numbert: ", setNumber)
+        if (!matchPublicID || !teamPublicID) return;
+        const key = `${teamPublicID}_${setNumber}`;
+        try {
+            setUpdating(key);
+            setError(null);
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            await axiosInstance.post(
+                `${BASE_URL}/${game.name}/update-badminton-score`,
+                {
+                    match_public_id: matchPublicID,
+                    team_public_id: teamPublicID,
+                    set_number: setNumber,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            await fetchSetScores();
+        } catch (err) {
+            console.error('Failed to update score:', err);
+            setError('Failed to update score');
+        } finally {
+            setUpdating(null);
+        }
+    };
+
+    // Calculate sets won
+    const homeSetsWon = sets.filter((s) => s.homeScore > s.awayScore).length;
+    const awaySetsWon = sets.filter((s) => s.awayScore > s.homeScore).length;
+
+    // Scroll handler
+    const currentScrollY = useSharedValue(0);
+    const handlerScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            if (parentScrollY.value === collapsedHeader) {
+                parentScrollY.value = currentScrollY.value;
+            } else {
+                parentScrollY.value = event.contentOffset.y;
+            }
+        },
+    });
+
+    const contentStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            parentScrollY.value,
+            [0, 50],
+            [1, 1],
+            Extrapolation.CLAMP
+        );
+        return { opacity };
+    });
+
+    const isMatchLive = item?.status_code === 'in_progress' || item?.status_code === 'first_set' || item?.status_code === 'second_set' || item?.status_code === 'third_set';
+
+    return (
+        <View style={tailwind`flex-1`}>
+            <Animated.ScrollView
+                onScroll={handlerScroll}
+                scrollEventThrottle={16}
+                style={tailwind`flex-1`}
+                contentContainerStyle={{ paddingTop: 0, paddingBottom: 100, minHeight: sHeight + 100 }}
+                showsVerticalScrollIndicator={false}
+            >
+                <Animated.View style={[{ padding: 8, backgroundColor: '#0f172a' }, contentStyle]}>
+                    {/* Error Banner */}
+                    {error && (
+                        <View
+                            style={[
+                                tailwind`mx-2 mb-3 p-3 rounded-lg`,
+                                { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' },
+                            ]}
+                        >
+                            <Text style={{ color: '#fca5a5', fontSize: 13 }}>{error}</Text>
+                        </View>
+                    )}
+
+                    {/* Sets Won Summary */}
+                    {isMatchLive && (
+                        <View
+                            style={[
+                                tailwind`mx-2 mb-4 p-5 rounded-2xl`,
+                                {
+                                    backgroundColor: '#0f172a',
+                                    borderWidth: 1,
+                                    borderColor: '#334155',
+                                },
+                            ]}
+                        >
+                            {/* Set Title */}
+                            <Text
+                                style={{
+                                    color: '#64748b',
+                                    fontSize: 12,
+                                    fontWeight: '700',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: 1.5,
+                                    textAlign: 'center',
+                                    marginBottom: 16,
+                                }}
+                            >
+                                {`Set ${currentSet || 1}`}
+                            </Text>
+
+                            <View style={tailwind`flex-row items-center justify-center`}>
+
+                                {/* HOME TEAM */}
+                                <Pressable
+                                    onPress={() =>
+                                        handleUpdateScore(homeTeam?.public_id, currentSet)
+                                    }
+                                    disabled={!!updating}
+                                    style={({ pressed }) => [
+                                        tailwind`items-center flex-1 py-3 rounded-xl flex-row justify-between px-2`,
+                                        {
+                                            backgroundColor: pressed ? '#1e293b' : 'transparent',
+                                            opacity: updating ? 0.6 : 1,
+                                        },
+                                    ]}
+                                >
+                                    <MaterialIcon name="add" size={20} color="#22c55e" />
+
+                                    <View style={tailwind`items-center`}>
+                                        <Text
+                                            style={{
+                                                color: '#94a3b8',
+                                                fontSize: 13,
+                                                marginBottom: 4,
+                                            }}
+                                            numberOfLines={1}
+                                        >
+                                            {homeTeam?.short_name || homeTeam?.name || 'Home'}
+                                        </Text>
+
+                                        <Text
+                                            style={{
+                                                color: '#22c55e',
+                                                fontSize: 36,
+                                                fontWeight: '800',
+                                            }}
+                                        >
+                                            {currentSetScore?.home_score ?? 0}
+                                        </Text>
+                                    </View>
+
+                                    {updating === `${homeTeam?.public_id}_${currentSet}` ? (
+                                        <ActivityIndicator size="small" color="#22c55e" />
+                                    ) : (
+                                        <View style={{ width: 20 }} />
+                                    )}
+                                </Pressable>
+
+                                {/* VS */}
+                                <View
+                                    style={[
+                                        tailwind`mx-3 w-12 h-12 rounded-full items-center justify-center`,
+                                        { backgroundColor: '#1e293b' },
+                                    ]}
+                                >
+                                    <Text style={{ color: '#94a3b8', fontSize: 14, fontWeight: '700' }}>
+                                        VS
+                                    </Text>
+                                </View>
+
+                                {/* AWAY TEAM */}
+                                <Pressable
+                                    onPress={() =>
+                                        handleUpdateScore(awayTeam?.public_id, currentSet)
+                                    }
+                                    disabled={!!updating}
+                                    style={({ pressed }) => [
+                                        tailwind`items-center flex-1 py-3 rounded-xl flex-row justify-between px-2`,
+                                        {
+                                            backgroundColor: pressed ? '#1e293b' : 'transparent',
+                                            opacity: updating ? 0.6 : 1,
+                                        },
+                                    ]}
+                                >
+                                    {updating === `${awayTeam?.public_id}_${currentSet}` ? (
+                                        <ActivityIndicator size="small" color="#ef4444" />
+                                    ) : (
+                                        <View style={{ width: 20 }} />
+                                    )}
+
+                                    <View style={tailwind`items-center`}>
+                                        <Text
+                                            style={{
+                                                color: '#94a3b8',
+                                                fontSize: 13,
+                                                marginBottom: 4,
+                                            }}
+                                            numberOfLines={1}
+                                        >
+                                            {awayTeam?.short_name || awayTeam?.name || 'Away'}
+                                        </Text>
+
+                                        <Text
+                                            style={{
+                                                color: '#ef4444',
+                                                fontSize: 36,
+                                                fontWeight: '800',
+                                            }}
+                                        >
+                                            {currentSetScore?.away_score ?? 0}
+                                        </Text>
+                                    </View>
+
+                                    <MaterialIcon name="add" size={20} color="#ef4444" />
+                                </Pressable>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Loading */}
+                    {loading && sets.length === 0 && (
+                        <View style={tailwind`items-center py-8`}>
+                            <ActivityIndicator size="large" color="#f87171" />
+                            <Text style={{ color: '#94a3b8', marginTop: 8 }}>Loading scores...</Text>
+                        </View>
+                    )}
+
+                    {/* No Sets */}
+                    {!loading && sets.length === 0 && (
+                        <View style={tailwind`items-center py-8`}>
+                            <MaterialIcon name="sports-tennis" size={48} color="#475569" />
+                            <Text style={{ color: '#64748b', marginTop: 8, fontSize: 14 }}>
+                                No sets played yet
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Set Rows */}
+                    {sets.map((set, index) => {
+                        const homeWon = set.home_score > set.away_score;
+                        const awayWon = set.away_score > set.home_score;
+                        const isUpdatingHome = updating === `${homeTeam?.public_id}_${set.set_number}`;
+                        const isUpdatingAway = updating === `${awayTeam?.public_id}_${set.set_number}`;
+
+                        return (
+                            <View
+                                key={set.set_number || index}
+                                style={[
+                                    tailwind`mx-2 mb-2 rounded-xl overflow-hidden`,
+                                    { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' },
+                                ]}
+                            >
+                                {/* Set Header */}
+                                <View
+                                    style={[
+                                        tailwind`px-4 py-2`,
+                                        { backgroundColor: '#334155', borderBottomWidth: 1, borderBottomColor: '#475569' },
+                                    ]}
+                                >
+                                    <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '600' }}>
+                                        Set {set.set_number}
+                                        {set.set_status && set.set_status !== 'in_progress'
+                                            ? `  •  ${set.set_status}`
+                                            : ''}
+                                    </Text>
+                                </View>
+
+                                {/* Score Row */}
+                                <View style={tailwind`flex-row items-center px-3 py-3`}>
+                                    {/* Home + Button */}
+                                    {/* {isMatchLive && (
+                                        <Pressable
+                                            onPress={() =>
+                                                handleUpdateScore(homeTeam?.public_id, set.set_number)
+                                            }
+                                            disabled={!!updating}
+                                            style={[
+                                                tailwind`w-9 h-9 rounded-lg items-center justify-center mr-2`,
+                                                {
+                                                    backgroundColor: updating ? '#1e293b' : '#3b82f620',
+                                                    borderWidth: 1,
+                                                    borderColor: '#3b82f640',
+                                                },
+                                            ]}
+                                        >
+                                            {isUpdatingHome ? (
+                                                <ActivityIndicator size="small" color="#60a5fa" />
+                                            ) : (
+                                                <MaterialIcon name="add" size={20} color="#60a5fa" />
+                                            )}
+                                        </Pressable>
+                                    )} */}
+
+                                    {/* Home Team */}
+                                    <View style={tailwind`flex-1`}>
+                                        <Text
+                                            style={[
+                                                { fontSize: 14, fontWeight: homeWon ? '700' : '400' },
+                                                { color: homeWon ? '#f1f5f9' : '#94a3b8' },
+                                            ]}
+                                            numberOfLines={1}
+                                        >
+                                            {homeTeam?.name || 'Home'}
+                                        </Text>
+                                    </View>
+
+                                    {/* Scores */}
+                                    <View style={tailwind`flex-row items-center mx-3`}>
+                                        <Text
+                                            style={{
+                                                color: homeWon ? '#f1f5f9' : '#94a3b8',
+                                                fontSize: 20,
+                                                fontWeight: '700',
+                                                minWidth: 28,
+                                                textAlign: 'right',
+                                            }}
+                                        >
+                                            {set.home_score ?? 0}
+                                        </Text>
+                                        <Text
+                                            style={{
+                                                color: '#475569',
+                                                fontSize: 16,
+                                                marginHorizontal: 6,
+                                            }}
+                                        >
+                                            -
+                                        </Text>
+                                        <Text
+                                            style={{
+                                                color: awayWon ? '#f1f5f9' : '#94a3b8',
+                                                fontSize: 20,
+                                                fontWeight: '700',
+                                                minWidth: 28,
+                                                textAlign: 'left',
+                                            }}
+                                        >
+                                            {set.away_score ?? 0}
+                                        </Text>
+                                    </View>
+
+                                    {/* Away Team */}
+                                    <View style={tailwind`flex-1 items-end`}>
+                                        <Text
+                                            style={[
+                                                { fontSize: 14, fontWeight: awayWon ? '700' : '400' },
+                                                { color: awayWon ? '#f1f5f9' : '#94a3b8' },
+                                            ]}
+                                            numberOfLines={1}
+                                        >
+                                            {awayTeam?.name || 'Away'}
+                                        </Text>
+                                    </View>
+
+                                    {/* Away + Button */}
+                                    {/* {isMatchLive && (
+                                        <Pressable
+                                            onPress={() =>
+                                                handleUpdateScore(awayTeam?.public_id, set.set_number)
+                                            }
+                                            disabled={!!updating}
+                                            style={[
+                                                tailwind`w-9 h-9 rounded-lg items-center justify-center ml-2`,
+                                                {
+                                                    backgroundColor: updating ? '#1e293b' : '#f8717120',
+                                                    borderWidth: 1,
+                                                    borderColor: '#f8717140',
+                                                },
+                                            ]}
+                                        >
+                                            {isUpdatingAway ? (
+                                                <ActivityIndicator size="small" color="#f87171" />
+                                            ) : (
+                                                <MaterialIcon name="add" size={20} color="#f87171" />
+                                            )}
+                                        </Pressable>
+                                    )} */}
+                                </View>
+                            </View>
+                        );
+                    })}
+
+                    {/* Add Set Button */}
+                    {isMatchLive && (
+                        <Pressable
+                            onPress={handleAddSet}
+                            disabled={!!updating}
+                            style={[
+                                tailwind`mx-2 mt-2 mb-4 py-3 rounded-xl flex-row items-center justify-center`,
+                                {
+                                    backgroundColor: '#1e293b',
+                                    borderWidth: 1,
+                                    borderColor: '#334155',
+                                    borderStyle: 'dashed',
+                                },
+                            ]}
+                        >
+                            {updating === 'add_set' ? (
+                                <ActivityIndicator size="small" color="#10b981" />
+                            ) : (
+                                <>
+                                    <MaterialIcon name="add-circle-outline" size={20} color="#10b981" />
+                                    <Text
+                                        style={{
+                                            color: '#10b981',
+                                            fontSize: 14,
+                                            fontWeight: '600',
+                                            marginLeft: 6,
+                                        }}
+                                    >
+                                        Add Set {sets.length + 1}
+                                    </Text>
+                                </>
+                            )}
+                        </Pressable>
+                    )}
+                </Animated.View>
+            </Animated.ScrollView>
+        </View>
+    );
+};
+
+export default BadmintonScoreboard;
+

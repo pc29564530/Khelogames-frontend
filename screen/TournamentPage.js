@@ -6,6 +6,7 @@ import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
 import TopTabCricket from '../navigation/TopTabCricket';
+import TopTabBadminton from '../navigation/TopTabBadminton';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -115,7 +116,7 @@ const TournamentPage = ({ route }) => {
       const checkSport = (game) => {
         switch (game.name) {
             case "badminton":
-                return <TopTabBadminton />;
+                return <TopTabBadminton tournament={tournament} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />;
             case "cricket":
                 return <TopTabCricket tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
             case "hockey":
