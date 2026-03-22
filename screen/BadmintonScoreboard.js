@@ -7,6 +7,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Animated, {
     useAnimatedScrollHandler,
     interpolate,
@@ -14,15 +15,17 @@ import Animated, {
     useAnimatedStyle,
     Extrapolation,
 } from 'react-native-reanimated';
-import { current } from '@reduxjs/toolkit';
 
 const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
-    const [sets, setSets] = useState([]);
+    const [setsScore, setSetsScore] = useState([]);
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(null);
-    const [currentSet, setCurrentSet] = useState(sets.length);
+    const [currentSet, setCurrentSet] = useState(setsScore.length);
     const [currentSetScore, setCurrentSetScore] = useState({});
-    const [error, setError] = useState(null);
+    const [error, setError] = useState({
+        global: null,
+        fields: {}
+    });
     const game = useSelector((state) => state.sportReducers.game);
     const { height: sHeight } = Dimensions.get('window');
 
@@ -36,10 +39,13 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
         if (!matchPublicID) return;
         try {
             setLoading(true);
-            setError(null);
+            setError({
+                global: null,
+                fields: {}
+            });
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(
-                `${BASE_URL}/${game.name}/get-badminton-set-score/${matchPublicID}`,
+                `${BASE_URL}/${game.name}/get-badminton-sets-score/${matchPublicID}`,
                 {
                     headers: {
                         Authorization: `Bearer ${authToken}`,
@@ -48,24 +54,23 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                 }
             );
             const item = response.data;
-            console.log("Sets: ", item)
-            setSets(item.data || []);
-
-            const setsData = item.data.find((it) => it.set_status === "in_progress");
-
-            setCurrentSet(setsData.set_number)
-            setCurrentSetScore(setsData);
+            setSetsScore(item.data.sets || []);
+                const setsData = item.data.sets.find((it) => it.set_status === "in_progress");
+                if(setsData?.set_status) {
+                    setCurrentSet(setsData.set_number)
+                    setCurrentSetScore(setsData);
+                }
 
         } catch (err) {
-            console.error('Failed to fetch set scores:', err);
-            setError('Failed to load scores');
+            setError({
+                global: "Unable to get sets scores",
+                fields: {}
+            })
+            console.error('Failed to get set scores:', err);
         } finally {
             setLoading(false);
         }
     };
-
-    console.log("Current Set: ", currentSet )
-    console.log("Current Set Score: ", currentSetScore)
 
     useFocusEffect(
         useCallback(() => {
@@ -73,43 +78,15 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
         }, [matchPublicID, game.name])
     );
 
-    const handleAddSet = async () => {
-        if (!matchPublicID) return;
-        try {
-            setUpdating('add_set');
-            setError(null);
-            const newSetNumber = sets.length + 1;
-            const authToken = await AsyncStorage.getItem('AccessToken');
-            await axiosInstance.post(
-                `${BASE_URL}/${game.name}/add-badminton-score`,
-                {
-                    match_public_id: matchPublicID,
-                    set_number: newSetNumber,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-            await fetchSetScores();
-        } catch (err) {
-            console.error('Failed to add set:', err);
-            setError('Failed to add set');
-        } finally {
-            setUpdating(null);
-        }
-    };
-
     const handleUpdateScore = async (teamPublicID, setNumber) => {
-        console.log("Team; ", teamPublicID)
-        console.log("Set Numbert: ", setNumber)
         if (!matchPublicID || !teamPublicID) return;
         const key = `${teamPublicID}_${setNumber}`;
         try {
             setUpdating(key);
-            setError(null);
+            setError({
+                global: null,
+                fields: {},
+            });
             const authToken = await AsyncStorage.getItem('AccessToken');
             await axiosInstance.post(
                 `${BASE_URL}/${game.name}/update-badminton-score`,
@@ -128,15 +105,14 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
             await fetchSetScores();
         } catch (err) {
             console.error('Failed to update score:', err);
-            setError('Failed to update score');
+            setError({
+                global: "Unable to update score",
+                fields: err?.resposne?.data?.error?.fields
+            });
         } finally {
             setUpdating(null);
         }
     };
-
-    // Calculate sets won
-    const homeSetsWon = sets.filter((s) => s.homeScore > s.awayScore).length;
-    const awaySetsWon = sets.filter((s) => s.awayScore > s.homeScore).length;
 
     // Scroll handler
     const currentScrollY = useSharedValue(0);
@@ -163,7 +139,7 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
     const isMatchLive = item?.status_code === 'in_progress' || item?.status_code === 'first_set' || item?.status_code === 'second_set' || item?.status_code === 'third_set';
 
     return (
-        <View style={tailwind`flex-1`}>
+        <View style={[tailwind`flex-1`, {backgroundColor: "#0f172a"}]}>
             <Animated.ScrollView
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
@@ -173,14 +149,14 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
             >
                 <Animated.View style={[{ padding: 8, backgroundColor: '#0f172a' }, contentStyle]}>
                     {/* Error Banner */}
-                    {error && (
+                    {error.global && (
                         <View
                             style={[
                                 tailwind`mx-2 mb-3 p-3 rounded-lg`,
                                 { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' },
                             ]}
                         >
-                            <Text style={{ color: '#fca5a5', fontSize: 13 }}>{error}</Text>
+                            <Text style={{ color: '#fca5a5', fontSize: 13 }}>{error.global}</Text>
                         </View>
                     )}
 
@@ -321,7 +297,7 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                     )}
 
                     {/* Loading */}
-                    {loading && sets.length === 0 && (
+                    {loading && setsScore.length === 0 && (
                         <View style={tailwind`items-center py-8`}>
                             <ActivityIndicator size="large" color="#f87171" />
                             <Text style={{ color: '#94a3b8', marginTop: 8 }}>Loading scores...</Text>
@@ -329,7 +305,7 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                     )}
 
                     {/* No Sets */}
-                    {!loading && sets.length === 0 && (
+                    {!loading && setsScore.length === 0 && (
                         <View style={tailwind`items-center py-8`}>
                             <MaterialIcon name="sports-tennis" size={48} color="#475569" />
                             <Text style={{ color: '#64748b', marginTop: 8, fontSize: 14 }}>
@@ -337,9 +313,8 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                             </Text>
                         </View>
                     )}
-
                     {/* Set Rows */}
-                    {sets.map((set, index) => {
+                    {setsScore?.map((set, index) => {
                         const homeWon = set.home_score > set.away_score;
                         const awayWon = set.away_score > set.home_score;
                         const isUpdatingHome = updating === `${homeTeam?.public_id}_${set.set_number}`;
@@ -356,7 +331,7 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                                 {/* Set Header */}
                                 <View
                                     style={[
-                                        tailwind`px-4 py-2`,
+                                        tailwind`px-4 py-2 flex-row justify-between`,
                                         { backgroundColor: '#334155', borderBottomWidth: 1, borderBottomColor: '#475569' },
                                     ]}
                                 >
@@ -366,33 +341,13 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                                             ? `  •  ${set.set_status}`
                                             : ''}
                                     </Text>
+                                    <Pressable onPress={() => {handleSetsPoints(set)}}>
+                                        <AntDesign name="down" size={14} color="white"/>
+                                    </Pressable>
                                 </View>
 
                                 {/* Score Row */}
                                 <View style={tailwind`flex-row items-center px-3 py-3`}>
-                                    {/* Home + Button */}
-                                    {/* {isMatchLive && (
-                                        <Pressable
-                                            onPress={() =>
-                                                handleUpdateScore(homeTeam?.public_id, set.set_number)
-                                            }
-                                            disabled={!!updating}
-                                            style={[
-                                                tailwind`w-9 h-9 rounded-lg items-center justify-center mr-2`,
-                                                {
-                                                    backgroundColor: updating ? '#1e293b' : '#3b82f620',
-                                                    borderWidth: 1,
-                                                    borderColor: '#3b82f640',
-                                                },
-                                            ]}
-                                        >
-                                            {isUpdatingHome ? (
-                                                <ActivityIndicator size="small" color="#60a5fa" />
-                                            ) : (
-                                                <MaterialIcon name="add" size={20} color="#60a5fa" />
-                                            )}
-                                        </Pressable>
-                                    )} */}
 
                                     {/* Home Team */}
                                     <View style={tailwind`flex-1`}>
@@ -454,69 +409,10 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
                                             {awayTeam?.name || 'Away'}
                                         </Text>
                                     </View>
-
-                                    {/* Away + Button */}
-                                    {/* {isMatchLive && (
-                                        <Pressable
-                                            onPress={() =>
-                                                handleUpdateScore(awayTeam?.public_id, set.set_number)
-                                            }
-                                            disabled={!!updating}
-                                            style={[
-                                                tailwind`w-9 h-9 rounded-lg items-center justify-center ml-2`,
-                                                {
-                                                    backgroundColor: updating ? '#1e293b' : '#f8717120',
-                                                    borderWidth: 1,
-                                                    borderColor: '#f8717140',
-                                                },
-                                            ]}
-                                        >
-                                            {isUpdatingAway ? (
-                                                <ActivityIndicator size="small" color="#f87171" />
-                                            ) : (
-                                                <MaterialIcon name="add" size={20} color="#f87171" />
-                                            )}
-                                        </Pressable>
-                                    )} */}
                                 </View>
                             </View>
                         );
                     })}
-
-                    {/* Add Set Button */}
-                    {isMatchLive && (
-                        <Pressable
-                            onPress={handleAddSet}
-                            disabled={!!updating}
-                            style={[
-                                tailwind`mx-2 mt-2 mb-4 py-3 rounded-xl flex-row items-center justify-center`,
-                                {
-                                    backgroundColor: '#1e293b',
-                                    borderWidth: 1,
-                                    borderColor: '#334155',
-                                    borderStyle: 'dashed',
-                                },
-                            ]}
-                        >
-                            {updating === 'add_set' ? (
-                                <ActivityIndicator size="small" color="#10b981" />
-                            ) : (
-                                <>
-                                    <MaterialIcon name="add-circle-outline" size={20} color="#10b981" />
-                                    <Text
-                                        style={{
-                                            color: '#10b981',
-                                            fontSize: 14,
-                                            fontWeight: '600',
-                                            marginLeft: 6,
-                                        }}
-                                    >
-                                        Add Set {sets.length + 1}
-                                    </Text>
-                                </>
-                            )}
-                        </Pressable>
-                    )}
                 </Animated.View>
             </Animated.ScrollView>
         </View>
@@ -524,4 +420,5 @@ const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
 };
 
 export default BadmintonScoreboard;
+
 

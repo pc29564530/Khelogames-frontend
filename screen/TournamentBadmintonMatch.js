@@ -30,7 +30,7 @@ const TournamentBadmintonMatch = ({ tournament, AsyncStorage, axiosInstance, BAS
     );
 
     useEffect(() => {
-        console.debug("Match Line no  : ", match)
+        console.debug("Match: ", match)
     }, [match]);
 
     const fetchTournamentMatchs = async () => {
