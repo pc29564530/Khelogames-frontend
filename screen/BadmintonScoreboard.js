@@ -16,7 +16,7 @@ import Animated, {
     Extrapolation,
 } from 'react-native-reanimated';
 
-const BadmintonScoreboard = ({ item, parentScrollY, collapsedHeader }) => {
+const BadmintonScoreboard = ({ item, parentScrollY, headerHeight, collapsedHeader }) => {
     const [setsScore, setSetsScore] = useState([]);
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(null);

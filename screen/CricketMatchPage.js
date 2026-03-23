@@ -17,6 +17,7 @@ import { fetchTeamPlayers } from '../services/teamServices';
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
 import LinearGradient from 'react-native-linear-gradient';
+import { displayMatchStatus } from '../utils/MatchStatus';
 const filePath = require('../assets/status_code.json');
 import Animated, { 
     Extrapolation, 
@@ -681,7 +682,7 @@ const CricketMatchPage = ({ route }) => {
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={{color:'#f1f5f9',fontSize:18,fontWeight:'600'}}>
-                        {match?.status_code}
+                        {displayMatchStatus(match?.status_code)}
                     </Text>
                 </Animated.View>
 

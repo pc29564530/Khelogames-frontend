@@ -13,6 +13,7 @@ import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addF
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
 import LinearGradient from 'react-native-linear-gradient';
+import { displayMatchStatus } from '../utils/MatchStatus';
 import { validateMatchStatus, validateMatchSubStatus, validateMatchForm } from '../utils/validation/matchValidation';
 import Animated, { 
     Extrapolation, 
@@ -331,7 +332,6 @@ const FootballMatchPage = ({ route }) => {
                 fields: {},
             });
 
-            // console.log("Item: Status: ", itm)
             const authToken = await AsyncStorage.getItem('AccessToken');
             const data = { sub_status: itm.type };
             const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchSubStatus/${matchPublicID}`, data, {
@@ -397,10 +397,7 @@ const FootballMatchPage = ({ route }) => {
             item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    console.log("Line no 362: ", filteredStatusCodes)
  
-
     useEffect(() => {
         if (match) {
             setLoading(false);
@@ -488,7 +485,7 @@ const FootballMatchPage = ({ route }) => {
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
-                        {match?.status_code || 'Loading...'}
+                        {displayMatchStatus(match?.status_code)}
                     </Text>
                 </Animated.View>
 

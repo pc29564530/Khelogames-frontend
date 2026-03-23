@@ -11,6 +11,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 const filePath = require('../assets/status_code.json');
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation} from 'react-native-reanimated';
+import { displayMatchStatus } from '../utils/MatchStatus';
 
 export const renderInningScore = (scores) => {
     return scores?.map((score, index) => (
@@ -236,7 +237,7 @@ const matchesData = (item, ind, navigation) => {
                             tailwind`text-xs font-semibold mt-1 capitalize`,
                             isLive ? tailwind`text-red-400` : { color: '#64748b' }
                         ]}>
-                            {item?.status_code}
+                            {displayMatchStatus(item?.status_code)}
                         </Text>
                     ) : (
                         <Text style={{ color: '#cbd5e1', fontSize: 11, fontWeight: '500', marginTop: 4 }}>

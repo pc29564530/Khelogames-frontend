@@ -10,6 +10,7 @@ import { formatToDDMMYY, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
 import Animated, {useAnimatedScrollHandler, interpolate, useSharedValue, useAnimatedStyle, Extrapolation} from 'react-native-reanimated';
 import { getMatches } from '../redux/actions/actions';
+import { displayMatchStatus } from '../utils/MatchStatus';
 
 const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE_URL, parentScrollY, collapsedHeader}) => {
     const [error, setError] = useState({
@@ -229,7 +230,7 @@ const matchesData = (item, ind, navigation, tournament) => {
                             tailwind`text-xs font-semibold mt-1 capitalize`,
                             isLive ? tailwind`text-red-400` : { color: '#64748b' }
                         ]}>
-                            {item?.status_code}
+                            {displayMatchStatus(item?.status_code)}
                         </Text>
                     ) : (
                         <Text style={{ color: '#cbd5e1', fontSize: 11, fontWeight: '500', marginTop: 4 }}>

@@ -13,6 +13,7 @@ import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addF
 import { StatusModal } from '../components/modals/StatusModal';
 import { useWebSocket } from '../context/WebSocketContext';
 import LinearGradient from 'react-native-linear-gradient';
+import { displayMatchStatus } from '../utils/MatchStatus';
 import { validateMatchStatus, validateMatchSubStatus, validateMatchForm } from '../utils/validation/matchValidation';
 import Animated, { 
     Extrapolation, 
@@ -30,6 +31,7 @@ import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
 import MediaScreen from './Media';
 import BadmintonScoreboard from './BadmintonScoreboard'
+import BadmintonStatistics from './BadmintonStatistics';
 const filePath = require('../assets/status_code.json');
 
 const BadmintonMatchPage = ({ route }) => {
@@ -453,8 +455,6 @@ const BadmintonMatchPage = ({ route }) => {
         );
     }
 
-    console.log("Match Line no 456: ", match)
-
     return (
         <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
             {/* Animated Header */}
@@ -490,7 +490,7 @@ const BadmintonMatchPage = ({ route }) => {
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
-                        {match?.status_code || 'Loading...'}
+                        {displayMatchStatus(match?.status_code)}
                     </Text>
                 </Animated.View>
 
@@ -515,7 +515,6 @@ const BadmintonMatchPage = ({ route }) => {
                             {match?.homeTeam?.name || 'Home'}
                         </Animated.Text>
                     </Animated.View>
-                    {console.log("score line no 518: ", match.homeScore, match.awayScore)}
                     {/* Score and Date and Time */}
                     {match?.status_code === "not_started" ? (
                         <Animated.View style={[tailwind`items-center justify-center `,scoreStyle]}>
@@ -585,39 +584,6 @@ const BadmintonMatchPage = ({ route }) => {
                         tabBarInactiveTintColor: '#64748b',
                     }}
                 >
-                    {/* <TopTab.Screen name="Details">
-                        {() => (
-                            <FootballDetails
-                                item={match}
-                                parentScrollY={parentScrollY}
-                                headerHeight={headerHeight}
-                                collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                    </TopTab.Screen> */}
-
-                    {/* <TopTab.Screen name="Incidents">
-                        {() => (
-                            <FootballIncidents
-                                tournament={tournament}
-                                item={match}
-                                parentScrollY={parentScrollY}
-                                headerHeight={headerHeight}
-                                collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                    </TopTab.Screen> */}
-
-                    {/* <TopTab.Screen name="LineUp">
-                        {() => (
-                            <FootballLineUp
-                                item={match}
-                                parentScrollY={parentScrollY}
-                                headerHeight={headerHeight}
-                                collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                    </TopTab.Screen> */}
                     <TopTab.Screen name="Live">
                         {() => (
                             <BadmintonScoreboard
@@ -628,6 +594,18 @@ const BadmintonMatchPage = ({ route }) => {
                             />
                         )}
                     </TopTab.Screen>
+                    {match.status_code === "finished" && (
+                        <TopTab.Screen name="Stats">
+                            {() => (
+                                <BadmintonStatistics
+                                    item={match}
+                                    parentScrollY={parentScrollY}
+                                    headerHeight={headerHeight}
+                                    collapsedHeader={collapsedHeader}
+                                />
+                            )}
+                        </TopTab.Screen>
+                    )}
                     <TopTab.Screen name="Media">
                         {() => (
                             <MediaScreen
@@ -737,102 +715,6 @@ const BadmintonMatchPage = ({ route }) => {
                 </Modal>
             )}
 
-            {/* Sub Status */}
-            {subStatusVisible && (
-                <Modal
-                    transparent={true}
-                    animationType="slide"
-                    visible={subStatusVisible}
-                    onRequestClose={handleCloseSubStatusModal}
-                >
-                    <View style={tailwind`flex-1 bg-black/50 justify-end`}>
-                        {/* Backdrop - tap to close */}
-                        <Pressable
-                            style={tailwind`absolute inset-0`}
-                            onPress={handleCloseSubStatusModal}
-                        />
-
-                        {/* Modal Content - won't close on tap */}
-                        <View style={[tailwind`rounded-t-2xl max-h-[75%]`, { backgroundColor: '#1e293b' }]}>
-                            {/* Drag Handle */}
-                            <View style={[tailwind`w-12 h-1.5 rounded-full self-center mt-2 mb-3`, { backgroundColor: '#475569' }]} />
-
-                            {/* Header */}
-                            <View style={[tailwind`px-5 pb-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
-                                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Update Sub Status</Text>
-                                <Text style={[tailwind`text-sm mt-1`, { color: '#64748b' }]}>Select the detailed match sub-status</Text>
-                            </View>
-
-                            {/* Search Bar */}
-                            <View style={tailwind`px-5 py-4`}>
-                                <View style={[tailwind`flex-row items-center rounded-lg px-4 py-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
-                                    <MaterialIcon name="search" size={20} color="#64748b" />
-                                    <TextInput
-                                        style={[tailwind`flex-1 ml-2 text-base`, { color: '#f1f5f9' }]}
-                                        placeholder="Search sub status..."
-                                        placeholderTextColor="#475569"
-                                        value={searchQuery}
-                                        onChangeText={handleSearch}
-                                    />
-                                    {searchQuery.length > 0 && (
-                                        <Pressable onPress={() => setSearchQuery('')}>
-                                            <MaterialIcon name="close" size={20} color="#64748b" />
-                                        </Pressable>
-                                    )}
-                                </View>
-                            </View>
-
-                            {/* Global Error Display */}
-                            {error?.global && (
-                                <View style={[tailwind`mx-5 mb-3 rounded-lg p-3`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
-                                    <View style={tailwind`flex-row items-center`}>
-                                        <MaterialIcon name="error-outline" size={18} color="#fca5a5" />
-                                        <Text style={[tailwind`text-sm font-semibold ml-2 flex-1`, { color: '#fca5a5' }]}>
-                                            {error.global}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* Status List */}
-                            <ScrollView style={tailwind`pb-10`}>
-                                {filteredStatusCodes?.length > 0 ? (
-                                    filteredStatusCodes.map((item, index) => (
-                                        <Pressable
-                                            key={index}
-                                            onPress={() => {setSubStatus(item.type); handleUpdateSubStatus(item)}}
-                                            style={[tailwind`px-5 py-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
-                                        >
-                                            <View style={tailwind`flex-row items-center justify-between`}>
-                                                <View style={tailwind`flex-row items-center flex-1`}>
-                                                    <View style={[tailwind`w-10 h-10 rounded-full items-center justify-center`, { backgroundColor: '#10b98120' }]}>
-                                                        <MaterialIcon name="timer" size={20} color="#4ade80" />
-                                                    </View>
-                                                    <View style={tailwind`ml-3 flex-1`}>
-                                                        <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>{item.label}</Text>
-                                                        <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
-                                                            {item.type}
-                                                        </Text>
-                                                    </View>
-                                                </View>
-                                                {match?.sub_status === item.type && (
-                                                    <MaterialIcon name="check-circle" size={22} color="#10b981" />
-                                                )}
-                                            </View>
-                                        </Pressable>
-                                    ))
-                                ) : (
-                                    <View style={tailwind`py-12 items-center`}>
-                                        <MaterialIcon name="search-off" size={48} color="#475569" />
-                                        <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>No sub status found</Text>
-                                    </View>
-                                )}
-                            </ScrollView>
-                        </View>
-                    </View>
-                </Modal>
-            )}
-
             {/* Menu Modal */}
             {menuVisible && (
                 <Modal
@@ -854,19 +736,7 @@ const BadmintonMatchPage = ({ route }) => {
                                     <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#3b82f620' }]}>
                                         <MaterialIcon name="edit" size={18} color="#60a5fa" />
                                     </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setMenuVisible(false);
-                                        setSubStatusVisible(true);
-                                    }}
-                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
-                                >
-                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#10b98120' }]}>
-                                        <MaterialIcon name="update" size={18} color="#4ade80" />
-                                    </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Sub Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Match Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {

@@ -9,6 +9,7 @@ const getIconForSport = (name) => {
   switch (name) {
     case 'football': return 'sports-soccer';
     case 'cricket': return 'sports-cricket';
+    case 'badminton': return 'sports-tennis'
     default: return 'sports';
   }
 };
