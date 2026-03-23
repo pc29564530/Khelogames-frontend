@@ -128,14 +128,18 @@ const formatDateToDatePicker = (date) => {
     return `${year}/${month}/${day}`;
 };
 
-// Convert Date object to Unix timestamp in SECONDS (for backend)
-// This ensures we get the start of the selected day in LOCAL time
-const dateToUnixTimestamp = (date) => {
+// Convert Date to midnight and return RFC3339 string for backend
+const dateToRFC3339Timestamp = (date) => {
     if (!date) return null;
     const d = new Date(date);
-    // Create a new date at midnight LOCAL time for the selected date
     const localMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-    return Math.floor(localMidnight.getTime() / 1000);
+    return localMidnight.toISOString(); //  "2026-03-23T00:00:00.000Z"
+};
+
+// Create a Date object at midnight local time for the given date
+const toMidnight = (date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
 };
 
 const Matches = () => {
@@ -147,7 +151,7 @@ const Matches = () => {
     const [permissionGranted, setPermissionGranted] = useState(null);
     const dispatch = useDispatch();
 
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(toMidnight(new Date()));
     const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
@@ -183,6 +187,18 @@ const Matches = () => {
         };
     });
 
+    const handlePrevDate = () => {
+        const date = new Date(selectedDate)
+        date.setDate(date.getDate() - 1)
+        setSelectedDate(toMidnight(date))
+    }
+
+    const handleNextDate = () => {
+        const date = new Date(selectedDate)
+        date.setDate(date.getDate() + 1)
+        setSelectedDate(toMidnight(date))
+    }
+
     useEffect(() => {
         const defaultSport = { id: 1, name: 'football', min_players: 11};
         dispatch(setGame(defaultSport));
@@ -209,8 +225,7 @@ const Matches = () => {
     }, []);
 
     useEffect(() => {
-        const today = new Date();
-        setSelectedDate(today);
+        setSelectedDate(toMidnight(new Date()));
     }, []);
 
     useEffect(() => {
@@ -219,7 +234,7 @@ const Matches = () => {
                 setLoading(true);
                 setError({global: null, fields: {}});
                 const authToken = await AsyncStorage.getItem("AccessToken");
-                const timestamp = selectedDate;
+                const timestamp = dateToRFC3339Timestamp(selectedDate);
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllMatches`, {
                     params: {
                         start_timestamp: timestamp
@@ -307,7 +322,7 @@ const Matches = () => {
             setLoading(true);
             setError({global: null, fields: {}});
             const authToken = await AsyncStorage.getItem("AccessToken");
-            const timestamp = dateToUnixTimestamp(selectedDate);
+            const timestamp = dateToRFC3339Timestamp(selectedDate);
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/get-matches-by-location`, {
                 params: {
                     start_timestamp: timestamp,
@@ -512,6 +527,8 @@ const Matches = () => {
                         handleLocation={handleLocation}
                         handleLiveMatches={handleLiveMatches}
                         formattedDate={formattedDate}
+                        handleNextDate={handleNextDate}
+                        handlePrevDate={handlePrevDate}
                     />
                 }
                 stickyHeaderIndices={[0]}
@@ -567,8 +584,8 @@ const Matches = () => {
                             </View>
                             <DatePicker
                                 date={formatDateToDatePicker(selectedDate) || today}
-                                current={today}
-                                minimumDate={today}
+                                selected={formatDateToDatePicker(selectedDate)}
+                                current={formatDateToDatePicker(selectedDate)} 
                                 mode="calendar"
                                 onDateChange={(dateString) => {
                                     setSelectedDate(formatDatePickerToDate(dateString));
