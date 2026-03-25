@@ -1,150 +1,101 @@
 import * as actionTypes from '../types/actionTypes';
 
-const initialstate = {
-    badmintonMatchScore: [],
+const initialState = {
     match: {}
-}
-const badmintonMatchScoreReducers = (state = initialstate, action) => {
-    switch (action.type) {
-        case actionTypes.SET_BADMINTON_SCORE:
-            if (!state.match || state.match.id !== action.payload.match_id) {
-                return state
-            }
+};
 
-            const isAway = state.match.away_team_id === action.payload.team_id;
-            const isHome = state.match.home_team_id === action.payload.team_id;
+const badmintonMatchScoreReducers = (state = initialState, action) => {
+    switch (action.type) {
+
+        case actionTypes.GET_MATCH:
+            return {
+                ...state,
+                match: action.payload,
+            };
+
+        case actionTypes.SET_MATCH_STATUS: {
+            // Backend sends: { id, public_id, status_code, result, ... }
+            // WebSocket sends: { id, public_id, status_code, result, ... }
+            const matchId = action.payload.public_id ?? action.payload.match_public_id;
+            const matchNumericId = action.payload.match_id ?? action.payload.id;
+
+            // Match by public_id first, fallback to numeric id
+            const isCurrentMatch =
+                (matchId && state.match?.public_id === matchId) ||
+                (matchNumericId && state.match?.id === matchNumericId);
+
+            if (!state.match || !isCurrentMatch) {
+                return state;
+            }
 
             return {
                 ...state,
                 match: {
                     ...state.match,
-                    homeScore: isHome ? { ...state.match.homeScore, ...action.payload } : state.match.homeScore,
-                    awayScore: isAway ? { ...state.match.awayScore, ...action.payload } : state.match.awayScore,
-                }
+                    status_code: action.payload.status_code ?? state.match.status_code,
+                    result: action.payload.result ?? state.match.result,
+                },
+            };
+        }
+
+        case actionTypes.SET_MATCH_RESULT: {
+            const matchId = action.payload.public_id ?? action.payload.match_public_id;
+            const matchNumericId = action.payload.match_id ?? action.payload.id;
+
+            const isCurrentMatch =
+                (matchId && state.match?.public_id === matchId) ||
+                (matchNumericId && state.match?.id === matchNumericId);
+
+            if (!state.match || !isCurrentMatch) {
+                return state;
             }
 
-        case actionTypes.ADD_BADMINTON_SCORE:
-            let addScore = state.badmintonMatchScore;
-            if (addScore.id === action.payload.match_id) {
-                const isAway = addScore.away_team_id === action.payload.team_id;
-
-                updatedMatch = {
+            return {
+                ...state,
+                match: {
                     ...state.match,
-                    homeScore: isAway ? addScore.homeScore : action.payload,
-                    awayScore: isAway ? action.payload : addScore.awayScore,
-                };
-            }
-            return {
-                ...state,
-                footballMatchScoreReducers: addScore,
-                match: addScore
-            }
-        case actionTypes.GET_MATCH:
-            return {
-                ...state,
-                match: action.payload
+                    result: action.payload.result ?? state.match.result,
+                },
+            };
+        }
+
+        case actionTypes.SET_BADMINTON_SCORE: {
+            if (!state.match || state.match.public_id !== action.payload.public_id) {
+                return state;
             }
 
-        case actionTypes.SET_MATCH_STATUS: {
-                    console.log("SET_MATCH_STATUS - Received payload:", action.payload);
-                    
-                    // FIX: Handle both payload formats
-                    let matchId, statusCode;
-                    
-                    if (action.payload.match_id !== undefined) {
-                        // Format 1: {match_id: 3, status_code: "in_progress"}
-                        matchId = action.payload.match_id;
-                        statusCode = action.payload.status_code;
-                        console.log("Format 1: match_id =", matchId, "status =", statusCode);
-                    } else if (action.payload.id !== undefined) {
-                        // Format 2: Full match object from WebSocket
-                        matchId = action.payload.id;
-                        statusCode = action.payload.status_code;
-                        console.log("Format 2 (WebSocket): id =", matchId, "status =", statusCode);
-                    } else {
-                        console.error("Invalid payload - no match_id or id found:", action.payload);
-                        return state;
-                    }
-        
-                    console.log("Looking for match with ID:", matchId);
-                    console.log("Current match ID:", state.match?.id);
-        
-                    let updateSingleMatch = state.match;
-                    
-                    if (state.match?.id === matchId) {
-                        console.log("   Old status:", state.match.status_code);
-                        console.log("   New status:", statusCode);
-                        
-                        updateSingleMatch = { 
-                            ...state.match, 
-                            status_code: statusCode 
-                        };
-                        
-                        console.log("Updated single match:", updateSingleMatch.status_code);
-                    } else {
-                        console.log("Match ID doesn't match current match - no update");
-                        console.log("   Current:", state.match?.id, "Expected:", matchId);
-                    }
-        
-                    console.log("📤 Returning new state with status:", updateSingleMatch?.status_code);
-        
-                    return {
-                        ...state,
-                        match: updateSingleMatch,
-                    };
-                }
-            case actionTypes.SET_MATCH_SUB_STATUS:
-                console.log("SET_MATCH_STATUS - Received payload:", action.payload);
-                    
-                    let matchId, subStatus;
-                    
-                    if (action.payload.match_id !== undefined) {
-                        // Format 1: {match_id: 3, status_code: "in_progress"}
-                        matchId = action.payload.match_id;
-                        subStatus = action.payload.sub_status;
-                        console.log("Format 1: match_id =", matchId, "status =", statusCode);
-                    } else if (action.payload.id !== undefined) {
-                        // Format 2: Full match object from WebSocket
-                        matchId = action.payload.id;
-                        subStatus = action.payload.sub_status;
-                        console.log("Format 2 (WebSocket): id =", matchId, "status =", subStatus);
-                    } else {
-                        console.error("Invalid payload - no match_id or id found:", action.payload);
-                        return state;
-                    }
-        
-                    console.log(" Looking for match with ID:", matchId);
-                    console.log(" Current match ID:", state.match?.id);
-        
-                    let updateSingleMatch = state.match;
-                    
-                    if (state.match?.id === matchId) {
-                        console.log("   Old status:", state.match.sub_status);
-                        console.log("   New status:", subStatus);
-                        
-                        updateSingleMatch = { 
-                            ...state.match, 
-                            sub_status: subStatus 
-                        };
-                        
-                        console.log("Updated single match:", updateSingleMatch.sub_status);
-                    } else {
-                        console.log("Match ID doesn't match current match - no update");
-                        console.log("Current:", state.match?.id, "Expected:", matchId);
-                    }
-        
-                    console.log("Returning new state with status:", updateSingleMatch?.sub_status);
-        
-                    return {
-                        ...state,
-                        match: updateSingleMatch,
-                    };
+            return {
+                ...state,
+                match: {
+                    ...state.match,
+                    homeScore: action.payload.homeScore ?? state.match.homeScore,
+                    awayScore: action.payload.awayScore ?? state.match.awayScore,
+                },
+            };
+        }
 
+        case actionTypes.ADD_BADMINTON_SCORE: {
+            if (!state.match || state.match.id !== action.payload.match_id) {
+                return state;
+            }
+
+            const isAway = state.match.away_team_id === action.payload.team_id;
+            const hScore = action.payload?.home_score ?? action.payload?.homeScore;
+            const aScore = action.payload?.away_score ?? action.payload?.awayScore;
+
+            return {
+                ...state,
+                match: {
+                    ...state.match,
+                    homeScore: isAway ? state.match.homeScore : hScore,
+                    awayScore: isAway ? aScore : state.match.awayScore,
+                },
+            };
+        }
 
         default:
             return state;
     }
-}
-
+};
 
 export default badmintonMatchScoreReducers;

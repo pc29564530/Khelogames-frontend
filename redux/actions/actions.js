@@ -670,10 +670,16 @@ export const setMatchStatus = (status) => {
 }
 
 export const setMatchSubStatus = (status) => {
-    console.log("Sub Status Action: ", status)
     return {
         type: actionTypes.SET_MATCH_SUB_STATUS,
         payload: status
+    }
+}
+
+export const setMatchResult = (result) => {
+    return {
+        type: actionTypes.SET_MATCH_RESULT,
+        payload: result
     }
 }
 

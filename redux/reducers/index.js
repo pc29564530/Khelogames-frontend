@@ -17,6 +17,7 @@ import footballMatchPlayerScoreReducers from "./fooballMatchPlayerScoreReducers"
 import footballMatchScoreReducers from "./footballMatchScoreReducers";
 import cricketMatchScore from "./cricketMatchScoreReducers";
 import badmintonMatchScore from "./badmintonMatchScoreReducers";
+import badmintonMatchSet from "./badmintonMatchSetReducers";
 import cricketMatchInning from "./cricketMatchInning"
 import cricketMatchPlayerScore from "./cricketMatchPlayerScoreReducers";
 import tournamentsReducers from "./tournamentsReducers";
@@ -29,8 +30,6 @@ import cricketTossReducers from "./cricketMatchTossReducers";
 import cricketMatchInningReducer from "./cricketMatchInning";
 import tournamentEntitiesReducers from "./tournamentEntitiesReducers";
 import footballIncidentsReducers from "./footballIncidentsReducers";
-import badmintonMatchScoreReducers from "./badmintonMatchScoreReducers";
-
 const appReducer = combineReducers({
     signup: signUpReducers,
     auth: authReducers,
@@ -57,7 +56,8 @@ const appReducer = combineReducers({
     cricketMatchInning: cricketMatchInningReducer,
     tournamentEntities: tournamentEntitiesReducers,
     footballIncidents: footballIncidentsReducers,
-    badmintonMatchScore: badmintonMatchScoreReducers,
+    badmintonMatchScore: badmintonMatchScore,
+    badmintonMatchSet: badmintonMatchSet,
 });
 
 const persistConfig = {

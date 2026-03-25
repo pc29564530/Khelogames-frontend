@@ -28,35 +28,26 @@ const matchesReducers = (state = initialState, action) => {
             };
 
         case actionTypes.SET_MATCH_STATUS: {
-            console.log("SET_MATCH_STATUS - Received payload:", action.payload);
-            
-            let matchId, statusCode;
-            
-            if (action.payload.match_id !== undefined) {
-                // Format 1: {match_id: 3, status_code: "in_progress"}
-                matchId = action.payload.match_id;
-                statusCode = action.payload.status_code;
-                console.log("Format 1: match_id =", matchId, "status =", statusCode);
-            } else if (action.payload.id !== undefined) {
-                // Format 2: Full match object from WebSocket
-                matchId = action.payload.id;
-                statusCode = action.payload.status_code;
-                console.log("Format 2 (WebSocket): id =", matchId, "status =", statusCode);
-            } else {
-                console.error("Invalid payload - no match_id or id found:", action.payload);
+            // Backend returns: { id, public_id, status_code, result, ... }
+            const matchPublicID = action.payload.public_id ?? action.payload.public_id;
+            const statusCode = action.payload.status_code;
+            const result = action.payload.result;
+
+            if (!matchPublicID) {
                 return state;
             }
 
-            console.log("Looking for match with ID:", matchId);
-            console.log("Current match ID:", state.match?.id);
-
-            // Helper function to update matches in arrays
+            // Helper: update status_code AND result in stage arrays
             function updateStageArray(arr) {
                 if (!Array.isArray(arr)) return arr;
 
                 return arr.map(m => {
-                    if (m?.id === matchId) {
-                        return { ...m, status_code: statusCode };
+                    if (m?.public_id === matchPublicID) {
+                        return {
+                            ...m,
+                            status_code: statusCode ?? m.status_code,
+                            // result: result ?? m.result,
+                        };
                     }
                     return m;
                 });
@@ -78,6 +69,47 @@ const matchesReducers = (state = initialState, action) => {
                     round_128: updateStageArray(stage.knockout_stage?.round_128),
                 },
             }));
+
+            return {
+                ...state,
+                matches: updatedMatches,
+            };
+        }
+
+        case actionTypes.SET_MATCH_RESULT: {
+            const matchId = action.payload.match_id ?? action.payload.id;
+            const result = action.payload.result;
+
+            if (!matchId) {
+                return state;
+            }
+
+            function updateResultInArray(arr) {
+                if (!Array.isArray(arr)) return arr;
+                return arr.map(m => {
+                    if (m?.id === matchId) {
+                        return { ...m, result: result ?? m.result };
+                    }
+                    return m;
+                });
+            }
+
+            const updatedMatches = state.matches.map(stage => ({
+                ...stage,
+                league_stage: updateResultInArray(stage.league_stage),
+                group_stage: updateResultInArray(stage.group_stage),
+                knockout_stage: {
+                    ...stage.knockout_stage,
+                    final: updateResultInArray(stage.knockout_stage?.final),
+                    semifinal: updateResultInArray(stage.knockout_stage?.semifinal),
+                    quaterfinal: updateResultInArray(stage.knockout_stage?.quaterfinal),
+                    round_16: updateResultInArray(stage.knockout_stage?.round_16),
+                    round_32: updateResultInArray(stage.knockout_stage?.round_32),
+                    round_64: updateResultInArray(stage.knockout_stage?.round_64),
+                    round_128: updateResultInArray(stage.knockout_stage?.round_128),
+                },
+            }));
+
             return {
                 ...state,
                 matches: updatedMatches,
