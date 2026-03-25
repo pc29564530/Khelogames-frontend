@@ -683,3 +683,40 @@ export const getFootballScore = (score) => {
         payload: score
     }
 }
+
+export const setBadmintonScore = (score) => {
+    return {
+        type: actionTypes.SET_BADMINTON_SCORE,
+        payload: score
+    }
+}
+
+export const addBadmintonScore = (score) => {
+    return {
+        type: actionTypes.ADD_BADMINTON_SCORE,
+        payload: score
+    }
+}
+
+export const setBadmintonSets = (sets) => {
+    return {
+        type: actionTypes.SET_BADMINTON_SETS,
+        payload: sets
+    }
+}
+
+export const addBadmintonSet = (set, point, newSet) => {
+    return {
+        type: actionTypes.ADD_BADMINTON_SET,
+        payload: {set, point, newSet}
+
+    }
+}
+
+export const addBadmintonNewSet = (newSet) => {
+    return {
+        type: actionTypes.ADD_BADMINTON_NEW_SET,
+        payload: newSet
+
+    }
+}
