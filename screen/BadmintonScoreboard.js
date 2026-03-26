@@ -15,7 +15,7 @@ import Animated, {
     useAnimatedStyle,
     Extrapolation,
 } from 'react-native-reanimated';
-import { addBadmintonScore, setBadmintonScore, addBadmintonSet, setBadmintonSets, addBadmintonNewSet, setMatchStatus } from '../redux/actions/actions';
+import { addBadmintonScore, setBadmintonScore, addBadmintonSet, setBadmintonSets, addBadmintonNewSet } from '../redux/actions/actions';
 
 const PointBubble = ({ point, homeTeamId }) => {
     const isHome = point.scoring_team_id === homeTeamId;
@@ -177,14 +177,6 @@ const BadmintonScoreboard = ({ item, parentScrollY, headerHeight, collapsedHeade
                 }
             );
             const item = res.data.data;
-            dispatch(addBadmintonSet(item.score, item.point, item.new_set ));
-            dispatch(setBadmintonScore(item.match_score))
-            if(item.new_set) {
-                dispatch(addBadmintonNewSet(item.new_set));
-            }
-            if(item.match_result) {
-                dispatch(setMatchStatus(item.match_result))
-            }
         } catch (err) {
             console.error('Failed to update score:', err);
             setError({

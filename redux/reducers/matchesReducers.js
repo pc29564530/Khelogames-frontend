@@ -2,13 +2,12 @@ import * as actionTypes from '../types/actionTypes';
 
 const initialState = {
     matches: [],
-    match: null
+    match: null,
 }
 
 const matchesReducers = (state = initialState, action) => {
     switch (action.type) {
         case actionTypes.GET_MATCHES:
-            console.log("GET_MATCHES:", action);
             return {
                 ...state,
                 matches: action.payload
@@ -21,14 +20,13 @@ const matchesReducers = (state = initialState, action) => {
             };
 
         case actionTypes.GET_MATCH:
-            console.log("GET_MATCH:", action.payload);
+            console.log("Match: ", state.match)
             return {
                 ...state,
-                match: action.payload
+                match: action.payload,
             };
 
         case actionTypes.SET_MATCH_STATUS: {
-            // Backend returns: { id, public_id, status_code, result, ... }
             const matchPublicID = action.payload.public_id ?? action.payload.public_id;
             const statusCode = action.payload.status_code;
             const result = action.payload.result;
@@ -37,7 +35,7 @@ const matchesReducers = (state = initialState, action) => {
                 return state;
             }
 
-            // Helper: update status_code AND result in stage arrays
+            // update status_code AND result in stage arrays
             function updateStageArray(arr) {
                 if (!Array.isArray(arr)) return arr;
 
@@ -46,7 +44,7 @@ const matchesReducers = (state = initialState, action) => {
                         return {
                             ...m,
                             status_code: statusCode ?? m.status_code,
-                            // result: result ?? m.result,
+                            // result ?? m.result,
                         };
                     }
                     return m;
@@ -70,9 +68,15 @@ const matchesReducers = (state = initialState, action) => {
                 },
             }));
 
+            // Update single match (match detail view)
+            const updatedMatch = (state.match?.public_id === matchPublicID)
+                ? { ...state.match, status_code: statusCode ?? state.match.status_code, result: result ?? state.match.result }
+                : state.match;
+
             return {
                 ...state,
                 matches: updatedMatches,
+                match: updatedMatch,
             };
         }
 
@@ -110,9 +114,51 @@ const matchesReducers = (state = initialState, action) => {
                 },
             }));
 
+            // Update single match (match detail view)
+            const updatedResultMatch = (state.match?.id === matchId)
+                ? { ...state.match, result: result ?? state.match.result }
+                : state.match;
+
             return {
                 ...state,
                 matches: updatedMatches,
+                match: updatedResultMatch,
+            };
+        }
+
+        // Football: update score on match
+        case actionTypes.SET_FOOTBALL_SCORE: {
+            if (!state.match || state.match.id !== action.payload.match_id) {
+                return state;
+            }
+            const isAway = state.match.away_team_id === action.payload.team_id;
+            const isHome = state.match.home_team_id === action.payload.team_id;
+
+            return {
+                ...state,
+                match: {
+                    ...state.match,
+                    homeScore: isHome ? { ...state.match.homeScore, ...action.payload } : state.match.homeScore,
+                    awayScore: isAway ? { ...state.match.awayScore, ...action.payload } : state.match.awayScore,
+                }
+            };
+        }
+
+        // Badminton: update score on match
+        case actionTypes.SET_BADMINTON_SCORE: {
+            console.log("Action Trigger; ", action.payload)
+            if (!state.match || state.match.public_id !== action.payload.match_public_id) {
+                return state;
+            }
+            console.log("State: ", state.match);
+            console.log("Action: ", action.payload)
+            return {
+                ...state,
+                match: {
+                    ...state.match,
+                    homeScore: action.payload.homeScore ?? state.match.homeScore,
+                    awayScore: action.payload.awayScore ?? state.match.awayScore,
+                },
             };
         }
 

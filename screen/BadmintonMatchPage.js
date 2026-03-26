@@ -9,12 +9,11 @@ import { formattedTime, formattedDate, convertToISOString, formatToDDMMYY } from
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useSelector, useDispatch } from 'react-redux';
-import { addFootballMatchScore, getMatch, setFootballScore, setMatchStatus, addFootballIncidents, setMatchSubStatus } from '../redux/actions/actions';
-import { StatusModal } from '../components/modals/StatusModal';
+import { getMatch, setMatchStatus, addBadmintonScore, setBadmintonScore, addBadmintonSet, addBadmintonNewSet } from '../redux/actions/actions';
 import { useWebSocket } from '../context/WebSocketContext';
 import LinearGradient from 'react-native-linear-gradient';
 import { displayMatchStatus } from '../utils/MatchStatus';
-import { validateMatchStatus, validateMatchSubStatus, validateMatchForm } from '../utils/validation/matchValidation';
+import { validateMatchStatus } from '../utils/validation/matchValidation';
 import Animated, { 
     Extrapolation, 
     interpolate, 
@@ -23,12 +22,7 @@ import Animated, {
     useAnimatedStyle, 
     useSharedValue,
 } from 'react-native-reanimated';
-import axios from 'axios';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import TournamentStanding from './TournamentStanding';
-import FootballLineUp from './FootballLineUp';
-import FootballDetails from './FootballDetails';
-import FootballIncidents from './FootballIncidents';
 import MediaScreen from './Media';
 import BadmintonScoreboard from './BadmintonScoreboard'
 import BadmintonStatistics from './BadmintonStatistics';
@@ -44,9 +38,6 @@ const BadmintonMatchPage = ({ route }) => {
     const [allStatus, setAllStatus] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
-    const [subStatusVisible, setSubStatusVisible] = useState(false);
-    const [statusCode, setStatusCode] = useState();
-    const [subStatus, setSubStatus] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState({
@@ -280,9 +271,6 @@ const BadmintonMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-
-            dispatch(setMatchStatus(response.data.data || []));
-
             // Clear errors on success
             setError({
                 global: null,
@@ -308,71 +296,6 @@ const BadmintonMatchPage = ({ route }) => {
         }
     };
 
-    // const handleUpdateSubStatus = async (itm) => {
-    //     try {
-    //         const formData = {
-    //             sub_status: itm.type,
-    //             event_type: 'status'
-    //         }
-    //         // Validate the form data
-    //         const validation = validateMatchSubStatus(formData);
-    //         if (!validation.isValid) {
-    //             setError({
-    //                 global: null,
-    //                 fields: validation.errors
-    //             });
-    //             console.error("Validation errors:", validation.errors);
-    //             return;
-    //         }
-
-    //         // Close modals and show loading
-    //         setSubStatusVisible(false);
-    //         setMenuVisible(false);
-    //         setLoading(true);
-    //         setError({
-    //             global: null,
-    //             fields: {},
-    //         });
-
-    //         // console.log("Item: Status: ", itm)
-    //         const authToken = await AsyncStorage.getItem('AccessToken');
-    //         const data = { sub_status: itm.type };
-    //         const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateMatchSubStatus/${matchPublicID}`, data, {
-    //             headers: {
-    //                 'Authorization': `Bearer ${authToken}`,
-    //                 'Content-Type': 'application/json',
-    //             },
-    //         });
-
-    //         dispatch(setMatchSubStatus(response.data.data || response.data || []));
-
-    //         // Clear errors on success
-    //         setError({
-    //             global: null,
-    //             fields: {},
-    //         });
-    //     } catch (err) {
-    //         const backendErrors = err?.response?.data?.error?.fields || {};
-    //         if(err?.response?.data?.error?.code === "FORBIDDEN"){
-    //             setError({
-    //                 global: err?.response?.data?.error?.message,
-    //                 fields: {},
-    //             })
-    //         } else {
-    //             setError({
-    //                 global: "Unable to update match sub-status. Please try again",
-    //                 fields: backendErrors,
-    //             });
-    //         }
-
-    //         // Re-open modal to show error
-    //         setSubStatusVisible(true);
-    //         console.error("Unable to update the match sub-status: ", err);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const toggleMenu = () => setMenuVisible(!menuVisible);
     const handleSearch = (text) => setSearchQuery(text);
 
@@ -385,24 +308,11 @@ const BadmintonMatchPage = ({ route }) => {
         });
         setSearchQuery('');
     };
-
-    // Close sub-status modal and clear errors
-    const handleCloseSubStatusModal = () => {
-        setSubStatusVisible(false);
-        setError({
-            global: null,
-            fields: {},
-        });
-        setSearchQuery('');
-    };
-    // console.log("All Status: ", allStatus?.football)
-    const filteredStatusCodes = allStatus?.football?.filter((item) =>
+    
+    const filteredStatusCodes = allStatus?.badminton?.filter((item) =>
             item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    // console.log("Line no 362: ", filteredStatusCodes)
- 
 
     useEffect(() => {
         if (match) {
@@ -423,21 +333,22 @@ const BadmintonMatchPage = ({ route }) => {
                 console.log("Message type is undefined ")
                 return
             }
-            switch(message.type) {
-                case "UPDATE_FOOTBALL_SCORE":
-                    dispatch(setFootballScore(message.payload));
-                    break;
-                case "UPDATE_MATCH_STATUS":
-                    dispatch(setMatchStatus(message.payload));
-                    break;
-                case "UPDATE_MATCH_SUB_STATUS":
-                    dispatch(setMatchSubStatus(message.payload));
-                    break;
-                default:
-                    console.log("Unhandled message type:", message.type);
+            if(message.type === "UPDATE_BADMINTON_SCORE") {
+                const item = message.payload.data;
+                dispatch(addBadmintonSet(item.score, item.point, item.new_set ));
+                dispatch(setBadmintonScore(item.match_score))
+                if(item.new_set) {
+                    dispatch(addBadmintonNewSet(item.new_set));
+                }
+                if(item.match_result) {
+                    dispatch(setMatchStatus(item.match_result))
+                }
+            } else if(message.type === "UPDATE_MATCH_STATUS") {
+                //manual update of match status
+                dispatch(setMatchStatus(item.message.payload.data || []));
             }
         } catch (err) {
-            console.error("Error parsing WebSocket message football match:", err);
+            console.error("Error parsing WebSocket message badminton match:", err);
         }
     }, [dispatch]);
 

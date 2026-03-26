@@ -37,7 +37,7 @@ const FootballMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const TopTab = createMaterialTopTabNavigator();
     const {matchPublicID, tournament} = route.params;                                                                     
-    const match = useSelector((state) => state.footballMatchScore.match);
+    const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [allStatus, setAllStatus] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
