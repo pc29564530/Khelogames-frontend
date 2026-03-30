@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useSelector, useDispatch } from 'react-redux';
 import { sportsServices } from '../services/sportsServices';
-import { setGames } from '../redux/actions/actions';
+import { setGames, setGame } from '../redux/actions/actions';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -162,11 +162,18 @@ const PlayerProfile = ({ route }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const data = await sportsServices({ axiosInstance });
         dispatch(setGames(data));
       } catch (error) {
         console.error('Unable to fetch games data: ', error);
+        setError({
+          global: "Unable to load sports data",
+          fields: {}
+        });
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -188,10 +195,24 @@ const PlayerProfile = ({ route }) => {
             'Content-Type': 'application/json',
           },
         });
-
         if (response.data.success && response.data.data) {
           setPlayer(response.data.data);
           setPlayerExists(true);
+          try {
+            const gameRes = await axiosInstance.get(`${BASE_URL}/getGame/${response.data.data.game_id}`, {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+              },
+            })
+            dispatch(setGame(gameRes.data.data));
+          } catch (err) {
+            console.error("Failed to fetch game for player profile: ", err);
+            setError({
+              global: "Unable to fetch game details for player",
+              fields: {}
+            });
+          }
         } else {
           setPlayerExists(false);
           if(authProfilePublicID === publicID) {
@@ -301,7 +322,7 @@ const PlayerProfile = ({ route }) => {
                 </View>
           </Animated.View>
           <Animated.View style={[{ flex: 1, backgroundColor: '#0f172a' }, contentContainerStyle]}>
-              <TopTabPlayer player={player} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
+              <TopTabPlayer player={player} game={game} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
           </Animated.View>
     </View>
   );
