@@ -95,6 +95,60 @@
         "severity": "interrupted"
       }
     ]
+  },
+  {
+    "badminton": [
+       {
+        "label": "Not Started",
+        "type": "not_started",
+        "severity": "upcoming"
+      },
+      {
+        "label": "Resume",
+        "type": "resume",
+        "severity":"live"
+      },
+      {
+        "label": "Scheduled",
+        "type": "scheduled",
+        "severity": "upcoming"
+      },
+      {
+        "label": "Resume",
+        "type": "resume",
+        "severity":"live"
+      },
+      {
+        "label": "In Progress",
+        "type": "in_progress",
+        "severity": "live"
+      },
+      {
+        "label": "Half-Time",
+        "type": "half_time",
+        "severity": "break"
+      },
+      {
+        "label": "Ended",
+        "type": "finished",
+        "severity": "final"
+      },
+      {
+        "label": "Postponed",
+        "type": "postponed",
+        "severity": "delayed"
+      },
+      {
+        "label": "Cancelled",
+        "type": "cancelled",
+        "severity": "final"
+      },
+      {
+        "label": "Abandoned",
+        "type": "abandoned",
+        "severity": "interrupted"
+      }
+    ]
   }
   ]
 }
