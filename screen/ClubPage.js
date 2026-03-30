@@ -11,6 +11,7 @@ const ClubPage = ({route}) => {
     const navigation = useNavigation();
     const {teamData, game} = route.params;
     const [nameWidth, setNameWidth] = useState(0);
+    const isIndividual = teamData?.type === 'individual';
 
     const { height: sHeight, width: sWidth } = Dimensions.get('screen');
 
@@ -204,6 +205,11 @@ const ClubPage = ({route}) => {
                       >
                         {teamData.name}
                       </Text>
+                      {isIndividual && teamData?.country ? (
+                          <Text style={[tailwind`text-xs mt-1`, { color: '#94a3b8' }]}>
+                              {teamData.country}
+                          </Text>
+                      ) : null}
                   </Animated.View>
                 </View>
             </Animated.View>

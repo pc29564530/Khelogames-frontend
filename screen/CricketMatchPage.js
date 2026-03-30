@@ -98,7 +98,7 @@ const CricketMatchPage = ({ route }) => {
     const {wsRef, subscribe} = useWebSocket();
     
     const {matchPublicID} = route.params;
-    const match = useSelector(state => state.cricketMatchScore.match);
+    const match = useSelector(state => state.matches.match);
     const homePlayer = useSelector(state => state.teams.homePlayer);
     const awayPlayer = useSelector(state => state.teams.awayPlayer);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);

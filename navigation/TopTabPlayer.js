@@ -1,10 +1,10 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import FootballPlayerStats from "../components/FootballPlayerStats";
 import CricketPlayerStats from "../components/CricketPlayerStats";
+import BadmintonPlayerStats from "../components/BadmintonPlayerStats";
 import PlayerDetails from "../screen/PlayerDetails";
-// import PlayerMatches from "../components/PlayerMatches";
 
-const TopTabPlayer = ({ player, parentScrollY, headerHeight, collapsedHeader }) => {
+const TopTabPlayer = ({ player, game, parentScrollY, headerHeight, collapsedHeader }) => {
   const TopTab = createMaterialTopTabNavigator();
 
   const renderCareerTab = () => {
@@ -29,6 +29,16 @@ const TopTabPlayer = ({ player, parentScrollY, headerHeight, collapsedHeader }) 
             collapsedHeader={collapsedHeader}
           />
         );
+      case 3:
+        return (props) => (
+          <BadmintonPlayerStats 
+            {...props}
+            player={player}
+            parentScrollY={parentScrollY}
+            headerHeight={headerHeight}
+            collapsedHeader={collapsedHeader}
+          />
+        )
       default:
         return () => null;
     }
@@ -72,19 +82,6 @@ const TopTabPlayer = ({ player, parentScrollY, headerHeight, collapsedHeader }) 
           />
         )}
       </TopTab.Screen>
-    {/* Match history by player  */}
-      {/* <TopTab.Screen name="Matches">
-        {(props) => (
-          <PlayerMatches
-            {...props}
-            player={player}
-            parentScrollY={parentScrollY}
-            headerHeight={headerHeight}
-            collapsedHeader={collapsedHeader}
-          />
-        )}
-      </TopTab.Screen> */}
-
       <TopTab.Screen name="Career" component={renderCareerTab()} />
     </TopTab.Navigator>
   );

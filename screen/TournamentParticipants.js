@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
@@ -181,6 +182,7 @@ const TournamentParticipants = ({
   collapsedHeader,
 }) => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const game = useSelector((state) => state.sportReducers.game);
 
   const currentScrollY = useSharedValue(0);
@@ -328,6 +330,37 @@ const TournamentParticipants = ({
     }
   };
 
+  const handleTeamPress = async (item) => {
+    console.log("Team Item: ", item)
+      if (!item) return;
+
+      if (item?.type === 'individual') {
+          try {
+              const authToken = await AsyncStorage.getItem('AccessToken');
+              const response = await axiosInstance.get(`${BASE_URL}/getPlayerByTeam/${item.public_id}`, {
+                  headers: {
+                      'Authorization': `Bearer ${authToken}`,
+                      'Content-Type': 'application/json',
+                  },
+              });
+              const players = response.data?.data || response.data || [];
+              if (players.length > 0) {
+                  // Navigate to PlayerProfile with the linked player's public_id
+                  navigation.navigate('PlayerProfile', {
+                      publicID: players[0].public_id,
+                      from: 'team',
+                  });
+                  return;
+              }
+          } catch (err) {
+              console.error("Failed to get player for team:", err);
+          }
+      }
+
+      // Fallback: navigate to ClubPage for team/double or if player fetch fails
+      navigation.navigate('ClubPage', { teamData: item, game: game });
+  };
+
   return (
     <Animated.ScrollView
       onScroll={handlerScroll}
@@ -391,8 +424,9 @@ const TournamentParticipants = ({
       ) : (
         <View style={tailwind`px-4 mt-6`}>
           {participants.map((item) => (
-            <View
+            <Pressable
               key={item.public_id}
+              onPress={() => handleTeamPress(item.entity)}
               style={[tailwind`rounded-xl p-4 mb-3 flex-row items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}
             >
               <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
@@ -417,7 +451,7 @@ const TournamentParticipants = ({
                   </Text>
                 )}
               </View>
-            </View>
+            </Pressable>
           ))}
         </View>
       )}

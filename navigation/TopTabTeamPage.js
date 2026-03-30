@@ -2,10 +2,12 @@ import React from "react";
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import Members from "../components/Members";
 import TeamMatches from "../screen/TeamMatches";
+import TeamDetails from "../screen/TeamDetails";
 import tailwind from "twrnc";
 
 const TopTabTeamPage = ({teamData, game, parentScrollY, headerHeight, collapsedHeader}) => {
     const TopTab = createMaterialTopTabNavigator();
+    const isIndividual = teamData?.type === 'individual';
     return (
         <TopTab.Navigator
             screenOptions={{
@@ -33,12 +35,21 @@ const TopTabTeamPage = ({teamData, game, parentScrollY, headerHeight, collapsedH
                 tabBarInactiveTintColor: '#64748b',
         }}
         >
-            <TopTab.Screen name="Squad">
-                {() => <Members teamData={teamData} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
-            </TopTab.Screen>
-            <TopTab.Screen name="Matches">
+            {/* Hide Squad tab for individual (player = team in badminton singles) */}
+            <TopTab.Screen name="Details">
+                {() => <TeamDetails teamData={teamData} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
+            </TopTab.Screen>  
+            {!isIndividual && (
+                <TopTab.Screen name="Squad">
+                    {() => <Members teamData={teamData} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
+                </TopTab.Screen>
+            )}
+            {!isIndividual && (
+                <TopTab.Screen name="Matches">
                 {() => <TeamMatches teamData={teamData} game={game} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
             </TopTab.Screen>
+            )}
+
         </TopTab.Navigator>
     );
 }

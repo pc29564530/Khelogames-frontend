@@ -22,17 +22,12 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matches.matches ) || [];
     const game = useSelector(state => state.sportReducers.game);
-    const match = useSelector((state) => state.matches.match);
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();
         }, [dispatch, tournament.public_id])
     );
-
-    useEffect(() => {
-        console.debug("Match : ", match)
-    }, [match]);
 
     const fetchTournamentMatchs = async () => {
         try {

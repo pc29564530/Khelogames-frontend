@@ -33,9 +33,10 @@ const BadmintonMatchPage = ({ route }) => {
     const dispatch = useDispatch();
     const TopTab = createMaterialTopTabNavigator();
     const {matchPublicID, tournament} = route.params;                                                                     
-    const match = useSelector((state) => state.badmintonMatchScore.match);
+    const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [allStatus, setAllStatus] = useState([]);
+    const [statusCode, setStatusCode] = useState();
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -314,6 +315,35 @@ const BadmintonMatchPage = ({ route }) => {
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const handleTeamPress = async (team) => {
+        if (!team) return;
+
+        if (match?.type === 'individual') {
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/getPlayerByTeam/${team.public_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const players = response.data?.data || response.data || [];
+                if (players.length > 0) {
+                    // Navigate to PlayerProfile with the linked player's public_id
+                    navigation.navigate('PlayerProfile', {
+                        publicID: players[0].public_id,
+                        from: 'team',
+                    });
+                    return;
+                }
+            } catch (err) {
+                console.error("Failed to get player for team:", err);
+            }
+        }
+
+        navigation.navigate('ClubPage', { teamData: team, game: game });
+    };
+
     useEffect(() => {
         if (match) {
             setLoading(false);
@@ -345,7 +375,7 @@ const BadmintonMatchPage = ({ route }) => {
                 }
             } else if(message.type === "UPDATE_MATCH_STATUS") {
                 //manual update of match status
-                dispatch(setMatchStatus(item.message.payload.data || []));
+                dispatch(setMatchStatus(message.payload.data || []));
             }
         } catch (err) {
             console.error("Error parsing WebSocket message badminton match:", err);
@@ -408,34 +438,36 @@ const BadmintonMatchPage = ({ route }) => {
                 {/* Team Information and Score */}
                 <Animated.View style={[tailwind`flex-row justify-between items-center px-2 py-2 mt-2`]}>
                     {/* Home Team */}
-                    <Animated.View style={[tailwind`items-center flex-1`,firstAvatarStyle]}>
-                        {match?.homeTeam?.media_url ? (
-                            <Image
-                                source={{ uri: match.homeTeam.media_url }}
-                                style={tailwind`w-12 h-12 rounded-full`}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
-                                <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
-                                    {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
-                                </Text>
-                            </View>
-                        )}
-                        <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
-                            {match?.homeTeam?.name || 'Home'}
-                        </Animated.Text>
-                    </Animated.View>
+                        <Animated.View style={[tailwind`items-center flex-1`,firstAvatarStyle]}>
+                            <Pressable onPress={() => handleTeamPress(match?.homeTeam)}>
+                                {match?.homeTeam?.media_url ? (
+                                    <Image
+                                        source={{ uri: match?.homeTeam.media_url }}
+                                        style={tailwind`w-12 h-12 rounded-full`}
+                                        resizeMode="cover"
+                                    />
+                                ) : (
+                                    <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                        <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
+                                            {match?.homeTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </Pressable>
+                            <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
+                                {match?.homeTeam?.name || 'Home'}
+                            </Animated.Text>
+                        </Animated.View>
                     {/* Score and Date and Time */}
                     {match?.status_code === "not_started" ? (
                         <Animated.View style={[tailwind`items-center justify-center `,scoreStyle]}>
-                            <Text style={tailwind`text-white items-center`}>{formatToDDMMYY(convertToISOString(match.start_timestamp))}</Text>
-                            <Text style={tailwind`text-white items-center`}>{formattedTime(convertToISOString(match.start_timestamp))}</Text>
+                            <Text style={tailwind`text-white items-center`}>{formatToDDMMYY(convertToISOString(match?.start_timestamp))}</Text>
+                            <Text style={tailwind`text-white items-center`}>{formattedTime(convertToISOString(match?.start_timestamp))}</Text>
                         </Animated.View>
                     ):(
                         <Animated.View style={[tailwind`items-center justify-center flex-1`, scoreStyle]}>
                             <View style={tailwind`flex-row items-center -mt-4 gap-2`}>
-                                {match.homeScore != null && (
+                                {match?.homeScore != null && (
                                     <Text style={tailwind`text-white text-3xl font-bold`}>
                                         {match?.homeScore}
                                     </Text>
@@ -448,24 +480,26 @@ const BadmintonMatchPage = ({ route }) => {
                         </Animated.View>
                     )}
                     {/* Away Team */}
-                    <Animated.View style={[tailwind`items-center flex-1`, secondAvatarStyle]}>
-                        {match?.awayTeam?.media_url ? (
-                            <Image
-                                source={{ uri: match.awayTeam.media_url }}
-                                style={tailwind`w-12 h-12 rounded-full`}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
-                                <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
-                                    {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'A'}
-                                </Text>
-                            </View>
-                        )}
-                        <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
-                            {match?.awayTeam?.name || 'Away'}
-                        </Animated.Text>
-                    </Animated.View>
+                        <Animated.View style={[tailwind`items-center flex-1`, secondAvatarStyle]}>
+                            <Pressable onPress={() => handleTeamPress(match?.awayTeam)}>
+                                {match?.awayTeam?.media_url ? (
+                                    <Image
+                                        source={{ uri: match?.awayTeam.media_url }}
+                                        style={tailwind`w-12 h-12 rounded-full`}
+                                        resizeMode="cover"
+                                    />
+                                ) : (
+                                    <View style={[tailwind`rounded-full h-12 w-12 items-center justify-center`, { backgroundColor: '#334155' }]}>
+                                        <Text style={[tailwind`text-lg font-bold`, { color: '#f87171' }]}>
+                                            {match?.awayTeam?.name?.charAt(0)?.toUpperCase() || 'H'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </Pressable>
+                            <Animated.Text style={[tailwind`text-white text-sm mt-2 text-center`, fadeStyle]} numberOfLines={2}>
+                                {match?.awayTeam?.name || 'Away'}
+                            </Animated.Text>
+                        </Animated.View>
                 </Animated.View>
             </Animated.View>
 
@@ -505,7 +539,7 @@ const BadmintonMatchPage = ({ route }) => {
                             />
                         )}
                     </TopTab.Screen>
-                    {match.status_code === "finished" && (
+                    {match?.status_code === "finished" && (
                         <TopTab.Screen name="Stats">
                             {() => (
                                 <BadmintonStatistics
