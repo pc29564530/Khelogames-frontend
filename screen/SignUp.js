@@ -21,7 +21,7 @@ import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AUTH_URL } from '../constants/ApiConstants';
-import { setAuthenticated, setUser } from '../redux/actions/actions';
+import { setAuthenticated, setUser, setAuthProfile, setAuthProfilePublicID, setAuthUser, setAuthUserPublicID, setCurrentProfile } from '../redux/actions/actions';
 
 import { storeRefreshToken, storeRefreshTokenExpiresAt } from '../utils/SecureStorage';
 import { validateAuthForm } from '../utils/validation/authValidation';
@@ -62,15 +62,16 @@ const SignUp = () => {
   };
 
   const handleEmailSignUp = async () => {
-
+    console.log("Lineno 65")
     try {
 
       const validation = validateAuthForm(formData);
-
+      console.log("Validation: ", validation)
       if (!validation.isValid) {
         setError(validation.errors);
         return;
       }
+
 
       setLoading(true);
 
@@ -86,18 +87,39 @@ const SignUp = () => {
 
         const item = response.data;
 
-        await AsyncStorage.setItem("AccessToken", item.accessToken);
-        await AsyncStorage.setItem("Role", item.user?.role);
-        await AsyncStorage.setItem("UserPublicID", item?.user?.public_id);
-        await AsyncStorage.setItem("AccessTokenExpiresAt", item.accessTokenExpiresAt);
+        await AsyncStorage.multiSet([
+          ["AccessToken", item.accessToken],
+          ["AccessTokenExpiresAt", item.accessTokenExpiresAt],
+          ["UserPublicID", item.user.public_id],
+          ["Role", item.user.role],
+          ["User", JSON.stringify(item.user)],
+        ]);
 
         await storeRefreshToken(item.refreshToken);
         await storeRefreshTokenExpiresAt(item.refreshTokenExpiresAt);
 
-        dispatch(setAuthenticated(true));
-        dispatch(setUser(item.user));
+        const profileResponse = await axios.get(
+          `${AUTH_URL}/getProfile/${item.user.public_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${item.accessToken}`
+            }
+          }
+        );
 
-        navigation.navigate("Home");
+        
+        dispatch(setAuthProfile(profileResponse.data.data));
+        dispatch(setCurrentProfile(profileResponse.data.data));
+        dispatch(setAuthProfilePublicID(profileResponse.data.data.public_id));
+        dispatch(setAuthUser(item.user));
+        dispatch(setAuthUserPublicID(item.user.public_id));
+        dispatch(setAuthenticated(true));
+
+        // Use reset instead of navigate
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "DrawerNavigation" }],
+        });
       }
 
     } catch (err) {
@@ -231,6 +253,13 @@ const SignUp = () => {
               />
 
             </View>
+            {error.fields && (
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ color: "#f87171", textAlign: "center" }}>
+                  {error.fields.label}
+                </Text>
+              </View>
+            )}
 
           </View>
 
@@ -282,7 +311,7 @@ const SignUp = () => {
         <View style={{ marginBottom: 16 }}>
 
           <Text style={{ color: "#cbd5f5", marginBottom: 6 }}>
-            Password
+            Confirm Password
           </Text>
 
           <View
@@ -302,12 +331,12 @@ const SignUp = () => {
               style={{ flex: 1, marginLeft: 10, color: "white", fontSize: FONT_TEXT }}
               placeholder="Enter password"
               placeholderTextColor="#64748b"
-              secureTextEntry={!showPassword}
-              value={formData.password}
-              onChangeText={(text) => handleInputChange("password", text)}
+              secureTextEntry={!showConfirmPassword}
+              value={formData.confirm_password}
+              onChangeText={(text) => handleInputChange("confirm_password", text)}
             />
 
-            <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
               <MaterialIcons
                 name={showPassword ? "visibility" : "visibility-off"}
                 size={20}
@@ -328,7 +357,7 @@ const SignUp = () => {
             paddingVertical: 14,
             alignItems: "center"
           }}
-          onPress={handleEmailSignUp}
+          onPress={() => handleEmailSignUp()}
         >
 
           {loading
