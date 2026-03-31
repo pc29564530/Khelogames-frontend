@@ -173,7 +173,7 @@ function Home() {
 
   const [trendingMatches, setTrendingMatches]      = useState([]);
   const [tournaments, setTournaments]      = useState([]);
-  const [topPerformers, setTopPerformers]  = useState({ batting: [], bowling: [], goals: [] });
+  const [topPerformers, setTopPerformers]  = useState({ batting: [], bowling: [], goals: [], current_streak: [] });
   const [highlights, setHighlights]        = useState([]);
   const [error, setError] = useState({
     global: null,
@@ -194,16 +194,28 @@ function Home() {
       const response = res.data;
       if (response?.success && response?.data) {
         if (game.name === 'football') {
-          setTopPerformers({ batting: [], bowling: [], goals: response.data || [] });
+          setTopPerformers({ batting: [], bowling: [], goals: response.data || [], current_streak: [] });
         } else if (game.name === 'cricket') {
           setTopPerformers({
             batting: response.data?.batting || [],
             bowling: response.data?.bowling || [],
             goals: [],
+            current_streak: [],
+          });
+        } else if(game.name === 'badminton') {
+          setTopPerformers({
+            batting: [],
+            bowling: [],
+            goals: [],
+            current_streak: response.data || [],
           });
         }
       }
     } catch (err) {
+      setError({
+        global: 'Unable to fetch top performers.',
+        fields: {},
+      })
       console.log('Unable to get top performer:', err);
     }
   };
@@ -258,7 +270,8 @@ function Home() {
 
   const hasPerformers = topPerformers.batting.length > 0
     || topPerformers.bowling.length > 0
-    || topPerformers.goals.length > 0;
+    || topPerformers.goals.length > 0
+    || topPerformers.current_streak.length > 0;
 
   const isEverythingEmpty = !loading
     && trendingMatches.length === 0
@@ -276,11 +289,13 @@ function Home() {
     }
   }
 
-  const checkMatchSport = (item) => {
+  const handleMatchPageNavigation = (item) => {
     if(game.name==="cricket") {
-      navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id});
+      navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id, tournament: item.tournament});
     } else if(game.name === "football") {
-      navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id})
+      navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, item: item.tournament})
+    } else if (game.name === "badminton") {
+      navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id, item: item.tournament})
     }
   }
 
@@ -360,7 +375,7 @@ function Home() {
                 <Pressable
                   key={item.public_id || index}
                   style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}
-                  onPress={() => navigation.navigate("ClubPage")}
+                  onPress={() => handleMatchPageNavigation(item)}
                 >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -410,9 +425,6 @@ function Home() {
                       )}
                     </View>
                   </View>
-                  <Pressable onPress={() => checkMatchSport(item)} style={{ marginTop: 18, backgroundColor: '#f87171', borderRadius: 12, paddingVertical: 10, alignItems: 'center' }}>
-                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>View Full Scorecard</Text>
-                  </Pressable>
                 </Pressable>
               ))}
             </ScrollView>
@@ -517,7 +529,7 @@ function Home() {
                 <View key={p.player?.public_id || i} style={{ backgroundColor: '#1e293b', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#334155', flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{ color: '#475569', fontWeight: '800', fontSize: 16, width: 28 }}>#{i + 1}</Text>
                   <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#f97316', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{p.player?.name?.charAt(0)?.toUpperCase() || '?'}</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{p.player?.name?.charAt(0)?.toUpperCase()}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: '#e2e8f0', fontWeight: '700' }}>{p.player?.name || 'Unknown'}</Text>
@@ -548,6 +560,29 @@ function Home() {
                   </View>
                   <View style={{ backgroundColor: '#a78bfa22', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
                     <Text style={{ color: '#a78bfa', fontWeight: '700', fontSize: 12 }}>{p.wickets || 0} Wkts</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {!loading && game?.name === 'badminton' && topPerformers.current_streak.length > 0 && (
+            <View style={{ paddingHorizontal: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <Text style={{ fontSize: 16 }}>🏸</Text>
+                <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 13, marginLeft: 6 }}>Top Streak</Text>
+              </View>
+              {topPerformers.current_streak.map((p, i) => (
+                <View key={p.player?.public_id || i} style={{ backgroundColor: '#1e293b', borderRadius: 14, padding: 14, marginBottom: 10, borderColor: '#334155', flexDirection: 'row', alignItems: 'center', shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 6, elevation: 4 }}>
+                  <Text style={{ color: '#475569', fontWeight: '800', fontSize: 16, width: 28 }}>#{i + 1}</Text>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{p.player?.name?.charAt(0)?.toUpperCase() || '?'}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#e2e8f0', fontWeight: '700' }}>{p.player?.name || 'Unknown'}</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#22c55e22', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                    <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 12 }}>{p.current_streak || 0} Current Streak</Text>
                   </View>
                 </View>
               ))}
