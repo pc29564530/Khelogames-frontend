@@ -433,7 +433,6 @@ export const getMatch = (match) => {
 }
 
 export const getMatches = (matches) => {
-    //console.log("Action matches: ", matches)
     return {
         type: actionTypes.GET_MATCHES,
         payload: matches

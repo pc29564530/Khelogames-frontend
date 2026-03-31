@@ -95,9 +95,9 @@ export const RenderScore = ({item, game}) => {
             return (
                 <View style={tailwind`items-center`}>
                     <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
-                        {item.goals ?? 0}
+                        {item?.goals ?? 0}
                     </Text>
-                    {item.penalty_shootout && (
+                    {item?.penalty_shootout && (
                         <Text style={tailwind`text-gray-500 text-md`}> ({item.penalty_shootout})</Text>
                     )}
                 </View>
@@ -141,7 +141,7 @@ const dateToRFC3339Timestamp = (date) => {
     if (!date) return null;
     const d = new Date(date);
     const localMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-    return localMidnight.toISOString(); //  "2026-03-23T00:00:00.000Z"
+    return localMidnight.toISOString(); 
 };
 
 // Create a Date object at midnight local time for the given date
@@ -157,6 +157,7 @@ const Matches = () => {
     const [loading, setLoading] = useState(false);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [permissionGranted, setPermissionGranted] = useState(null);
+    const [nearbyActive, setNearbyActive] = useState(false);
     const dispatch = useDispatch();
 
     const [selectedDate, setSelectedDate] = useState(toMidnight(new Date()));
@@ -196,12 +197,14 @@ const Matches = () => {
     });
 
     const handlePrevDate = () => {
+        setNearbyActive(false);
         const date = new Date(selectedDate)
         date.setDate(date.getDate() - 1)
         setSelectedDate(toMidnight(date))
     }
 
     const handleNextDate = () => {
+        setNearbyActive(false);
         const date = new Date(selectedDate)
         date.setDate(date.getDate() + 1)
         setSelectedDate(toMidnight(date))
@@ -255,23 +258,14 @@ const Matches = () => {
                 if(response.data.success && response.data.data.length > 0) {
                     dispatch(getMatches(response.data.data));
                 } else {
-                    getMatches([]); // Clear matches if no data returned
+                    getMatches([]);
                 }
-                // Always dispatch matches (even if empty) to clear old data
-                // if (response.data.success) {
-                //     console.log("Fetched matches: ");
-                //     dispatch(getMatches(response.data.data));
-                // } else {
-                //     dispatch(getMatches([]));
-                // }
-                // matches = response.data?.data || [];
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields || {};
                 setError({
                     global: "Unable to get matches",
                     fields: backendError,
                 })
-                // dispatch(getMatches([])); // Clear matches on error
             } finally {
                 setLoading(false);
             }
@@ -299,6 +293,8 @@ const Matches = () => {
     }
 
     const handleLiveMatches = () => {
+        setNearbyActive(false);
+        setLoading(true);
         const liveMatches = async () => {
             try {
                 setLoading(true);
@@ -312,8 +308,11 @@ const Matches = () => {
                 })
 
                 // Handle different response structures
-                const matchesData = response.data?.data || response.data || [];
-                dispatch(getMatches(Array.isArray(matchesData) ? matchesData : []));
+                if (response.data.success && response.data.data) {
+                    dispatch(getMatches(response.data.data));
+                } else {
+                    dispatch(getMatches([]));
+                }
 
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields || {};
@@ -322,7 +321,6 @@ const Matches = () => {
                     fields: backendError,
                 })
                 console.error("Failed to get live matches: ", err);
-                dispatch(getMatches([])); // Clear matches on error
             } finally {
                 setLoading(false);
             }
@@ -332,7 +330,6 @@ const Matches = () => {
 
     const fetchMatchesByLocation = async (lat, lng) => {
         try {
-            setLoading(true);
             setError({global: null, fields: {}});
             const authToken = await AsyncStorage.getItem("AccessToken");
             const timestamp = dateToRFC3339Timestamp(selectedDate);
@@ -348,10 +345,12 @@ const Matches = () => {
                 },
             });
 
-            // Handle different response structures
-            const matchesData = response.data?.data || response.data || [];
-            dispatch(getMatches(Array.isArray(matchesData) ? matchesData : []));
-
+            if (response.data.success && response.data.data) {
+                dispatch(getMatches(response.data.data));
+            } else {
+                dispatch(getMatches([]));
+            }
+            setNearbyActive(true);
         } catch (err) {
             const backendError = err?.response?.data?.error?.fields || {};
             setError({
@@ -359,16 +358,16 @@ const Matches = () => {
                 fields: backendError,
             })
             console.error("Failed to get the matches by location: ", err);
-            dispatch(getMatches([])); // Clear matches on error
+            dispatch(getMatches([]));
+            setNearbyActive(false);
         } finally {
+            setIsLoadingLocation(false);
             setLoading(false);
         }
     };
 
     const handleLocation = async () => {
-        if (isLoadingLocation) {
-            return;
-        }
+        if (isLoadingLocation) return;
 
         if (permissionGranted === false) {
             Alert.alert(
@@ -378,20 +377,34 @@ const Matches = () => {
             return;
         }
 
-        await requestLocationPermission(
-            (coords) => {
-                setPermissionGranted(true);
-                fetchMatchesByLocation(coords.latitude, coords.longitude);
-            },
-            () => {
-                setPermissionGranted(false);
-                Alert.alert(
-                    'Location Permission Denied',
-                    'Location permission is required to find nearby matches.'
-                );
-            },
-            setIsLoadingLocation
-        );
+        setIsLoadingLocation(true);
+        setLoading(true);
+
+        try {
+            await requestLocationPermission(
+                (coords) => {
+                    setPermissionGranted(true);
+                    fetchMatchesByLocation(coords.latitude, coords.longitude);
+                },
+                () => {
+                    setPermissionGranted(false);
+                    setIsLoadingLocation(false);
+                    setLoading(false);
+                    Alert.alert(
+                        'Location Permission Denied',
+                        'Location permission is required to find nearby matches.'
+                    );
+                },
+            );
+        } catch (err) {
+            console.error("Error while requesting location permission: ", err);
+            setError({
+                global: "unable to access location. Please try again.",
+                fields: {},
+            })
+            setIsLoadingLocation(false);
+            setLoading(false);
+        }
     };
 
     const renderMatchCard = ({ item }) => {
@@ -489,15 +502,6 @@ const Matches = () => {
         )
     };
 
-    if (loading && !matches.length) {
-        return (
-            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
-                <ActivityIndicator size="large" color="#f87171" />
-                <Text style={[tailwind`mt-4`, {color: '#94a3b8'}]}>Loading matches...</Text>
-            </View>
-        );
-    }
-
     return (
         <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>
             {/* Sport Selector - SofaScore style */}
@@ -531,11 +535,22 @@ const Matches = () => {
                         formattedDate={formattedDate}
                         handleNextDate={handleNextDate}
                         handlePrevDate={handlePrevDate}
+                        isLoadingLocation={isLoadingLocation}
+                        nearbyActive={nearbyActive}
                     />
                 }
                 stickyHeaderIndices={[0]}
                 ListEmptyComponent={() => {
-                    if (loading) return null;
+                    if (loading) {
+                        return (
+                            <View style={tailwind`items-center justify-center py-20`}>
+                                <ActivityIndicator size="large" color="#f87171" />
+                                <Text style={[tailwind`mt-4 text-sm`, {color: '#94a3b8'}]}>
+                                    {isLoadingLocation ? 'Finding nearby matches...' : 'Loading matches...'}
+                                </Text>
+                            </View>
+                        );
+                    }
                     return emptyStateUI({
                         game,
                         selectedDate,

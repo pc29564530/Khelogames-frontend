@@ -1,4 +1,4 @@
-import {View, Text, Pressable} from 'react-native';
+import {View, Text, Pressable, ActivityIndicator} from 'react-native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
@@ -9,7 +9,9 @@ export const MatchesFilterBar = ({
   handleLiveMatches,
   formattedDate,
   handleNextDate,
-  handlePrevDate
+  handlePrevDate,
+  isLoadingLocation = false,
+  nearbyActive = false,
 }) => {
   return (
     <View
@@ -58,11 +60,28 @@ export const MatchesFilterBar = ({
 
         <Pressable
           onPress={handleLocation}
-          style={tailwind`flex-1 mr-2 py-2 rounded-xl bg-slate-800 items-center`}
+          disabled={isLoadingLocation}
+          style={[
+            tailwind`flex-1 mr-2 py-2 rounded-xl items-center flex-row justify-center`,
+            {
+              backgroundColor: isLoadingLocation ? '#334155' : nearbyActive ? '#f87171' : '#1e293b',
+              borderWidth: nearbyActive ? 0 : 1,
+              borderColor: '#334155',
+            }
+          ]}
         >
-          <Text style={tailwind`text-white text-sm font-medium`}>
-            📍 Nearby
-          </Text>
+          {isLoadingLocation ? (
+            <>
+              <ActivityIndicator size="small" color="#f87171" style={tailwind`mr-2`} />
+              <Text style={[tailwind`text-sm font-medium`, { color: '#f1f5f9' }]}>
+                Finding nearby...
+              </Text>
+            </>
+          ) : (
+            <Text style={[tailwind`text-sm font-medium`, { color: nearbyActive ? '#ffffff' : '#f1f5f9' }]}>
+              📍 {nearbyActive ? 'Nearby' : 'Nearby'}
+            </Text>
+          )}
         </Pressable>
 
         <Pressable
