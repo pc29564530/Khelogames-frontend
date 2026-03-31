@@ -49,7 +49,7 @@ export const renderInningScore = (scores) => {
     ));
   };
 
-export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation}) => {
+export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation, isDatePickerVisible}) => {
     return (
         <View style={[tailwind`flex-1 justify-center items-center p-6`, {backgroundColor: '#0f172a'}]}>
             <AntDesign name="calendar" size={64} color="#475569" />
@@ -70,7 +70,7 @@ export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocat
                     <Text style={tailwind`text-white font-semibold`}>Change Date</Text>
                 </Pressable>
                 <Pressable
-                    onPress={handleLiveMatches}
+                    onPress={() => handleLiveMatches}
                     style={tailwind`bg-red-500 px-6 py-3 rounded-lg`}
                 >
                     <Text style={tailwind`text-white font-semibold`}>View Live</Text>
@@ -80,30 +80,38 @@ export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocat
     )
 }
 
-const renderScore = (item, game) => {
-    if (item.status === "not_started") {
-        return null;
-    }
-
-    if (game?.name === 'football') {
-        return (
-            <View style={tailwind`items-center`}>
-                <Text style={[tailwind`ml-2 text-lg font-bold`, {color: '#f1f5f9'}]}>{item.homeScore?.score || '0'}</Text>
-                <Text style={[tailwind`ml-2 text-lg font-bold`, {color: '#f1f5f9'}]}>{item.awayScore?.score || '0'}</Text>
-            </View>
-        );
-    }
-
-    if (game?.name === 'cricket') {
-        return (
-            <View style={tailwind`items-center`}>
-                {item.homeScore && renderInningScore(item.homeScore)}
-                {item.awayScore && renderInningScore(item.awayScore)}
-            </View>
-        );
-    }
-
-    return null;
+export const RenderScore = ({item, game}) => {
+        if (game?.name === 'badminton') {
+            return (
+                <View style={tailwind`items-center`}>
+                    {console.log("Rendering badminton score: ", item)}
+                    <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
+                        {item ?? 0}
+                    </Text>
+                </View>
+            );
+        }
+        if (game?.name === 'football') {
+            return (
+                <View style={tailwind`items-center`}>
+                    <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
+                        {item.goals ?? 0}
+                    </Text>
+                    {item.penalty_shootout && (
+                        <Text style={tailwind`text-gray-500 text-md`}> ({item.penalty_shootout})</Text>
+                    )}
+                </View>
+            )
+        }
+        if (game?.name === 'cricket') {
+            return (
+                <View style={tailwind`items-center`}>
+                    <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
+                        renderInningScore(item)
+                    </Text>
+                </View>
+            )
+        }
 };
 
 const formatDatePickerToDate = (dateString) => {
@@ -244,22 +252,26 @@ const Matches = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log("Matches Response: ", response.data);
-
-                // Always dispatch matches (even if empty) to clear old data
-                if (response.data.success) {
-                    dispatch(getMatches(response.data.data || []));
+                if(response.data.success && response.data.data.length > 0) {
+                    dispatch(getMatches(response.data.data));
                 } else {
-                    dispatch(getMatches([]));
+                    getMatches([]); // Clear matches if no data returned
                 }
+                // Always dispatch matches (even if empty) to clear old data
+                // if (response.data.success) {
+                //     console.log("Fetched matches: ");
+                //     dispatch(getMatches(response.data.data));
+                // } else {
+                //     dispatch(getMatches([]));
+                // }
+                // matches = response.data?.data || [];
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields || {};
                 setError({
                     global: "Unable to get matches",
                     fields: backendError,
                 })
-                console.error("unable to fetch the matchs by date and sport ", err);
-                dispatch(getMatches([])); // Clear matches on error
+                // dispatch(getMatches([])); // Clear matches on error
             } finally {
                 setLoading(false);
             }
@@ -281,6 +293,8 @@ const Matches = () => {
             navigation.navigate("FootballMatchPage",{matchPublicID: item.public_id} )
         } else if(game.name === 'cricket') {
             navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id})
+        } else if (game.name === 'badminton') {
+            navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id})
         }
     }
 
@@ -296,7 +310,6 @@ const Matches = () => {
                         'Content-Type': 'application/json',
                     },
                 })
-                console.log("Live Matches Response: ", response.data);
 
                 // Handle different response structures
                 const matchesData = response.data?.data || response.data || [];
@@ -334,7 +347,6 @@ const Matches = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            console.log("Matches Response by location: ", response.data);
 
             // Handle different response structures
             const matchesData = response.data?.data || response.data || [];
@@ -384,7 +396,7 @@ const Matches = () => {
 
     const renderMatchCard = ({ item }) => {
         const isLive = liveStatus.includes(item.status_code);
-
+        // return null;
         return (
             <Pressable
                 style={[
@@ -423,14 +435,9 @@ const Matches = () => {
                                 <Text style={[tailwind`font-semibold ml-3 flex-1`, {color: '#f1f5f9'}]} numberOfLines={1}>
                                     {item?.homeTeam?.name}
                                 </Text>
-                                {item?.status !== "not_started" && item?.homeScore && (
-                                    <Text style={[tailwind`font-bold text-md ml-2`, {color: '#f1f5f9'}]}>
-                                        {item.homeScore.goals}
-                                        {item.homeScore?.penalty_shootout && (
-                                            <Text style={[tailwind`text-md`, {color: '#64748b'}]}> ({item.homeScore.penalty_shootout})</Text>
-                                        )}
-                                    </Text>
-                                )}
+                                    {item?.status_code !== "not_started"  && (
+                                        <RenderScore item={item.homeScore} game={game} />
+                                    )}
                             </View>
 
                             {/* Away Team */}
@@ -450,13 +457,8 @@ const Matches = () => {
                                 <Text style={[tailwind`font-semibold ml-3 flex-1`, {color: '#f1f5f9'}]} numberOfLines={1}>
                                     {item?.awayTeam?.name}
                                 </Text>
-                                {item?.status !== "not_started" && item?.awayScore && (
-                                    <Text style={[tailwind`font-bold text-md ml-2`, {color: '#f1f5f9'}]}>
-                                        {item.awayScore.goals}
-                                        {item.awayScore?.penalty_shootout && (
-                                            <Text style={[tailwind`text-sm`, {color: '#64748b'}]}> ({item.awayScore.penalty_shootout})</Text>
-                                        )}
-                                    </Text>
+                                {item?.status_code !== "not_started" &&  (
+                                    <RenderScore item={item.awayScore} game={game} />
                                 )}
                             </View>
                         </View>
@@ -469,10 +471,10 @@ const Matches = () => {
                             <Text style={[tailwind`text-xs font-semibold mb-1`, {color: '#94a3b8'}]}>
                                 {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                             </Text>
-                            {item?.status !== "not_started" ? (
+                            {item?.status_code !== "not_started" ? (
                                 <View style={[tailwind`px-2 py-1 rounded`, {backgroundColor: '#334155'}]}>
                                     <Text style={[tailwind`text-xs font-semibold capitalize`, {color: '#cbd5e1'}]}>
-                                        {item?.status_code || item?.status}
+                                        {item?.status_code || item?.status_code}
                                     </Text>
                                 </View>
                             ) : (
@@ -532,7 +534,16 @@ const Matches = () => {
                     />
                 }
                 stickyHeaderIndices={[0]}
-                ListEmptyComponent={!loading && emptyStateUI(game)}
+                ListEmptyComponent={() => {
+                    if (loading) return null;
+                    return emptyStateUI({
+                        game,
+                        selectedDate,
+                        handleLiveMatches,
+                        handleLocation,
+                        setIsDatePickerVisible
+                    });
+                }}
                 onScroll={scrollHandler}
                 scrollEventThrottle={16}
                 contentContainerStyle={{

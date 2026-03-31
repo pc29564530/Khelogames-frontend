@@ -8,9 +8,12 @@ const initialState = {
 const matchesReducers = (state = initialState, action) => {
     switch (action.type) {
         case actionTypes.GET_MATCHES:
+            if (action.payload===undefined || action.payload === null) {
+                return state;
+            }
             return {
                 ...state,
-                matches: action.payload
+                matches: action.payload || []
             };
 
         case actionTypes.SET_MATCHES:
