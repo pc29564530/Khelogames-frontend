@@ -34,6 +34,8 @@ const matchesReducers = (state = initialState, action) => {
             const statusCode = action.payload.status_code;
             const result = action.payload.result;
 
+            const isStaged = state.matches?.[0]?.league_stage || state.matches?.[0]?.knockout_stage || state.matches?.[0]?.group_stage;
+
             if (!matchPublicID) {
                 return state;
             }
@@ -54,22 +56,37 @@ const matchesReducers = (state = initialState, action) => {
                 });
             }
 
-            // Update matches array (tournament view)
-            const updatedMatches = state.matches.map(stage => ({
-                ...stage,
-                league_stage: updateStageArray(stage.league_stage),
-                group_stage: updateStageArray(stage.group_stage),
-                knockout_stage: {
-                    ...stage.knockout_stage,
-                    final: updateStageArray(stage.knockout_stage?.final),
-                    semifinal: updateStageArray(stage.knockout_stage?.semifinal),
-                    quaterfinal: updateStageArray(stage.knockout_stage?.quaterfinal),
-                    round_16: updateStageArray(stage.knockout_stage?.round_16),
-                    round_32: updateStageArray(stage.knockout_stage?.round_32),
-                    round_64: updateStageArray(stage.knockout_stage?.round_64),
-                    round_128: updateStageArray(stage.knockout_stage?.round_128),
-                },
-            }));
+            let updatedMatches;
+
+            if(isStaged) {
+                // Update matches array (tournament view)
+                updatedMatches = state.matches.map(stage => ({
+                    ...stage,
+                    league_stage: updateStageArray(stage.league_stage),
+                    group_stage: updateStageArray(stage.group_stage),
+                    knockout_stage: {
+                        ...stage.knockout_stage,
+                        final: updateStageArray(stage.knockout_stage?.final),
+                        semifinal: updateStageArray(stage.knockout_stage?.semifinal),
+                        quaterfinal: updateStageArray(stage.knockout_stage?.quaterfinal),
+                        round_16: updateStageArray(stage.knockout_stage?.round_16),
+                        round_32: updateStageArray(stage.knockout_stage?.round_32),
+                        round_64: updateStageArray(stage.knockout_stage?.round_64),
+                        round_128: updateStageArray(stage.knockout_stage?.round_128),
+                    },
+                }));
+            } else {
+                updatedMatches = (state.matches || []).map(m => {
+                    if (m?.public_id === matchPublicID) {
+                        return {
+                            ...m,
+                            status_code: statusCode ?? m.status_code,
+                            result: result ?? m.result,
+                        };
+                    }
+                    return m;
+                });
+            }
 
             // Update single match (match detail view)
             const updatedMatch = (state.match?.public_id === matchPublicID)
@@ -86,7 +103,7 @@ const matchesReducers = (state = initialState, action) => {
         case actionTypes.SET_MATCH_RESULT: {
             const matchId = action.payload.match_id ?? action.payload.id;
             const result = action.payload.result;
-
+            const isStaged = state.matches?.[0]?.league_stage || state.matches?.[0]?.knockout_stage || state.matches?.[0]?.group_stage;
             if (!matchId) {
                 return state;
             }
@@ -101,21 +118,35 @@ const matchesReducers = (state = initialState, action) => {
                 });
             }
 
-            const updatedMatches = state.matches.map(stage => ({
-                ...stage,
-                league_stage: updateResultInArray(stage.league_stage),
-                group_stage: updateResultInArray(stage.group_stage),
-                knockout_stage: {
-                    ...stage.knockout_stage,
-                    final: updateResultInArray(stage.knockout_stage?.final),
-                    semifinal: updateResultInArray(stage.knockout_stage?.semifinal),
-                    quaterfinal: updateResultInArray(stage.knockout_stage?.quaterfinal),
-                    round_16: updateResultInArray(stage.knockout_stage?.round_16),
-                    round_32: updateResultInArray(stage.knockout_stage?.round_32),
-                    round_64: updateResultInArray(stage.knockout_stage?.round_64),
-                    round_128: updateResultInArray(stage.knockout_stage?.round_128),
-                },
-            }));
+            if(isStaged) {
+                // Update matches array (tournament view)
+                updatedMatches = state.matches.map(stage => ({
+                    ...stage,
+                    league_stage: updateResultInArray(stage.league_stage),
+                    group_stage: updateResultInArray(stage.group_stage),
+                    knockout_stage: {
+                        ...stage.knockout_stage,
+                        final: updateResultInArray(stage.knockout_stage?.final),
+                        semifinal: updateResultInArray(stage.knockout_stage?.semifinal),
+                        quaterfinal: updateResultInArray(stage.knockout_stage?.quaterfinal),
+                        round_16: updateResultInArray(stage.knockout_stage?.round_16),
+                        round_32: updateResultInArray(stage.knockout_stage?.round_32),
+                        round_64: updateResultInArray(stage.knockout_stage?.round_64),
+                        round_128: updateResultInArray(stage.knockout_stage?.round_128),
+                    },
+                }));
+            } else {
+                updatedMatches = (state.matches || []).map(m => {
+                    if (m?.public_id === matchPublicID) {
+                        return {
+                            ...m,
+                            status_code: statusCode ?? m.status_code,
+                            result: result ?? m.result,
+                        };
+                    }
+                    return m;
+                });
+            }
 
             // Update single match (match detail view)
             const updatedResultMatch = (state.match?.id === matchId)

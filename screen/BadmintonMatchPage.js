@@ -374,8 +374,7 @@ const BadmintonMatchPage = ({ route }) => {
                     dispatch(setMatchStatus(item.match_result))
                 }
             } else if(message.type === "UPDATE_MATCH_STATUS") {
-                //manual update of match status
-                dispatch(setMatchStatus(message.payload.data || []));
+                dispatch(setMatchStatus(message.payload || {}));
             }
         } catch (err) {
             console.error("Error parsing WebSocket message badminton match:", err);
