@@ -9,9 +9,6 @@ import TopTabCricket from '../navigation/TopTabCricket';
 import TopTabBadminton from '../navigation/TopTabBadminton';
 import { useSelector } from 'react-redux';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axiosInstance from './axios_config';
-import { BASE_URL } from '../constants/ApiConstants';
 import LinearGradient from 'react-native-linear-gradient';
 
 const TournamentPage = ({ route }) => {
@@ -57,60 +54,32 @@ const TournamentPage = ({ route }) => {
         };
       });
 
-      // Trophy animation
+      // Trophy icon — fades out and shrinks as header collapses
       const trophyStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+          parentScrollY.value,
+          [0, offsetValue * 0.6],
+          [1, 0],
+          Extrapolation.CLAMP,
+        );
         const scale = interpolate(
           parentScrollY.value,
-          [0, offsetValue],
-          [1, 0.5],
+          [0, offsetValue * 0.6],
+          [1, 0.3],
           Extrapolation.CLAMP,
         );
-
-        const translateY = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [50, -5],
-          Extrapolation.CLAMP,
-        );
-
-        const translateX = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [0, -(sWidth / 2) - 80],
-          Extrapolation.CLAMP,
-        );
-
-        return {
-          transform: [{ scale }, { translateX }, { translateY }],
-        };
+        return { opacity, transform: [{ scale }] };
       });
 
-      // Text animation
+      // Title — left-anchored, font shrinks on collapse
       const titleStyle = useAnimatedStyle(() => {
-        const scale = interpolate(
+        const fontSize = interpolate(
           parentScrollY.value,
           [0, offsetValue],
-          [1, 0.8],
+          [18, 18],
           Extrapolation.CLAMP,
         );
-
-        const translateY = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [60, -54],
-          Extrapolation.CLAMP,
-        );
-
-        const translateX = interpolate(
-          parentScrollY.value,
-          [0, offsetValue],
-          [0, -(sWidth / 2) + 95],
-          Extrapolation.CLAMP,
-        );
-
-        return {
-          transform: [{ scale }, { translateX }, { translateY }],
-        };
+        return { fontSize };
       });
 
       const checkSport = (game) => {
@@ -162,43 +131,52 @@ const TournamentPage = ({ route }) => {
               style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             />
 
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={tailwind`absolute left-3 top-2 p-1.5 z-10`}
-              hitSlop={12}
-            >
-              <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
-            </Pressable>
-
-            {/* Trophy + Title animated separately */}
-            <View style={tailwind`items-center`}>
-              <Animated.View style={trophyStyle}>
-                <FontAwesome name="trophy" size={56} color="#f87171" />
-              </Animated.View>
-              <Animated.View style={titleStyle}>
-                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>
-                  {tournament.name}
-                </Text>
-              </Animated.View>
-            </View>
-            <View style={tailwind`absolute right-2 top-2 flex-row items-center z-10`}>
+            {/* Top bar: [Back] [Title] [Icons] — always visible */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8, height: collapsedHeader, zIndex: 10 }}>
               <Pressable
-                onPress={() => handleNavigation()}
-                style={tailwind`p-1.5 mr-1`}
-                hitSlop={8}
+                onPress={() => navigation.goBack()}
+                style={tailwind`p-1.5`}
+                hitSlop={12}
               >
-                <MaterialIcons name="message" size={22} color="#e2e8f0" />
+                <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
               </Pressable>
-              {(authProfile?.public_id === tournament?.profile?.public_id) && (
+
+              {/* Title — left-anchored, bounded by flex between back & icons */}
+              <Animated.Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[
+                  titleStyle,
+                  { flex: 1, color: '#f1f5f9', fontWeight: 'bold', marginHorizontal: 10 },
+                ]}
+              >
+                {tournament.name}
+              </Animated.Text>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Pressable
-                  onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
-                  style={tailwind`p-1.5`}
+                  onPress={() => handleNavigation()}
+                  style={tailwind`p-1.5 mr-1`}
                   hitSlop={8}
                 >
-                  <MaterialIcons name="settings" size={22} color="#e2e8f0" />
+                  <MaterialIcons name="message" size={22} color="#e2e8f0" />
                 </Pressable>
-              )}
+                {(authProfile?.public_id === tournament?.profile?.public_id) && (
+                  <Pressable
+                    onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
+                    style={tailwind`p-1.5`}
+                    hitSlop={8}
+                  >
+                    <MaterialIcons name="settings" size={22} color="#e2e8f0" />
+                  </Pressable>
+                )}
+              </View>
             </View>
+
+            {/* Trophy — centered below top bar, fades away on collapse */}
+            <Animated.View style={[trophyStyle, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+              <FontAwesome name="trophy" size={52} color="#f87171" />
+            </Animated.View>
           </Animated.View>
           <Animated.View style={[contentContainerStyle, { backgroundColor: '#0f172a' }]}>
             {checkSport(game)}

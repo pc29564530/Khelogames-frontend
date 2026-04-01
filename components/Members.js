@@ -38,6 +38,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
   const navigation = useNavigation();
   const players = useSelector((state) => state.players.players);
   const authProfile = useSelector(state => state.profile.authProfile);
+  const authUser = useSelector(state => state.profile.authUser);
   const currentProfile = useSelector(state => state.profile.currentProfile);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [isSubstituted, setIsSubstituted] = useState([]);
@@ -69,7 +70,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         setLoading(true);
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.get(
-          `${BASE_URL}/getPlayersBySport/${game.id}`,
+          `${BASE_URL}/get-available-players-by-sport/${game.id}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -149,7 +150,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         };
         const authToken = await AsyncStorage.getItem('AccessToken');
         const response = await axiosInstance.post(
-          `${BASE_URL}/${game.name}/addTeamsMember`,
+          `${BASE_URL}/${game.name}/addTeamMember`,
           data,
           {
             headers: {
@@ -305,7 +306,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         }}
       >
         {/* Add Player Button - Only for team owner */}
-        {authProfile && authProfile.id === teamData.user_id && players?.length >= 0 && (
+        { authUser.id === teamData.user_id && players?.length >= 0 && (
           <View style={[tailwind`px-4 mb-4`]}>
             <Pressable
               onPress={() => setIsSelectPlayerModal(true)}
@@ -361,17 +362,9 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                     {item?.name}
                   </Text>
                   <View style={tailwind`flex-row items-center mt-1`}>
-                    {item?.position && (
-                      <>
-                        <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>{item.position}</Text>
-                        {item?.country && (
+                        <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>{item.positions}</Text>
                           <View style={tailwind`h-1 w-1 rounded-full bg-gray-400 mx-2`} />
-                        )}
-                      </>
-                    )}
-                    {item?.country && (
                       <Text style={[tailwind`text-sm`, {color: '#94a3b8'} ]}>{item.country}</Text>
-                    )}
                   </View>
                 </View>
 
@@ -531,18 +524,14 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
                         </Text>
                       </View>
                     )}
-
                     {/* Player info */}
                     <View style={tailwind`flex-1 ml-3`}>
                       <Text style={{ color: "#f1f5f9", fontWeight: "600" }}>
                         {item.name}
                       </Text>
-
-                      {item.position && (
                         <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>
-                          {item.position}
+                          {item.positions}
                         </Text>
-                      )}
                     </View>
 
                     {/* Add icon */}

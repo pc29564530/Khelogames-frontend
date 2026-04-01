@@ -27,7 +27,6 @@ function Following() {
   });
 
   const following = useSelector((state) => state.user.following);
-
   const fetchFollowing = async (isRefreshing = false) => {
     if (isRefreshing) {
       setRefreshing(true);
@@ -37,7 +36,6 @@ function Following() {
 
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-
       const response = await axiosInstance.get(`${BASE_URL}/getFollowing`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -46,16 +44,14 @@ function Following() {
       });
 
       const item = response.data;
-
-      if (item.success) {
-        dispatch(getFollowingUser(item.data.data || []));
+      if (item?.success && item?.data != null) {
+        dispatch(getFollowingUser(item.data?.data));
       }
     } catch (err) {
       setError({
         global: "Unable to get follower",
-        fields: err?.response?.data?.error || {},
+        fields: err?.response?.data?.error.fields || {},
       });
-
       console.error("Unable to get following user: ", err);
     } finally {
       setLoading(false);
@@ -100,7 +96,7 @@ function Following() {
       }
     >
       <View style={tailwind`bg-slate-900`}>
-        {following?.map((item, index) => (
+        {following.length > 0 && following?.map((item, index) => (
           <UserListItem
             key={item?.profile?.public_id || index}
             user={item}

@@ -43,15 +43,14 @@ function Follower() {
 
       const item = response.data;
 
-      if (item.success) {
-        dispatch(getFollowerUser(item.data || []));
+      if (item.success && item.data != null) {
+        dispatch(getFollowerUser(item.data));
       }
     } catch (err) {
       setError({
         global: "Unable to get follower",
         fields: err?.response?.data?.error || {},
       });
-
       console.error("Unable to get follower: ", err);
     } finally {
       setLoading(false);
