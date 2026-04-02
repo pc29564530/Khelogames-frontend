@@ -23,7 +23,6 @@ const matchesReducers = (state = initialState, action) => {
             };
 
         case actionTypes.GET_MATCH:
-            console.log("Match: ", state.match)
             return {
                 ...state,
                 match: action.payload,
@@ -180,12 +179,9 @@ const matchesReducers = (state = initialState, action) => {
 
         // Badminton: update score on match
         case actionTypes.SET_BADMINTON_SCORE: {
-            console.log("Action Trigger; ", action.payload)
             if (!state.match || state.match.public_id !== action.payload.match_public_id) {
                 return state;
             }
-            console.log("State: ", state.match);
-            console.log("Action: ", action.payload)
             return {
                 ...state,
                 match: {

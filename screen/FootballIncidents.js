@@ -246,33 +246,31 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     }
 
      const handleWebSocketMessage = useCallback((event) => {
-                const rawData = event.data;
-                if (!rawData) {
-                    console.error("Raw data is undefined");
-                    return;
-                }
+        const rawData = event.data;
+        if (!rawData) {
+            console.error("Raw data is undefined");
+            return;
+        }
 
-                try {
-                    const message = JSON.parse(rawData);
-                    console.log("WebSocket Message Received:", message);
-                    console.log("Message Type: ", message.Type)
-                    switch(message.type) {
-                        case "ADD_FOOTBALL_INCIDENT":
-                            dispatch(addFootballIncidents(message.payload));
+        try {
+            const message = JSON.parse(rawData);
+            switch(message.type) {
+                case "ADD_FOOTBALL_INCIDENT":
+                    dispatch(addFootballIncidents(message.payload));
+                    break;
+                default:
+                    console.log("Unhandled message type:", message.type);
+            }
+        } catch (err) {
+            console.error("Error parsing WebSocket message for football incident:", err);
+        }
+    }, [dispatch]);
 
-                        default:
-                            console.log("Unhandled message type:", message.type);
-                    }
-                } catch (err) {
-                    console.error("Error parsing WebSocket message for football incident:", err);
-                }
-            }, [dispatch]);
-
-             useEffect(() => {
-                console.log("Football - Subscribing to WebSocket messages");
-                const unsubscribe = subscribe(handleWebSocketMessage);
-                return unsubscribe;
-            }, [handleWebSocketMessage, subscribe])
+    useEffect(() => {
+        console.log("Football - Subscribing to WebSocket messages");
+        const unsubscribe = subscribe(handleWebSocketMessage);
+        return unsubscribe;
+    }, [handleWebSocketMessage, subscribe])
 
 
 

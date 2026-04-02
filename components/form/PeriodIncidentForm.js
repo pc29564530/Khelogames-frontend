@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../../screen/axios_config';
 import { BASE_URL } from '../../constants/ApiConstants';
 import { useSelector } from 'react-redux';
-import { useWebSocket } from '../../context/WebSocketContext';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentField, validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
 
@@ -46,7 +45,6 @@ const PeriodIncidentForm = ({
         fields: {},
     });
     const isMountedRef = useRef(true);
-    const {wsRef} = useWebSocket();
     const game = useSelector((state) => state.sportReducers.game);
 
     // Cleanup on unmount
@@ -64,21 +62,6 @@ const PeriodIncidentForm = ({
     ];
 
     const handleAddIncident = async () => {
-        // Validate required fields
-        if (!selectedMinute || selectedMinute === '') {
-            setError({
-                global: "Please enter the incident time",
-                fields: { incident_time: "Incident time is required" },
-            });
-            return;
-        }
-
-        // Show confirmation
-        setShowConfirmation(true);
-    };
-
-    const confirmAddIncident = async () => {
-        setShowConfirmation(false);
         setLoading(true);
         setError({ global: null, fields: {} });
 
@@ -124,29 +107,7 @@ const PeriodIncidentForm = ({
             );
 
             const item = response?.data;
-            if (item?.data && isMountedRef.current) {
-                // Send WebSocket update
-                if (wsRef?.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    try {
-                        wsRef.current.send(JSON.stringify({
-                            type: "MATCH_UPDATE",
-                            payload: {
-                                match_public_id: match?.public_id,
-                                incident_type: "period",
-                            }
-                        }));
-                    } catch (wsErr) {
-                        console.error("WebSocket send failed:", wsErr);
-                    }
-                }
-
-                Alert.alert('Success', 'Period change recorded successfully!', [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation?.goBack()
-                    }
-                ]);
-            }
+            navigation.goBack();
         } catch (err) {
             if (isMountedRef.current) {
                  const backendErrors = err?.response?.data?.error?.fields;
@@ -279,57 +240,7 @@ const PeriodIncidentForm = ({
                         </>
                     )}
                 </Pressable>
-
-                {/* Summary Card */}
-                {selectedHalf && selectedMinute && (
-                    <View style={[tailwind`mt-4 p-4 rounded-xl`, {backgroundColor: '#3b82f615', borderWidth: 1, borderColor: '#3b82f630'}]}>
-                        <Text style={[tailwind`font-semibold mb-2`, {color: '#93c5fd'}]}>Summary:</Text>
-                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
-                            Period: {formatPeriodName(selectedHalf)}
-                        </Text>
-                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
-                            Time: {selectedMinute}'
-                        </Text>
-                    </View>
-                )}
             </ScrollView>
-
-            {/* Confirmation Modal */}
-            {showConfirmation && (
-                <View style={tailwind`absolute inset-0 bg-black bg-opacity-50 items-center justify-center`}>
-                    <View style={[tailwind`rounded-2xl p-6 mx-6 w-80`, {backgroundColor: '#1e293b'}]}>
-                        <MaterialIcons name="access-time" size={48} color="#f87171" style={tailwind`self-center mb-4`} />
-                        <Text style={[tailwind`text-xl font-bold text-center mb-2`, {color: '#f1f5f9'}]}>
-                            Confirm Period Change
-                        </Text>
-                        <Text style={[tailwind`text-center mb-2 font-semibold`, {color: '#e2e8f0'}]}>
-                            {formatPeriodName(selectedHalf)}
-                        </Text>
-                        <Text style={[tailwind`text-center text-sm mb-4`, {color: '#94a3b8'}]}>
-                            At {selectedMinute} minutes
-                        </Text>
-
-                        <View style={tailwind`flex-row gap-3`}>
-                            <Pressable
-                                onPress={() => setShowConfirmation(false)}
-                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#334155'}]}
-                            >
-                                <Text style={[tailwind`font-semibold text-center`, {color: '#e2e8f0'}]}>
-                                    Cancel
-                                </Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={confirmAddIncident}
-                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#f87171'}]}
-                            >
-                                <Text style={tailwind`text-white font-semibold text-center`}>
-                                    Confirm
-                                </Text>
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
-            )}
         </KeyboardAvoidingView>
     );
 };

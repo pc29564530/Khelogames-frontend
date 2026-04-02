@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform} from 'react-native';
+import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const ShootoutIncidentForm = ({
     match,
@@ -23,9 +25,10 @@ const ShootoutIncidentForm = ({
 
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [goalScore, setGoalScore] = useState(null);
-    const [teamID, setTeamID] = useState(homeTeam?.public_id);
+    const [teamPublicID, setTeamPublicID] = useState(homeTeam?.public_id);
+    const [searchText, setSearchText] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [showPlayerModal, setShowPlayerModal] = useState(false);
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -43,36 +46,13 @@ const ShootoutIncidentForm = ({
     }, []);
 
     const handleAddShootout = async () => {
-        // Validate required fields before proceeding
-        if (!selectedPlayer) {
-            setError({
-                global: "Please select a player",
-                fields: { player_public_id: "Player is required" },
-            });
-            return;
-        }
-
-        if (goalScore === null) {
-            setError({
-                global: "Please select if goal was scored",
-                fields: { penalty_shootout_scored: "Goal status is required" },
-            });
-            return;
-        }
-
-        // Show confirmation dialog
-        setShowConfirmation(true);
-    };
-
-    const confirmAddShootout = async () => {
-        setShowConfirmation(false);
         setLoading(true);
         setError({ global: null, fields: {} });
 
         try {
             const formData = {
                 "match_public_id": match?.public_id,
-                "team_public_id": teamID,
+                "team_public_id": teamPublicID,
                 "tournament_public_id": tournament?.public_id || null,
                 "periods": '',
                 "incident_type": "penalty_shootout",
@@ -102,7 +82,7 @@ const ShootoutIncidentForm = ({
 
             const data = {
                 "match_public_id": match?.public_id,
-                "team_public_id": teamID,
+                "team_public_id": teamPublicID,
                 "tournament_public_id": tournament?.public_id,
                 "periods": '',
                 "incident_type": "penalty_shootout",
@@ -122,30 +102,7 @@ const ShootoutIncidentForm = ({
                     },
                 }
             );
-
-            if (response?.data && isMountedRef.current) {
-                // Send WebSocket update if available
-                if (wsRef?.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    try {
-                        wsRef.current.send(JSON.stringify({
-                            type: "MATCH_UPDATE",
-                            payload: {
-                                match_public_id: match?.public_id,
-                                incident_type: "penalty_shootout",
-                            }
-                        }));
-                    } catch (wsErr) {
-                        console.error("WebSocket send failed:", wsErr);
-                    }
-                }
-
-                Alert.alert('Success', 'Penalty shootout recorded successfully!', [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation?.goBack()
-                    }
-                ]);
-            }
+            navigation.goBack();
         } catch (err) {
             if (isMountedRef.current) {
                 const backendErrors = err?.response?.data?.error?.fields;
@@ -180,7 +137,12 @@ const ShootoutIncidentForm = ({
 
     const homeActive = getActivePlayers(homeSquad);
     const awayActive = getActivePlayers(awaySquad);
-    const currentPlayers = teamID === homeTeam.public_id ? homeActive : awayActive;
+    const currentPlayers = teamPublicID === homeTeam.public_id ? homeActive : awayActive;
+    const filteredPlayers = currentPlayers.filter(p =>
+        p.player?.name?.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    const teamName = teamPublicID === homeTeam?.public_id ? homeTeam?.name : awayTeam?.name;
 
     return (
         <KeyboardAvoidingView
@@ -212,17 +174,17 @@ const ShootoutIncidentForm = ({
                         <Pressable
                             style={[
                                 tailwind`flex-1 p-4 rounded-xl items-center`, {borderWidth: 1, borderColor: '#334155'},
-                                teamID !== homeTeam?.public_id ? {backgroundColor: '#0f172a'} : {backgroundColor: '#f87171'},
+                                teamPublicID !== homeTeam?.public_id ? {backgroundColor: '#0f172a'} : {backgroundColor: '#f87171'},
                             ]}
                             onPress={() => {
-                                setTeamID(homeTeam?.public_id);
+                                setTeamPublicID(homeTeam?.public_id);
                                 setSelectedPlayer(null);
                                 setError({ global: null, fields: {} });
                             }}
                         >
                             <Text style={[
                                 tailwind`font-semibold text-center`,
-                                teamID === homeTeam?.public_id ? tailwind`text-white` : {color: '#94a3b8'}
+                                teamPublicID === homeTeam?.public_id ? tailwind`text-white` : {color: '#94a3b8'}
                             ]} numberOfLines={2}>
                                 {homeTeam?.name || 'Home Team'}
                             </Text>
@@ -231,17 +193,17 @@ const ShootoutIncidentForm = ({
                         <Pressable
                             style={[
                                 tailwind`flex-1 p-4 rounded-xl items-center`, {borderWidth: 1, borderColor: '#334155'},
-                                teamID !== awayTeam?.public_id ? {backgroundColor: '#0f172a'} : {backgroundColor: '#f87171'},
+                                teamPublicID !== awayTeam?.public_id ? {backgroundColor: '#0f172a'} : {backgroundColor: '#f87171'},
                             ]}
                             onPress={() => {
-                                setTeamID(awayTeam?.public_id);
+                                setTeamPublicID(awayTeam?.public_id);
                                 setSelectedPlayer(null);
                                 setError({ global: null, fields: {} });
                             }}
                         >
                             <Text style={[
                                 tailwind`font-semibold text-center`,
-                                teamID === awayTeam?.public_id ? tailwind`text-white` : {color: '#94a3b8'}
+                                teamPublicID === awayTeam?.public_id ? tailwind`text-white` : {color: '#94a3b8'}
                             ]} numberOfLines={2}>
                                 {awayTeam?.name || 'Away Team'}
                             </Text>
@@ -249,70 +211,72 @@ const ShootoutIncidentForm = ({
                     </View>
                 </View>
 
-                {/* Player Selector */}
-                <View style={tailwind`mb-6`}>
-                    <Text style={[tailwind`text-lg font-semibold mb-3`, {color: '#f1f5f9'}]}>
-                        Select Player ({currentPlayers?.length || 0} available)
-                    </Text>
-
-                    {error?.fields?.player_public_id && (
-                        <View style={[tailwind`mb-2 p-2 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
-                            <Text style={[tailwind`text-xs`, {color: '#fca5a5'}]}>
-                                {error.fields.player_public_id}
-                            </Text>
-                        </View>
-                    )}
-
-                    {currentPlayers?.length === 0 ? (
-                        <View style={[tailwind`p-4 rounded-xl`, {backgroundColor: '#f59e0b15', borderWidth: 1, borderColor: '#f59e0b30'}]}>
-                            <MaterialIcons name="warning" size={24} color="#fbbf24" style={tailwind`self-center mb-2`} />
-                            <Text style={[tailwind`text-center font-medium`, {color: '#fbbf24'}]}>
-                                No players available
-                            </Text>
-                            <Text style={[tailwind`text-center text-xs mt-1`, {color: '#94a3b8'}]}>
-                                Please ensure the squad is set up properly
-                            </Text>
+                {currentPlayers?.length === 0 ? (
+                        <View style={[tailwind`p-4 rounded-xl items-center`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}>
+                            <MaterialIcons name="person-off" size={28} color="#475569" />
+                            <Text style={[tailwind`text-sm font-medium mt-2`, { color: '#94a3b8' }]}>No players in squad</Text>
+                            <Text style={[tailwind`text-xs mt-1`, { color: '#475569' }]}>Add lineup first</Text>
                         </View>
                     ) : (
-                        <Dropdown
-                            style={[tailwind`rounded-xl`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: error?.fields?.player_public_id ? '#f87171' : '#334155'}]}
-                            options={currentPlayers}
-                            onSelect={(index, item) => {
-                                setSelectedPlayer(item);
-                                setError({ ...error, fields: { ...error.fields, player_public_id: null } });
+                        <Pressable
+                            onPress={() => {
+                                setSearchText('');
+                                setShowPlayerModal(true);
                             }}
-                            renderRow={(item) => (
-                                <View style={[tailwind`flex-row items-center p-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
-                                    {item?.player?.media_url ? (
+                            style={[
+                                tailwind`flex-row items-center p-3 rounded-xl`,
+                                {
+                                    backgroundColor: '#0f172a',
+                                    borderWidth: 1,
+                                    borderColor: selectedPlayer ? '#f8717150' : '#334155',
+                                },
+                            ]}
+                        >
+                            {selectedPlayer ? (
+                                <>
+                                    {selectedPlayer.player?.media_url ? (
                                         <Image
-                                            source={{ uri: item.player.media_url }}
-                                            style={tailwind`rounded-full h-12 w-12 mr-3`}
-                                            resizeMode="cover"
+                                            source={{ uri: selectedPlayer.player.media_url }}
+                                            style={tailwind`w-10 h-10 rounded-full mr-3`}
                                         />
                                     ) : (
-                                        <View style={[tailwind`rounded-full h-12 w-12 mr-3 items-center justify-center`, {backgroundColor: '#f8717120'}]}>
-                                            <Text style={tailwind`text-white font-bold text-lg`}>
-                                                {item?.player?.name?.charAt(0)?.toUpperCase() || '?'}
+                                        <View style={[tailwind`w-10 h-10 rounded-full mr-3 items-center justify-center`, { backgroundColor: '#f8717120' }]}>
+                                            <Text style={[tailwind`font-bold`, { color: '#f87171' }]}>
+                                                {selectedPlayer.player?.name?.charAt(0)?.toUpperCase()}
                                             </Text>
                                         </View>
                                     )}
-                                    <View>
-                                        <Text style={[tailwind`text-base font-semibold`, {color: '#f1f5f9'}]}>
-                                            {item?.player?.name || item?.player_name || "Unknown"}
+                                    <View style={tailwind`flex-1`}>
+                                        <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
+                                            {selectedPlayer.player?.name}
                                         </Text>
+                                        {selectedPlayer.player?.positions && (
+                                            <Text style={{ color: '#64748b', fontSize: 11 }}>{selectedPlayer.player.positions}</Text>
+                                        )}
                                     </View>
-                                </View>
+                                    <Pressable
+                                        onPress={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedPlayer(null);
+                                        }}
+                                        hitSlop={8}
+                                    >
+                                        <MaterialIcons name="close" size={18} color="#475569" />
+                                    </Pressable>
+                                </>
+                            ) : (
+                                <>
+                                    <View style={[tailwind`w-10 h-10 rounded-full mr-3 items-center justify-center`, { backgroundColor: '#1e293b' }]}>
+                                        <MaterialIcons name="person-add" size={20} color="#475569" />
+                                    </View>
+                                    <Text style={[tailwind`flex-1 text-sm`, { color: '#475569' }]}>
+                                        Tap to select player ({currentPlayers.length})
+                                    </Text>
+                                    <MaterialIcons name="chevron-right" size={22} color="#475569" />
+                                </>
                             )}
-                        >
-                            <View style={[tailwind`flex-row items-center justify-between p-4 rounded-xl`, {backgroundColor: '#0f172a', borderWidth: 1, borderColor: error?.fields?.player_public_id ? '#f87171' : '#334155'}]}>
-                                <Text style={[tailwind`text-base font-medium`, {color: selectedPlayer ? '#f1f5f9' : '#64748b'}]}>
-                                    {selectedPlayer ? (selectedPlayer?.player?.name || selectedPlayer?.player_name) : 'Select player'}
-                                </Text>
-                                <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
-                            </View>
-                        </Dropdown>
-                    )}
-                </View>
+                        </Pressable>
+                )}
 
                 {/* Goal Scored Selector */}
                 <View style={tailwind`mb-6`}>
@@ -406,60 +370,136 @@ const ShootoutIncidentForm = ({
                         </>
                     )}
                 </Pressable>
-
-                {/* Summary Card */}
-                {selectedPlayer && goalScore !== null && (
-                    <View style={[tailwind`mt-4 p-4 rounded-xl`, {backgroundColor: '#3b82f615', borderWidth: 1, borderColor: '#3b82f630'}]}>
-                        <Text style={[tailwind`font-semibold mb-2`, {color: '#93c5fd'}]}>Summary:</Text>
-                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
-                            Player: {selectedPlayer?.player?.name || selectedPlayer?.player_name}
-                        </Text>
-                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
-                            Team: {teamID === homeTeam?.public_id ? homeTeam?.name : awayTeam?.name}
-                        </Text>
-                        <Text style={[tailwind`text-sm`, {color: '#93c5fd'}]}>
-                            Result: {goalScore ? '✓ Scored' : '✗ Missed'}
-                        </Text>
-                    </View>
-                )}
             </ScrollView>
+            <Modal
+                visible={showPlayerModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowPlayerModal(false)}
+            >
+                <View style={tailwind`flex-1 justify-end bg-black/60`}>
+                    <Pressable style={tailwind`flex-1`} onPress={() => setShowPlayerModal(false)} />
 
-            {/* Confirmation Modal */}
-            {showConfirmation && (
-                <View style={tailwind`absolute inset-0 bg-black bg-opacity-50 items-center justify-center`}>
-                    <View style={[tailwind`rounded-2xl p-6 mx-6 w-80`, {backgroundColor: '#1e293b'}]}>
-                        <MaterialIcons name="help-outline" size={48} color="#f87171" style={tailwind`self-center mb-4`} />
-                        <Text style={[tailwind`text-xl font-bold text-center mb-2`, {color: '#f1f5f9'}]}>
-                            Confirm Penalty
-                        </Text>
-                        <Text style={[tailwind`text-center mb-4`, {color: '#e2e8f0'}]}>
-                            {selectedPlayer?.player?.name || selectedPlayer?.player_name} from {teamID === homeTeam?.public_id ? homeTeam?.name : awayTeam?.name}
-                        </Text>
-                        <Text style={[tailwind`text-center font-semibold mb-6`, {color: '#f1f5f9'}]}>
-                            {goalScore ? 'Scored ✓' : 'Missed ✗'}
-                        </Text>
+                    <View style={[tailwind`rounded-t-3xl`, { backgroundColor: '#0f172a', minHeight: SCREEN_HEIGHT * 0.75 }]}>
+                        {/* Modal Handle */}
+                        <View style={tailwind`items-center pt-3 pb-1`}>
+                            <View style={[tailwind`rounded-full`, { width: 36, height: 4, backgroundColor: '#334155' }]} />
+                        </View>
 
-                        <View style={tailwind`flex-row gap-3`}>
+                        {/* Modal Header */}
+                        <View style={[tailwind`flex-row items-center justify-between px-4 pb-3`, { borderBottomWidth: 1, borderBottomColor: '#1e293b' }]}>
+                            <View>
+                                <Text style={[tailwind`text-base font-bold`, { color: '#f1f5f9' }]}>Select Player</Text>
+                                <Text style={{ color: '#475569', fontSize: 12 }}>{teamName} - {currentPlayers.length} players</Text>
+                            </View>
                             <Pressable
-                                onPress={() => setShowConfirmation(false)}
-                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#334155'}]}
+                                onPress={() => setShowPlayerModal(false)}
+                                style={[tailwind`w-8 h-8 rounded-full items-center justify-center`, { backgroundColor: '#1e293b' }]}
                             >
-                                <Text style={[tailwind`font-semibold text-center`, {color: '#e2e8f0'}]}>
-                                    Cancel
-                                </Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={confirmAddShootout}
-                                style={[tailwind`flex-1 p-3 rounded-xl`, {backgroundColor: '#f87171'}]}
-                            >
-                                <Text style={tailwind`text-white font-semibold text-center`}>
-                                    Confirm
-                                </Text>
+                                <MaterialIcons name="close" size={18} color="#94a3b8" />
                             </Pressable>
                         </View>
+
+                        {/* Search */}
+                        <View style={tailwind`px-4 py-3`}>
+                            <View style={[tailwind`flex-row items-center rounded-xl px-3`, { backgroundColor: '#1e293b', height: 42 }]}>
+                                <MaterialIcons name="search" size={20} color="#475569" />
+                                <TextInput
+                                    value={searchText}
+                                    onChangeText={setSearchText}
+                                    placeholder="Search player..."
+                                    placeholderTextColor="#475569"
+                                    style={[tailwind`flex-1 ml-2 text-sm`, { color: '#f1f5f9', padding: 0 }]}
+                                    autoFocus={false}
+                                />
+                                {searchText.length > 0 && (
+                                    <Pressable onPress={() => setSearchText('')}>
+                                        <MaterialIcons name="cancel" size={16} color="#475569" />
+                                    </Pressable>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* Player List */}
+                        <ScrollView
+                            style={tailwind`flex-1`}
+                            contentContainerStyle={tailwind`px-4 pb-8`}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {filteredPlayers.length === 0 ? (
+                                <View style={tailwind`items-center py-10`}>
+                                    <MaterialIcons name="person-search" size={48} color="#334155" />
+                                    <Text style={[tailwind`mt-3 text-sm`, { color: '#475569' }]}>
+                                        {searchText ? 'No players found' : 'No players available'}
+                                    </Text>
+                                </View>
+                            ) : (
+                                filteredPlayers.map((item, index) => {
+                                    const isSelected = selectedPlayer?.player?.public_id === item.player?.public_id;
+                                    return (
+                                        <Pressable
+                                            key={item.player?.public_id || index}
+                                            onPress={() => {
+                                                setSelectedPlayer(item);
+                                                setError({ ...error, fields: { ...error.fields, player_public_id: null } });
+                                                setShowPlayerModal(false);
+                                            }}
+                                            style={[
+                                                tailwind`flex-row items-center py-3 px-3 mb-1 rounded-xl`,
+                                                isSelected
+                                                    ? { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }
+                                                    : { backgroundColor: 'transparent' },
+                                            ]}
+                                        >
+                                            {/* Avatar */}
+                                            {item.player?.media_url ? (
+                                                <Image
+                                                    source={{ uri: item.player.media_url }}
+                                                    style={tailwind`w-11 h-11 rounded-full`}
+                                                />
+                                            ) : (
+                                                <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, { backgroundColor: '#1e293b' }]}>
+                                                    <Text style={[tailwind`font-bold`, { color: '#f87171' }]}>
+                                                        {item.player?.name?.charAt(0)?.toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                            )}
+
+                                            {/* Player Info */}
+                                            <View style={tailwind`flex-1 ml-3`}>
+                                                <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
+                                                    {item.player?.name || 'Unknown'}
+                                                </Text>
+                                                <View style={tailwind`flex-row items-center mt-0.5`}>
+                                                    {item.player?.positions && (
+                                                        <Text style={{ color: '#64748b', fontSize: 11 }}>{item.player.positions}</Text>
+                                                    )}
+                                                    {item.player?.country && (
+                                                        <>
+                                                            <View style={[tailwind`mx-1.5 rounded-full`, { width: 3, height: 3, backgroundColor: '#334155' }]} />
+                                                            <Text style={{ color: '#64748b', fontSize: 11 }}>{item.player.country}</Text>
+                                                        </>
+                                                    )}
+                                                </View>
+                                            </View>
+
+                                            {/* Selected indicator */}
+                                            {isSelected ? (
+                                                <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center`, { backgroundColor: '#f87171' }]}>
+                                                    <MaterialIcons name="check" size={16} color="#fff" />
+                                                </View>
+                                            ) : (
+                                                <View style={[tailwind`w-6 h-6 rounded-full`, { borderWidth: 1.5, borderColor: '#334155' }]} />
+                                            )}
+                                        </Pressable>
+                                    );
+                                })
+                            )}
+                        </ScrollView>
                     </View>
                 </View>
-            )}
+            </Modal>
         </KeyboardAvoidingView>
     );
 };

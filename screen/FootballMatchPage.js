@@ -392,7 +392,6 @@ const FootballMatchPage = ({ route }) => {
         });
         setSearchQuery('');
     };
-    // console.log("All Status: ", allStatus?.football)
     const filteredStatusCodes = allStatus?.football?.filter((item) =>
             item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -417,6 +416,7 @@ const FootballMatchPage = ({ route }) => {
                     console.log("Message type is undefined ")
                     return
                 }
+                
                 switch(message.type) {
                     case "UPDATE_FOOTBALL_SCORE":
                         dispatch(setFootballScore(message.payload));

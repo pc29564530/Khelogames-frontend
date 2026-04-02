@@ -58,8 +58,6 @@ const SubstitutionIncidentForm = ({
     });
     const [loading, setLoading] = useState(false);
     const isMountedRef = useRef(true);
-    const dispatch = useDispatch();
-    const {wsRef} = useWebSocket();
     const game = useSelector((state) => state.sportReducers.game);
 
     // Cleanup on unmount
@@ -128,25 +126,7 @@ const SubstitutionIncidentForm = ({
             );
 
             const item = response?.data;
-
-            if (item?.data && isMountedRef.current) {
-                // Send WebSocket update
-                if (wsRef?.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    try {
-                        wsRef.current.send(JSON.stringify({
-                            type: "MATCH_UPDATE",
-                            payload: {
-                                match_public_id: match?.public_id,
-                                incident_type: "substitution",
-                            }
-                        }));
-                    } catch (wsErr) {
-                        console.error("WebSocket send failed:", wsErr);
-                    }
-                }
-
-                dispatch(addFootballIncidents(item.data));
-            }
+            navigation.goBack();
         } catch (err) {
             if (isMountedRef.current) {
                 const backendErrors = err?.response?.data?.error?.fields;
@@ -170,23 +150,6 @@ const SubstitutionIncidentForm = ({
         }
     };
 
-    const handleWebSocketMessage = useCallback((event) => {
-        const rawData = event.data;
-        if (!rawData) {
-            console.error("raw data is undefined");
-            return;
-        }
-
-        const message = JSON.parse(rawData);
-        if (message.type === "ADD_FOOTBALL_SUB_INCIDENT") {
-            dispatch(addFootballIncidents(message.payload));
-        }
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (!wsRef.current) return;
-        wsRef.current.onmessage = handleWebSocketMessage;
-    }, [handleWebSocketMessage]);
 
     // Get substitute players (for player in)
     const getSubstitutePlayers = (squad) => {
