@@ -163,8 +163,9 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
         if (item) {
           dispatch(setTeamPlayer(item.data));
           setMember([...member, item.data]);
+          setPlayerProfile(prev => prev.filter(p => p.public_id !== selectedItem.public_id));
+          setFiltered(prev => prev.filter(p => p.public_id !== selectedItem.public_id));
         }
-        setIsSelectPlayerModal(false);
         setSearchPlayer('');
       } catch (err) {
         logSilentError(err);

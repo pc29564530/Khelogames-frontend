@@ -293,9 +293,9 @@ function Home() {
     if(game.name==="cricket") {
       navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id, tournament: item.tournament});
     } else if(game.name === "football") {
-      navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, item: item.tournament})
+      navigation.navigate("FootballMatchPage", {matchPublicID: item.public_id, tournament: item.tournament})
     } else if (game.name === "badminton") {
-      navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id, item: item.tournament})
+      navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id, tournament: item.tournament})
     }
   }
 

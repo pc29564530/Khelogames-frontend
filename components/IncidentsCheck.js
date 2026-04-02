@@ -10,7 +10,7 @@ const IncidentCheck = ({ incident, matchData }) => {
   const isHomeTeam = incident.team_id === matchData.homeTeam.id;
 
   // Handle substitution
-  if (incident.incident_type === 'substitutions') {
+  if (incident.incident_type === 'substitution') {
     return (
       <View style={[tailwind`py-3 px-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
         <View style={tailwind`flex-row items-center ${isHomeTeam ? 'justify-start' : 'justify-end'}`}>
@@ -69,7 +69,7 @@ const IncidentCheck = ({ incident, matchData }) => {
   }
 
   // Handle goal incidents
-  if (incident.incident_type === 'goal') {
+  if (incident.incident_type === 'goal' || incident.incident_type === 'penalty') {
     return (
       <View style={[tailwind`py-3 px-4`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
         <View style={tailwind`flex-row items-center ${isHomeTeam ? 'justify-start' : 'justify-end'}`}>
@@ -90,7 +90,6 @@ const IncidentCheck = ({ incident, matchData }) => {
                 <Text style={[tailwind`text-sm font-semibold flex-1`, { color: '#f1f5f9' }]}>
                   {incident?.player?.name}
                 </Text>
-
                 {/* Score */}
                 {incident.homeScore && incident.awayScore && (
                   <View style={[tailwind`rounded px-2.5 py-1 ml-2`, { backgroundColor: '#0f172a' }]}>

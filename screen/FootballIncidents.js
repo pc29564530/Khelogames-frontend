@@ -162,9 +162,6 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
         fetchASquad();
     }, [match.public_id])
 
-    console.log("HomeSquad: ", homeSquad)
-    console.log("AwaySquad: ", awaySquad)
-
 
     useEffect(() => {
         const fetchPlayersAndIncidents = async () => {

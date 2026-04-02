@@ -404,15 +404,6 @@ const FootballMatchPage = ({ route }) => {
         }
     }, [match]);
 
-    if (loading && !match) {
-        return (
-            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
-                <ActivityIndicator size="large" color="#f87171" />
-                <Text style={[tailwind`mt-2`, {color: '#94a3b8'}]}>Loading match data...</Text>
-            </View>
-        );
-    }
-
         const handleWebSocketMessage = useCallback((event) => {
             const rawData = event.data;
             if (!rawData) {
@@ -449,6 +440,17 @@ const FootballMatchPage = ({ route }) => {
         const unsubscribe = subscribe(handleWebSocketMessage);
         return unsubscribe; 
     }, [handleWebSocketMessage, subscribe])
+
+    if (loading && !match) {
+        return (
+            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={[tailwind`mt-2`, {color: '#94a3b8'}]}>
+                    Loading match data...
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <View style={[tailwind`flex-1`, {backgroundColor: '#0f172a'}]}>

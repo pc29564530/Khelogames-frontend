@@ -120,7 +120,8 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       const payload = {
         match_public_id: match.public_id,
         team_public_id: currentTeamPlayer,
-        player: selectedSquad
+        player: selectedSquad,
+        substitute: isSubstituted,
       };
       const validation = validateFootballLineUp(payload);
       if (!validation.isValid) {
@@ -137,8 +138,9 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
             ? homeTeamPublicID
             : awayTeamPublicID,
         player: selectedSquad,
-        is_substitute: isSubstituted,
+        is_substituted: isSubstituted,
       };
+      
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.post(
         `${BASE_URL}/${game.name}/addFootballMatchSquad`,

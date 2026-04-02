@@ -22,12 +22,15 @@ export const FootballLineUpValidationRules = {
       if (!Array.isArray(value)) return 'Invalid substitute list';
       if (value.length > 7) return 'Maximum 7 substitutes allowed';
 
-      const selected = allValues.player || [];
-      const invalid = value.filter(id => !selected.includes(id));
+      const selected = (allValues.player || []).map(String);
+      const subs = value.map(String);
 
-      if (invalid.length >= 0) {
+      const invalid = subs.filter(id => !selected.includes(id));
+
+      if (invalid.length > 0) {
         return 'Substitutes must be selected players';
       }
+
       return null;
     },
   },

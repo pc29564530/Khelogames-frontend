@@ -47,6 +47,7 @@ export const FootballIncidentValidationRules = {
 };
 
 export const validateFootballIncidentField = (fieldName, value, allValues = {}) => {
+  console.log("Field Name: ", fieldName, "value: ", value)
   const rules = FootballIncidentValidationRules[fieldName];
 
   if (!rules) return null;
@@ -90,32 +91,32 @@ export const validateFootballIncidentForm = (formData) => {
     ]
 
     commanParams.forEach((field) => {
-        const error = validateFootballIncidentField(field)
+        const error = validateFootballIncidentField(field, formData[field], formData)
         if (error) {
             errors[field] = error;
         }
     } );
 
     if (formData['event_type'] === 'substitution') {
-        const playerInError = validateFootballIncidentField(formData['player_in_public_id'])
+        const playerInError = validateFootballIncidentField('player_in_public_id', formData['player_in_public_id'], formData)
         if(playerInError) {
             errors['player_in_public_id'] = playerInError;
-        } 
-        const playerOutError = validateFootballIncidentField(formData['player_out_public_id'])
+        }
+        const playerOutError = validateFootballIncidentField('player_out_public_id', formData['player_out_public_id'], formData)
         if(playerOutError) {
             errors['player_out_public_id'] = playerOutError;
         }
     }
 
     if (formData['event_type'] === 'normal') {
-        const error = validateFootballIncidentField(formData['player_public_id'])
+        const error = validateFootballIncidentField('player_public_id', formData['player_public_id'], formData)
         if (error) {
             errors['player_public_id'] = error;
         }
     }
 
     if (formData['event_type'] === 'penalty_shootout') {
-        const playerError = validateFootballIncidentField(formData['player_public_id'])
+        const playerError = validateFootballIncidentField('player_public_id', formData['player_public_id'], formData)
         if (playerError) {
             errors['player_public_id'] = playerError;
         }
