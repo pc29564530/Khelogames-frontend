@@ -6,7 +6,14 @@ const IncidentCheck = ({ incident, matchData }) => {
   if (!incident || !matchData) {
     return null;
   }
-
+  const getIncidentTime = () => {
+    if(incident.incident_time >= 0 && incident.extra_time > 0) {
+      return `${incident.incident_time}+${incident?.extra_time}`;
+    } else {
+      return `${incident.incident_time}`;
+    }
+    return null;
+  }
   const isHomeTeam = incident.team_id === matchData.homeTeam.id;
 
   // Handle substitution
@@ -18,7 +25,7 @@ const IncidentCheck = ({ incident, matchData }) => {
             <>
               {/* Time */}
               <View style={tailwind`w-12`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>getIncidentTime()</Text>
               </View>
 
               {/* Icon */}
@@ -59,7 +66,7 @@ const IncidentCheck = ({ incident, matchData }) => {
 
               {/* Time */}
               <View style={tailwind`w-12 items-end`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}</Text>
               </View>
             </>
           )}
@@ -77,7 +84,7 @@ const IncidentCheck = ({ incident, matchData }) => {
             <>
               {/* Time */}
               <View style={tailwind`w-12`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>`${incident.incident_time}+${incident.extra_time}`</Text>
               </View>
 
               {/* Icon */}
@@ -125,7 +132,7 @@ const IncidentCheck = ({ incident, matchData }) => {
 
               {/* Time */}
               <View style={tailwind`w-12 items-end`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{`${incident.incident_time}+${incident.extra_time}`}</Text>
               </View>
             </>
           )}
@@ -142,7 +149,7 @@ const IncidentCheck = ({ incident, matchData }) => {
           {isHomeTeam ? (
             <>
               <View style={tailwind`w-12`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}</Text>
               </View>
               <View style={tailwind`w-8 mx-2 items-center justify-center`}>
                 <View style={tailwind`bg-yellow-400 w-4 h-5 rounded-sm`} />
@@ -164,7 +171,7 @@ const IncidentCheck = ({ incident, matchData }) => {
                 <View style={tailwind`bg-yellow-400 w-4 h-5 rounded-sm`} />
               </View>
               <View style={tailwind`w-12 items-end`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}</Text>
               </View>
             </>
           )}
@@ -181,7 +188,7 @@ const IncidentCheck = ({ incident, matchData }) => {
           {isHomeTeam ? (
             <>
               <View style={tailwind`w-12`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}'</Text>
               </View>
               <View style={tailwind`w-8 mx-2 items-center justify-center`}>
                 <View style={tailwind`bg-red-600 w-4 h-5 rounded-sm`} />
@@ -203,7 +210,7 @@ const IncidentCheck = ({ incident, matchData }) => {
                 <View style={tailwind`bg-red-600 w-4 h-5 rounded-sm`} />
               </View>
               <View style={tailwind`w-12 items-end`}>
-                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+                <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}'</Text>
               </View>
             </>
           )}
@@ -219,7 +226,7 @@ const IncidentCheck = ({ incident, matchData }) => {
         {isHomeTeam ? (
           <>
             <View style={tailwind`w-12`}>
-              <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+              <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}'</Text>
             </View>
             <View style={tailwind`w-8 mx-2 items-center justify-center`}>
               <Text style={tailwind`text-base`}>
@@ -255,7 +262,7 @@ const IncidentCheck = ({ incident, matchData }) => {
               </Text>
             </View>
             <View style={tailwind`w-12 items-end`}>
-              <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{incident.incident_time}'</Text>
+              <Text style={[tailwind`text-sm font-medium`, { color: '#94a3b8' }]}>{getIncidentTime()}'</Text>
             </View>
           </>
         )}

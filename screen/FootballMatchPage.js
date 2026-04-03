@@ -40,6 +40,7 @@ const FootballMatchPage = ({ route }) => {
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
     const [allStatus, setAllStatus] = useState([]);
+    const [currentTime, setCurrentTime] = useState("0");
     const [menuVisible, setMenuVisible] = useState(false);
     const [statusVisible, setStatusVisible] = useState(false);
     const [subStatusVisible, setSubStatusVisible] = useState(false);
@@ -416,7 +417,7 @@ const FootballMatchPage = ({ route }) => {
                     console.log("Message type is undefined ")
                     return
                 }
-                
+
                 switch(message.type) {
                     case "UPDATE_FOOTBALL_SCORE":
                         dispatch(setFootballScore(message.payload));
@@ -434,6 +435,33 @@ const FootballMatchPage = ({ route }) => {
                 console.error("Error parsing WebSocket message football match:", err);
             }
         }, [dispatch]);
+
+    const getMatchTime = (match) => {
+        const now = Math.floor(Date.now() / 1000);
+        console.log("Now Time: ", now)
+        if (match?.sub_status === "first_half") {
+            const min = Math.floor((now - match?.sub_status_updated_at)/60);
+            if(min < 0) return "0";
+            if(min <= 45) {
+                return `${min}`
+            }
+            return `45+${min - 45}'`;
+        } else if(match?.sub_status === "second_half") {
+            const min = 45 + Math.floor((now - match?.sub_status_updated_at)/60);
+            if(min <= 90) {
+                return `${min}`
+            }
+            return `90+${min - 90}'`;
+        }
+        return "0";
+    }
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(getMatchTime(match));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [match])
 
     useEffect(() => {
         console.log("Football - Subscribing to WebSocket messages");
@@ -488,6 +516,9 @@ const FootballMatchPage = ({ route }) => {
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
                         {displayMatchStatus(match?.status_code)}
+                    </Text>
+                    <Text style={tailwind`text-white text-lg font-semibold`}>
+                        {currentTime}
                     </Text>
                 </Animated.View>
 

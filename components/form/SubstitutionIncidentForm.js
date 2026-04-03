@@ -7,7 +7,6 @@ import { BASE_URL } from '../../constants/ApiConstants';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { addFootballIncidents } from '../../redux/actions/actions';
-import { useWebSocket } from '../../context/WebSocketContext';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
 
@@ -43,10 +42,43 @@ const SubstitutionIncidentForm = ({
         );
     }
 
+    // Auto-calculate period and minute from match sub_status
+    const getAutoTimeFromMatch = () => {
+        const subStatus = match?.sub_status;
+        const updatedAt = match?.sub_status_updated_at;
+
+        if (!subStatus || !updatedAt || updatedAt === 0) {
+            return { period: 'first_half', minute: 0, extraTime: 0 };
+        }
+
+        const elapsedSeconds = Math.floor(Date.now() / 1000) - updatedAt;
+        const elapsed = Math.max(0, Math.floor(elapsedSeconds / 60));
+
+        switch (subStatus) {
+            case 'first_half': {
+                if (elapsed > 45) {
+                    return { period: 'first_half', minute: 45, extraTime: elapsed - 45 };
+                }
+                return { period: 'first_half', minute: elapsed, extraTime: 0 };
+            }
+            case 'second_half': {
+                if (elapsed > 45) {
+                    return { period: 'second_half', minute: 90, extraTime: elapsed - 45 };
+                }
+                return { period: 'second_half', minute: 45 + elapsed, extraTime: 0 };
+            }
+            default:
+                return { period: subStatus, minute: elapsed, extraTime: 0 };
+        }
+    };
+
+    const autoTime = getAutoTimeFromMatch();
+
     const [selectedPlayerIn, setSelectedPlayerIn] = useState(null);
     const [selectedPlayerOut, setSelectedPlayerOut] = useState(null);
-    const [selectedHalf, setSelectedHalf] = useState("first_half");
-    const [selectedMinute, setSelectedMinute] = useState('45');
+    const [selectedHalf, setSelectedHalf] = useState(autoTime.period);
+    const [selectedMinute, setSelectedMinute] = useState(String(autoTime.minute));
+    const [extraTime, setExtraTime] = useState(autoTime.extraTime);
     const [description, setDescription] = useState('');
     const [teamPublicID, setTeamPublicID] = useState(homeTeam?.public_id);
     const [showPlayerInModal, setShowPlayerInModal] = useState(false);
@@ -79,6 +111,7 @@ const SubstitutionIncidentForm = ({
                 "periods": selectedHalf,
                 "incident_type": "substitution",
                 "incident_time": parseInt(selectedMinute),
+                "extra_time": extraTime,
                 "description": description || `Substitution: ${selectedPlayerIn?.player?.name || selectedPlayerIn?.player_name} in for ${selectedPlayerOut?.player?.name || selectedPlayerOut?.player_name}`,
                 "player_in_public_id": selectedPlayerIn?.player?.public_id || selectedPlayerIn?.public_id,
                 "player_out_public_id": selectedPlayerOut?.player?.public_id || selectedPlayerOut?.public_id,
@@ -109,6 +142,7 @@ const SubstitutionIncidentForm = ({
                 "periods": selectedHalf,
                 "incident_type": "substitution",
                 "incident_time": parseInt(selectedMinute),
+                "extra_time": extraTime,
                 "description": description || `Substitution: ${selectedPlayerIn?.player?.name || selectedPlayerIn?.player_name} in for ${selectedPlayerOut?.player?.name || selectedPlayerOut?.player_name}`,
                 "player_in_public_id": selectedPlayerIn?.player?.public_id || selectedPlayerIn?.public_id,
                 "player_out_public_id": selectedPlayerOut?.player?.public_id || selectedPlayerOut?.public_id
@@ -229,37 +263,21 @@ const SubstitutionIncidentForm = ({
                     </View>
                 </View>
 
-                {/* Period + Minute Row */}
+                {/* Period + Minute + Extra Time Row */}
                 <View style={tailwind`flex-row gap-3 mb-5`}>
-                    {/* Period */}
+                    {/* Period (auto from sub_status) */}
                     <View style={tailwind`flex-1`}>
                         <Text style={[tailwind`text-xs font-semibold mb-2 tracking-wide`, { color: '#64748b' }]}>PERIOD</Text>
-                        <View style={tailwind`flex-row gap-2`}>
-                            {['first_half', 'second_half'].map((half) => (
-                                <Pressable
-                                    key={half}
-                                    onPress={() => setSelectedHalf(half)}
-                                    style={[
-                                        tailwind`flex-1 py-3 rounded-xl items-center`,
-                                        selectedHalf === half
-                                            ? { backgroundColor: '#f87171' }
-                                            : { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' },
-                                    ]}
-                                >
-                                    <Text style={[
-                                        tailwind`text-sm font-semibold`,
-                                        { color: selectedHalf === half ? '#fff' : '#94a3b8' }
-                                    ]}>
-                                        {half === 'first_half' ? '1H' : '2H'}
-                                    </Text>
-                                </Pressable>
-                            ))}
+                        <View style={[tailwind`py-3 rounded-xl items-center`, { backgroundColor: '#f87171' }]}>
+                            <Text style={[tailwind`text-sm font-semibold`, { color: '#fff' }]}>
+                                {selectedHalf === 'first_half' ? '1st Half' : selectedHalf === 'second_half' ? '2nd Half' : selectedHalf?.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            </Text>
                         </View>
                     </View>
 
                     {/* Minute */}
-                    <View style={{ width: 100 }}>
-                        <Text style={[tailwind`text-xs font-semibold mb-2 tracking-wide`, { color: '#64748b' }]}>MINUTE</Text>
+                    <View style={{ width: 80 }}>
+                        <Text style={[tailwind`text-xs font-semibold mb-2 tracking-wide`, { color: '#64748b' }]}>MIN</Text>
                         <View style={[tailwind`flex-row items-center rounded-xl px-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155', height: 44 }]}>
                             <TextInput
                                 style={[tailwind`flex-1 text-center text-lg font-bold`, { color: '#f1f5f9', padding: 0 }]}
@@ -273,6 +291,25 @@ const SubstitutionIncidentForm = ({
                             <Text style={{ color: '#475569', fontSize: 14 }}>'</Text>
                         </View>
                     </View>
+
+                    {/* Extra Time */}
+                    {extraTime > 0 && (
+                        <View style={{ width: 70 }}>
+                            <Text style={[tailwind`text-xs font-semibold mb-2 tracking-wide`, { color: '#64748b' }]}>+ET</Text>
+                            <View style={[tailwind`flex-row items-center rounded-xl px-3`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#f8717140', height: 44 }]}>
+                                <TextInput
+                                    style={[tailwind`flex-1 text-center text-lg font-bold`, { color: '#f87171', padding: 0 }]}
+                                    keyboardType="number-pad"
+                                    value={String(extraTime)}
+                                    onChangeText={(text) => setExtraTime(parseInt(text) || 0)}
+                                    maxLength={2}
+                                    placeholder="0"
+                                    placeholderTextColor="#475569"
+                                />
+                                <Text style={{ color: '#f87171', fontSize: 14 }}>'</Text>
+                            </View>
+                        </View>
+                    )}
                 </View>
 
                 {/* Team Selector */}
@@ -513,7 +550,7 @@ const SubstitutionIncidentForm = ({
                             </View>
                             <View style={tailwind`flex-row items-center`}>
                                 <Text style={{ color: '#64748b', fontSize: 11 }}>
-                                    {teamName} - {selectedHalf === 'first_half' ? '1st Half' : '2nd Half'} - {selectedMinute}'
+                                    {teamName} - {selectedHalf === 'first_half' ? '1st Half' : '2nd Half'} - {selectedMinute}{extraTime > 0 ? `+${extraTime}` : ''}'
                                 </Text>
                             </View>
                         </View>
