@@ -38,7 +38,7 @@ const User = ({ route }) => {
         const newAccount = { username, mobile_number: mobileNumberA?mobileNumberA:null, role: 'user', gmail: gmailA?gmailA:null };
         const response = await axios.post(`${AUTH_URL}/users`, newAccount);
 
-        dispatch(setAuthenticated(!isAuthenticated));
+        dispatch(setAuthenticated(true));
         dispatch(setUser (response.data.user));
         
         if (response.data) {

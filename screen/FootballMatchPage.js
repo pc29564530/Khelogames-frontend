@@ -31,11 +31,11 @@ import FootballDetails from './FootballDetails';
 import FootballIncidents from './FootballIncidents';
 import MediaScreen from './Media';
 const filePath = require('../assets/status_code.json');
+const TopTab = createMaterialTopTabNavigator();
 
 const FootballMatchPage = ({ route }) => {
     const {wsRef, subscribe} = useWebSocket();
     const dispatch = useDispatch();
-    const TopTab = createMaterialTopTabNavigator();
     const {matchPublicID, tournament} = route.params;                                                                     
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
@@ -53,12 +53,17 @@ const FootballMatchPage = ({ route }) => {
         fields: {},
     });
     const game = useSelector((state) => state.sportReducers.game);
-    const payloadData = {
-            "type": "SUBSCRIBE",
-            "category": "MATCH",
-            "payload": {"match_public_id": matchPublicID}
-    }
-    wsRef?.current?.send(JSON.stringify(payloadData)) 
+
+    useEffect(() => {
+        if (wsRef?.current?.readyState === WebSocket.OPEN) {
+            const payloadData = {
+                "type": "SUBSCRIBE",
+                "category": "MATCH",
+                "payload": {"match_public_id": matchPublicID}
+            }
+            wsRef.current.send(JSON.stringify(payloadData));
+        }
+    }, [matchPublicID]);
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
@@ -342,7 +347,7 @@ const FootballMatchPage = ({ route }) => {
                 },
             });
 
-            dispatch(setMatchSubStatus(response.data.data || response.data || []));
+            // dispatch(setMatchSubStatus(response.data.data || response.data || []));
 
             // Clear errors on success
             setError({
@@ -426,6 +431,7 @@ const FootballMatchPage = ({ route }) => {
                         dispatch(setMatchStatus(message.payload));
                         break;
                     case "UPDATE_MATCH_SUB_STATUS":
+                        console.log("sub Status: ", message.payload)
                         dispatch(setMatchSubStatus(message.payload));
                         break;
                     default:
@@ -436,32 +442,72 @@ const FootballMatchPage = ({ route }) => {
             }
         }, [dispatch]);
 
-    const getMatchTime = (match) => {
-        const now = Math.floor(Date.now() / 1000);
-        console.log("Now Time: ", now)
-        if (match?.sub_status === "first_half") {
-            const min = Math.floor((now - match?.sub_status_updated_at)/60);
-            if(min < 0) return "0";
-            if(min <= 45) {
-                return `${min}`
+        const getMatchTime = useCallback((statusInfo) => {
+            const { sub_status, sub_status_updated_at } = statusInfo;
+
+            if (!sub_status_updated_at) return "";
+
+            const now = Math.floor(Date.now() / 1000);
+            const totalSeconds = now - sub_status_updated_at;
+
+            if (totalSeconds < 0) return "00:00";
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            const format = (m, s) =>
+                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}'`;
+
+            if (sub_status === "first_half") {
+                if (minutes <= 45) return format(minutes, seconds);
+                return `45+${minutes - 45}'`;
             }
-            return `45+${min - 45}'`;
-        } else if(match?.sub_status === "second_half") {
-            const min = 45 + Math.floor((now - match?.sub_status_updated_at)/60);
-            if(min <= 90) {
-                return `${min}`
+
+            if (sub_status === "second_half") {
+                const totalMin = 45 + minutes;
+                if (totalMin <= 90) return format(totalMin, seconds);
+                return `90+${totalMin - 90}'`;
             }
-            return `90+${min - 90}'`;
-        }
-        return "0";
-    }
+
+            return "";
+        }, []);
+
+    // Derive specific fields to avoid re-running on every match object change
+    const matchStatusCode = match?.status_code;
+    const matchSubStatus = match?.sub_status;
+    const matchSubStatusUpdatedAt = match?.sub_status_updated_at;
+
+    const isLivePlay = matchStatusCode === "in_progress" &&
+        (matchSubStatus === "first_half" || matchSubStatus === "second_half");
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentTime(getMatchTime(match));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [match])
+        if (!isLivePlay) {
+            if (matchStatusCode === "finished") {
+                setCurrentTime("END");
+            } else if (matchSubStatus === "half_time") {
+                setCurrentTime("Half Time");
+            } else if (matchStatusCode === "not_started" || matchStatusCode === "scheduled") {
+                setCurrentTime("Upcoming");
+            } else if (matchStatusCode === "postponed") {
+                setCurrentTime("Postponed");
+            } else if (matchStatusCode === "cancelled") {
+                setCurrentTime("Cancel");
+            } else if (matchStatusCode === "abandoned") {
+                setCurrentTime("Abandoned");
+            } else {
+                setCurrentTime("");
+            }
+            return; 
+        } else {
+            const statusInfo = { sub_status: matchSubStatus, sub_status_updated_at: matchSubStatusUpdatedAt };
+            setCurrentTime(getMatchTime(statusInfo));
+            const interval = setInterval(() => {
+                setCurrentTime(getMatchTime(statusInfo));
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [isLivePlay, matchStatusCode, matchSubStatus, matchSubStatusUpdatedAt, getMatchTime]);
 
     useEffect(() => {
         console.log("Football - Subscribing to WebSocket messages");
@@ -514,9 +560,6 @@ const FootballMatchPage = ({ route }) => {
 
                 {/* Match Status */}
                 <Animated.View style={[tailwind`items-center`, fadeStyle]}>
-                    <Text style={tailwind`text-white text-lg font-semibold`}>
-                        {displayMatchStatus(match?.status_code)}
-                    </Text>
                     <Text style={tailwind`text-white text-lg font-semibold`}>
                         {currentTime}
                     </Text>

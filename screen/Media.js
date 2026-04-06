@@ -45,10 +45,20 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
 
             const item = response.data;
             if (item?.success && Array.isArray(item?.data) && item.data.length > 0) {
-                // Generate thumbnail only once
+                // Generate thumbnails safely
                 const withThumbnails = await Promise.all(
                     item.data.map(async (highlight) => {
+                        if (!highlight.media_url || typeof highlight.media_url !== 'string' || highlight.media_url.trim() === '') {
+                            return { ...highlight, thumbnail: null };
+                        }
+
                         try {
+                            const headResponse = await fetch(highlight.media_url, { method: 'HEAD' });
+                            if (!headResponse.ok) {
+                                console.log("Media URL not reachable:", highlight.media_url);
+                                return { ...highlight, thumbnail: null };
+                            }
+
                             const thumb = await createThumbnail({
                                 url: highlight.media_url,
                                 timeStamp: 1000,
@@ -67,9 +77,6 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                         }
                     })
                 );
-                if(withThumbnails.length === 0 ){
-                    setHighlights([]);
-                }
                 setHighlights(withThumbnails);
             }
             

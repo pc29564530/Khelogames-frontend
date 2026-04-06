@@ -133,15 +133,28 @@ const CricketMatchPage = ({ route }) => {
     // SUBSCRIBE ONCE - Send initial subscription
     useEffect(() => {
         if (!wsRef?.current || !match?.public_id) return;
-        
-        const payloadData = {
-            type: "SUBSCRIBE",
-            category: "MATCH",
-            payload: { match_public_id: match.public_id }
+
+        const sendSubscribe = () => {
+            try {
+                const payloadData = {
+                    type: "SUBSCRIBE",
+                    category: "MATCH",
+                    payload: { match_public_id: match.public_id }
+                };
+                wsRef.current.send(JSON.stringify(payloadData));
+                console.log("Subscribed to chat:", authProfile.public_id);
+            } catch (err) {
+                console.error("Failed to subscribe to chat:", err);
+            }
         };
+
+        if (wsRef.current.readyState === WebSocket.OPEN) {
+            // Already open — subscribe immediately
+            sendSubscribe();
+        }
+        
         
         console.log("CricketMatchPage - Subscribing to match:", match.public_id);
-        wsRef.current.send(JSON.stringify(payloadData));
     }, [match?.public_id, wsRef]);
 
     useEffect(() => {

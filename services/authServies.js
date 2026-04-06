@@ -16,7 +16,7 @@ export const loginServies = async ({ username, password, dispatch, isAuthenticat
         await AsyncStorage.setItem("AccessTokenExpiresAt", item.access_token_expires_at);
         await storeRefreshToken(item.refresh_token);
         await storeRefreshTokenExpiresAt(item.refresh_token_expires_at);
-        dispatch(setAuthenticated(!isAuthenticated));
+        dispatch(setAuthenticated(true));
         dispatch(setUser(item.user));
     } catch (err) {
       await AsyncStorage.clear();

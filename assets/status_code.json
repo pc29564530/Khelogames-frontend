@@ -50,6 +50,16 @@
         "label": "Abandoned",
         "type": "abandoned",
         "severity": "interrupted"
+      },
+      {
+        "label": "FirstHalf",
+        "type": "first_half",
+        "severity": "live"
+      },
+      {
+        "label": "SecondHalf",
+        "type": "second_half",
+        "severity": "live"
       }
     ]
   },

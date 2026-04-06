@@ -175,7 +175,7 @@ export default function Root() {
       const authToken = await AsyncStorage.getItem('AccessToken');
       const user = await AsyncStorage.getItem('User');
       if (authToken) {
-        dispatch(setAuthenticated(!isAuthenticated));
+        dispatch(setAuthenticated(true));
         dispatch(setUser(user))
       }
     };

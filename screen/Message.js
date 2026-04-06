@@ -48,7 +48,6 @@ function Message({ route }) {
 
     const fetchProfileData = async () => {
         try {
-            console.log("receiverProfile: ", receiverProfile)
         const targetPublicID = receiverProfile.public_id
         const response = await axiosInstance.get(`${AUTH_URL}/getProfileByPublicID/${targetPublicID}`);
         dispatch(setCurrentProfile(response.data.data));
@@ -88,15 +87,7 @@ function Message({ route }) {
         if (wsRef.current.readyState === WebSocket.OPEN) {
             // Already open — subscribe immediately
             sendSubscribe();
-        } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
-            // Still connecting — hook into onopen so we subscribe as soon as it opens
-            const prevOnOpen = wsRef.current.onopen;
-            wsRef.current.onopen = (e) => {
-                if (prevOnOpen) prevOnOpen(e);
-                sendSubscribe();
-            };
         }
-        // CLOSING or CLOSED — reconnect will re-mount this effect via wsRef change
     }, [receiverProfile?.public_id, wsRef]);
 
     const handleMediaSelection = async () => {

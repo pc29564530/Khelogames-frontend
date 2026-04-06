@@ -33,7 +33,8 @@ const matchesReducers = (state = initialState, action) => {
             const statusCode = action.payload.status_code;
             const result = action.payload.result;
 
-            const isStaged = state.matches?.[0]?.league_stage || state.matches?.[0]?.knockout_stage || state.matches?.[0]?.group_stage;
+
+            const isStaged = Array.isArray(state.matches) && (state.matches?.[0]?.league_stage || state.matches?.[0]?.knockout_stage || state.matches?.[0]?.group_stage);
 
             if (!matchPublicID) {
                 return state;
@@ -74,8 +75,8 @@ const matchesReducers = (state = initialState, action) => {
                         round_128: updateStageArray(stage.knockout_stage?.round_128),
                     },
                 }));
-            } else {
-                updatedMatches = (state.matches || []).map(m => {
+            } else if (Array.isArray(state.matches)) {
+                updatedMatches = state.matches.map(m => {
                     if (m?.public_id === matchPublicID) {
                         return {
                             ...m,
@@ -85,11 +86,91 @@ const matchesReducers = (state = initialState, action) => {
                     }
                     return m;
                 });
+            } else {
+                updatedMatches = state.matches;
             }
 
             // Update single match (match detail view)
             const updatedMatch = (state.match?.public_id === matchPublicID)
                 ? { ...state.match, status_code: statusCode ?? state.match.status_code, result: result ?? state.match.result }
+                : state.match;
+
+            return {
+                ...state,
+                matches: updatedMatches,
+                match: updatedMatch,
+            };
+        }
+
+        case actionTypes.SET_MATCH_SUB_STATUS: {
+            const matchPublicID = action.payload.public_id ?? action.payload.public_id;
+            const subStatus = action.payload.sub_status;
+            const subStatusUpdatedAt = action.payload.sub_status_updated_at;
+            // const result = action.payload.result;
+
+            const isStaged = Array.isArray(state.matches) && (state.matches?.[0]?.league_stage || state.matches?.[0]?.knockout_stage || state.matches?.[0]?.group_stage);
+
+            if (!matchPublicID) {
+                return state;
+            }
+
+            // update status_code AND result in stage arrays
+            function updateStageArray(arr) {
+                if (!Array.isArray(arr)) return arr;
+
+                return arr.map(m => {
+                    if (m?.public_id === matchPublicID) {
+                        return {
+                            ...m,
+                            sub_status: subStatus ?? m.sub_status,
+                            sub_status_updated_at: subStatusUpdatedAt ?? m.sub_status_updated_at,
+                        };
+                    }
+                    return m;
+                });
+            }
+
+            let updatedMatches;
+
+            if(isStaged) {
+                // Update matches array (tournament view)
+                updatedMatches = state.matches.map(stage => ({
+                    ...stage,
+                    league_stage: updateStageArray(stage.league_stage),
+                    group_stage: updateStageArray(stage.group_stage),
+                    knockout_stage: {
+                        ...stage.knockout_stage,
+                        final: updateStageArray(stage.knockout_stage?.final),
+                        semifinal: updateStageArray(stage.knockout_stage?.semifinal),
+                        quaterfinal: updateStageArray(stage.knockout_stage?.quaterfinal),
+                        round_16: updateStageArray(stage.knockout_stage?.round_16),
+                        round_32: updateStageArray(stage.knockout_stage?.round_32),
+                        round_64: updateStageArray(stage.knockout_stage?.round_64),
+                        round_128: updateStageArray(stage.knockout_stage?.round_128),
+                    },
+                }));
+            } else if (Array.isArray(state.matches)) {
+                updatedMatches = state.matches.map(m => {
+                    if (m?.public_id === matchPublicID) {
+                        return {
+                            ...m,
+                            sub_status: subStatus ?? m.sub_status,
+                            sub_status_updated_at: subStatusUpdatedAt ?? m.sub_status_updated_at,
+                        };
+                    }
+                    return m;
+                });
+            } else {
+                updatedMatches = state.matches;
+            }
+
+            // Update single match (match detail view)
+            const updatedMatch = (state.match?.public_id === matchPublicID)
+                ? {
+                    ...state.match,
+                    sub_status: subStatus ?? state.match.sub_status,
+                    sub_status_updated_at: subStatusUpdatedAt ?? state.match.sub_status_updated_at,
+                  }
                 : state.match;
 
             return {
