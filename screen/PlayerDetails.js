@@ -11,6 +11,29 @@ import axiosInstance from "./axios_config";
 import { BASE_URL } from "../constants/ApiConstants";
 import { convertToISOString, formatToDDMMYY } from "../utils/FormattedDateTime";
 
+const getMatchScore = (score, gameName) => {
+   if (!score) return "-";
+
+   if (gameName === "football") {
+      const goals = score.goals ?? 0;
+      if (score.penalty_shootout != null) {
+         return `${goals} (${score.penalty_shootout})`;
+      }
+      return `${goals}`;
+   } else if (gameName === "cricket") {
+      const runs = score.runs ?? 0;
+      const wickets = score.wickets ?? 0;
+      const overs = score.overs != null ? ` (${score.overs})` : "";
+      return `${runs}/${wickets}${overs}`;
+   } else if (gameName === "badminton") {
+      if (typeof score === "string" || typeof score === "number") return `${score}`;
+      if (score != null) return `${score}`;
+      return "-";
+   }
+
+   return "-";
+}
+
 const PlayerDetails = ({
   player,
   parentScrollY,
@@ -240,11 +263,11 @@ const PlayerDetails = ({
                       {/* Score */}
                       <View style={tailwind`flex-row items-center mx-2`}>
                         <Text style={[tailwind`text-xs font-bold`, { color: '#f1f5f9' }]}>
-                          {match?.homeScore ?? '-'}
+                          {getMatchScore(match?.homeScore, game.name)}
                         </Text>
                         <Text style={[tailwind`text-xs mx-1`, { color: '#475569' }]}>-</Text>
                         <Text style={[tailwind`text-xs font-bold`, { color: '#f1f5f9' }]}>
-                          {match?.awayScore ?? '-'}
+                          {getMatchScore(match?.awayScore, game.name)}
                         </Text>
                       </View>
 
