@@ -87,13 +87,10 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   };
 
   const selectPosition = (item) => {
-    let pos;
-    positions[game.name].map((itm) => {
-      if (itm.code === item) {
-        pos = itm.name;
-      }
-    });
-    return pos;
+    if (!item) return null;
+    const positionList = positions[game.name] || [];
+    const matched = positionList.find((itm) => itm.code === item || itm.name === item);
+    return matched ? matched.name : item;
   };
 
   //TODO: Need to make toggle or revert the squad
@@ -152,7 +149,11 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           },
         }
       );
-      setCurrentSquad(response.data.data || []);
+      const squadData = response.data.data;
+      setCurrentSquad(Array.isArray(squadData) ? squadData : []);
+      setIsPlayerModalVisible(false);
+      setSelectedSquad([]);
+      setIsSubstituted([]);
     } catch (err) {
       if(err?.response.data?.error?.code === "FORBIDDEN"){
         setError({
@@ -190,7 +191,8 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
             },
           }
         );
-        setCurrentSquad(response.data.data || []);
+        const squadData = response.data.data;
+        setCurrentSquad(Array.isArray(squadData) ? squadData : []);
       } catch (err) {
         const backendError = err?.response?.data?.error?.fields || {};
         setError({
@@ -235,7 +237,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   }, [currentTeamPlayer]);
 
   const currentLineUp = currentSquad?.filter((itm) => itm?.is_substitute == false);
-  const substitutionPlayer = currentSquad.filter(
+  const substitutionPlayer = currentSquad?.filter(
     (itm) => itm?.is_substitute === true
   );
 
@@ -488,7 +490,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                         </Text>
                         <View style={tailwind`flex-row items-center mt-0.5`}>
                           <Text style={[tailwind`text-xs`, { color: '#64748b' }]}>
-                            {selectPosition(itm.position)}
+                            {selectPosition(itm.positions)}
                           </Text>
                           {itm.country && (
                             <>
@@ -536,7 +538,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
               {/* Submit Button */}
               <View style={[tailwind`absolute bottom-0 left-0 right-0 p-4`, { backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155' }]}>
                 <Pressable
-                  onPress={() => handleSelectSquad()}
+                  onPress={() => {handleSelectSquad()}}
                   style={[
                     tailwind`py-3.5 rounded-xl items-center`,
                     selectedSquad.length === 0

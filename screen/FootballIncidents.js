@@ -217,11 +217,12 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
             return [];
         }
         const sorted = [...incidents]?.sort((a,b) => {
-            if(a.periods === b.periods) {
-                return b.incident_time - a.incident_time;
-            }
-            return PERIOD_ORDER.indexOf(b.periods) - PERIOD_ORDER.indexOf(a.periods);
-        } )
+            const periodDiff = PERIOD_ORDER.indexOf(b.periods) - PERIOD_ORDER.indexOf(a.periods);
+            if (periodDiff !== 0) return periodDiff;
+            const timeDiff = b.incident_time - a.incident_time;
+            if (timeDiff !== 0) return timeDiff;
+            return b.id - a.id;
+        })
         const groups = {};
         sorted.forEach((inc) => {
             let targetPeriod = inc.periods;
