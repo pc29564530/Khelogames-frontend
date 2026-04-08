@@ -42,13 +42,13 @@ const PenaltyShootOutIncident = ({key, item, match}) => {
                         <View style={[tailwind`h-10`, { width: 1, backgroundColor: '#475569' }]} />
                         <Text style={[tailwind`text-md`, { color: '#f1f5f9' }]}>{item.player.name}</Text>
                         <View style={[tailwind`rounded-lg p-1`, { backgroundColor: '#0f172a' }]}>
-                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
+                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore?.penalty_shootout_goals} - {item.awayScore?.penalty_shootout_goals}</Text>
                         </View>
                     </View>
             ) : (
                     <View style={tailwind`flex-row justify-end gap-2 ml-40 items-center`}>
                         <View style={[tailwind`rounded-lg p-1`, { backgroundColor: '#0f172a' }]}>
-                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore.goals} - {item.awayScore.goals}</Text>
+                            <Text style={[tailwind`text-lg font-bold`, { color: '#f1f5f9' }]}>{item.homeScore?.penalty_shootout_goals} - {item.awayScore?.penalty_shootout_goals}</Text>
                         </View>
                         <Text style={[tailwind`text-md`, { color: '#f1f5f9' }]}>{item.player.name}</Text>
                         <View style={[tailwind`h-10`, { width: 1, backgroundColor: '#475569' }]} />
@@ -342,7 +342,6 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                                 </View>
 
                                 <View style={[tailwind`rounded-xl overflow-hidden`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
-                                    {/* {console.log("Incident Map: ", item)} */}
                                     {item.data.map((incident, index) => (
                                     <IncidentCheck key={index} incident={incident} matchData={match} />
                                     ))}
