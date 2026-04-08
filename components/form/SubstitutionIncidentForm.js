@@ -627,7 +627,7 @@ const SubstitutionIncidentForm = ({
                                     const isSelected = selectedPlayerIn?.player?.public_id === item.player?.public_id;
                                     return (
                                         <Pressable
-                                            key={item.player?.public_id || index}
+                                            key={`${item.player?.public_id}-in-${index}`}
                                             onPress={() => {
                                                 setSelectedPlayerIn(item);
                                                 setError({ ...error, fields: { ...error.fields, player_in_public_id: null } });
@@ -750,7 +750,7 @@ const SubstitutionIncidentForm = ({
                                     const isSelected = selectedPlayerOut?.player?.public_id === item.player?.public_id;
                                     return (
                                         <Pressable
-                                            key={item.player?.public_id || index}
+                                            key={`${item.player?.public_id}-out-${index}`}
                                             onPress={() => {
                                                 setSelectedPlayerOut(item);
                                                 setError({ ...error, fields: { ...error.fields, player_out_public_id: null } });

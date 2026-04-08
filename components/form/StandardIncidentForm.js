@@ -513,7 +513,7 @@ const StandardIncidentForm = ({
                                     const isSelected = selectedPlayer?.player?.public_id === item.player?.public_id;
                                     return (
                                         <Pressable
-                                            key={item.player?.public_id || index}
+                                            key={`${item.player?.public_id}-${index}`}
                                             onPress={() => {
                                                 setSelectedPlayer(item);
                                                 setError({ ...error, fields: { ...error.fields, player_public_id: null } });
