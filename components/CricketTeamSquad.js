@@ -66,7 +66,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
 
 
     useEffect(() => {
-        if (cricketToss) {
+        if (cricketToss && cricketToss.tossWonTeam) {
             if (cricketToss.tossDecision === "Batting") {
                 setCurrentTeamPlayer(cricketToss.tossWonTeam.public_id === homeTeamPublicID ? homeTeamPublicID : awayTeamPublicID);
             } else {
@@ -190,28 +190,28 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
             return (
                 <View style={tailwind`flex-1`}>
                     {currentPlayingXI.length > 0 && (
-                        <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
-                            <View style={tailwind`p-4 border-b border-gray-100`}>
-                                <Text style={tailwind`text-base font-bold text-gray-900`}>Playing XI</Text>
+                        <View style={[tailwind`mx-4 mb-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                            <View style={[tailwind`p-4`, {borderBottomWidth: 1, borderBottomColor: '#334155'}]}>
+                                <Text style={[tailwind`text-base font-bold`, {color: '#f1f5f9'}]}>Playing XI</Text>
                             </View>
                             {currentPlayingXI.map((itm, index) => (
-                            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+                            <View key={index} style={[tailwind`flex-row items-center px-4 py-3`, {borderBottomWidth: 1, borderBottomColor: '#33415550'}]}>
                                 {itm?.player?.media_url ? (
                                     <Image
                                         source={{ uri: itm.player.media_url }}
-                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                                        style={[tailwind`w-11 h-11 rounded-full`, {backgroundColor: '#334155'}]}
                                     />
                                 ):(
-                                    <View style={tailwind`w-11 h-11 rounded-full bg-red-100 items-center justify-center`}>
-                                        <Text style={tailwind`text-red-400 font-semibold`}>{itm.player.name.charAt(0).toUpperCase()}</Text>
+                                    <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, {backgroundColor: '#f8717120'}]}>
+                                        <Text style={[tailwind`font-semibold`, {color: '#f87171'}]}>{itm?.player?.name?.charAt(0).toUpperCase()}</Text>
                                     </View>
                                 )}
                                 <View style={tailwind`flex-1 ml-3`}>
-                                    <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                                    <Text style={[tailwind`text-sm font-semibold`, {color: '#f1f5f9'}]}>
                                         {itm.player.name}
                                     </Text>
                                     <View style={tailwind`flex-row items-center mt-0.5`}>
-                                        <Text style={tailwind`text-xs text-gray-400`}>
+                                        <Text style={[tailwind`text-xs`, {color: '#64748b'}]}>
                                             {selectPosition(itm.player.positions)}
                                         </Text>
                                     </View>
@@ -222,29 +222,29 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                     )}
 
                     {currentOnBench.length > 0 && (
-                    <View style={[tailwind`bg-white mx-4 mb-3 rounded-2xl overflow-hidden`, {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2}]}>
-                        <View style={tailwind`p-4 border-b border-gray-100`}>
-                            <Text style={tailwind`text-base font-bold text-gray-900`}>On Bench</Text>
+                    <View style={[tailwind`mx-4 mb-3 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                        <View style={[tailwind`p-4`, {borderBottomWidth: 1, borderBottomColor: '#334155'}]}>
+                            <Text style={[tailwind`text-base font-bold`, {color: '#f1f5f9'}]}>On Bench</Text>
                         </View>
 
                         {currentOnBench.map((item, index) => (
-                            <View key={index} style={tailwind`flex-row items-center px-4 py-3 border-b border-gray-50`}>
+                            <View key={index} style={[tailwind`flex-row items-center px-4 py-3`, {borderBottomWidth: 1, borderBottomColor: '#33415550'}]}>
                                 {item?.player?.media_url ? (
                                     <Image
                                         source={{ uri: item.player.media_url }}
-                                        style={tailwind`w-11 h-11 rounded-full bg-gray-100`}
+                                        style={[tailwind`w-11 h-11 rounded-full`, {backgroundColor: '#334155'}]}
                                     />
                                 ):(
-                                    <View style={tailwind`w-11 h-11 rounded-full bg-gray-100 items-center justify-center`}>
-                                        <Text style={tailwind`text-gray-500 font-semibold`}>{item.player.name.charAt(0).toUpperCase()}</Text>
+                                    <View style={[tailwind`w-11 h-11 rounded-full items-center justify-center`, {backgroundColor: '#334155'}]}>
+                                        <Text style={[tailwind`font-semibold`, {color: '#94a3b8'}]}>{item.player.name.charAt(0).toUpperCase()}</Text>
                                     </View>
                                 )}
                                 <View style={tailwind`flex-1 ml-3`}>
-                                    <Text style={tailwind`text-sm font-semibold text-gray-900`}>
+                                    <Text style={[tailwind`text-sm font-semibold`, {color: '#f1f5f9'}]}>
                                         {item.player.name}
                                     </Text>
                                     <View style={tailwind`flex-row items-center mt-0.5`}>
-                                        <Text style={tailwind`text-xs text-gray-400`}>
+                                        <Text style={[tailwind`text-xs`, {color: '#64748b'}]}>
                                         {selectPosition(item.player.positions)}
                                         </Text>
                                     </View>
@@ -379,7 +379,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                       <View style={[tailwind`max-h-[80%] rounded-t-2xl p-4`, { backgroundColor: '#1e293b' }]}>
                         
                         {/* Header */}
-                        <View style={tailwind`flex-row justify-between items-center pb-3 border-b border-gray-200`}>
+                        <View style={[tailwind`flex-row justify-between items-center pb-3`, {borderBottomWidth: 1, borderBottomColor: '#334155'}]}>
                           <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Select Players</Text>
                           <Pressable onPress={() => setIsPlayerModalVisible(false)}>
                             <AntDesign name="close" size={24} color="#94a3b8" />
@@ -491,8 +491,8 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         {/* Submit Button */}
                         <View style={[tailwind`absolute bottom-0 left-0 right-0 p-4 border-t-100`, { backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155' }]}>
                           {error.global && (
-                            <View style={tailwind`mb-2 p-2 bg-red-50 rounded-lg`}>
-                              <Text style={tailwind`text-red-600 text-xs text-center`}>
+                            <View style={[tailwind`mb-2 p-2 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
+                              <Text style={[tailwind`text-xs text-center`, {color: '#fca5a5'}]}>
                                 {error.global}
                               </Text>
                             </View>

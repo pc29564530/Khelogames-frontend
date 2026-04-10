@@ -4,19 +4,16 @@ import {View, Text, Pressable, Modal, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
-import CheckBox from '@react-native-community/checkbox';
 import {useSelector, useDispatch } from 'react-redux';
 import { formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { convertToISOString } from '../utils/FormattedDateTime';
-import { setCricketMatchToss } from '../redux/actions/actions';
-import validateCricketTossForm from '../utils/validation/cricketTossValidation';
+import { setBatTeam, setCricketMatchToss, setInningScore } from '../redux/actions/actions';
+import {validateCricketTossForm} from '../utils/validation/cricketTossValidation';
 import Animated, {useSharedValue, useAnimatedStyle, Extrapolation, interpolate, useAnimatedScrollHandler} from 'react-native-reanimated';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
-    const [isTossed, setIsTossed] = useState(false);
     const dispatch = useDispatch();
-
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
     const [teamID, setTeamId] = useState('');
@@ -30,7 +27,6 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     const game = useSelector((state) => state.sportReducers.game);
     const currentDate = new Date();
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
-
     const currentScrollY = useSharedValue(0);
     // scroll handler for header animation
     const handlerScroll = useAnimatedScrollHandler({
@@ -73,7 +69,6 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     global: null,
                     fields: validation.errors,
                 });
-                console.error("Unable to create toss: ", err);
                 return
             }
             const data = {
@@ -88,7 +83,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                     'Content-Type': 'application/json',
                 }
             });
-            dispatch(setCricketMatchToss(response.data))
+            const item = response.data;
             setIsTossedModalVisible(false);
         } catch (err) {
              const backendErrors = err?.response?.data?.error?.fields;
@@ -122,21 +117,16 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                 });
 
                 const item = response.data;
-                if(item.success && !item.data) {
-                    setIsTossed(false);
-                    dispatch(setCricketMatchToss(item.data));
+                if(item.success && item.data === null) {
+                    dispatch(setCricketMatchToss(null))
+                    dispatch(setBatTeam(null))
                 } else {
-                    if (response.succes && item.data) {
-                        setIsTossed(true);
-                    }
                     dispatch(setCricketMatchToss(item.data))
                 }
-
-                
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields;
                 setError({
-                    global: "Unable to get toss details",
+                    global: "Unable to get toss data",
                     fields: backendError,
                 });
                 console.error("Unable to get the toss data: ", err);
@@ -145,7 +135,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             }
         }
         fetchTossData();
-    }, []);
+    }, [match?.public_id]);
 
     const handleModalVisible = () => {
         setIsTossedModalVisible(!isTossedModalVisible);
@@ -158,7 +148,6 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     const updateTossOption = (item) => {
         setTossOption(item);
     }
-
     return (
         <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
             <Animated.ScrollView
@@ -174,16 +163,26 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             >
                 {/* Header + Update Toss Button */}
                 <View style={tailwind`mb-4`}>
-                    <Text style={[tailwind`text-2xl font-bold`, { color: '#f1f5f9' }]}>Match Details</Text>
                     <Pressable
-                        onPress={handleModalVisible}
+                        onPress={cricketToss ? null : handleModalVisible}
+                        disabled={!!cricketToss}
                         style={[
                             tailwind`rounded-xl p-4 mt-4 flex-row items-center justify-center`,
-                            { backgroundColor: '#f87171' }
+                            {
+                                backgroundColor: cricketToss ? '#475569' : '#f87171',
+                                opacity: cricketToss ? 0.6 : 1,
+                            }
                         ]}
                     >
                         <MaterialIcons name="swap-horiz" size={20} color="#fff" />
-                        <Text style={[tailwind`text-center text-base font-semibold ml-2`, { color: '#fff' }]}>Update Toss</Text>
+                        <Text
+                            style={[
+                                tailwind`text-center text-base font-semibold ml-2`,
+                                { color: '#fff' }
+                            ]}
+                        >
+                            {cricketToss ? 'Toss Already Completed' : 'Update Toss'}
+                        </Text>
                     </Pressable>
                 </View>
 
@@ -218,7 +217,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                         </Text>
                     </View>
 
-                    {isTossed && (
+                    {cricketToss && (
                         <View style={tailwind`pt-3`}>
                             <Text style={[tailwind`text-xs font-medium mb-2`, { color: '#64748b' }]}>Toss Result</Text>
                             <View style={[tailwind`rounded-xl p-3 flex-row items-center`, { backgroundColor: '#0f172a' }]}>
@@ -258,9 +257,8 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
 
                             {/* Select Team */}
                             <Text style={[tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }]}>Who Won the Toss?</Text>
-
-                            {error?.fields?.toss_win && (
-                                <Text style={[tailwind`text-xs mb-2`, { color: '#fca5a5' }]}>*{error.fields.toss_win}</Text>
+                            {error?.global && (
+                                <Text style={[tailwind`text-xs mb-2`, { color: '#fca5a5' }]}>*{error.global}</Text>
                             )}
 
                             <View style={tailwind`flex-row justify-between mb-5 gap-3`}>

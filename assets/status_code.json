@@ -60,6 +60,16 @@
         "label": "SecondHalf",
         "type": "second_half",
         "severity": "live"
+      },
+      {
+        "label": "Full-Time",
+        "type": "full_time",
+        "severity": "final"
+      },
+      {
+        "label": "Penalty-Shootout",
+        "type": "penalty_shootout",
+        "severity": "live"
       }
     ]
   },

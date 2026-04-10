@@ -273,6 +273,42 @@ const matchesReducers = (state = initialState, action) => {
             };
         }
 
+        //Cricket Inning Score
+        case actionTypes.UPDATE_INNING_SCORE: {
+            if (!state.match?.homeScore && !state.match?.awayScore) return state;
+            
+            let newHomeScore = state.match.homeScore;
+            let newAwayScore = state.match.awayScore;
+            if (action.payload.team_id === state.match.homeTeam?.id) {
+                const existingIndex = state.match.homeScore.findIndex(inning => inning && inning.inning_number === action.payload.inning_number);
+                if (existingIndex !== -1) {
+                    newHomeScore = state.match.homeScore.map((inning, index) =>
+                        index === existingIndex ? {...inning, ...action.payload} : inning
+                    );
+                } else {
+                    newHomeScore = [...state.match.homeScore, action.payload];
+                }
+            } else if (action.payload.team_id === state.match.awayTeam?.id) {
+                const existingIndex = state.match.awayScore.findIndex(inning => inning && inning.inning_number === action.payload.inning_number);
+                if (existingIndex !== -1) {
+                    newAwayScore = state.match.awayScore.map((inning, index) =>
+                        index === existingIndex ? {...inning, ...action.payload} : inning
+                    );
+                } else {
+                    newAwayScore = [...state.match.awayScore, action.payload];
+                }
+            }
+
+            return {
+                ...state,
+                match: {
+                    ...state.match,
+                    homeScore: newHomeScore,
+                    awayScore: newAwayScore,
+                }
+            };
+        }
+
         default:
             return state;
     }

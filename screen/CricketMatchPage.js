@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore, setCricketMatchToss, addBatsman, addBowler } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
@@ -93,6 +93,7 @@ const TeamLogo = ({ team }) => {
 
 // Main Component
 const CricketMatchPage = ({ route }) => {
+    const {height: sHeight, width: sWidth} = Dimensions.get('screen');
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const {wsRef, subscribe} = useWebSocket();
@@ -142,7 +143,7 @@ const CricketMatchPage = ({ route }) => {
                     payload: { match_public_id: match.public_id }
                 };
                 wsRef.current.send(JSON.stringify(payloadData));
-                console.log("Subscribed to chat:", authProfile.public_id);
+                // console.log("Subscribed to chat:", authProfile.public_id);
             } catch (err) {
                 console.error("Failed to subscribe to chat:", err);
             }
@@ -157,19 +158,27 @@ const CricketMatchPage = ({ route }) => {
         console.log("CricketMatchPage - Subscribing to match:", match.public_id);
     }, [match?.public_id, wsRef]);
 
+    const toggleMenu = () => setMenuVisible(!menuVisible);
+    const handleSearch = (text) => setSearchQuery(text);
+    // Close status modal and clear errors
+    const handleCloseStatusModal = () => {
+        setStatusVisible(false);
+        setError({
+            global: null,
+            fields: {},
+        });
+        setSearchQuery('');
+    };
+
     useEffect(() => {
         const statusArray = filePath.status_codes;
         const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), ({}))
         setAllStatus(combined)
     }, [])
 
-    const handleSearch = (text) => setSearchQuery(text);
-
     const filteredStatusCodes = allStatus?.cricket?.filter((item) => 
         item.type.includes(searchQuery) || item.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    const {height: sHeight, width: sWidth} = Dimensions.get('screen');
 
     // Shared scroll value for all child components
     const parentScrollY = useSharedValue(0);
@@ -354,7 +363,6 @@ const CricketMatchPage = ({ route }) => {
 
         fetchMatch();
     }, [matchPublicID]);
-
     useEffect(() => {
         if (!match || !cricketToss || batTeam) return;
 
@@ -403,10 +411,14 @@ const CricketMatchPage = ({ route }) => {
     useEffect(() => {
         // Only set initial state when match is first loaded AND status is truly not started
         if (cricketToss && match && match?.status_code === 'not_started' && !batTeam) {
-            const isHomeBatting = cricketToss?.tossWonTeam?.public_id === match?.homeTeam?.public_id && cricketToss?.tossDecision === "Batting";
+            const tossWonTeamPublicId = cricketToss?.tossWonTeam?.public_id;
+            const isBatting = cricketToss?.tossDecision === "Batting";
+            const batTeamId = isBatting
+                ? tossWonTeamPublicId
+                : (tossWonTeamPublicId === match?.homeTeam?.public_id ? match?.awayTeam?.public_id : match?.homeTeam?.public_id);
             dispatch(setInningStatus("not_started", 1));
             dispatch(setCurrentInningNumber(1));
-            dispatch(setBatTeam(isHomeBatting ? match?.homeTeam?.public_id : match?.awayTeam?.public_id));
+            dispatch(setBatTeam(batTeamId));
         }
     }, [cricketToss, match, batTeam]);
 
@@ -543,10 +555,38 @@ const CricketMatchPage = ({ route }) => {
             } else if(message.type === "UPDATE_MATCH_STATUS") {
                 console.log("Update match status: ", message)
                 dispatch(setMatchStatus(message.payload));
-            }
+            } else if(message.type === "CRICKET_TOSS") {
+                const tossPayload = message.payload;
+                if (!tossPayload || !tossPayload.tossWonTeam) {
+                    console.warn("Skipping CRICKET_TOSS without tossWonTeam:", tossPayload);
+                    return;
+                }
+                const tossWonTeamId = tossPayload.tossWonTeam.public_id;
+                const isBatting = tossPayload.tossDecision === "Batting";
+                const batTeamId = isBatting
+                    ? tossWonTeamId
+                    : (tossWonTeamId === match?.homeTeam?.public_id ? match?.awayTeam?.public_id : match?.homeTeam?.public_id);
 
-            // console.log("message : ", message.type)
-            // console.log("message payload status: ", message.payload.inning_status)
+                dispatchRef.current(setCricketMatchToss({
+                    tossWonTeam: tossPayload.tossWonTeam,
+                    tossDecision: tossPayload.tossDecision,
+                }));
+                dispatchRef.current(setBatTeam(batTeamId));
+                if (tossPayload.inning) {
+                    dispatchRef.current(setInningScore(tossPayload.inning));
+                    dispatchRef.current(setInningStatus(tossPayload.inning.inning_status, tossPayload.inning.inning_number));
+                    dispatchRef.current(setCurrentInningNumber(tossPayload.inning.inning_number));
+                }
+            } else if(message.type === "ADD_BATSMAN") {
+                console.log("Add Batsman: ", message.payload)
+                dispatch(addBatsman(message.payload))
+            } else if(message.type === "ADD_BOWLER") {
+                console.log("Add Bowler: ", message.payload)
+                dispatch(addBowler(message.payload))
+            } else if(message.type === "UPDATE_BOWLER") {
+                dispatch(addBowler(message.payload.current_bowler));
+                dispatch(addBowler(message.payload.next_bowler))
+            }
             
             if(message.type === "INNING_STATUS"){
                 const payload = message.payload;
@@ -780,7 +820,6 @@ const CricketMatchPage = ({ route }) => {
                 </Animated.View>
             </Animated.View>
             <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
-
                 <CricketMatchPageContent match={match} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
             </Animated.View>
 
@@ -825,23 +864,62 @@ const CricketMatchPage = ({ route }) => {
                 </Modal>
             )}
 
+            {/* Menu Modal */}
             {menuVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
                     visible={menuVisible}
-                    onRequestClose={() => setMenuVisible(false)}
+                    onRequestClose={toggleMenu}
                 >
-                    <TouchableOpacity onPress={() => setMenuVisible(false)} style={tailwind`flex-1`}>
+                    <TouchableOpacity onPress={toggleMenu} style={tailwind`flex-1 bg-black/30`}>
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={[tailwind`mt-12 mr-4 bg-white rounded-lg shadow-lg p-4 w-40 gap-4`, 
-                                {backgroundColor:'#1e293b',borderWidth:1,borderColor:'#334155'}
-                            ]}>
-                                <TouchableOpacity onPress={() => setStatusVisible(true)}>
-                                    <Text style={[tailwind`text-xl`, {color:'#f1f5f9'}]}>Edit Match</Text>
+                            <View style={[tailwind`mt-16 mr-4 rounded-xl overflow-hidden w-56`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                        setStatusVisible(true);
+                                    }}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
+                                >
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#3b82f620' }]}>
+                                        <MaterialIcon name="edit" size={18} color="#60a5fa" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => {}}>
-                                    <Text style={[tailwind`text-xl`, {color:'#f1f5f9'}]}>Delete Match</Text>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                    }}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
+                                >
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#10b98120' }]}>
+                                        <MaterialIcon name="update" size={18} color="#4ade80" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Sub Status</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                    }}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
+                                >
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#9333ea20' }]}>
+                                        <MaterialIcon name="share" size={18} color="#c084fc" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Share</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                        // Handle delete
+                                    }}
+                                    style={tailwind`px-4 py-4 flex-row items-center`}
+                                >
+                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#ef444420' }]}>
+                                        <MaterialIcon name="delete" size={18} color="#f87171" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f87171' }]}>Delete Match</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

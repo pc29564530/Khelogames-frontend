@@ -1,55 +1,47 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
-import {Pressable, Text, View} from 'react-native';
+import { Image, Pressable, Text, View, ScrollView, Dimensions } from 'react-native';
 import tailwind from "twrnc";
 import axiosInstance from "../screen/axios_config";
 import { addBatsman } from "../redux/actions/actions";
 import { useSelector } from "react-redux";
-import { getCricketMatchSquad } from "../redux/actions/actions";
-import { useWebSocket } from '../context/WebSocketContext';
 
 
-export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsman, setSelectedBatsman}) => {
-    console.log("ADd Batsman Bat Team:L ", batTeam)
-    const wsRef = useWebSocket();
-    const lastPayloadRef = useRef(null);
-    const dispatchRef = useRef(dispatch);
-    const currentInning = useSelector((state) => state.cricketMatchInning.currentInning)
-    const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber)
-    const cricketMatchSquad = useSelector(state => state.players.squads)
+export const AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBatsman, setSelectedBatsman, error, setError, setIsBatTeamPlayerModalVisible, onSuccess }) => {
+    const { height: sHeight, width: sWidth } = Dimensions.get('window');
+    const [battingSquad, setBattingSquad] = useState([]);
+    const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber);
 
     const fetchBattingSquad = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem('authToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
-                    params: {
-                        "match_public_id": match.public_id,
-                        "team_public_id": batTeam
-                    },
-                    headers: {
-                        "Authorization": `Bearer ${authToken}`,
-                        "Content-Type": "application/json"
-                    }
-                })
-                dispatch(getCricketMatchSquad(response.data || []));
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields;
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
+                params: {
+                    "match_public_id": match.public_id,
+                    "team_public_id": batTeam
+                },
+                headers: {
+                    "Authorization": `Bearer ${authToken}`,
+                    "Content-Type": "application/json"
+                }
+            });
+            setBattingSquad(response.data.data || []);
+        } catch (err) {
+            const backendErrors = err?.response?.data?.error?.fields;
+            if (typeof setError === 'function') {
                 setError({
                     global: "Unable to get batting squad",
                     fields: backendErrors,
                 });
-                console.error("Failed to fetch batting squad", err);
             }
-    }
+            console.error("Failed to fetch batting squad", err);
+        }
+    };
 
     useEffect(() => {
         fetchBattingSquad();
     }, []);
-
-    useEffect(() => {
-        dispatchRef.current = dispatch;
-    }, [dispatch]);
 
     const handleAddNextBatsman = async (item) => {
         try {
@@ -63,96 +55,55 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
                 fours: 0,
                 sixes: 0,
                 batting_status: true,
-                is_striker:false,
+                is_striker: false,
                 is_currently_batting: true,
                 inning_number: currentInningNumber,
-            }
+            };
 
-            const authToken = await AsyncStorage.getItem("AccessToken")
+            const authToken = await AsyncStorage.getItem("AccessToken");
             const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketBatScore`, data, {
                 headers: {
                     'Authorization': `bearer ${authToken}`,
                     'Content-Type': 'application/json',
                 },
-            })
-            if(response.data.success && response.data.data){
-                setSelectedBatsman(response.data.data)
-                handleAddBatsmanWebSocket()
-            }
+            });
+            setIsBatTeamPlayerModalVisible(false);
         } catch (err) {
-             const backendErrors = err?.response?.data?.error?.fields;
-            if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
-            } else {
-                setError({
-                    global: "Unable to add new cricket batsman",
-                    fields: backendErrors,
-                });
+            const backendErrors = err?.response?.data?.error?.fields;
+            if (typeof setError === 'function') {
+                if (err?.response?.data?.error?.code === "FORBIDDEN") {
+                    setError({
+                        global: err?.response?.data?.error?.message,
+                        fields: {},
+                    });
+                } else {
+                    setError({
+                        global: "Unable to add new cricket batsman",
+                        fields: backendErrors,
+                    });
+                }
             }
             console.log("Failed to add the batsman: ", err);
         }
-    }
-
-    const handleAddBatsmanWebSocket = useCallback((event) => {
-        if (!event || !event.data) {
-            console.warn("Received empty/undefined WebSocket event", event);
-            return;
-        }
-        try {
-            const rawData = event.data;
-            if (rawData === null || !rawData) {
-                console.error("raw data is undefined");
-                return;
-            }
-
-            let message = JSON.parse(rawData);
-            
-            // Prevent duplicate processing - check by message type and key data
-            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
-            if (lastPayloadRef.current === messageKey) {
-                console.log("Duplicate message ignored:", messageKey);
-                return;
-            }
-            lastPayloadRef.current = messageKey;
-
-            if(message.type === "ADD_BATSMAN"){
-                dispatch(addBatsman(message.payload))
-            }
-
-        } catch(err) {
-        console.error("Failed to parse websocket message: ", err);
-        }
-    })
-
-    useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-
-        wsRef.current.onmessage = handleAddBatsmanWebSocket;
-    }, [handleAddBatsmanWebSocket]);
-
+    };
 
     return (
-       <View style={tailwind`p-1`}>
+        <ScrollView style={[tailwind`p-1 `, { minHeight: 500 }]}>
             {/* Header */}
             <View style={tailwind`items-center mb-4`}>
-                <View style={tailwind`w-40 h-1 bg-gray-300 rounded-full mb-2`} />
-                <Text style={tailwind`text-lg font-semibold text-gray-800`}>
-                Select Batsman
+                <View style={[tailwind`w-40 h-1 rounded-full mb-2`, { backgroundColor: '#334155' }]} />
+                <Text style={[tailwind`text-lg font-semibold`, { color: '#f1f5f9' }]}>
+                    Select Batsman
                 </Text>
             </View>
 
             {/* Player List */}
-            {cricketMatchSquad.map((item, index) => (
+            {battingSquad.map((item, index) => (
                 <Pressable
                     key={index}
                     onPress={() => handleAddNextBatsman(item)}
-                    style={tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2 bg-gray-100`}
-                    >
+                    style={[tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}
+                >
                     {/* Avatar */}
                     {item?.media_url ? (
                         <Image
@@ -161,7 +112,7 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
                         />
                     ) : (
                         <View
-                        style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}
+                            style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}
                         >
                             <Text style={tailwind`text-white font-bold text-lg`}>
                                 {item?.player?.name?.charAt(0).toUpperCase()}
@@ -171,15 +122,15 @@ export const AddCricketBatsman = ({match, batTeam, game, dispatch, selectedBatsm
 
                     {/* Player Info */}
                     <View style={tailwind`ml-3`}>
-                        <Text style={tailwind`text-base font-semibold text-gray-900`}>
+                        <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>
                             {item?.player?.name}
                         </Text>
-                        <Text style={tailwind`text-sm text-gray-600`}>
+                        <Text style={[tailwind`text-sm`, { color: '#94a3b8' }]}>
                             {item?.player?.positions}
                         </Text>
                     </View>
                 </Pressable>
             ))}
-        </View>
+        </ScrollView>
     );
-}
+};

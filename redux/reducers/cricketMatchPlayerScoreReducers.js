@@ -10,6 +10,7 @@ const initialstate = {
 }
 
 const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
+
     switch (action.type) {
         case actionTypes.SET_CURRENT_BATSMAN:
             return {
@@ -48,7 +49,8 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
             const inningKeyBatsman = String(action.payload.inning_number);
             const currentBattingInning = state?.battingScore?.innings || {};
             const batsmanInning = currentBattingInning[inningKeyBatsman] || [];
-
+            // console.log("Inning Number: ", inningKeyBatsman)
+            // console.log("Batsman Inning: ", currentBattingInning)
             // Create updated inning array
             const updatedBatsmanInning = batsmanInning.map(batter => {
                 if (batter.batsman_id === action.payload.batsman_id) {
@@ -128,8 +130,16 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
             const currentBatsmanInnings = state?.battingScore?.innings || {};
             const inningBatsmen = currentBatsmanInnings[inningKey] || [];
 
+            const existingCurrent = state.currentBatsman || [];
+            const withoutDup = existingCurrent.filter(
+                b => b.batsman_id != action.payload.batsman_id
+            );
+
+            const updatedCurrentBatsman = [...withoutDup, action.payload];
+
             return {
                 ...state,
+                currentBatsman: updatedCurrentBatsman,
                 battingScore: {
                     ...state.battingScore,
                     innings: {
@@ -145,8 +155,11 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
             const addBowlerInnings = state?.bowlingScore?.innings || {};
             const inningBowlers = addBowlerInnings[addBowlerInningKey] || [];
 
+            const updatedCurrentBowler = [action.payload];
+
             return {
                 ...state,
+                currentBowler: updatedCurrentBowler,
                 bowlingScore: {
                     ...state.bowlingScore,
                     innings: {
@@ -156,6 +169,7 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 }
             };
         }
+
         
         case actionTypes.GET_CRICKET_PLAYER_SCORE:
             return {

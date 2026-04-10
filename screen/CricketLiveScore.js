@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions} from 'react-native';
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,13 +23,10 @@ import { renderInningScore } from './Matches';
 import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import { current } from '@reduxjs/toolkit';
 import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
-import { useWebSocket } from '../context/WebSocketContext';
 import { getLeadTrailStatus } from '../screen/CricketMatchPage'
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
-    const wsRef = useWebSocket();
-    const lastPayloadRef = useRef(null);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
@@ -195,9 +192,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json',
                 },
             })
-            const item = response.data.data.batsman;
-            if(item){
-                dispatch(setCurrentBatsman(item))
+            const item = response.data;
+            if(item.success && item.data) {
+                dispatch(setCurrentBatsman(item?.data?.batsman))
             } else {
                 dispatch(setCurrentBatsman([]))
             }
@@ -229,9 +226,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         'Content-Type': 'application/json',
                 },
             })
-            const item = response.data.data.bowler;
-            if(item){
-                dispatch(setCurrentBowler(item))
+            const item = response.data;
+            if(item.success && item.data) {
+                dispatch(setCurrentBowler(item?.data?.bowler))
             } else {
                 dispatch(setCurrentBowler([]))
             }
@@ -328,39 +325,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         return scoreArray?.find((inning) => inning.inning_number === currentInningNumber);
     }
 
-    const handleNextInning = async (teamPublicID) => {
-        // if (!isCurrentInningEnded) {
-        //     Alert.alert(
-        //         "⚠ Inning Not Ended",
-        //         "You need to end the current inning before proceeding.",
-        //         [
-        //             { text: "OK", style: "cancel" }
-        //         ]
-        //     );
-        // }
-        //get match 
-        // console.log("Team ID: ", teamPublicID)
-        // switch (currentInningNumber) {
-        //     case 1:
-        //         setNextInning(2);
-        //         dispatch(setCurrentInningNumber(2));
-        //         //dispatch(setCurrentInning("inning2"))
-        //         break;
-        //     case 2:
-        //         setNextInning(3);
-        //         dispatch(setCurrentInningNumber(3));
-        //        //dispatch(setCurrentInning("inning3"))
-        //         break;
-        //     case 3:
-        //         setNextInning(4)
-        //         dispatch(setCurrentInningNumber(4));
-        //         //dispatch(setCurrentInning("inning4"))
-        //         break;
-        //     default:
-        //         setNextInning(1);
-        //         dispatch(setCurrentInningNumber(1));
-        //         break;
-        // }        
+    const handleNextInning = async (teamPublicID) => {        
         try {
             const matchPublicID = match.public_id;
             await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
@@ -383,31 +348,15 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     }
 
     const handleSelectBowler = () => {
-        if (selectedBowlerType === "existingBowler"){
             return (
-                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} existingBowler={existingBowler} currentBowler={currentBowler}/>
+                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlingTeamPlayer={players} currentBowler={currentBowler} error={error} setError={setError} inningNumber={currentInningNumber} setIsModalBowlingVisible={setIsModalBowlingVisible}/>
             )
-        } else {
-            return (
-                <AddCricketBowler match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlerToBeBowled={bowlerToBeBowled} currentBowler={currentBowler} bowling={bowling}/>
-            )
-        }
     }
-
-    const handleToggle = (item) => {
-        if(item==="newBowler") {
-           setSelectNextBowler(bowlerToBeBowled);
-        } else {
-           setSelectNextBowler(existingBowler);
-        }
-      }
 
     const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");
 
-
     const innings = bowling?.innings?.[currentInningNumber] ?? [];
     const players = batTeam === homeTeamPublicID ? (awayPlayer ?? []) : (homePlayer ?? []);
-
     const bowlerToBeBowled = players.filter(
     (player) =>
         !innings.some(
@@ -440,84 +389,36 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         return checkFollowOn();
     }, [checkFollowOn]);
 
-    useEffect(() => {
-        const checkAddedBatsmanAndBowler =  async () => {
-            try{
-                if(inningStatus === "not_started"){
-                    if(currentBatsman?.length >= 2 && currentBowler?.length >= 1){
-                        const data = {
-                            match_public_id: match.public_id,
-                            team_public_id: batTeam,
-                            inning_number: currentInningNumber
-                        }
-                        const authToken = await AsyncStorage.getItem("AccessToken");
-                        const response = await axiosInstance.put(`${BASE_URL}/${game.name}/updateCricketInning`,data, {
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`,
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        const item = response.data;
-                        if(item.data){
-                            dispatch(setInningStatus(item.data.inning_status, item.data.inning_number));
-                        }
-                    }
-                }
-            } catch(err){
-                const backendError = err?.response?.data?.error?.fields;
-                setError({
-                    global: "Unable to update inning",
-                    fields: backendError,
-                })
-                console.log("Failed to update inning status: ", err)
-            }
-        }
-        checkAddedBatsmanAndBowler();
-    }, [inningStatus,
-        currentBatsman?.length,
-        currentBowler?.length,
-        currentInningNumber,
-        batTeam,
-        match?.public_id,
-        game?.name,
-    ])
-
-    const handleUpdateInningStatus = useCallback((event) => {
-        if (!event || !event.data) {
-            console.warn("Received empty/undefined WebSocket event", event);
-            return;
-        }
+    const handleStartInning = async () => {
+        setError({ global: null, fields: {} });
         try {
-            const rawData = event.data;
-            if (rawData === null || !rawData) {
-                console.error("raw data is undefined");
-                return;
+            setLoading(true);
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const data = {
+                match_public_id: match.public_id.toString(),
+                team_public_id: batTeam.toString(),
+                inning_number: currentInningNumber,
             }
-
-            let message = JSON.parse(rawData);
-            
-            // Prevent duplicate processing - check by message type and key data
-            const messageKey = `${message.type}_${JSON.stringify(message.payload)}`;
-            if (lastPayloadRef.current === messageKey) {
-                console.log("Duplicate message ignored:", messageKey);
-                return;
-            }
-            lastPayloadRef.current = messageKey;
-            if(message.type === "INNING_STATUS"){
-                dispatch(setInningStatus(message.payload.inning_status, message.payload.inning_number))
-            }
-
-        } catch(err) {
-        console.error("Failed to parse websocket message: ", err);
+            const response = await axiosInstance.put(
+                `${BASE_URL}/${game.name}/updateCricketInning`, data, {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            const item = response.data;
+        } catch (err) {
+            setError({
+                global: err?.response?.data?.error?.message || "Unable to start inning",
+                fields: err?.response?.data?.error?.fields || {},
+            });
+            console.error("Failed to start inning: ", err);
+        } finally {
+            setLoading(false);
         }
-    })
-    
-    useEffect(() => {
-        if(!wsRef.current) {
-            return
-        }
-        wsRef.current.onmessage = handleUpdateInningStatus;
-    }, [handleUpdateInningStatus]);
+    };
+
 
     if (loading) {
         return (
@@ -528,10 +429,11 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         );
     } else {
         return (
-            <Animated.ScrollView 
+            <Animated.ScrollView
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
+                style={{backgroundColor: '#0f172a'}}
                 contentContainerStyle={{
                     paddingTop: 0,
                     paddingBottom: 100,
@@ -572,7 +474,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         followOn={followOn}
                         setFollowOn={setFollowOn}
                     />
-                ): currentBatsman?.length > 0 && (currentBowler?.length > 0) ? (
+                ): (currentBatsman?.length > 0 && currentBowler?.length > 0 && inningStatus === 'in_progress') ? (
                     <>
                     <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                         {/* Header */}
@@ -664,10 +566,106 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                </View>
                <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber}/>
             </>
-            ) : (
-                    <View style={tailwind`p-1`}>
-                        <AddBatsmanAndBowler match={match}/>
-                    </View>
+           ) : (
+                <View style={tailwind`p-2`}>
+                    {/* Add Batsman and Bowler */}
+                    <AddBatsmanAndBowler match={match} />
+                    {/* Bowler Select - show when batsman added but no bowler yet */}
+                    {currentBatsman?.length >= 2 && currentBowler?.length === 0 && (
+                        <View style={[tailwind`mt-3 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                            <View style={[tailwind`px-4 py-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                                <Text style={[tailwind`text-base font-semibold`, {color: '#f1f5f9'}]}>
+                                    Select Opening Bowler
+                                </Text>
+                            </View>
+                            <View style={tailwind`p-3`}>
+                                <Pressable
+                                    onPress={() => setIsModalBowlingVisible(true)}
+                                    style={[tailwind`p-3 rounded-lg items-center flex-row justify-center`, {backgroundColor: '#f87171'}]}
+                                >
+                                    <MaterialIcon name="sports-cricket" size={18} color="#fff" />
+                                    <Text style={[tailwind`font-semibold ml-2`, {color: '#fff'}]}>
+                                        Select Bowler
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Start Inning Button - only show when both batsman and bowler are ready */}
+                    {currentBatsman?.length >= 2 && currentBowler?.length >= 1 && inningStatus === 'not_started' && (
+                        <View style={[tailwind`mt-3 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                            {/* Status Summary */}
+                            <View style={[tailwind`px-4 py-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                                <Text style={[tailwind`text-base font-semibold`, {color: '#f1f5f9'}]}>
+                                    Ready to Start Inning {currentInningNumber}
+                                </Text>
+                            </View>
+
+                            {/* Batsman Summary */}
+                            <View style={tailwind`px-4 py-2`}>
+                                <Text style={[tailwind`text-xs font-medium mb-2`, {color: '#64748b'}]}>BATTING</Text>
+                                {currentBatsman.map((item, index) => (
+                                    <View key={index} style={tailwind`flex-row items-center mb-1`}>
+                                        <View style={[tailwind`w-2 h-2 rounded-full mr-2`, {backgroundColor: item.is_striker ? '#f87171' : '#475569'}]} />
+                                        <Text style={[tailwind`text-sm`, {color: '#cbd5e1'}]}>
+                                            {item?.player?.name}
+                                            {item.is_striker && (
+                                                <Text style={{color: '#f87171'}}> *</Text>
+                                            )}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            {/* Divider */}
+                            <View style={[tailwind`mx-4`, {height: 1, backgroundColor: '#334155'}]} />
+
+                            {/* Bowler Summary */}
+                            <View style={tailwind`px-4 py-2`}>
+                                <Text style={[tailwind`text-xs font-medium mb-2`, {color: '#64748b'}]}>BOWLING</Text>
+                                {currentBowler.map((item, index) => (
+                                    <View key={index} style={tailwind`flex-row items-center mb-1`}>
+                                        <View style={[tailwind`w-2 h-2 rounded-full mr-2`, {backgroundColor: '#60a5fa'}]} />
+                                        <Text style={[tailwind`text-sm`, {color: '#cbd5e1'}]}>
+                                            {item?.player?.name}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            {/* Error */}
+                            {error?.global && (
+                                <View style={[tailwind`mx-4 mb-2 p-2 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
+                                    <Text style={[tailwind`text-xs`, {color: '#fca5a5'}]}>{error.global}</Text>
+                                </View>
+                            )}
+
+                            {/* Start Button */}
+                            <View style={tailwind`p-4`}>
+                                <Pressable
+                                    onPress={handleStartInning}
+                                    disabled={loading}
+                                    style={[
+                                        tailwind`p-4 rounded-xl items-center flex-row justify-center`,
+                                        {backgroundColor: loading ? '#334155' : '#f87171'}
+                                    ]}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <>
+                                            <MaterialIcon name="play-arrow" size={20} color="#fff" />
+                                            <Text style={[tailwind`text-base font-bold ml-2`, {color: '#fff'}]}>
+                                                Start Inning {currentInningNumber}
+                                            </Text>
+                                        </>
+                                    )}
+                                </Pressable>
+                            </View>
+                        </View>
+                    )}
+                </View>
             )}
             {/* Add Batsman */}
             {isModalBattingVisible && (
@@ -677,9 +675,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     visible={isModalBattingVisible}
                     onRequestClose={() => setIsModalBattingVisible(false)}
                 >  
-                    <Pressable onPress={() => setIsModalBattingVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b'}]}>
-                            <AddCricketBatsman match={match} batTeam={batTeam}  homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch}/>
+                    <Pressable onPress={() => setIsModalBattingVisible(false)} style={[tailwind`flex-1 justify-end bg-black bg-opacity-50`, {minHeight: 200}]}>
+                        <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b', maxHeight: sHeight * 0.75}]}>
+                            <AddCricketBatsman
+                                match={match}
+                                batTeam={batTeam}
+                                homePlayer={homePlayer}
+                                awayPlayer={awayPlayer}
+                                game={game}
+                                dispatch={dispatch}
+                                error={error}
+                                setError={setError}
+                                setIsBatTeamPlayerModalVisible={setIsModalBattingVisible}
+                                onSuccess={() => fetchCurrentBatsman()}
+                            />
                         </View>
                     </Pressable>
                 </Modal>
@@ -701,7 +710,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                                     Select Next Bowlers
                                 </Text>
                                 <View style={tailwind`flex-row justify-around mb-6`}>
-                                    <Pressable
+                                    {/* <Pressable
                                         onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}}
                                         style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "newBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
                                     >
@@ -712,7 +721,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                                         style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "existingBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
                                     >
                                         <Text style={[tailwind`font-semibold`, {color: selectedBowlerType === "existingBowler" ? '#ffffff' : '#94a3b8'}]}>Existing Bowler</Text>
-                                    </Pressable>
+                                    </Pressable> */}
                                 </View>
                                 <View style={tailwind`max-h-60`}>
                                     <ScrollView style={[tailwind`rounded-lg p-2`, {borderWidth: 1, borderColor: '#334155'}]}>
@@ -854,7 +863,7 @@ const InningActionModal = ({
   }
 
   return (
-    <View style={tailwind`flex-1 items-center`}>
+    <View style={[tailwind`flex-1 items-center`, {backgroundColor:"#0f172a"}]}>
       <View style={[tailwind`rounded-lg w-90`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
         {/* Header */}
         <View style={tailwind`p-2`}>

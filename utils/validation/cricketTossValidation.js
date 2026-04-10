@@ -64,7 +64,7 @@ export const validateCricketTossForm = (formData) => {
   });
 
   return {
-    isValid: Object.keys(error).length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors,
   };
 };

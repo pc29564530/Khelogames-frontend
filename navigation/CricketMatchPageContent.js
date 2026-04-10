@@ -37,7 +37,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                 tabBarInactiveTintColor: '#64748b',
             }}
         >
-                <TopTab.Screen name="Details">
+                <TopTab.Screen name="Overview">
                         {() => (
                             <CricketMatchDetails
                                 match={match}
@@ -47,7 +47,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                             />
                         )}
                     </TopTab.Screen>
-                    {match.status_code === "in_progress" && (
+                    {match?.status_code === "in_progress" && (
                         <TopTab.Screen name="Live">
                             {() => (
                                 <CricketLive
@@ -60,16 +60,18 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                         </TopTab.Screen>
                     )}
 
-                    <TopTab.Screen name="ScoreCard">
-                        {() => (
-                            <CricketScoreCard
-                                match={match}
-                                parentScrollY={parentScrollY}
-                                headerHeight={headerHeight}
-                                collapsedHeader={collapsedHeader}
-                            />
-                        )}
-                    </TopTab.Screen>
+                    {match?.status_code !== "not_started" && (
+                        <TopTab.Screen name="ScoreCard">
+                            {() => (
+                                <CricketScoreCard
+                                    match={match}
+                                    parentScrollY={parentScrollY}
+                                    headerHeight={headerHeight}
+                                    collapsedHeader={collapsedHeader}
+                                />
+                            )}
+                        </TopTab.Screen>
+                    )}
 
                     <TopTab.Screen name="Squad">
                         {() => (
