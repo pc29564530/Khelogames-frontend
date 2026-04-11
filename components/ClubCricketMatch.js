@@ -41,14 +41,6 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
         }
     })
 
-    const checkSportForMatchPage = (item, game) => {
-        if (game.name==='football'){
-            navigation.navigate("FootballMatchPage",{item: item.id} )
-        } else if(game.name === 'cricket') {
-            navigation.navigate("CricketMatchPage", {item: item.id})
-        }
-    }
-
     useEffect(() => {
         fetchClubMatch();
     }, []);
@@ -90,12 +82,12 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
 
     const handleTournamentNavigate = async (tournamentItem) => {
             const filterMatches = matches.filter((item) => item.tournament.public_id === selectedTournament.public_id);
-            console.log("Selected Tournament: ", selectedTournament.name, " Filtered Matches: ", filterMatches.length);
+            //console.log("Selected Tournament: ", selectedTournament.name, " Filtered Matches: ", filterMatches.length);
             setMatches(filterMatches);
     };
 
     const handleResetFilter = () => {
-        console.log("selected tournament: ", selectedTournament)
+        // console.log("selected tournament: ", selectedTournament)
         setMatches(allMatches);
         setSelectedTournament(null);
     }

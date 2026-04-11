@@ -11,7 +11,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 import { validateCricketScoreForm } from '../utils/validation/cricketScoreValidation';
 import { handleInlineError } from '../utils/errorHandler';
 
-export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInningNumber }) => {
+export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInningNumber, setIsCurrentBatsmanModalVisible, setSelectedOutBatsman }) => {
     const {wsRef, subscribe} = useWebSocket();
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const [isWebSocketReady, setIsWebSocketReady] = useState(false);
@@ -46,7 +46,6 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
 
     const handleScorecard = useCallback(async (temp) => {
         const batting = currentBatsman?.find((item) => (item.is_currently_batting === true && item.is_striker === true));
-
         // Regular Score Update (no extras)
         if(addCurrentScoreEvent.length === 0){
             try {
@@ -153,6 +152,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                     global: null,
                     fields: {},
                 });
+                setWicketType([])
 
             } catch (err) {
                 const backendErrors = err?.response?.data?.error?.fields || {};
@@ -237,6 +237,9 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
         else if(addCurrentScoreEvent[0] === "wicket") {
             try {
                 const bowlingTeamId = match.homeTeam.public_id === batTeam ? match.awayTeam.public_id : match.homeTeam.public_id;
+                const currentInningStatus = inningStatus?.[String(currentInningNumber)] || {};
+                const currentWicketsFallen = Number(currentInningStatus?.wickets ?? 0);
+                const currentBallNumber = Number(currentBowler?.[0]?.ball_number ?? 0);
 
                 const formData = {
                     match_public_id: match.public_id,
@@ -265,51 +268,30 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 }
                 const data = {
                     match_public_id: match.public_id,
-                    batsman_team_public_id: batTeam,
-                    bowling_team_public_id: bowlingTeamId,
+                    batting_team_public_id: batTeam,
                     batsman_public_id: batting?.player.public_id,
                     bowler_public_id: currentBowler[0]?.player?.public_id,
-                    wicket_type: wicketType,
                     fielder_public_id: wicketType === "Stamp" ? currentWicketKeeper?.public_id :
-                                       (wicketType === 'Run Out' || wicketType === "Catch") ? selectedFielder?.public_id : null,
+                        (wicketType === 'Run Out' || wicketType === "Catch") ? selectedFielder?.public_id : null,
                     runs_scored: temp,
-                    bowl_type: addCurrentScoreEvent.length === 2 ? addCurrentScoreEvent[1] : null,
                     inning_number: currentInningNumber,
+                    wicket_number: currentWicketsFallen + 1,
+                    ball_number: currentBallNumber,
+                    wicket_type: wicketType,
+                    bowl_type: addCurrentScoreEvent.length === 2 ? addCurrentScoreEvent[1] : null,
+                    crossed_before_catch: wicketType === "Catch" ? !!isBatsmanStrikeChange : false,
                 }
+                const authToken = await AsyncStorage.getItem("AccessToken")
 
-                const response = await axiosInstance.put(`${BASE_URL}/${game.name}/wickets`, {data}, {
+                const response = await axiosInstance.post(`${BASE_URL}/${game.name}/wickets`, data, {
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                 });
 
-                // const newMessage = {
-                //     "type": "UPDATE_SCORE",
-                //     "payload": {
-                //         match_public_id: formData.match_public_id,
-                //         batting_team_public_id: formData.batsman_team_public_id,
-                //         bowling_team_public_id: formData.bowling_team_public_id,
-                //         batsman_public_id: formData.batsman_public_id,
-                //         bowler_public_id: formData.bowler_public_id,
-                //         wicket_type: formData.wicket_type,
-                //         fielder_public_id: formData.fielder_public_id,
-                //         runs_scored: formData.runs_scored,
-                //         bowl_type: formData.bowl_type,
-                //         toggle_striker: isBatsmanStrikeChange,
-                //         inning: formData.inning_number,
-                //         event_type: "wicket"
-                //     }
-                // }
-
-                
-
-                // Check if WebSocket is ready before sending
-                // if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                //     wsRef.current.send(JSON.stringify(newMessage));
-                // }
-
             } catch (err) {
+                console.log("Wicket Error: ", err)
                 const backendErrors = err?.response?.data?.error?.fields || {};
                 if(err?.response?.data?.error?.code === "FORBIDDEN") {
                         setError({
@@ -330,7 +312,7 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
     const handleWicketType = useCallback((item) => {
         if(item === "Run Out"){
             setWicketType(item);
-            setIsFielder(true);
+            setIsCurrentBatsmanModalVisible(true);
         } else if(item === "Catch"){
             setWicketType(item);
             setIsFielder(true);

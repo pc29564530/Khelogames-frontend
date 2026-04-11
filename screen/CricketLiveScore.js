@@ -55,7 +55,9 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
     const [isFielder, setIsFielder] = useState(false);
     const [selectedFielder, setSelectedFielder] = useState();
+    const [selectedOutBatsman, setSelectedOutBatsman] = useState(null);
     const [selectedBowlerType, setSelectedBowlerType] = useState("");
+    const [isCurrentBatsmanModalVisible, setIsCurrentBatsmanModalVisible] = useState(false);
     const [wicketsData, setWicketsData] = useState([]);
     const [selectNextBowler, setSelectNextBowler] = useState(bowling.innings);   
     const [isWicketModalVisible, setIsWicketModalVisible] = useState(false);
@@ -564,7 +566,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </Pressable>
                     </View>
                </View>
-               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber}/>
+               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber} setIsCurrentBatsmanModalVisible={setIsCurrentBatsmanModalVisible} setSelectedOutBatsman={setSelectedOutBatsman}/>
             </>
            ) : (
                 <View style={tailwind`p-2`}>
@@ -790,6 +792,39 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                                         }}
                                     >
                                         <Text style={[tailwind`text-lg text-center`, {color: '#cbd5e1'}]}>{item.name}</Text>
+                                    </Pressable>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+                )}
+                {/* Select Batsman For Runout */}
+                {isCurrentBatsmanModalVisible && (
+                    <Modal
+                    transparent
+                    visible={isCurrentBatsmanModalVisible}
+                    animationType="fade"
+                    onRequestClose={() => setIsCurrentBatsmanModalVisible(false)}
+                >
+                    <Pressable 
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
+                        onPress={() => setIsCurrentBatsmanModalVisible(false)}
+                    >
+                        <View style={[tailwind`rounded-t-2xl p-5 h-[100%]`, {backgroundColor: '#1e293b'}]}>
+                            <Text style={[tailwind`text-lg font-semibold mb-3 text-center`, {color: '#f1f5f9'}]}>Select Batsman</Text>
+                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
+                                {currentBatsman?.map((item, index) => (
+                                    <Pressable
+                                        key={index}
+                                        style={[tailwind`p-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
+                                        onPress={() => {
+                                            setSelectedOutBatsman(item);
+                                            setIsCurrentBatsmanModalVisible(false);
+                                            setIsFielder(true);
+                                        }}
+                                    >
+                                        <Text style={[tailwind`text-lg text-center`, {color: '#cbd5e1'}]}>{item.player.name}</Text>
                                     </Pressable>
                                 ))}
                             </ScrollView>

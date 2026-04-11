@@ -61,16 +61,22 @@ const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
                 }
                 return batter;
             });
+            // payloadOut when the batsman is not longer batting he is out
+            const payloadOut =
+                action.payload.is_currently_batting === false ||
+                action.payload.batting_status === false;
 
-            const updatedCurrentBatsman = state.currentBatsman.map(batsman => {
-                const batsmanId = batsman.batsman_id;
-                const payloadBatsmanId = action.payload.batsman_id;
-                if (batsmanId === payloadBatsmanId) {
-                    const updated = { ...batsman, ...action.payload };
-                    return updated;
-                }
-                return batsman;
-            });
+            const updatedCurrentBatsman = state.currentBatsman
+                .map(batsman => {
+                    if (batsman.batsman_id === action.payload.batsman_id) {
+                        return { ...batsman, ...action.payload };
+                    }
+                    return batsman;
+                })
+                .filter(batsman => {
+                    if (batsman.batsman_id !== action.payload.batsman_id) return true;
+                    return !payloadOut;
+                });
 
             return {
                 ...state,

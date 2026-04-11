@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore, setCricketMatchToss, addBatsman, addBowler } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore, setCricketMatchToss, addBatsman, addBowler, addCricketWicketFallen } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
