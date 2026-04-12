@@ -65,37 +65,46 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                 onRequestClose={() => setIsBatTeamPlayerModalVisible(false)}
             >
                 <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                <Pressable
-                    style={tailwind`flex-1`}
-                    onPress={() => setIsBatTeamPlayerModalVisible(false)}
-                />
+                    <Pressable
+                        style={tailwind`flex-1`}
+                        onPress={() => setIsBatTeamPlayerModalVisible(false)}
+                    />
 
-                <View
-                    style={[
-                    tailwind`rounded-t-2xl p-4`,
-                    {
-                        backgroundColor: '#1e293b',
-                        minHeight: 300,
-                        maxHeight: ScreenHeight * 0.75,
-                    },
-                    ]}
-                >
-                    <ScrollView contentContainerStyle={{paddingBottom: 20}}>
-                        <AddCricketBatsman
-                            match={match}
-                            batTeam={batTeam}
-                            homePlayer={homePlayer}
-                            awayPlayer={awayPlayer}
-                            game={game}
-                            dispatch={dispatch}
-                            selectedBatsman={selectedBatsman}
-                            setSelectedBatsman={setSelectedBatsman}
-                            error={error}
-                            setError={setError}
-                            setIsBatTeamPlayerModalVisible={setIsBatTeamPlayerModalVisible}
-                        />
-                    </ScrollView>
-                </View>
+                    <Text style={[tailwind`text-lg font-bold mb-4`, {color: '#f1f5f9'}]}>
+                        Select Opening Batsman
+                    </Text>
+
+                    <View
+                        style={[
+                        tailwind`rounded-t-2xl p-4`,
+                        {
+                            backgroundColor: '#1e293b',
+                            minHeight: 300,
+                            maxHeight: ScreenHeight * 0.75,
+                        },
+                        ]}
+                    >
+                        <ScrollView contentContainerStyle={{paddingBottom: 20}}>
+                            <AddCricketBatsman
+                                match={match}
+                                batTeam={batTeam}
+                                homePlayer={homePlayer}
+                                awayPlayer={awayPlayer}
+                                game={game}
+                                dispatch={dispatch}
+                                selectedBatsman={selectedBatsman}
+                                setSelectedBatsman={setSelectedBatsman}
+                                error={error}
+                                setError={setError}
+                                setIsBatTeamPlayerModalVisible={setIsBatTeamPlayerModalVisible}
+                                onSuccess={(batsman) => {
+                                    if (batsman) {
+                                        setSelectedBatsman((prev) => [...prev, batsman]);
+                                    }
+                                }}
+                            />
+                        </ScrollView>
+                    </View>
                 </View>
             </Modal>
             )}
@@ -106,8 +115,21 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                     visible={isBowlTeamPlayerModalVisible}
                     onRequestClose={() => setIsBowlTeamPlayerModalVisible(false)}
                 >
-                    <Pressable onPress={() => setIsBowlTeamPlayerModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                        <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b', minHeight: 300, maxHeight: ScreenHeight * 0.75}]}>
+                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsBowlTeamPlayerModalVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`rounded-t-2xl p-4`,
+                                {
+                                    backgroundColor: '#1e293b',
+                                    minHeight: 300,
+                                    maxHeight: ScreenHeight * 0.75,
+                                },
+                            ]}
+                        >
                             <ScrollView contentContainerStyle={{paddingBottom: 20}}>
                                 <AddCricketBowler
                                     match={match}
@@ -125,7 +147,7 @@ const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
                                 />
                             </ScrollView>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
             )}
             

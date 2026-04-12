@@ -342,12 +342,12 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                             {batting?.innings && Object.keys(batting?.innings).length >  0 ? (
                                 <View>
                                         {Object.keys(batting?.innings)?.map((key, index) => (
-                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]} key={index}>
+                                            <View style={tailwind`mb-3 px-2`} key={`bat-${index}`}>
                                                 <CricketBattingScorecard batting={batting?.innings[key]} />
                                             </View>
                                         ))}
                                         {Object.keys(batting?.innings).map((key, index) => (
-                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]} key={index}>
+                                            <View style={tailwind`mb-3 px-2`} key={`bowl-${index}`}>
                                                 <CricketBowlingScorecard bowling={bowling?.innings[key]} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         ))}
@@ -364,7 +364,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                                             </View>
                                         )}
                                         {wickets.length > 0 && (
-                                            <View style={[tailwind`mb-2 p-1`, {backgroundColor: '#1e293b'}]}>
+                                            <View style={tailwind`mb-3 px-2`}>
                                                 <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         )}

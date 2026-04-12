@@ -29,7 +29,11 @@ export const AddCricketBowler = ({ match, batTeam, homeTeam, awayTeam, game, dis
             });
             setBowlingSquad(response.data.data || []);
         } catch (err) {
-            console.error("Failed to fetch bowling squad", err);
+            console.log("Failed to fetch bowling squad", err);
+            setError({
+                global: "Failed to get bowling squad",
+                fields: {},
+            })
         }
     };
 
@@ -62,7 +66,12 @@ export const AddCricketBowler = ({ match, batTeam, homeTeam, awayTeam, game, dis
             });
 
             if (response.data?.success && response.data?.data) {
-                setIsBowlTeamPlayerModalVisible(false);
+                if (typeof onSuccess === "function") {
+                    onSuccess(response.data.data);
+                }
+                if (typeof setIsBowlTeamPlayerModalVisible === "function") {
+                    setIsBowlTeamPlayerModalVisible(false);
+                }
             }
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
@@ -83,13 +92,6 @@ export const AddCricketBowler = ({ match, batTeam, homeTeam, awayTeam, game, dis
 
     return (
         <View style={tailwind`p-1`}>
-            {/* Header */}
-            <View style={tailwind`items-center mb-4`}>
-                <View style={[tailwind`w-40 h-1 rounded-full mb-2`, { backgroundColor: '#334155' }]} />
-                <Text style={[tailwind`text-lg font-semibold`, { color: '#f1f5f9' }]}>
-                    Select Bowler
-                </Text>
-            </View>
 
             {/* Player List */}
             {bowlingSquad.map((item, index) => (

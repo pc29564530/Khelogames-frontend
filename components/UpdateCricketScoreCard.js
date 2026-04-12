@@ -11,7 +11,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 import { validateCricketScoreForm } from '../utils/validation/cricketScoreValidation';
 import { handleInlineError } from '../utils/errorHandler';
 
-export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielder, isBatsmanStrikeChange, currentWicketKeeper, currentInningNumber, setIsCurrentBatsmanModalVisible, setSelectedOutBatsman }) => {
+export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketModalVisible, setIsWicketModalVisible, addCurrentScoreEvent, setAddCurrentScoreEvent, runsCount, wicketTypes, game, wicketType, setWicketType, selectedFielder, currentBatsman, currentBowler, dispatch, batTeam, setIsFielderModalVisible, isBatsmanStrikeChange, currentWicketKeeper, currentInningNumber, setIsCurrentBatsmanModalVisible, setSelectedOutBatsman }) => {
     const {wsRef, subscribe} = useWebSocket();
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
     const [isWebSocketReady, setIsWebSocketReady] = useState(false);
@@ -315,56 +315,114 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
             setIsCurrentBatsmanModalVisible(true);
         } else if(item === "Catch"){
             setWicketType(item);
-            setIsFielder(true);
+            setIsFielderModalVisible(true);
         } else {
             setWicketType(item);
         }
-    }, [setWicketType, setIsFielder]);
+    }, [setWicketType, setIsFielderModalVisible]);
 
     return (
-        <View>
-            <View style={tailwind`p-4 bg-white rounded-xl`}>
-                <Text style={tailwind`text-lg font-bold text-gray-900 mb-3`}>Update Score</Text>
-                {/* Global Error Display */}
-                {error?.global && (
-                    <View style={tailwind`bg-red-50 border border-red-200 rounded-lg p-3 mb-3`}>
-                        <Text style={tailwind`text-sm font-semibold text-red-800`}>{error.global}</Text>
-                    </View>
-                )}
-
-                <View style={tailwind`flex-row justify-between py-2`}>
-                    {currentScoreEvent.map((item, index) => (
-                        <Pressable key={index} onPress={() => { handleCurrentScoreEvent(item)}} style={tailwind`flex-row rounded-lg shadow-md bg-white p-2`}>
-                            <MaterialIcon name={addCurrentScoreEvent.includes(item.toLowerCase().replace(/\s+/g, '_'))?"check-box": "check-box-outline-blank"} size={24} color={addCurrentScoreEvent.includes(item.toLowerCase().replace(/\s+/g, '_'))?"green":"gray"}/>
-                            <Text>{item}</Text>
-                        </Pressable>
-                    ))}
+        <View style={{backgroundColor: '#0f172a'}}>
+            {/* Global Error */}
+            {error?.global && (
+                <View style={[tailwind`mb-3 p-3 rounded-lg`, {backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130'}]}>
+                    <Text style={[tailwind`text-xs`, {color: '#fca5a5'}]}>{error.global}</Text>
                 </View>
-                {isWicketModalVisible && (
-                    <View style={tailwind`mt-4`}>
-                        <Text style={tailwind`text-base font-semibold text-gray-700 mb-2`}>Wicket Types</Text>
-                        <View style={tailwind`flex-row flex-wrap`}>
-                            {wicketTypes.map((item, index) => (
-                                <Pressable 
-                                    key={index} 
-                                    onPress={() => {handleWicketType(item)}}
-                                    style={[tailwind`rounded-lg shadow-md px-4 py-2 mr-2 mb-2`, wicketType === item ? tailwind`bg-red-400` : tailwind`bg-gray-100`]}
-                                >
-                                    <Text style={tailwind`text-gray-800 text-lg`}>{item}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-                )}
+            )}
 
-                <View style={tailwind`flex-row justify-between py-2`}>
-                    <Text style={tailwind`text-lg font-bold`}>Runs/Ball</Text>
+            {/* Extras Card */}
+            <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                <View style={[tailwind`flex-row justify-between items-center px-4 py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                    <Text style={[tailwind`text-md`, {color: '#94a3b8'}]}>Extras</Text>
+                    <Text style={[tailwind`text-md`, {color: '#94a3b8'}]}>Inning {currentInningNumber}</Text>
+                </View>
+                <View style={tailwind`flex-row flex-wrap gap-2 px-4 py-3`}>
+                    {currentScoreEvent.map((item, index) => {
+                        const key = item.toLowerCase().replace(/\s+/g, '_');
+                        const isActive = addCurrentScoreEvent.includes(key);
+                        return (
+                            <Pressable
+                                key={index}
+                                onPress={() => handleCurrentScoreEvent(item)}
+                                style={[
+                                    tailwind`flex-row items-center rounded-lg px-3 py-2`,
+                                    {
+                                        backgroundColor: isActive ? '#f8717120' : '#0f172a',
+                                        borderWidth: 1,
+                                        borderColor: isActive ? '#f87171' : '#334155',
+                                    },
+                                ]}
+                            >
+                                <MaterialIcon
+                                    name={isActive ? 'check-box' : 'check-box-outline-blank'}
+                                    size={20}
+                                    color={isActive ? '#f87171' : '#94a3b8'}
+                                />
+                                <Text style={[tailwind`ml-2 text-sm font-medium`, {color: isActive ? '#f1f5f9' : '#cbd5e1'}]}>
+                                    {item}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
+            </View>
+
+            {/* Wicket Types Card */}
+            {isWicketModalVisible && (
+                <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                    <View style={[tailwind`flex-row justify-between items-center px-4 py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                        <Text style={[tailwind`text-md`, {color: '#94a3b8'}]}>Wicket Type</Text>
+                    </View>
+                    <View style={tailwind`flex-row flex-wrap px-4 py-3`}>
+                        {wicketTypes.map((item, index) => {
+                            const isActive = wicketType === item;
+                            return (
+                                <Pressable
+                                    key={index}
+                                    onPress={() => handleWicketType(item)}
+                                    style={[
+                                        tailwind`rounded-lg px-4 py-2 mr-2 mb-2`,
+                                        {
+                                            backgroundColor: isActive ? '#f87171' : '#0f172a',
+                                            borderWidth: 1,
+                                            borderColor: isActive ? '#f87171' : '#334155',
+                                        },
+                                    ]}
+                                >
+                                    <Text style={[tailwind`text-sm font-semibold`, {color: isActive ? '#ffffff' : '#cbd5e1'}]}>
+                                        {item}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+                </View>
+            )}
+
+            {/* Runs / Ball Card */}
+            <View style={[tailwind`mb-4 rounded-lg overflow-hidden`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                <View style={[tailwind`flex-row justify-between items-center px-4 py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
+                    <Text style={[tailwind`text-md`, {color: '#94a3b8'}]}>Runs / Ball</Text>
+                </View>
+                <View style={tailwind`flex-row flex-wrap gap-2 px-4 py-3`}>
                     {runsCount.map((item, index) => (
-                        <Pressable onPress={() => {handleScorecard(item)}} style={tailwind`rounded-lg shadow-md bg-white p-2`} key={index}>
-                            <Text>{item}</Text>
+                        <Pressable
+                            key={index}
+                            onPress={() => handleScorecard(item)}
+                            style={[
+                                tailwind`rounded-lg items-center justify-center`,
+                                {
+                                    backgroundColor: '#0f172a',
+                                    borderWidth: 1,
+                                    borderColor: '#334155',
+                                    width: 44,
+                                    height: 44,
+                                },
+                            ]}
+                        >
+                            <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>{item}</Text>
                         </Pressable>
                     ))}
-                    
                 </View>
             </View>
         </View>

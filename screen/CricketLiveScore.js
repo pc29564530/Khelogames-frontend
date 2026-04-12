@@ -53,7 +53,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [inningVisible, setInningVisible] = useState(false);
     const currentScoreEvent = ["No Ball", "Wicket", "Wide", "Leg Bye"];
     const wicketTypes = ["Run Out", "Stamp", "Catch", "Hit Wicket", "Bowled", "LBW"];
-    const [isFielder, setIsFielder] = useState(false);
+    const [isFielderModalVisible, setIsFielderModalVisible] = useState(false);
     const [selectedFielder, setSelectedFielder] = useState();
     const [selectedOutBatsman, setSelectedOutBatsman] = useState(null);
     const [selectedBowlerType, setSelectedBowlerType] = useState("");
@@ -79,7 +79,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const bowlTeamPublicID = match.awayTeam.public_id === batTeam ? match.homeTeam.public_id : match.awayTeam.public_id;
 
     // Get current fielders (bowling team players)
-    const currentFielder = batTeam === match.homeTeam.public_id ? awayPlayer : homePlayer;
+    const fielder = batTeam === match.homeTeam.public_id ? awayPlayer : homePlayer;
 
     const runsCount = [0, 1, 2, 3, 4, 5, 6];
     const dispatch = useDispatch();
@@ -421,6 +421,10 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         }
     };
 
+    const activeBowler = Array.isArray(currentBowler)
+    ? currentBowler.find(b => b.is_current_bowler)
+    : null;
+
 
     if (loading) {
         return (
@@ -566,7 +570,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         </Pressable>
                     </View>
                </View>
-               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielder={setIsFielder} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber} setIsCurrentBatsmanModalVisible={setIsCurrentBatsmanModalVisible} setSelectedOutBatsman={setSelectedOutBatsman}/>
+               <UpdateCricketScoreCard match={match} currentScoreEvent={currentScoreEvent} isWicketModalVisible={isWicketModalVisible} setIsWicketModalVisible={setIsWicketModalVisible} addCurrentScoreEvent={addCurrentScoreEvent} setAddCurrentScoreEvent={setAddCurrentScoreEvent} runsCount={runsCount} wicketTypes={wicketTypes} game={game} wicketType={wicketType} setWicketType={setWicketType} selectedFielder={selectedFielder} currentBatsman={currentBatsman} currentBowler={currentBowler} dispatch={dispatch} batTeam={batTeam} setIsFielderModalVisible={setIsFielderModalVisible} isBatsmanStrikeChange={isBatsmanStrikeChange} currentWicketKeeper={currentWicketKeeper} currentInningNumber={currentInningNumber} setIsCurrentBatsmanModalVisible={setIsCurrentBatsmanModalVisible} setSelectedOutBatsman={setSelectedOutBatsman}/>
             </>
            ) : (
                 <View style={tailwind`p-2`}>
@@ -669,188 +673,308 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     )}
                 </View>
             )}
-            {/* Add Batsman */}
+            {/* ADD BATSMAN MODAL */}
             {isModalBattingVisible && (
                 <Modal
                     transparent={true}
                     animationType="slide"
                     visible={isModalBattingVisible}
                     onRequestClose={() => setIsModalBattingVisible(false)}
-                >  
-                    <Pressable onPress={() => setIsModalBattingVisible(false)} style={[tailwind`flex-1 justify-end bg-black bg-opacity-50`, {minHeight: 200}]}>
-                        <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b', maxHeight: sHeight * 0.75}]}>
-                            <AddCricketBatsman
-                                match={match}
-                                batTeam={batTeam}
-                                homePlayer={homePlayer}
-                                awayPlayer={awayPlayer}
-                                game={game}
-                                dispatch={dispatch}
-                                error={error}
-                                setError={setError}
-                                setIsBatTeamPlayerModalVisible={setIsModalBattingVisible}
-                                onSuccess={() => fetchCurrentBatsman()}
+                >
+                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsModalBattingVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`rounded-t-2xl p-4`,
+                                {
+                                    backgroundColor: '#1e293b',
+                                    minHeight: 300,
+                                    maxHeight: sHeight * 0.75,
+                                },
+                            ]}
+                        >
+                            {/* Drag Handle */}
+                            <View
+                                style={[
+                                    tailwind`w-10 h-1 rounded-full self-center mb-5`,
+                                    { backgroundColor: '#475569' },
+                                ]}
                             />
+                            {/* Title */}
+                            <Text
+                                style={[ tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }, ]}
+                            >
+                                Add Next Batsman
+                            </Text>
+                            {/* Content */}
+                            <View style={{ maxHeight: sHeight * 0.6 }}>
+                                <ScrollView showsVerticalScrollIndicator={false}>
+                                    <AddCricketBatsman
+                                        match={match}
+                                        batTeam={batTeam}
+                                        game={game}
+                                        dispatch={dispatch}
+                                        error={error}
+                                        setError={setError}
+                                        onSuccess={() => setIsModalBattingVisible(false)}
+                                    />
+                                </ScrollView>
+                            </View>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
             )}
-            {/* Add Bowler */}
-            {isModalBowlingVisible && (
-                    <Modal
-                        transparent={true}
-                        animationType="slide"
-                        visible={isModalBowlingVisible}
-                        onRequestClose={() => setIsModalBowlingVisible(false)}
-                    >
-                        <Pressable 
-                            onPress={() => setIsModalBowlingVisible(false)} 
-                            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-                        >
-                            <View style={[tailwind`rounded-t-3xl p-6 pb-10`, {backgroundColor: '#1e293b'}]}>
-                                <Text style={[tailwind`text-lg font-semibold text-center mb-4`, {color: '#f1f5f9'}]}>
-                                    Select Next Bowlers
-                                </Text>
-                                <View style={tailwind`flex-row justify-around mb-6`}>
-                                    {/* <Pressable
-                                        onPress={() => {setSelectedBowlerType("newBowler"), handleToggle("newBowler")}}
-                                        style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "newBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
-                                    >
-                                        <Text style={[tailwind`font-semibold`, {color: selectedBowlerType === "newBowler" ? '#ffffff' : '#94a3b8'}]}>New Bowler</Text>
-                                    </Pressable>
-                                    <Pressable
-                                        onPress={() => {setSelectedBowlerType("existingBowler"), handleToggle("existingBowler")}}
-                                        style={[tailwind`px-4 py-2 rounded-full`, {borderWidth: 1, borderColor: '#334155'}, selectedBowlerType === "existingBowler" ? {backgroundColor: '#f87171'} : {backgroundColor: '#0f172a'}]}
-                                    >
-                                        <Text style={[tailwind`font-semibold`, {color: selectedBowlerType === "existingBowler" ? '#ffffff' : '#94a3b8'}]}>Existing Bowler</Text>
-                                    </Pressable> */}
-                                </View>
-                                <View style={tailwind`max-h-60`}>
-                                    <ScrollView style={[tailwind`rounded-lg p-2`, {borderWidth: 1, borderColor: '#334155'}]}>
-                                        {handleSelectBowler()}
-                                    </ScrollView>
-                                </View>
 
-                                {/* Close Button */}
-                                <Pressable
-                                    onPress={() => setIsModalBowlingVisible(false)}
-                                    style={[tailwind`mt-6 p-3 rounded-full`, {backgroundColor: '#f87171'}]}
-                                >
-                                    <Text style={tailwind`text-white text-center font-semibold`}>Close</Text>
-                                </Pressable>
-                            </View>
-                        </Pressable>
-                    </Modal>
-                )}
-                {isModalBatsmanStrikerChange && (
-                    <Modal
-                        transparent={true}
-                        visible={isModalBatsmanStrikerChange}
-                        animationType="slide"
-                        onRequestClose={() => setIsModalBatsmanStrikeChange(false)}
-                    >
-                        <Pressable style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} onPress={() => setIsModalBatsmanStrikeChange(false)}>
-                            <View style={[tailwind`p-10 rounded-t-2xl`, {backgroundColor: '#1e293b'}]}>
-                                <View>
-                                    <Text style={[tailwind`text-lg font-semibold mb-4`, {color: '#f1f5f9'}]}>Is Strike Change</Text>
-                                </View>
-                                <View style={tailwind`flex-row justify-between`}>
-                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#f87171'}]} onPress={() => {setIsBatsmanStrikeChange(true); setIsModalBatsmanStrikeChange(false) }}>
-                                        <Text style={[tailwind`text-lg`, {color: '#ffffff'}]}>true</Text>
-                                    </Pressable>
-                                    <Pressable style={[tailwind`rounded-md p-4`, {backgroundColor: '#334155'}]}  onPress={() => {setIsBatsmanStrikeChange(false); setIsModalBatsmanStrikeChange(false) }}>
-                                        <Text style={[tailwind`text-lg`, {color: '#f1f5f9'}]}>false</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                        </Pressable>
-                    </Modal>
-                )}
-                {/* Select Fielder */}
-                {isFielder && (
-                    <Modal
-                    transparent
-                    visible={isFielder}
-                    animationType="fade"
-                    onRequestClose={() => setIsFielder(false)}
+            {/* ADD BOWLER MODAL */}
+            {isModalBowlingVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isModalBowlingVisible}
+                    onRequestClose={() => setIsModalBowlingVisible(false)}
                 >
-                    <Pressable 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
-                        onPress={() => setIsFielder(false)}
+                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setIsModalBowlingVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`rounded-t-2xl p-4`,
+                                {
+                                    backgroundColor: '#1e293b',
+                                    minHeight: 300,
+                                    maxHeight: sHeight * 0.75,
+                                },
+                            ]}
+                        >
+                            {/* Drag Handle */}
+                            <View
+                                style={[
+                                    tailwind`w-10 h-1 rounded-full self-center mb-5`,
+                                    { backgroundColor: '#475569' },
+                                ]}
+                            />
+                            {/* Title */}
+                            <Text
+                                style={[ tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }, ]}
+                            >
+                                {activeBowler ? 'Select Next Bowler' : 'Select Opening Bowler'}
+                            </Text>
+                            {/* Content */}
+                            <View style={{ maxHeight: sHeight * 0.6 }}>
+                                <ScrollView showsVerticalScrollIndicator={false}>
+                                    <SetCurrentBowler
+                                        match={match}
+                                        batTeam={batTeam}
+                                        game={game}
+                                        dispatch={dispatch}
+                                        currentBowler={currentBowler}
+                                        error={error}
+                                        setError={setError}
+                                        setIsModalBowlingVisible={setIsModalBowlingVisible}
+                                    />
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            )}
+            {/* SELECT FIELDER MODAL */}
+            {isFielderModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={isFielderModalVisible}
+                    onRequestClose={() => setIsFielderModalVisible(false)}
+                >
+
+                    <Pressable
+                        onPress={() => setIsFielderModalVisible(false)}
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                    />
+                    <View
+                        style={[
+                            tailwind`rounded-t-2xl p-4`,
+                            {
+                                backgroundColor: '#1e293b',
+                                minHeight: 300,
+                                maxHeight: sHeight * 0.75,
+                            },
+                        ]}
                     >
-                        <View style={[tailwind`rounded-t-2xl p-5 h-[100%]`, {backgroundColor: '#1e293b'}]}>
-                            <Text style={[tailwind`text-lg font-semibold mb-3 text-center`, {color: '#f1f5f9'}]}>Select Fielder</Text>
-                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
-                                {currentFielder?.map((item, index) => (
+                        {/* Drag Handle */}
+                        <View
+                            style={[
+                                tailwind`w-10 h-1 rounded-full self-center mb-5`,
+                                { backgroundColor: '#475569' },
+                            ]}
+                        />
+                        {/* Title */}
+                        <Text
+                            style={[ tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }, ]}
+                        >
+                            Select Fielder
+                        </Text>  
+                        <View style={{ maxHeight: sHeight * 0.6 }}>
+                            <ScrollView showsVerticalScrollIndicator={false} style={{maxHeight: sHeight * 0.55}}>
+                                {fielder?.map((item, index) => (
                                     <Pressable
                                         key={index}
-                                        style={[tailwind`p-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
+                                        style={[
+                                            tailwind`flex-row items-center p-3 rounded-xl mb-2`,
+                                            {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}
+                                        ]}
                                         onPress={() => {
                                             setSelectedFielder(item);
-                                            setIsFielder(false);
+                                            setIsFielderModalVisible(false);
                                             setIsModalBatsmanStrikeChange(true);
                                         }}
                                     >
-                                        <Text style={[tailwind`text-lg text-center`, {color: '#cbd5e1'}]}>{item.name}</Text>
+                                        {item?.media_url ? (
+                                            <Image
+                                                source={{uri: item.media_url}}
+                                                style={tailwind`h-10 w-10 rounded-full`}
+                                            />
+                                        ) : (
+                                            <View style={[tailwind`h-10 w-10 rounded-full items-center justify-center`, {backgroundColor: '#334155'}]}>
+                                                <Text style={tailwind`text-white font-bold`}>
+                                                    {item?.name?.charAt(0)?.toUpperCase()}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        <View style={tailwind`ml-3`}>
+                                            <Text style={[tailwind`text-base font-semibold`, {color: '#f1f5f9'}]}>
+                                                {item?.name}
+                                            </Text>
+                                            <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>
+                                                {item?.position}
+                                            </Text>
+                                        </View>
                                     </Pressable>
                                 ))}
                             </ScrollView>
                         </View>
-                    </Pressable>
+                    </View>
                 </Modal>
-                )}
-                {/* Select Batsman For Runout */}
-                {isCurrentBatsmanModalVisible && (
-                    <Modal
-                    transparent
+            )}
+
+            {/* ===== SELECT OUT BATSMAN MODAL (Run Out) ===== */}
+            {isCurrentBatsmanModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
                     visible={isCurrentBatsmanModalVisible}
-                    animationType="fade"
                     onRequestClose={() => setIsCurrentBatsmanModalVisible(false)}
                 >
-                    <Pressable 
-                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`} 
+                    <Pressable
                         onPress={() => setIsCurrentBatsmanModalVisible(false)}
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                     >
-                        <View style={[tailwind`rounded-t-2xl p-5 h-[100%]`, {backgroundColor: '#1e293b'}]}>
-                            <Text style={[tailwind`text-lg font-semibold mb-3 text-center`, {color: '#f1f5f9'}]}>Select Batsman</Text>
-                            <ScrollView style={tailwind``} showsVerticalScrollIndicator={false}>
+                        <Pressable style={[tailwind`rounded-t-3xl p-6`, {backgroundColor: '#1e293b', maxHeight: sHeight * 0.75}]}>
+                            {/* Drag Handle */}
+                            <View style={[tailwind`w-10 h-1 rounded-full self-center mb-5`, {backgroundColor: '#475569'}]} />
+                            {/* Title */}
+                            <Text style={[tailwind`text-lg font-bold mb-4`, {color: '#f1f5f9'}]}>
+                                Who Got Run Out?
+                            </Text>
+                            {/* Content */}
+                            <ScrollView showsVerticalScrollIndicator={false} style={{maxHeight: sHeight * 0.55}}>
                                 {currentBatsman?.map((item, index) => (
                                     <Pressable
                                         key={index}
-                                        style={[tailwind`p-3`, {borderBottomWidth: 1, borderColor: '#334155'}]}
+                                        style={[
+                                            tailwind`flex-row items-center p-3 rounded-xl mb-2`,
+                                            {backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155'}
+                                        ]}
                                         onPress={() => {
                                             setSelectedOutBatsman(item);
                                             setIsCurrentBatsmanModalVisible(false);
-                                            setIsFielder(true);
+                                            setIsFielderModalVisible(true);
                                         }}
                                     >
-                                        <Text style={[tailwind`text-lg text-center`, {color: '#cbd5e1'}]}>{item.player.name}</Text>
+                                        {item?.media_url ? (
+                                            <Image
+                                                source={{uri: item.media_url}}
+                                                style={tailwind`h-10 w-10 rounded-full`}
+                                            />
+                                        ) : (
+                                            <View style={[tailwind`h-10 w-10 rounded-full items-center justify-center`, {backgroundColor: '#334155'}]}>
+                                                <Text style={tailwind`text-white font-bold`}>
+                                                    {item?.player?.name?.charAt(0)?.toUpperCase()}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        <View style={tailwind`ml-3 flex-1`}>
+                                            <Text style={[tailwind`text-base font-semibold`, {color: '#f1f5f9'}]}>
+                                                {item?.player?.name}
+                                            </Text>
+                                            <Text style={[tailwind`text-sm`, {color: '#94a3b8'}]}>
+                                                {item?.player?.position}
+                                            </Text>
+                                        </View>
+                                        {item.is_striker && (
+                                            <Text style={[tailwind`text-xs font-bold`, {color: '#f87171'}]}>
+                                                Striker
+                                            </Text>
+                                        )}
                                     </Pressable>
                                 ))}
                             </ScrollView>
-                        </View>
+                            {/* Close */}
+                            <Pressable
+                                onPress={() => setIsCurrentBatsmanModalVisible(false)}
+                                style={[tailwind`mt-4 p-3 rounded-xl items-center`, {backgroundColor: '#334155'}]}
+                            >
+                                <Text style={[tailwind`font-semibold`, {color: '#94a3b8'}]}>Cancel</Text>
+                            </Pressable>
+                        </Pressable>
                     </Pressable>
                 </Modal>
-                )}
-           {menuVisible && (
+            )}
+
+            {/* ===== MENU MODAL ===== */}
+            {menuVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
                     visible={menuVisible}
                     onRequestClose={toggleMenu}
                 >
-                    <TouchableOpacity onPress={toggleMenu} style={tailwind``}>
+                    <Pressable
+                        onPress={toggleMenu}
+                        style={tailwind`flex-1 bg-black bg-opacity-50`}
+                    >
                         <View style={tailwind`flex-row justify-end`}>
-                            <View style={[tailwind`mt-12 mr-4 rounded-lg p-4 gap-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
-                                <TouchableOpacity onPress={() => { setIsModalBattingVisible(true); toggleMenu(); }}>
-                                    <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Batsman </Text>
+                            <Pressable style={[tailwind`mt-14 mr-4 rounded-xl overflow-hidden w-52`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
+                                <TouchableOpacity
+                                    onPress={() => { setIsModalBattingVisible(true); toggleMenu(); }}
+                                    style={[tailwind`px-4 py-4 flex-row items-center`, {borderBottomWidth: 1, borderColor: '#334155'}]}
+                                >
+                                    <View style={[tailwind`w-8 h-8 rounded-lg items-center justify-center mr-3`, {backgroundColor: '#f8717120'}]}>
+                                        <MaterialIcon name="person-add" size={16} color="#f87171" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, {color: '#f1f5f9'}]}>
+                                        Add Batsman
+                                    </Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => { setIsModalBowlingVisible(true); toggleMenu(); }}>
-                                    <Text style={[tailwind`text-xl`, {color: '#f1f5f9'}]}>Add New Bowler</Text>
+                                <TouchableOpacity
+                                    onPress={() => { setIsModalBowlingVisible(true); toggleMenu(); }}
+                                    style={tailwind`px-4 py-4 flex-row items-center`}
+                                >
+                                    <View style={[tailwind`w-8 h-8 rounded-lg items-center justify-center mr-3`, {backgroundColor: '#f8717120'}]}>
+                                        <MaterialIcon name="sports-cricket" size={16} color="#f87171" />
+                                    </View>
+                                    <Text style={[tailwind`text-base font-medium`, {color: '#f1f5f9'}]}>
+                                        Select Bowler
+                                    </Text>
                                 </TouchableOpacity>
-                            </View>
+                            </Pressable>
                         </View>
-                    </TouchableOpacity>
+                    </Pressable>
                 </Modal>
             )}
             </Animated.ScrollView>
@@ -947,7 +1071,7 @@ const InningActionModal = ({
 
               {match.match_format === "Test" ? (
                 <View style={tailwind`px-4 pb-4 pt-2`}>
-                  <Text>{getLeadTrailStatus(match)}</Text>
+                  <Text style={[tailwind`text-md`, {color: '#cbd5e1'}]}>{getLeadTrailStatus(match)}</Text>
                   
                   {/* Follow-on Option for Test matches */}
                   {isFollowOnApplicable && (

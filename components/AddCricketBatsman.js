@@ -8,7 +8,7 @@ import { addBatsman } from "../redux/actions/actions";
 import { useSelector } from "react-redux";
 
 
-export const AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBatsman, setSelectedBatsman, error, setError, setIsBatTeamPlayerModalVisible, onSuccess }) => {
+export const  AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBatsman, setSelectedBatsman, error, setError, setIsBatTeamPlayerModalVisible, onSuccess }) => {
     const { height: sHeight, width: sWidth } = Dimensions.get('window');
     const [battingSquad, setBattingSquad] = useState([]);
     const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber);
@@ -67,7 +67,14 @@ export const AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBats
                     'Content-Type': 'application/json',
                 },
             });
-            setIsBatTeamPlayerModalVisible(false);
+            if (response?.data?.success) {
+                if (typeof onSuccess === "function") {
+                    onSuccess(response.data.data);
+                }
+                if (typeof setIsBatTeamPlayerModalVisible === "function") {
+                    setIsBatTeamPlayerModalVisible(false);
+                }
+            }
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
             if (typeof setError === 'function') {
@@ -88,49 +95,54 @@ export const AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBats
     };
 
     return (
-        <ScrollView style={[tailwind`p-1 `, { minHeight: 500 }]}>
-            {/* Header */}
-            <View style={tailwind`items-center mb-4`}>
-                <View style={[tailwind`w-40 h-1 rounded-full mb-2`, { backgroundColor: '#334155' }]} />
-                <Text style={[tailwind`text-lg font-semibold`, { color: '#f1f5f9' }]}>
-                    Select Batsman
-                </Text>
-            </View>
+    <View>
 
-            {/* Player List */}
-            {battingSquad.map((item, index) => (
-                <Pressable
-                    key={index}
-                    onPress={() => handleAddNextBatsman(item)}
-                    style={[tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}
-                >
-                    {/* Avatar */}
-                    {item?.media_url ? (
-                        <Image
-                            source={{ uri: item.media_url }}
-                            style={tailwind`h-12 w-12 rounded-full`}
-                        />
-                    ) : (
-                        <View
-                            style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}
-                        >
-                            <Text style={tailwind`text-white font-bold text-lg`}>
-                                {item?.player?.name?.charAt(0).toUpperCase()}
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Player Info */}
-                    <View style={tailwind`ml-3`}>
-                        <Text style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}>
-                            {item?.player?.name}
-                        </Text>
-                        <Text style={[tailwind`text-sm`, { color: '#94a3b8' }]}>
-                            {item?.player?.positions}
+        {/* Player List */}
+        {battingSquad.map((item, index) => (
+            <Pressable
+                key={index}
+                onPress={() => handleAddNextBatsman(item)}
+                style={[
+                    tailwind`flex-row items-center py-3 px-3 rounded-xl mb-2`,
+                    {
+                        backgroundColor: '#0f172a',
+                        borderWidth: 1,
+                        borderColor: '#334155',
+                    }
+                ]}
+            >
+                {/* Avatar */}
+                {item?.media_url ? (
+                    <Image
+                        source={{ uri: item.media_url }}
+                        style={tailwind`h-12 w-12 rounded-full`}
+                    />
+                ) : (
+                    <View style={tailwind`h-12 w-12 bg-red-400 rounded-full items-center justify-center`}>
+                        <Text style={tailwind`text-white font-bold text-lg`}>
+                            {item?.player?.name?.charAt(0)?.toUpperCase()}
                         </Text>
                     </View>
-                </Pressable>
-            ))}
-        </ScrollView>
-    );
+                )}
+
+                {/* Player Info */}
+                <View style={tailwind`ml-3 flex-1`}>
+                    <Text
+                        numberOfLines={1}
+                        style={[tailwind`text-base font-semibold`, { color: '#f1f5f9' }]}
+                    >
+                        {item?.player?.name}
+                    </Text>
+
+                    <Text
+                        numberOfLines={1}
+                        style={[tailwind`text-sm`, { color: '#94a3b8' }]}
+                    >
+                        {item?.player?.positions}
+                    </Text>
+                </View>
+            </Pressable>
+        ))}
+    </View>
+);
 };
