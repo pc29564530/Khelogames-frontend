@@ -18,11 +18,11 @@ export const addCricketScoreServices = async ({game, dispatch, matchPublicID, te
         const authToken = await AsyncStorage.getItem("AccessToken");
         const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketScore`, data, {
             headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
+                'Authorization': `bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
         });
-        const item = response.data;
+        const item = response.data.data;
         dispatch(setCurrentInningNumber(item.inning.inning_number))
         dispatch(setInningStatus("not_started", item.inning.inning_number));
         dispatch(setBatTeam(item.team.public_id));

@@ -24,6 +24,7 @@ import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, inter
 import { current } from '@reduxjs/toolkit';
 import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
 import { getLeadTrailStatus } from '../screen/CricketMatchPage'
+import { validateCricketInningForm } from '../utils/validation/cricketInningValidation';
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
@@ -45,6 +46,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [followOn, setFollowOn] = useState(false);
     const [nextInning, setNextInning] = useState(null);
+    const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
     const [currentLiveScore, setCurrentLiveScore] = useState(false);
     const [menuVisible, setMenuVisible] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
@@ -327,9 +329,26 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
         return scoreArray?.find((inning) => inning.inning_number === currentInningNumber);
     }
 
-    const handleNextInning = async (teamPublicID) => {        
+    const setupNextInning = async (teamPublicID) => {        
         try {
             const matchPublicID = match.public_id;
+            const formData = {
+                match_public_id:matchPublicID,
+                team_public_id: teamPublicID,
+                inning_number: currentInningNumber + 1,
+            }
+
+            const validation = validateCricketInningForm(formData);
+            if (!validation.isValid) {
+                console.error('Validation errors:', validation.errors);
+                // Show errors to user
+                setError({
+                    global: null,
+                    fields: err?.response.data?.error.fields,
+                })
+                return;
+            }
+            
             await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
@@ -470,7 +489,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                         match={match}
                         currentInning={currentInning}
                         inningStatus={inningStatus}
-                        handleNextInning={handleNextInning}
+                        setupNextInning={setupNextInning}
                         batTeam={batTeam}
                         currentInningNumber={currentInningNumber}
                         MAX_INNINGS={MAX_INNINGS}
@@ -575,6 +594,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
            ) : (
                 <View style={tailwind`p-2`}>
                     {/* Add Batsman and Bowler */}
+                    
                     <AddBatsmanAndBowler match={match} />
                     {/* Bowler Select - show when batsman added but no bowler yet */}
                     {currentBatsman?.length >= 2 && currentBowler?.length === 0 && (
@@ -977,6 +997,23 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     </Pressable>
                 </Modal>
             )}
+            {addBatsmanAndBowlerModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={addBatsmanAndBowlerModalVisible}
+                    onRequestClose={() => setAddBatsmanAndBowlerModalVisible(false)}
+                >
+                    <TouchableOpacity 
+                        onPress={() => setAddBatsmanAndBowlerModalVisible(false)} 
+                        style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
+                    >
+                        <View style={tailwind`bg-white rounded-t-lg p-6`}>
+                            <AddBatsmanAndBowler match={match} />
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+            )}
             </Animated.ScrollView>
         );
         }
@@ -988,7 +1025,7 @@ const InningActionModal = ({
   match,
   currentInning,
   inningStatus,
-  handleNextInning,
+  setupNextInning,
   batTeam,
   currentInningNumber,
   MAX_INNINGS,
@@ -1119,11 +1156,17 @@ const InningActionModal = ({
                 <Text style={[tailwind`font-medium text-center`, {color: '#e2e8f0'}]}>Cancel</Text>
               </Pressable>
 
-              {/* {match.match_format !== "Test" ? (
-                <Pressable onPress={() => handleNextInning()} style={[tailwind`rounded-lg px-6 py-3 ml-2`, {backgroundColor: '#f87171'}]}>
-                    <Text style={tailwind`text-white font-medium text-center`}>Start Next Inning</Text>
+              {match.match_format !== "Test" ? (
+                <Pressable onPress={() => {
+                    const nextBattingTeam = followOn 
+                    ? batTeam
+                    : (batTeam === match.homeTeam.public_id ? match.awayTeam.public_id : match.homeTeam.public_id);
+                    setupNextInning(nextBattingTeam);
+                    }} 
+                        style={[tailwind`rounded-lg px-6 py-3 ml-2`, {backgroundColor: '#f87171'}]}>
+                    <Text style={tailwind`text-white font-medium text-center`}>Setup Next Inning</Text>
                 </Pressable>
-              ):( */}
+              ):(
                     <Pressable
                         style={[tailwind`rounded-lg px-6 py-3 ml-2`, {backgroundColor: '#f87171'}]}
                         onPress={() => {
@@ -1140,7 +1183,7 @@ const InningActionModal = ({
                         {followOn ? 'Start Follow-on Inning' : 'Start Next Inning'}
                         </Text>
                     </Pressable>
-              {/* )} */}
+              )}
             </View>
           </View>
         )}

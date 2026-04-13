@@ -27,15 +27,17 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     const batting = useSelector((state) => state.cricketPlayerScore.battingScore);
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
+    const [battingSquad, setBattingSquad] = useState([]);
     const homePlayer = useSelector((state) => state.teams.homePlayer);
     const awayPlayer = useSelector((state) => state.teams.awayPlayer);
+    const CricketTeamSquad = useSelector((state) => state.cricket)
     const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
     const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
-    const [currentScoreCard, setCurrentScoreCard] = useState();
+    const [currentScoreCardTeam, setCurrentScoreCardTeam] = useState();
     const [selectedInning, setSelectedInning] = useState(1);
     const [error, setError] = useState({global: null, fields: {}});
     const homeTeamID = match?.homeTeam?.id;
@@ -85,7 +87,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 : homeTeamPublicID;
         }
 
-        setCurrentScoreCard(firstBattingTeam);
+        setCurrentScoreCardTeam(firstBattingTeam);
         setSelectedInning(1);
         }
     }, [cricketToss, homeTeamPublicID, awayTeamPublicID])
@@ -105,7 +107,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                 setIsLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
-                    params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID===currentScoreCard?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
+                    params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID===currentScoreCardTeam?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -123,14 +125,14 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
             }
         };
         fetchBatting();
-    }, [currentScoreCard, match?.public_id]);
+    }, [currentScoreCardTeam, match?.public_id]);
 
     useEffect(() => {
         const fetchBowling = async () => {
             try {
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
-                     params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID!==currentScoreCard?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
+                    params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID!==currentScoreCardTeam?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -146,34 +148,87 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
             }
         };
         fetchBowling();
-    }, [currentScoreCard, match?.public_id]);
+    }, [currentScoreCardTeam, match?.public_id]);
+
+        useEffect(() => {
+        const fetchTeamWickets = async () => {
+            try {
+                const authToken = await AsyncStorage.getItem("AccessToken")
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
+                    params: {
+                        "match_public_id": match?.public_id.toString(),
+                        "team_public_id": currentScoreCardTeam.toString()
+                    },
+                    headers: {
+                        'Authorization': `bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                dispatch(getCricketWicketFallen(response?.data?.data || []))
+            } catch (err) {
+                setError({
+                    global: "unable to get wickets",
+                    fields: {},
+                })
+                console.log("failed to get the wickets: ", err)
+            }
+        }
+        fetchTeamWickets()
+    }, [currentScoreCardTeam, match?.public_id]);
+
+    const fetchBattingSquad = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('AccessToken');
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
+                params: {
+                    "match_public_id": match.public_id,
+                    "team_public_id": batTeam
+                },
+                headers: {
+                    "Authorization": `Bearer ${authToken}`,
+                    "Content-Type": "application/json"
+                }
+            });
+            setBattingSquad(response.data.data || []);
+        } catch (err) {
+            const backendErrors = err?.response?.data?.error?.fields;
+            if (typeof setError === 'function') {
+                setError({
+                    global: "Unable to get batting squad",
+                    fields: backendErrors,
+                });
+            }
+            console.error("Failed to fetch batting squad", err);
+        }
+    };
 
     useEffect(() => {
+        fetchBattingSquad();
+    }, []);
+    useEffect(() => {
         const handleYetToBat = () => {
-            let notBatted = [];
+            if (!Array.isArray(battingSquad)) return;
+
             const allBattedIDs = new Set();
 
             Object.keys(batting?.innings || {}).forEach(key => {
                 batting.innings[key]?.forEach(batter => {
-                    if (key === selectedInning && batter?.id) allBattedIDs.add(batter.id);
+                    if (batter?.batsman_id) {
+                        allBattedIDs.add(batter.batsman_id);
+                    }
                 });
             });
 
-            if (currentScoreCard === homeTeamPublicID) {
-                if (Array.isArray(homePlayer)) {
-                    notBatted = homePlayer.filter(item => !allBattedIDs.has(item.id));
-                }
-            } else {
-                if (Array.isArray(awayPlayer)) {
-                    notBatted = awayPlayer.filter(item => !allBattedIDs.has(item.id));
-                }
-            }
+            const notBatted = battingSquad.filter(
+                player => !allBattedIDs.has(player.player_id)
+            );
 
             setYetToBat(notBatted);
         };
-
-        handleYetToBat();
-    }, [currentScoreCard, match?.public_id]);
+        if(batTeam === currentScoreCardTeam) {
+            handleYetToBat();
+        }
+    }, [batting, battingSquad, currentScoreCardTeam, match?.public_id]);
 
     const handleAddNextBatsman = async () => {
 
@@ -232,34 +287,6 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
         }
     }
 
-    useEffect(() => {
-        const fetchTeamWickets = async () => {
-            try {
-                const data = {
-                    match_public_id: match?.public_id,
-                    team_public_id: currentScoreCard,
-                }
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets/${match?.public_id}`, {
-                    params: {
-                        "match_public_id": match?.public_id.toString(),
-                        "team_public_id": currentScoreCard.toString()
-                    },
-                    headers: {
-                        'Authorization': `bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-                dispatch(getCricketWicketFallen(response?.data?.data || []))
-                setWicketsData(response.data.data || []);
-            } catch (err) {
-
-                console.log("failed to get the wickets: ", err)
-            }
-        }
-        fetchTeamWickets()
-    }, [currentScoreCard, match?.public_id]);
-
     if (isLoading) {
         return (
             <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
@@ -285,31 +312,31 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                         <View style={tailwind`flex-row mb-2 p-2 items-center justify-between gap-2`}>
                             <Pressable
                             onPress={() => {
-                                setCurrentScoreCard(homeTeamPublicID);
+                                setCurrentScoreCardTeam(homeTeamPublicID);
                             }}
                             style={[
                                 tailwind`rounded-lg w-1/2 items-center p-2`,
                                 {borderWidth: 1, borderColor: '#334155'},
-                                homeTeamPublicID === currentScoreCard
+                                homeTeamPublicID === currentScoreCardTeam
                                 ? {backgroundColor: '#f87171'}
                                 : {backgroundColor: '#0f172a'},
                             ]}
                             >
-                            <Text style={[tailwind`text-lg font-bold`, {color: homeTeamPublicID === currentScoreCard ? '#ffffff' : '#94a3b8'}]}>
+                            <Text style={[tailwind`text-lg font-bold`, {color: homeTeamPublicID === currentScoreCardTeam ? '#ffffff' : '#94a3b8'}]}>
                                 {match?.homeTeam?.name}
                             </Text>
                             </Pressable>
                             <Pressable
-                            onPress={() => setCurrentScoreCard(awayTeamPublicID)}
+                            onPress={() => setCurrentScoreCardTeam(awayTeamPublicID)}
                             style={[
                                 tailwind`rounded-lg w-1/2 items-center p-2`,
                                 {borderWidth: 1, borderColor: '#334155'},
-                                awayTeamPublicID === currentScoreCard
+                                awayTeamPublicID === currentScoreCardTeam
                                 ? {backgroundColor: '#f87171'}
                                 : {backgroundColor: '#0f172a'},
                             ]}
                             >
-                            <Text style={[tailwind`text-lg font-bold`, {color: awayTeamPublicID === currentScoreCard ? '#ffffff' : '#94a3b8'}]}>
+                            <Text style={[tailwind`text-lg font-bold`, {color: awayTeamPublicID === currentScoreCardTeam ? '#ffffff' : '#94a3b8'}]}>
                                 {match?.awayTeam?.name}
                             </Text>
                             </Pressable>
@@ -357,7 +384,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                                                 <View>
                                                         {yetToBat.map((item, index) => (
                                                         <View key={index} style={tailwind`flex-1`}>
-                                                                <Text style={[tailwind`py-1`, {color: '#cbd5e1'}]}>{item.player_name}</Text>
+                                                                <Text style={[tailwind`py-1`, {color: '#cbd5e1'}]}>{item.player.name}</Text>
                                                         </View>
                                                         ))}
                                                 </View>
@@ -381,24 +408,6 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                     )}
 
                 </Animated.ScrollView>
-                {isYetToBatModalVisible && (
-                        <Modal
-                        transparent={true}
-                        animationType="slide"
-                        visible={isYetToBatModalVisible}
-                        onRequestClose={() => setIsYetToBatModalVisible(false)}
-                        >
-                        <Pressable onPress={() => setIsYetToBatModalVisible(false)} style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
-                            <View style={[tailwind`rounded-t-2xl p-4`, {backgroundColor: '#1e293b'}]}>
-                            {yetToBat.map((item, index) => (
-                                <Pressable key={index} onPress={() => {handleAddNextBatsman(item)}} style={[tailwind`py-2`, {borderBottomWidth: 1, borderColor: '#334155'}]}>
-                                    <Text style={[tailwind`text-xl py-2`, {color: '#f1f5f9'}]}>{item.player_name}</Text>
-                                </Pressable>
-                            ))}
-                            </View>
-                        </Pressable>
-                    </Modal>
-                )}
             </View>
         );
     }
