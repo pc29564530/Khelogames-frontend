@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore, setCricketMatchToss, addBatsman, addBowler, addCricketWicketFallen } from '../redux/actions/actions';
+import { getHomePlayer, getMatch, getAwayPlayer, setBatTeam, setInningScore, setEndInning, setCurrentInning, setInningStatus, setCurrentInningNumber, setMatchStatus, setBatsmanScore, setBowlerScore, setCricketMatchToss, addBatsman, addBowler, addCricketWicketFallen, setActionRequired } from '../redux/actions/actions';
 import CricketMatchPageContent from '../navigation/CricketMatchPageContent';
 import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import CheckBox from '@react-native-community/checkbox';
@@ -107,6 +107,7 @@ const CricketMatchPage = ({ route }) => {
     const cricketToss = useSelector(state => state.cricketToss.cricketToss);
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
+    const actionRequired = useSelector(state => state.cricketMatchScore.actionRequired);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
     const [loading, setLoading] = useState(false);
@@ -118,7 +119,7 @@ const CricketMatchPage = ({ route }) => {
     const [statusVisible, setStatusVisible] = useState(false);
     const [inningVisible, setInningVisible] = useState(false);
     const [teamInning, setTeamInning] = useState();
-    const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
+    const [addOpeningBatsmanAndBowlerModalVisible, setAddOpeningBatsmanAndBowlerModalVisible] = useState(false);
     const [statusCode, setStatusCode] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [allStatus, setAllStatus] = useState([]);
@@ -143,7 +144,6 @@ const CricketMatchPage = ({ route }) => {
                     payload: { match_public_id: match.public_id }
                 };
                 wsRef.current.send(JSON.stringify(payloadData));
-                // console.log("Subscribed to chat:", authProfile.public_id);
             } catch (err) {
                 console.error("Failed to subscribe to chat:", err);
             }
@@ -509,14 +509,12 @@ const CricketMatchPage = ({ route }) => {
                 
                 // Batch all dispatches to prevent multiple re-renders
                 const dispatches = [];
-                console.log("Message: ", message.payload.event_type)
                 if(message.payload.event_type === "normal"){
                     if(message.payload.striker_batsman) dispatches.push(setBatsmanScore(message.payload.striker_batsman));
                     if(message.payload.non_striker_batsman) dispatches.push(setBatsmanScore(message.payload.non_striker_batsman));
                     if(message.payload.bowler) dispatches.push(setBowlerScore(message.payload.bowler));
                     if(message.payload.inning_score) dispatches.push(setInningScore(message.payload.inning_score));
                     if(message.payload.inning_score.inning_status !== inningStatus){
-                        console.log("Inning Number normal: ", message.payload.inning_score.inning_number)
                         dispatches.push(setInningStatus(message.payload.inning_score.inning_status, message.payload.inning_score.inning_number));
                         dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
                     }
@@ -549,11 +547,17 @@ const CricketMatchPage = ({ route }) => {
                         dispatches.push(setCurrentInningNumber(message.payload.inning_score.inning_number));
                     }
                 }
+                const action = message.payload.action_required;
+
+                if (action !== undefined) {
+                    if (action !== actionRequired) {
+                        dispatches.push(setActionRequired(action));
+                    }
+                }
                 
                 // Execute all dispatches at once
                 dispatches.forEach(dispatchAction => dispatchRef.current(dispatchAction));
             } else if(message.type === "UPDATE_MATCH_STATUS") {
-                console.log("Update match status: ", message)
                 dispatch(setMatchStatus(message.payload));
             } else if(message.type === "CRICKET_TOSS") {
                 const tossPayload = message.payload;
@@ -578,10 +582,8 @@ const CricketMatchPage = ({ route }) => {
                     dispatchRef.current(setCurrentInningNumber(tossPayload.inning.inning_number));
                 }
             } else if(message.type === "ADD_BATSMAN") {
-                console.log("Add Batsman: ", message.payload)
                 dispatch(addBatsman(message.payload))
             } else if(message.type === "ADD_BOWLER") {
-                console.log("Add Bowler: ", message.payload)
                 dispatch(addBowler(message.payload))
             } else if(message.type === "UPDATE_BOWLER") {
                 dispatch(addBowler(message.payload.current_bowler));
@@ -612,7 +614,7 @@ const CricketMatchPage = ({ route }) => {
         } catch (err) {
             console.error('error parsing json: ', err);
         }
-    }, []);
+    }, [inningStatus, match, actionRequired]);
 
     useEffect(() => {
         console.log(" Cricket - Subscribing to WebSocket messages");
@@ -975,15 +977,15 @@ const CricketMatchPage = ({ route }) => {
                 </Modal>
             )}
 
-            {addBatsmanAndBowlerModalVisible && (
+            {addOpeningBatsmanAndBowlerModalVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
-                    visible={addBatsmanAndBowlerModalVisible}
-                    onRequestClose={() => setAddBatsmanAndBowlerModalVisible(false)}
+                    visible={addOpeningBatsmanAndBowlerModalVisible}
+                    onRequestClose={() => setAddOpeningBatsmanAndBowlerModalVisible(false)}
                 >
                     <TouchableOpacity 
-                        onPress={() => setAddBatsmanAndBowlerModalVisible(false)} 
+                        onPress={() => setAddOpeningBatsmanAndBowlerModalVisible(false)} 
                         style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                     >
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>

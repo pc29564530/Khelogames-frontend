@@ -7,11 +7,18 @@ const initialstate = {
     currentBatsman: [],
     currentBowler: [],
     isCurrentBowler: null,
+    actionRequired: null,
 }
 
 const cricketMatchPlayerScoreReducers = (state=initialstate, action) => {
 
     switch (action.type) {
+        case actionTypes.SET_ACTION_REQUIRED:
+            return {
+                ...state,
+                actionRequired: action.payload
+            }
+    
         case actionTypes.SET_CURRENT_BATSMAN:
             return {
                 ...state,

@@ -4,7 +4,7 @@ import { BASE_URL } from "../constants/ApiConstants";
 import { Image, Pressable, Text, View, ScrollView, Dimensions } from 'react-native';
 import tailwind from "twrnc";
 import axiosInstance from "../screen/axios_config";
-import { addBatsman } from "../redux/actions/actions";
+import { addBatsman, setActionRequired } from "../redux/actions/actions";
 import { useSelector } from "react-redux";
 
 
@@ -75,6 +75,7 @@ export const  AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBat
                     setIsBatTeamPlayerModalVisible(false);
                 }
             }
+            dispatch(setActionRequired(null))
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;
             if (typeof setError === 'function') {

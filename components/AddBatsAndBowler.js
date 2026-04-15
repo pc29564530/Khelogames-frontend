@@ -12,7 +12,7 @@ import { getCricketMatchSqud } from '../redux/actions/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScreenHeight } from '@rneui/base';
 
-const AddBatsmanAndBowler = ({match, setAddBatsmanAndBowlerModalVisible}) => {
+const AddBatsmanAndBowler = ({match, setAddOpeningBatsmanAndBowlerModalVisible}) => {
     const [striker, setStriker] = useState(null);
     const [nonStriker, setNonStriker] = useState(null)
     const [currentModal, setCurrentModal] = useState(null);

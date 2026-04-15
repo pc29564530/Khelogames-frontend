@@ -84,7 +84,6 @@ export const RenderScore = ({item, game}) => {
         if (game?.name === 'badminton') {
             return (
                 <View style={tailwind`items-center`}>
-                    {console.log("Rendering badminton score: ", item)}
                     <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
                         {item ?? 0}
                     </Text>
@@ -107,7 +106,7 @@ export const RenderScore = ({item, game}) => {
             return (
                 <View style={tailwind`items-center`}>
                     <Text style={[tailwind`text-lg font-bold`, {color: '#f1f5f9'}]}>
-                        renderInningScore(item)
+                        {renderInningScore(item)}
                     </Text>
                 </View>
             )

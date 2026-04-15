@@ -18,13 +18,14 @@ import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
 import { formattedDate } from '../utils/FormattedDateTime';
 import { addCricketScoreServices } from '../services/cricketMatchServices';
- import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, setCurrentBatsman, setCurrentBowler } from '../redux/actions/actions';
+ import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, setCurrentBatsman, setCurrentBowler, setActionRequired } from '../redux/actions/actions';
 import { renderInningScore } from './Matches';
 import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import { current } from '@reduxjs/toolkit';
 import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
 import { getLeadTrailStatus } from '../screen/CricketMatchPage'
 import { validateCricketInningForm } from '../utils/validation/cricketInningValidation';
+import AddBatsmanAndBowlerSelection from '../components/AddBatsmanAndBowlerSelection';
 
 const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
@@ -38,6 +39,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
     const batting = useSelector(state => state.cricketPlayerScore.battingScore);
     const bowling = useSelector(state => state.cricketPlayerScore.bowlingScore);
+    const actionRequired = useSelector(state => state.cricketPlayerScore.actionRequired);
     const homePlayer = useSelector(state => state.teams.homePlayer);
     const awayPlayer = useSelector(state => state.teams.awayPlayer);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss);
@@ -46,6 +48,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const [isModalBowlingVisible, setIsModalBowlingVisible] = useState(false);
     const [followOn, setFollowOn] = useState(false);
     const [nextInning, setNextInning] = useState(null);
+    const [addOpeningBatsmanAndBowlerModalVisible, setAddOpeningBatsmanAndBowlerModalVisible] = useState(false);
     const [addBatsmanAndBowlerModalVisible, setAddBatsmanAndBowlerModalVisible] = useState(false);
     const [currentLiveScore, setCurrentLiveScore] = useState(false);
     const [menuVisible, setMenuVisible] = useState(false);
@@ -96,6 +99,7 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             }
         }
     })
+
 
     // Content animation style
     const contentStyle = useAnimatedStyle(() => {
@@ -439,6 +443,17 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             setLoading(false);
         }
     };
+useEffect(() => {
+    if (!actionRequired) return;
+
+    if (actionRequired === "SELECT_BOWLER") {
+        setIsModalBowlingVisible(true);
+    } else if (actionRequired === "SELECT_BATSMAN") {
+        setIsModalBattingVisible(true);
+    } else if (actionRequired === "SELECT_BATSMAN_AND_BOWLER") {
+        setAddBatsmanAndBowlerModalVisible(true);
+    }
+}, [actionRequired]);
 
     const activeBowler = Array.isArray(currentBowler)
     ? currentBowler.find(b => b.is_current_bowler)
@@ -739,7 +754,10 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                                         dispatch={dispatch}
                                         error={error}
                                         setError={setError}
-                                        onSuccess={() => setIsModalBattingVisible(false)}
+                                        onSuccess={() => {
+                                            dispatch(setActionRequired(null));
+                                            setIsModalBattingVisible(false);
+                                        }}
                                     />
                                 </ScrollView>
                             </View>
@@ -882,6 +900,57 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                 </Modal>
             )}
 
+            {/* ADD BATSMAN AND BOWLER MODAL */}
+            {addBatsmanAndBowlerModalVisible && (
+                <Modal
+                    transparent={true}
+                    animationType="slide"
+                    visible={addBatsmanAndBowlerModalVisible}
+                    onRequestClose={() => setAddBatsmanAndBowlerModalVisible(false)}
+                >
+                    <View style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}>
+                        <Pressable
+                            style={tailwind`flex-1`}
+                            onPress={() => setAddBatsmanAndBowlerModalVisible(false)}
+                        />
+                        <View
+                            style={[
+                                tailwind`rounded-t-2xl p-4`,
+                                {
+                                    backgroundColor: '#1e293b',
+                                    minHeight: 300,
+                                    maxHeight: sHeight * 0.75,
+                                },
+                            ]}
+                        >
+                            {/* Drag Handle */}
+                            <View
+                                style={[
+                                    tailwind`w-10 h-1 rounded-full self-center mb-5`,
+                                    { backgroundColor: '#475569' },
+                                ]}
+                            />
+                            {/* Title */}
+                            <Text
+                                style={[ tailwind`text-lg font-bold mb-4`, { color: '#f1f5f9' }, ]}
+                            >
+                                Select New Batsman & Bowler
+                            </Text>
+                            {/* Content */}
+                            <View style={{ maxHeight: sHeight * 0.6 }}>
+
+                                <ScrollView showsVerticalScrollIndicator={false}>
+                                    <AddBatsmanAndBowlerSelection
+                                        match={match}
+                                        setAddBatsmanAndBowlerModalVisible={setAddBatsmanAndBowlerModalVisible}
+                                    />
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            )}
+
             {/* ===== SELECT OUT BATSMAN MODAL (Run Out) ===== */}
             {isCurrentBatsmanModalVisible && (
                 <Modal
@@ -997,15 +1066,15 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
                     </Pressable>
                 </Modal>
             )}
-            {addBatsmanAndBowlerModalVisible && (
+            {addOpeningBatsmanAndBowlerModalVisible && (
                 <Modal
                     transparent={true}
                     animationType="fade"
-                    visible={addBatsmanAndBowlerModalVisible}
-                    onRequestClose={() => setAddBatsmanAndBowlerModalVisible(false)}
+                    visible={addOpeningBatsmanAndBowlerModalVisible}
+                    onRequestClose={() => setAddOpeningBatsmanAndBowlerModalVisible(false)}
                 >
                     <TouchableOpacity 
-                        onPress={() => setAddBatsmanAndBowlerModalVisible(false)} 
+                        onPress={() => setAddOpeningBatsmanAndBowlerModalVisible(false)} 
                         style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
                     >
                         <View style={tailwind`bg-white rounded-t-lg p-6`}>

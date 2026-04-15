@@ -725,3 +725,10 @@ export const addBadmintonNewSet = (newSet) => {
 
     }
 }
+
+export const setActionRequired = (action) => {
+    return {
+        type: actionTypes.SET_ACTION_REQUIRED,
+        payload: action
+    }
+}

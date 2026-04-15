@@ -2,7 +2,7 @@ import {useState, useEffect} from  'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pressable, View, Text, ScrollView } from "react-native";
 import { BASE_URL } from "../constants/ApiConstants";
-import { setBowlerScore } from "../redux/actions/actions";
+import { setActionRequired, setBowlerScore } from "../redux/actions/actions";
 import tailwind from "twrnc";
 import axiosInstance from "../screen/axios_config";
 import { useSelector } from "react-redux";
@@ -51,6 +51,7 @@ const SetCurrentBowler = ({match, batTeam, game, dispatch, selectBowler, setSele
                     'Content-Type': 'application/json'
                 }
             })
+            dispatch(setActionRequired(null))
             setIsModalBowlingVisible(false);
         } catch (err) {
             const backendErrors = err?.response?.data?.error?.fields;

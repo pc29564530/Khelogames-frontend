@@ -26,7 +26,6 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     // Bowling stats
     const [mostWickets, setMostWickets] = useState(null);
     const [bowlingAverage, setBowlingAverage] = useState(null);
-    const [bowlingStrike, setBowlingStrike] = useState(null);
     const [bowlingEconomy, setBowlingEconomy] = useState(null);
     const [fiveWicketsHaul, setFiveWicketsHaul] = useState(null);
 
@@ -75,7 +74,6 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
             fetchBowlingWickets(),
             fetchBowlingEconomy(),
             fetchBowlingAverage(),
-            fetchBowlingStrike(),
             fetchBowlingFiveWicketHaul()
         ]);
         setLoading(false);
@@ -110,7 +108,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     const fetchBowlingWickets = () => fetchStat('getCricketTournamentMostWickets', setMostWickets, 'most wickets');
     const fetchBowlingEconomy = () => fetchStat('getCricketTournamentBowlingEconomy', setBowlingEconomy, 'bowling economy');
     const fetchBowlingAverage = () => fetchStat('getCricketTournamentBowlingAverage', setBowlingAverage, 'bowling average');
-    const fetchBowlingStrike = () => fetchStat('getCricketTournamentBowlingStrike', setBowlingStrike, 'bowling strike');
+    // const fetchBowlingStrike = () => fetchStat('getCricketTournamentBowlingStrike', setBowlingStrike, 'bowling strike');
     const fetchBowlingFiveWicketHaul = () => fetchStat('getCricketTournamentFiveWicketsHaul', setFiveWicketsHaul, 'five wickets haul');
 
     // Helper to render stat card
@@ -234,7 +232,6 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                                 {renderStatCard("Most Wickets", mostWickets, "mostWickets")}
                                 {renderStatCard("Best Economy", bowlingEconomy, "bowlingEconomy")}
                                 {renderStatCard("Best Average", bowlingAverage, "bowlingAverage")}
-                                {renderStatCard("Best Strike Rate", bowlingStrike, "bowlingStrike")}
                                 {renderStatCard("5-Wicket Hauls", fiveWicketsHaul, "fiveWicketsHaul")}
                             </>
                         )}

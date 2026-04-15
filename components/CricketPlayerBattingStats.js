@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../screen/axios_config';
 import tailwind from 'twrnc';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const StatRow = ({ label, value = "N/A" }) => (
   <View
