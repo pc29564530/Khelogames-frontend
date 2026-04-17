@@ -155,18 +155,18 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       setSelectedSquad([]);
       setIsSubstituted([]);
     } catch (err) {
-      if(err?.response.data?.error?.code === "FORBIDDEN"){
-        setError({
-          global: err?.response?.data?.error?.message,
-          fields: {},
-        })
+      const errorCode = err?.response?.data?.error?.code;
+      const errorMessage = err?.response?.data?.error?.message;
+      const backendFields = err?.response?.data?.error?.fields;
+
+      if (backendFields && Object.keys(backendFields).length > 0) {
+        setError({ global: errorMessage || "Invalid input", fields: backendFields });
+      } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+        setError({ global: errorMessage, fields: {} });
       } else {
-        setError({
-          global: "Unable to create squad for match",
-          fields: err?.response?.data?.error?.fields || {}
-        })
+        setError({ global: "Unable to create squad for match", fields: {} });
       }
-      console.log('Unable to create squad for match: ', err);
+      console.log('Unable to create squad for match: ', err?.response?.data?.error);
     } finally {
       setLoading(false);
     }
@@ -249,8 +249,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     if(!authUser){
       return null;
     }
-    if(currentTeamPlayer === homeTeamPublicID){
-      return (
+    return (
         <Pressable
           style={[tailwind`flex-row items-center justify-center py-3 rounded-xl`, { backgroundColor: '#f87171' }]}
           onPress={() => setIsPlayerModalVisible(true)}
@@ -261,20 +260,6 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
           </Text>
         </Pressable>
       )
-    } else if(currentTeamPlayer === awayTeamPublicID){
-      return (
-        <Pressable
-          style={[tailwind`flex-row items-center justify-center py-3 rounded-xl`, { backgroundColor: '#f87171' }]}
-          onPress={() => setIsPlayerModalVisible(true)}
-        >
-          <MaterialIcons name="add" size={20} color="white" />
-          <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
-            Select Squad
-          </Text>
-        </Pressable>
-      )
-    }
-    return null;
   }
 
   return (
@@ -328,7 +313,9 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
       {/* Squad selector */}
       {/* Check for team manager */}
-      <AddTeamPlayerButton />
+      {match.status_code === "not_started" && (
+        <AddTeamPlayerButton />
+      )}
       </Animated.View>
       {/* Current Lineup */}
       {!loading && currentLineUp.length === 0 && substitutionPlayer.length === 0 && (

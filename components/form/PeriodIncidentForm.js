@@ -110,19 +110,18 @@ const PeriodIncidentForm = ({
             navigation.goBack();
         } catch (err) {
             if (isMountedRef.current) {
-                 const backendErrors = err?.response?.data?.error?.fields;
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                    setError({
-                        global: err?.response?.data?.error?.message,
-                        fields: {},
-                    })
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
                 } else {
-                    setError({
-                        global: "Unable to add football incident",
-                        fields: backendErrors,
-                    });
+                    setError({ global: "Unable to add football incident", fields: {} });
                 }
-                console.error("Unable to add football incident:", err);
+                console.error("Unable to add football incident:", err?.response?.data?.error);
             }
         } finally {
             if (isMountedRef.current) {

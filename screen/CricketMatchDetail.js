@@ -86,19 +86,18 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             const item = response.data;
             setIsTossedModalVisible(false);
         } catch (err) {
-             const backendErrors = err?.response?.data?.error?.fields;
-            if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to add the cricket match toss",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to add the cricket match toss", fields: {} });
             }
-            console.error("unable to add the toss: ", err);
+            console.error("unable to add the toss: ", err?.response?.data?.error);
         } finally {
             setLoading(false);
         }
@@ -162,29 +161,32 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                }}
             >
                 {/* Header + Update Toss Button */}
-                <View style={tailwind`mb-4`}>
-                    <Pressable
-                        onPress={cricketToss ? null : handleModalVisible}
-                        disabled={!!cricketToss}
-                        style={[
-                            tailwind`rounded-xl p-4 mt-4 flex-row items-center justify-center`,
-                            {
-                                backgroundColor: cricketToss ? '#475569' : '#f87171',
-                                opacity: cricketToss ? 0.6 : 1,
-                            }
-                        ]}
-                    >
-                        <MaterialIcons name="swap-horiz" size={20} color="#fff" />
-                        <Text
+                {/* Check for permission */}
+                {match.status_code === 'in_progress' && (
+                    <View style={tailwind`mb-4`}>
+                        <Pressable
+                            onPress={cricketToss ? null : handleModalVisible}
+                            disabled={!!cricketToss}
                             style={[
-                                tailwind`text-center text-base font-semibold ml-2`,
-                                { color: '#fff' }
+                                tailwind`rounded-xl p-4 mt-4 flex-row items-center justify-center`,
+                                {
+                                    backgroundColor: cricketToss ? '#475569' : '#f87171',
+                                    opacity: cricketToss ? 0.6 : 1,
+                                }
                             ]}
                         >
-                            {cricketToss ? 'Toss Already Completed' : 'Update Toss'}
-                        </Text>
-                    </Pressable>
-                </View>
+                            <MaterialIcons name="swap-horiz" size={20} color="#fff" />
+                            <Text
+                                style={[
+                                    tailwind`text-center text-base font-semibold ml-2`,
+                                    { color: '#fff' }
+                                ]}
+                            >
+                                {cricketToss ? 'Toss Already Completed' : 'Update Toss'}
+                            </Text>
+                        </Pressable>
+                    </View>
+                )}
 
                 {/* Error Banner */}
                 {error?.global && (

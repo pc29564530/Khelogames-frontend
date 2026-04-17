@@ -278,20 +278,19 @@ const BadmintonMatchPage = ({ route }) => {
                 fields: {},
             });
         } catch (err) {
-            const backendErrors = err?.response?.data?.error?.fields || {};
-            if(err?.response?.data?.error?.code === "FORBIDDEN"){
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to update match status. Please try again.",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to update match status. Please try again.", fields: {} });
             }
             setStatusVisible(true);
-            console.error("Unable to update the match status: ", err);
+            console.error("Unable to update the match status: ", err?.response?.data?.error);
         } finally {
             setLoading(false);
         }

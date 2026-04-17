@@ -355,27 +355,20 @@ const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
             
             await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
         } catch (err) {
-            const backendErrors = err?.response?.data?.error?.fields;
-            if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to add cricket score for next inning",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to add cricket score for next inning", fields: {} });
             }
-            console.error("Failed to start next inning: ", err);
+            console.error("Failed to start next inning: ", err?.response?.data?.error);
             dispatch(setCurrentInningNumber(currentInningNumber-1))
         }
-    }
-
-    const handleSelectBowler = () => {
-            return (
-                <SetCurrentBowler match={match} batTeam={batTeam} homePlayer={homePlayer} awayPlayer={awayPlayer} game={game} dispatch={dispatch} bowlingTeamPlayer={players} currentBowler={currentBowler} error={error} setError={setError} inningNumber={currentInningNumber} setIsModalBowlingVisible={setIsModalBowlingVisible}/>
-            )
     }
 
     const currentWicketKeeper = batTeam !== homeTeamPublicID ? homePlayer.find((item) => item.position === "WK"): awayPlayer.find((item) => item.position === "WK");

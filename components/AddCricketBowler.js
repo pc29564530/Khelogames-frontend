@@ -74,24 +74,30 @@ export const AddCricketBowler = ({ match, batTeam, homeTeam, awayTeam, game, dis
                 }
             }
         } catch (err) {
-            const backendErrors = err?.response?.data?.error?.fields;
-            if (err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                });
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to add new cricket bowler",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to add new cricket bowler", fields: {} });
             }
-            console.log("Failed to add new cricket bowler: ", err);
+            console.log("Failed to add new cricket bowler: ", err?.response?.data?.error);
         }
     };
 
     return (
         <View style={tailwind`p-1`}>
+            {error?.global && (
+                <View style={[tailwind`mx-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                    <Text style={{ color: '#fca5a5', fontSize: 13 }}>
+                        {error.global}
+                    </Text>
+                </View>
+            )}
 
             {/* Player List */}
             {bowlingSquad.map((item, index) => (

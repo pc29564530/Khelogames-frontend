@@ -86,7 +86,6 @@ export const validateFootballIncidentForm = (formData) => {
         'team_public_id',
         'periods',
         'incident_type',
-        'incident_time',
         'description',
     ]
 
@@ -106,12 +105,21 @@ export const validateFootballIncidentForm = (formData) => {
         if(playerOutError) {
             errors['player_out_public_id'] = playerOutError;
         }
+
+        const incidentTimeError = validateFootballIncidentField('incident_time', formData['incident_time'], formData)
+        if(incidentTimeError) {
+          errors['incident_time'] = incidentTimeError
+        }
     }
 
     if (formData['event_type'] === 'normal') {
         const error = validateFootballIncidentField('player_public_id', formData['player_public_id'], formData)
         if (error) {
             errors['player_public_id'] = error;
+        }
+        const incidentTimeError = validateFootballIncidentField('incident_time', formData['incident_time'], formData)
+        if(incidentTimeError) {
+          errors['incident_time'] = incidentTimeError
         }
     }
 

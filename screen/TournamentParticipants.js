@@ -67,7 +67,7 @@ const AddParticipantModal = ({
             {/* Header */}
             <View style={tailwind`flex-row items-center justify-between mb-4`}>
               <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>
-                Add {entityType === 'team' ? 'Teams' : 'Players'}
+                Add Team
               </Text>
               <Pressable onPress={onClose} style={tailwind`w-8 h-8 items-center justify-center`}>
                 <CloseIcon />
@@ -314,16 +314,16 @@ const TournamentParticipants = ({
       await fetchParticipants();
       setIsModalVisible(false);
     } catch (err) {
-      if(err?.response?.data?.error?.code === "FORBIDDEN"){
-          setModalError({
-              global: err?.response?.data?.error?.message,
-              fields: {},
-          })
+      const errorCode = err?.response?.data?.error?.code;
+      const errorMessage = err?.response?.data?.error?.message;
+      const backendFields = err?.response?.data?.error?.fields;
+
+      if (backendFields && Object.keys(backendFields).length > 0) {
+        setModalError({ global: errorMessage || "Invalid input", fields: backendFields });
+      } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+        setModalError({ global: errorMessage, fields: {} });
       } else {
-        setModalError({
-          global: 'Unable to add participant',
-          fields: err?.response?.data?.error?.fields || {},
-        });
+        setModalError({ global: 'Unable to add participant', fields: {} });
       }
     } finally {
       setSubmitting(false);
@@ -331,7 +331,6 @@ const TournamentParticipants = ({
   };
 
   const handleTeamPress = async (item) => {
-    console.log("Team Item: ", item)
       if (!item) return;
 
       if (item?.type === 'individual') {
@@ -369,21 +368,23 @@ const TournamentParticipants = ({
       contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight,  backgroundColor: '#0f172a' }}
     >
       {/* Action Buttons */}
-        <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
-            <Pressable
-              key={'team'}
-              onPress={() => {
-                setSelectedEntityType('team');
-                setIsModalVisible(true);
-              }}
-              style={[tailwind`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-sm`, { backgroundColor: '#f87171' }]}
-            >
-              {<TeamIcon />}
-              <Text style={tailwind`text-white ml-2 font-semibold text-base`}>
-                Add Teams
-              </Text>
-            </Pressable>
-        </View>
+      {tournament.status_code === "not_started" && (
+          <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+              <Pressable
+                key={'team'}
+                onPress={() => {
+                  setSelectedEntityType('team');
+                  setIsModalVisible(true);
+                }}
+                style={[tailwind`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-sm`, { backgroundColor: '#f87171' }]}
+              >
+                {<TeamIcon />}
+                <Text style={tailwind`text-white ml-2 font-semibold text-base`}>
+                  Add Teams
+                </Text>
+              </Pressable>
+          </View>
+      )}
 
       {/* Participants List */}
       {loading ? (

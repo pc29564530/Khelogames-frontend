@@ -93,19 +93,18 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 });
 
             } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                    setError({
-                        global: err?.response?.data?.error?.message,
-                        fields: {},
-                    })
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
                 } else {
-                    setError({
-                        global: "Unable to update batting and runs and ball",
-                        fields: backendErrors,
-                    });
+                    setError({ global: "Unable to update batting and runs and ball", fields: {} });
                 }
-                console.log("Failed to add the runs and balls: ", err.response.data.error)
+                console.log("Unable to add the runs and balls: ", err?.response?.data?.error)
             }
         }
         
@@ -155,20 +154,18 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 setWicketType([])
 
             } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                    setError({
-                        global: err?.response?.data?.error?.message,
-                        fields: {},
-                    })
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
                 } else {
-                    setError({
-                        global: "Unable to add no ball",
-                        fields: backendErrors,
-                    });
+                    setError({ global: "Unable to add no ball", fields: {} });
                 }
-                console.log("Unable to add no ball: ", err);
-                console.error("Failed to add no ball: ", err)
+                console.log("Unable to add no ball: ", err?.response?.data?.error);
             }
         }
         // Wide Ball Update
@@ -218,19 +215,18 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 });
 
             } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                    setError({
-                        global: err?.response?.data?.error?.message,
-                        fields: {},
-                    })
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
                 } else {
-                    setError({
-                        global: "Unable to update wide ball",
-                        fields: backendErrors,
-                    });
+                    setError({ global: "Unable to update wide ball", fields: {} });
                 }
-                console.log("Unable to update wide ball: ", err);
+                console.log("Unable to update wide ball: ", err?.response?.data?.error);
             }
         }
         // Wicket Update
@@ -291,21 +287,19 @@ export const UpdateCricketScoreCard = memo(({match, currentScoreEvent, isWicketM
                 });
 
             } catch (err) {
-                console.log("Wicket Error: ", err)
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                        setError({
-                            global: err?.response?.data?.error?.message,
-                            fields: {},
-                        })
-                    } else {
-                        setError({
-                            global: "Unable to update wicket",
-                            fields: backendErrors,
-                        });
-                    }
-                    console.log("Unable to update wicket: ", err);
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
+                } else {
+                    setError({ global: "Unable to update wicket", fields: {} });
                 }
+                console.log("Unable to update wicket: ", err?.response?.data?.error);
+            }
         }
     }, [currentBatsman, currentBowler, addCurrentScoreEvent, match, batTeam, currentInningNumber, wsRef, wicketType, selectedFielder, currentWicketKeeper, isBatsmanStrikeChange, game, setError]);
 

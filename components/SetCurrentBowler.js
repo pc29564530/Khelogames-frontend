@@ -54,23 +54,29 @@ const SetCurrentBowler = ({match, batTeam, game, dispatch, selectBowler, setSele
             dispatch(setActionRequired(null))
             setIsModalBowlingVisible(false);
         } catch (err) {
-            const backendErrors = err?.response?.data?.error?.fields;
-            if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to update bowler bowling status",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to update bowler bowling status", fields: {} });
             }
-            console.error("Unable to update bowler bowling status; ", err);
+            console.error("Unable to update bowler bowling status: ", err?.response?.data?.error);
         }
     }
     return (
         <View>
+            {error?.global && (
+                <View style={[tailwind`mx-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
+                    <Text style={{ color: '#fca5a5', fontSize: 13 }}>
+                        {error.global}
+                    </Text>
+                </View>
+            )}
             {bowlingSquad?.map((item, index) => (
                 <Pressable key={index} onPress={() => handleUpdateBowlerStatus(item)} 
                     style={[tailwind`flex-row items-center py-3 px-2 rounded-xl mb-2`, { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }]}

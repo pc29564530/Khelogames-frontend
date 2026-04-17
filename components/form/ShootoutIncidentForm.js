@@ -54,20 +54,18 @@ const ShootoutIncidentForm = ({
                 "match_public_id": match?.public_id,
                 "team_public_id": teamPublicID,
                 "tournament_public_id": tournament?.public_id || null,
-                "periods": '',
+                "periods": 'penalty_shootout',
                 "incident_type": "penalty_shootout",
-                "incident_time": 0,
                 "player_public_id": selectedPlayer?.player?.public_id || selectedPlayer?.public_id,
                 "penalty_shootout_scored": goalScore,
                 "event_type": "penalty_shootout",
             };
-
-            // Frontend validation
+            // Verify validation 
             const validation = validateFootballIncidentForm(formData);
             if (!validation.isValid) {
                 if (isMountedRef.current) {
                     setError({
-                        global: "Please fix the errors below",
+                        global: null,
                         fields: validation.errors,
                     });
                 }
@@ -84,9 +82,9 @@ const ShootoutIncidentForm = ({
                 "match_public_id": match?.public_id,
                 "team_public_id": teamPublicID,
                 "tournament_public_id": tournament?.public_id,
-                "periods": '',
+                "periods": 'penalty_shootout',
                 "incident_type": "penalty_shootout",
-                "incident_time": 0,
+                "incident_time": null,
                 "player_public_id": selectedPlayer?.player?.public_id || selectedPlayer?.public_id,
                 "description": '',
                 "penalty_shootout_scored": goalScore
@@ -105,19 +103,18 @@ const ShootoutIncidentForm = ({
             navigation.goBack();
         } catch (err) {
             if (isMountedRef.current) {
-                const backendErrors = err?.response?.data?.error?.fields;
-                if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                    setError({
-                        global: err?.response?.data?.error?.message,
-                        fields: {},
-                    })
+                const errorCode = err?.response?.data?.error?.code;
+                const errorMessage = err?.response?.data?.error?.message;
+                const backendFields = err?.response?.data?.error?.fields;
+
+                if (backendFields && Object.keys(backendFields).length > 0) {
+                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
+                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                    setError({ global: errorMessage, fields: {} });
                 } else {
-                    setError({
-                        global: "Unable to add football incident",
-                        fields: backendErrors,
-                    });
+                    setError({ global: "Unable to add football incident", fields: {} });
                 }
-                console.log("Unable to add football shootout incident:", err);
+                console.log("Unable to add football shootout incident:", err?.response?.data?.error);
             }
         } finally {
             if (isMountedRef.current) {

@@ -165,19 +165,18 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
             setIsPlayerModalVisible(false);
             setSelectedSquad([]);
         } catch (err) {
-             const backendErrors = err?.response?.data?.error?.fields;
-            if(err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to add cricket match squad",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to add cricket match squad", fields: {} });
             }
-            console.error("Failed to add the squad for match: ", err)
+            console.error("Failed to add the squad for match: ", err?.response?.data?.error)
         } finally {
             setLoading(false);
         }
@@ -266,10 +265,9 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
             }
         });
     }
-
+    //Check the team manager and scorer for squad add
     const AddTeamPlayerButton = () => {
-        if(currentTeamPlayer === homeTeamPublicID){
-          return (
+        return (
               <Pressable
                     style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
                     onPress={() => setIsPlayerModalVisible(true)}
@@ -280,20 +278,6 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                     </Text>
                 </Pressable>
           )
-        } else if(currentTeamPlayer === awayTeamPublicID ){
-          return (
-                <Pressable
-                    style={tailwind`flex-row items-center justify-center py-3 rounded-xl bg-red-400`}
-                    onPress={() => setIsPlayerModalVisible(true)}
-                >
-                    <MaterialIcons name="add" size={20} color="white" />
-                    <Text style={tailwind`ml-2 text-white text-sm font-semibold`}>
-                        Select Squad
-                    </Text>
-                </Pressable>
-          )
-        }
-        return null;
     }
 
     return (
@@ -347,9 +331,9 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
                         </View>
                         {/* Squad selector */}
                         {/* Add scorer check and manager check and tournament host check */}
-                        {/* {(authProfile?.id === match.user_id || authProfile.id === match.tournament.id) && ( */}
+                        {match.status_code === "not_started" && (
                             <AddTeamPlayerButton />
-                        {/* )} */}
+                        )}
                     </Animated.View>
 
                 {/* Empty State Display */}

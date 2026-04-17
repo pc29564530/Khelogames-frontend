@@ -446,7 +446,7 @@ const CricketMatchPage = ({ route }) => {
         }
     };
 
-    const handleUpdateResult = async (statusCode) => {
+    const handleUpdateMatchStatus = async (statusCode) => {
         setStatusVisible(false);
         setMenuVisible(false);
         setLoading(true);
@@ -464,14 +464,19 @@ const CricketMatchPage = ({ route }) => {
                     },
                 }
             );
-            // dispatch(setMatchStatus(response.data || []));
         } catch (err) {
-            const backendError = err?.response?.data?.error.fields;
-            setError({
-                global: "Unable to update match status",
-                fields: backendError,
-            })
-            console.error("Unable to update the match: ", err);
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
+            } else {
+                setError({ global: "Unable to update match status", fields: {} });
+            }
+            console.error("unable to update match status: ", err?.response?.data?.error);
         } finally {
             setLoading(false);
         }
@@ -853,7 +858,7 @@ const CricketMatchPage = ({ route }) => {
                                 {filteredStatusCodes.map((item, index) => (
                                     <Pressable
                                         key={index}
-                                        onPress={() => {setStatusCode(item.type); handleUpdateResult(item)}}
+                                        onPress={() => {setStatusCode(item.type); handleUpdateMatchStatus(item)}}
                                         style={tailwind`py-4 px-3 border-b border-gray-200 flex-row items-center`}
                                     >
                                         <MaterialIcon name="sports-football" size={22} color="#4b5563" />
@@ -888,17 +893,6 @@ const CricketMatchPage = ({ route }) => {
                                         <MaterialIcon name="edit" size={18} color="#60a5fa" />
                                     </View>
                                     <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setMenuVisible(false);
-                                    }}
-                                    style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
-                                >
-                                    <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#10b98120' }]}>
-                                        <MaterialIcon name="update" size={18} color="#4ade80" />
-                                    </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Sub Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
