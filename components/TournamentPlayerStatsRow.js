@@ -2,7 +2,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
 import tailwind from 'twrnc';
-import TournamentPlayerStatsModal from './modals/cricket/TournamentStats';
 
 const TournamentPlayerStatsRow = ({ player, type, rank }) => {
   const getStatDisplay = () => {
