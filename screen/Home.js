@@ -382,11 +382,6 @@ function Home() {
                       <LiveDot />
                       <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 12, letterSpacing: 1 }}>{checkMatchStatus(item)}</Text>
                     </View>
-                    <View style={{ backgroundColor: sportColor(item.sport) + '22', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 }}>
-                      <Text style={{ color: sportColor(item.sport), fontSize: 11, fontWeight: '600' }}>
-                        {item.sport === 'cricket' ? '🏏 Cricket' : '⚽ Football'}
-                      </Text>
-                    </View>
                   </View>
 
                   <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 14 }} numberOfLines={1}>

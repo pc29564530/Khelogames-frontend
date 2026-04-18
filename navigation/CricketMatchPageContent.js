@@ -9,7 +9,7 @@ import CricketLive from '../screen/CricketLiveScore';
 import MediaScreen from '../screen/Media';
 
 function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedHeader}) {
-    const TopTab = createMaterialTopTabNavigator();                                               
+    const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
             screenOptions={{

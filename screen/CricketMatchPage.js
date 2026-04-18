@@ -155,8 +155,8 @@ const CricketMatchPage = ({ route }) => {
         }
         
         
-        console.log("CricketMatchPage - Subscribing to match:", match.public_id);
-    }, [match?.public_id, wsRef]);
+        console.log("CricketMatchPage - Subscribing to match:", matchPublicID);
+    }, [matchPublicID, wsRef]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
     const handleSearch = (text) => setSearchQuery(text);
