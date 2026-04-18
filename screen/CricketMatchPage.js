@@ -853,6 +853,7 @@ const CricketMatchPage = ({ route }) => {
                                 placeholder="Search status..."
                                 value={searchQuery}
                                 onChangeText={handleSearch}
+                                placeholderTextColor="#94a3b8"
                             />
                             <ScrollView style={{minHeight: 20}}>
                                 {filteredStatusCodes.map((item, index) => (

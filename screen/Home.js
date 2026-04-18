@@ -466,8 +466,8 @@ function Home() {
                   <Text style={{ color: '#f1f5f9', fontWeight: '700', fontSize: 14 }} numberOfLines={2}>{t.name || 'Tournament'}</Text>
                   <Text style={{ color: '#475569', fontSize: 12, marginTop: 6 }}>{t.country || 'Local'}</Text>
                   {t.status && (
-                    <View style={{ marginTop: 10, backgroundColor: t.status === 'ongoing' ? '#22c55e22' : '#f9731622', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'flex-start' }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: t.status === 'ongoing' ? '#22c55e' : '#f97316' }}>
+                    <View style={{ marginTop: 10, backgroundColor: t.status === 'in_progress' ? '#22c55e22' : '#f9731622', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'flex-start' }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: t.status === 'in_progress' ? '#22c55e' : '#f97316' }}>
                         {t.status.toUpperCase()}
                       </Text>
                     </View>

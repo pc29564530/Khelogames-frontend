@@ -732,3 +732,10 @@ export const setActionRequired = (action) => {
         payload: action
     }
 }
+
+export const setTournamentStatus = (status) => {
+    return {
+        type: actionTypes.SET_TOURNAMENT_STATUS,
+        payload: status
+    }
+}

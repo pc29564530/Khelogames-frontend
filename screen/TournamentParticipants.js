@@ -368,7 +368,7 @@ const TournamentParticipants = ({
       contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight,  backgroundColor: '#0f172a' }}
     >
       {/* Action Buttons */}
-      {tournament.status_code === "not_started" && (
+      {tournament.status === "not_started" && (
           <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
               <Pressable
                 key={'team'}

@@ -46,12 +46,44 @@ const BadmintonMatchPage = ({ route }) => {
         fields: {},
     });
     const game = useSelector((state) => state.sportReducers.game);
-    const payloadData = {
-            "type": "SUBSCRIBE",
-            "category": "MATCH",
-            "payload": {"match_public_id": matchPublicID}
-    }
-    wsRef?.current?.send(JSON.stringify(payloadData)) 
+
+    useFocusEffect(useCallback(() => {
+        const fetchMatchData = async () => {
+            setLoading(true);
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const item = response.data;
+                dispatch(getMatch(item.data || null));
+            } catch (err) {
+                const backendErrors = err?.response?.data?.error?.fields || {};
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to load match data. Please try again.",
+                    fields: backendErrors,
+                })
+                console.error("Failed to fetch match data: ", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMatchData();
+    }, [matchPublicID, game.name, dispatch]));
+
+    useEffect(() => {
+        if (wsRef?.current?.readyState === WebSocket.OPEN) {
+            const payloadData = {
+                "type": "SUBSCRIBE",
+                "category": "MATCH",
+                "payload": {match_public_id: matchPublicID}
+            }
+            wsRef.current.send(JSON.stringify(payloadData));
+        }
+    }, [matchPublicID]);
 
     useEffect(() => {
         const statusArray = filePath.status_codes;
@@ -211,33 +243,6 @@ const BadmintonMatchPage = ({ route }) => {
         };
     });
 
-    useFocusEffect(useCallback(() => {
-        const fetchMatchData = async () => {
-            setLoading(true);
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                const item = response.data;
-                dispatch(getMatch(item.data || null));
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to load match data. Please try again.",
-                    fields: backendErrors,
-                })
-                console.error("Failed to fetch match data: ", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchMatchData();
-    }, [matchPublicID, game.name, dispatch]));
-
     const handleUpdateStatus = async (itm) => {
         try {
             const formData = {
@@ -358,6 +363,7 @@ const BadmintonMatchPage = ({ route }) => {
 
         try {
             const message = JSON.parse(rawData);
+
             if(message.type === undefined || message.type === null){
                 console.log("Message type is undefined ")
                 return

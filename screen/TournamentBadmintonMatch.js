@@ -99,7 +99,7 @@ const TournamentBadmintonMatch = ({ tournament, AsyncStorage, axiosInstance, BAS
                     {matches?.length === 0 && error?.global && (
                         <View style={[tailwind`mx-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                             <Text style={{ color: '#fca5a5', fontSize: 13 }}>
-                                {error.global}
+                                {error?.global}
                             </Text>
                         </View>
                     )}
@@ -151,7 +151,6 @@ const TournamentBadmintonMatch = ({ tournament, AsyncStorage, axiosInstance, BAS
 
 const matchesData = (item, ind, navigation, tournament) => {
     const handleBadmintonMatchPage = (item) => {
-        console.log("Line no 158 Match: ", item)
         navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id, tournament: tournament});
     }
 
@@ -159,7 +158,6 @@ const matchesData = (item, ind, navigation, tournament) => {
     const isFinished = item?.status === "finished";
     const homeTeamName = item?.homeTeam?.name || 'TBA';
     const awayTeamName = item?.awayTeam?.name || 'TBA';
-    console.log("Match: ", item)
 
     return (
         <Pressable

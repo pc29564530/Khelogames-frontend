@@ -10,6 +10,11 @@ const initialState = {
 
 const tournamentsReducers = (state=initialState, action) => {
     switch (action.type) {
+        case actionTypes.SET_TOURNAMENT_STATUS:
+            return {
+                ...state,
+                tournament: action.payload
+            }
         case actionTypes.GET_TOURNAMENT_BY_SPORT:
             return {
                 ...state,
