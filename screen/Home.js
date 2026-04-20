@@ -182,7 +182,7 @@ function Home() {
   const [loading, setLoading]              = useState(false);
   const [refreshing, setRefreshing]        = useState(false);
 
-  const fetchTopPerformer = async () => {
+  const fetchTopPerformer = useCallback(async () => {
     try {
       const authToken = await AsyncStorage.getItem("AccessToken");
       const res = await axiosInstance.get(`${BASE_URL}/${game.name}/getTopPerformer`, {
@@ -218,7 +218,26 @@ function Home() {
       })
       console.log('Unable to get top performer:', err);
     }
-  };
+  }, [game?.name]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const liveRes = await axiosInstance.get(`${BASE_URL}/${game.name}/get-trending-matches`);
+      const liveData = (liveRes.data?.data || []).map(m => ({ ...m, sport: game.name }));
+      dispatch(getMatches(liveRes.data));
+      setTrendingMatches(liveData.slice(0, 5));
+      const tournRes = await getTournamentBySportAndTrending({ game });
+      const tournamentList = tournRes?.data?.tournament || [];
+      setTournaments(Array.isArray(tournamentList) ? tournamentList : []);
+      await fetchTopPerformer();
+    } catch (err) {
+      console.log('Failed to fetch home data:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [game?.name, dispatch, fetchTopPerformer]);
 
   // Fetch all games on mount
   useEffect(() => {
@@ -236,37 +255,12 @@ function Home() {
   // Fetch data when selected game changes
   useEffect(() => {
     if (game?.name) fetchData();
-  }, [game?.name]);
-
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Live Matches
-      const liveRes = await axiosInstance.get(`${BASE_URL}/${game.name}/get-trending-matches`);
-      const liveData = (liveRes.data?.data || []).map(m => ({ ...m, sport: game.name }));
-      dispatch(getMatches(liveRes.data));
-      setTrendingMatches(liveData.slice(0, 5));
-      // Tournaments
-      const tournRes = await getTournamentBySportAndTrending({ game });
-      const tournamentList = tournRes?.data?.tournament || [];
-      setTournaments(Array.isArray(tournamentList) ? tournamentList : []);
-
-      // Top Performers
-      await fetchTopPerformer();
-
-    } catch (err) {
-      console.log('Failed to fetch home data:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  }, [game?.name, fetchData]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
-  }, [game?.name]);
+  }, [fetchData]);
 
   const hasPerformers = topPerformers.batting.length > 0
     || topPerformers.bowling.length > 0
@@ -289,7 +283,7 @@ function Home() {
     }
   }
 
-  const handleMatchPageNavigation = (item) => {
+  const handleMatchPageNavigation = useCallback((item) => {
     if(game.name==="cricket") {
       navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id, tournament: item.tournament});
     } else if(game.name === "football") {
@@ -297,7 +291,7 @@ function Home() {
     } else if (game.name === "badminton") {
       navigation.navigate("BadmintonMatchPage", {matchPublicID: item.public_id, tournament: item.tournament})
     }
-  }
+  }, [game?.name, navigation]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
@@ -373,7 +367,7 @@ function Home() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
               {trendingMatches.map((item, index) => (
                 <Pressable
-                  key={item.public_id || index}
+                  key={item.public_id ?? `match-${index}`}
                   style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}
                   onPress={() => handleMatchPageNavigation(item)}
                 >
