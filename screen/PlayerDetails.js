@@ -12,7 +12,6 @@ import { BASE_URL } from "../constants/ApiConstants";
 import { convertToISOString, formatToDDMMYY } from "../utils/FormattedDateTime";
 
 const getMatchScore = (score, gameName) => {
-   if (!score) return "-";
 
    if (gameName === "football") {
       const goals = score.goals ?? 0;
@@ -28,7 +27,6 @@ const getMatchScore = (score, gameName) => {
    } else if (gameName === "badminton") {
       if (typeof score === "string" || typeof score === "number") return `${score}`;
       if (score != null) return `${score}`;
-      return "-";
    }
 
    return "-";

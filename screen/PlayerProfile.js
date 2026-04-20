@@ -235,7 +235,7 @@ const PlayerProfile = ({ route }) => {
 
   if (loading || playerExists === null) {
     return (
-      <View style={tailwind`flex-1 items-center justify-center`}>
+      <View style={[tailwind`flex-1 items-center justify-center`, { backgroundColor: '#0f172a' }]}>
         <ActivityIndicator size="large" color="#ef4444" />
       </View>
     );

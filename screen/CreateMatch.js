@@ -218,7 +218,7 @@ const CreateMatch = ({ route }) => {
       )}
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={[tailwind`flex-row p-4 rounded-lg justify-between`, {backgroundColor:"#0f172a",borderWidth:1, borderColor:"#334155"}]}>
-              <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{firstEntity ? entities.find((item) => item.entity.public_id === firstEntity.public_id).entity.name : "Select First Entity"}</Text>
+              <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{firstEntity ? (entities?.find((item) => item.entity.public_id === firstEntity.public_id)?.entity.name ?? firstEntity.public_id) : "Select First Entity"}</Text>
               <AntDesign name="down" size={16} color="#94a3b8" />
             </Pressable>
             {(error.fields.firstEntity || error.fields.home_team_public_id) && (
@@ -227,7 +227,7 @@ const CreateMatch = ({ route }) => {
         </View>
         <View style={tailwind`mb-2`}>
             <Pressable onPress={() => setIsModalTeamVisible(true)} style={[tailwind`flex-row p-4 rounded-lg justify-between`, {backgroundColor:"#0f172a", borderWidth:1, borderColor:"#334155"}]}>
-                <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{secondEntity ? entities.find((item) => item.entity.public_id === secondEntity.public_id).entity.name : "Select Second Entity"}</Text>
+                <Text style={[tailwind`text-black text-md`, {color:"#94a3b8"}]}>{secondEntity ? (entities?.find((item) => item.entity.public_id === secondEntity.public_id)?.entity.name ?? secondEntity.public_id) : "Select Second Entity"}</Text>
                 <AntDesign name="down" size={16} color="#94a3b8" />
             </Pressable>
             {(error.fields.secondEntity || error.fields.away_team_public_id) && (

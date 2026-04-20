@@ -49,7 +49,7 @@ export const renderInningScore = (scores) => {
     ));
   };
 
-export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation, isDatePickerVisible}) => {
+export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation, setIsDatePickerVisible}) => {
     return (
         <View style={[tailwind`flex-1 justify-center items-center p-6`, {backgroundColor: '#0f172a'}]}>
             <AntDesign name="calendar" size={64} color="#475569" />
@@ -70,7 +70,7 @@ export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocat
                     <Text style={tailwind`text-white font-semibold`}>Change Date</Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => handleLiveMatches}
+                    onPress={handleLiveMatches}
                     style={tailwind`bg-red-500 px-6 py-3 rounded-lg`}
                 >
                     <Text style={tailwind`text-white font-semibold`}>View Live</Text>
@@ -293,7 +293,6 @@ const Matches = () => {
 
     const handleLiveMatches = () => {
         setNearbyActive(false);
-        setLoading(true);
         const liveMatches = async () => {
             try {
                 setLoading(true);

@@ -9,30 +9,40 @@ export const WebSocketProvider = ({children}) => {
     const wsRef = useRef(null);
     const messageHandlersRef = useRef(new Set());
     const isMountedRef = useRef(true);
-    
+    const reconnectAttemptRef = useRef(0);
+    const reconnectTimeoutRef = useRef(null);
+    const MAX_RECONNECT_ATTEMPTS = 10;
+
     const setupWebSocket = useCallback(async () => {
         try {
+            // Close existing connection before creating new one
+            if (wsRef.current) {
+                wsRef.current.onclose = null;
+                if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+                    wsRef.current.close();
+                }
+            }
+
             const authToken = await AsyncStorage.getItem("AccessToken");
             if(!authToken) {
                 console.log("No token found, skipping websocket connection");
                 return;
             }
-            
+
             console.log("Connecting to WebSocket...");
             wsRef.current = new WebSocket(`${WS_URL}`, '', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
                 }
             });
-            
+
             wsRef.current.onopen = () => {
                 console.log("WebSocket connection open");
-                console.log("WebSocket Ready State:", wsRef.current.readyState);
+                reconnectAttemptRef.current = 0;
             };
 
             // Central message dispatcher - broadcasts to all handlers
             wsRef.current.onmessage = (event) => {
-                console.log("WebSocket message received:", event.data);
                 messageHandlersRef.current.forEach(handler => {
                     try {
                         handler(event);
@@ -45,15 +55,16 @@ export const WebSocketProvider = ({children}) => {
             wsRef.current.onerror = (error) => {
                 console.log("WebSocket Error:", error);
             };
-            
+
             wsRef.current.onclose = (event) => {
                 console.log("WebSocket connection closed:", event.reason);
-                // Auto-reconnect after 3 seconds if the provider is still mounted
-                if (isMountedRef.current) {
-                    setTimeout(() => {
-                        console.log("Attempting WebSocket reconnect...");
+                if (isMountedRef.current && reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+                    const delay = Math.min(3000 * Math.pow(2, reconnectAttemptRef.current), 30000);
+                    reconnectAttemptRef.current += 1;
+                    console.log(`WebSocket reconnect attempt ${reconnectAttemptRef.current} in ${delay}ms`);
+                    reconnectTimeoutRef.current = setTimeout(() => {
                         setupWebSocket();
-                    }, 3000);
+                    }, delay);
                 }
             };
         } catch (err) {
@@ -75,8 +86,12 @@ export const WebSocketProvider = ({children}) => {
         setupWebSocket();
         return () => {
             isMountedRef.current = false;
-            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                wsRef.current.close();
+            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+            if (wsRef.current) {
+                wsRef.current.onclose = null;
+                if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+                    wsRef.current.close();
+                }
             }
         };
     }, [setupWebSocket]);

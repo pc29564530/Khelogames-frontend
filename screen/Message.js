@@ -44,6 +44,7 @@ function Message({ route }) {
     const scrollViewRef = useRef(null);
 
     const isMountedRef = useRef(true);
+    const scrollTimeoutRef = useRef(null);
 
 
     const fetchProfileData = async () => {
@@ -168,6 +169,7 @@ function Message({ route }) {
 
       return () => {
           isMountedRef.current = false;
+          clearTimeout(scrollTimeoutRef.current);
       };
     }, [receiverProfile?.public_id]);
 
@@ -193,8 +195,8 @@ function Message({ route }) {
                        return [...prevMessages, message.payload];
                    });
 
-                   // Auto scroll to bottom when new message arrives
-                   setTimeout(() => {
+                   clearTimeout(scrollTimeoutRef.current);
+                   scrollTimeoutRef.current = setTimeout(() => {
                        scrollViewRef.current?.scrollToEnd({ animated: true });
                    }, 100);
                }
@@ -280,8 +282,8 @@ function Message({ route }) {
             setUploadImage(false);
             setShowEmojiSelect(false);
 
-            // Auto scroll to bottom after sending
-            setTimeout(() => {
+            clearTimeout(scrollTimeoutRef.current);
+            scrollTimeoutRef.current = setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
             }, 100);
 

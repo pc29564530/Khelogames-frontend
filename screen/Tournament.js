@@ -9,7 +9,8 @@ import { useNavigation, useScrollToTop } from '@react-navigation/native';
 import { getTournamentBySport } from '../services/tournamentServices';
 import { getTournamentBySportAction, setGames, setGame } from '../redux/actions/actions';
 import { useDispatch, useSelector } from 'react-redux';
-import CountryPicker from 'react-native-country-picker-modal';
+import CountryPicker from '../components/CountryPicker';
+import CityPicker from '../components/CityPicker';
 import { sportsServices } from '../services/sportsServices';
 import Geolocation from "@react-native-community/geolocation";
 import { FilterBar } from '../components/FilterBar';
@@ -20,7 +21,7 @@ import Animated, {
   withTiming
 } from "react-native-reanimated";
 import { BASE_URL } from '../constants/ApiConstants';
-import { validateTournamentField } from '../utils/validation/tournamentValidation';
+import { validateTournamentField, validateTournamentForm } from '../utils/validation/tournamentValidation';
 import { logSilentError } from '../utils/errorHandler';
 import SportSelector from '../components/SportSelector';
 
@@ -29,7 +30,10 @@ const Tournament = () => {
   const [currentRole, setCurrentRole] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
   const [isCountryPicker, setIsCountryPicker] = useState(false);
+  const [isCityPicker, setIsCityPicker] = useState(false);
   const [typeFilterModal, setTypeFilterModal] = useState(false);
   const [statusFilterModal, setStatusFilterModal] = useState(false);
   const [latitude, setLatitude] = useState(null);
@@ -106,7 +110,7 @@ const Tournament = () => {
     if (game?.name) {
       fetchTournament();
     }
-  }, [game, axiosInstance, dispatch]);
+  }, [game, dispatch]);
 
     const handleSport = useCallback(
     (item) => {
@@ -174,19 +178,6 @@ const Tournament = () => {
 
     const fetchTournamentByNearBy = async ({cityName, stateName, countryName}) => {
       try {
-        const formData = {
-          city: cityName,
-          state: stateName,
-          country: countryName,
-        }
-        const validation = validateTournamentField(formData);
-        if(!validation.isValid) {
-          setError({
-            global: null,
-            fields: validation.errors,
-          });
-          return
-        }
 
         const params = {
           city: cityName,
@@ -200,8 +191,8 @@ const Tournament = () => {
           params: params,
         });
 
-        console.log(" Nearby tournaments fetched:", res.data);
-        dispatch(getTournamentBySportAction(res.data.tournament));
+        console.log(" Nearby tournaments fetched:", res.data.data);
+        dispatch(getTournamentBySportAction(res.data.data.tournament));
       } catch (err) {
         logSilentError(err);
 
@@ -369,7 +360,7 @@ const Tournament = () => {
           <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
             <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
             <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Category</Text>
-            {['all', 'international', 'country', 'nearby'].map((val) => (
+            {['all', 'international', 'country', 'city', 'nearby'].map((val) => (
               <Pressable
                 key={val}
                 style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
@@ -378,6 +369,8 @@ const Tournament = () => {
                   setTypeFilterModal(false);
                   if (val === 'country') {
                     setIsCountryPicker(true)
+                  } else if(val == 'city') {
+                    setIsCityPicker(true)
                   } else if(val === 'nearby') {
                     fetchIPLocation()
                   };
@@ -424,24 +417,36 @@ const Tournament = () => {
           </View>
         </Pressable>
       </Modal>
-
-      {/* Country Picker */}
       {isCountryPicker && (
         <CountryPicker
-          withFilter
-          withFlag
-          withCountryNameButton
-          withAlphaFilter
-          withCallingCode
-          withEmoji
-          onSelect={(selectedCountry) => {
-            setTypeFilter(selectedCountry.name);
-            setIsCountryPicker(false);
-            setIsDropDown(false);
-          }}
           visible={isCountryPicker}
-          onClose={() => {
-            setIsCountryPicker(false);
+          onClose={() => setIsCountryPicker(false)}
+          onSelectCountry={(country) => {
+            setSelectedCountry(country);
+            fetchTournamentByNearBy({
+              cityName: '',
+              stateName: '',
+              countryName: country.name,
+            });
+          }}
+        />
+      )}
+      {isCityPicker && (
+        <CityPicker
+          visible={isCityPicker}
+          onClose={() => setIsCityPicker(false)}
+          onSelectCity={(location) => {
+
+            setSelectedCountry(location.country);
+            setSelectedCity(location.city);
+
+            fetchTournamentByNearBy({
+              cityName: location.city,
+              stateName: '',
+              countryName: location.country,
+            });
+
+            setIsCityPicker(false);
           }}
         />
       )}

@@ -117,7 +117,7 @@ const Club = () => {
         if (game?.name) {
             getClubData();
         }
-    }, [axiosInstance, game]);
+    }, [game]);
       
 
     const handleAddClub = () => {

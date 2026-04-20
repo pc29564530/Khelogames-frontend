@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axios_config';
@@ -21,6 +21,7 @@ function Follower() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState({ global: null, fields: {} });
+  const isMountedRef = useRef(true);
 
   const follower = useSelector((state) => state.user.follower);
 
@@ -43,23 +44,28 @@ function Follower() {
 
       const item = response.data;
 
-      if (item.success && item.data != null) {
+      if (isMountedRef.current && item.success && item.data != null) {
         dispatch(getFollowerUser(item.data));
       }
     } catch (err) {
-      setError({
-        global: "Unable to get follower",
-        fields: err?.response?.data?.error || {},
-      });
-      console.error("Unable to get follower: ", err);
+      if (isMountedRef.current) {
+        setError({
+          global: "Unable to get follower",
+          fields: err?.response?.data?.error || {},
+        });
+        console.error("Unable to get follower: ", err);
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchFollower();
+    return () => { isMountedRef.current = false; };
   }, []);
 
   const handleRefresh = () => {
@@ -97,7 +103,7 @@ function Follower() {
       <View style={tailwind`bg-slate-900`}>
         {follower?.map((item, index) => (
           <UserListItem
-            key={item?.profile?.public_id || index}
+            key={item?.profile?.public_id ?? `follower-${index}`}
             user={item}
             onPress={() => handleProfile(item?.profile?.public_id)}
           />

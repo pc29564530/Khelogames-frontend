@@ -228,7 +228,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
                                 </View>
                                 <View style={tailwind`flex-1`}>
                                     <Text style={[tailwind`text-sm font-semibold`, { color: '#f1f5f9' }]}>
-                                        {cricketToss?.tossWonTeam?.id === match?.awayTeam?.id ? match.awayTeam.name : match.homeTeam.name}
+                                        {cricketToss?.tossWonTeam?.id === match?.awayTeam?.id ? match?.awayTeam?.name : match?.homeTeam?.name}
                                     </Text>
                                     <Text style={[tailwind`text-xs mt-0.5`, { color: '#64748b' }]}>
                                         Chose to {cricketToss?.tossDecision}
