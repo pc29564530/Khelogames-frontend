@@ -24,6 +24,7 @@ import { BASE_URL } from '../constants/ApiConstants';
 import { validateTournamentField, validateTournamentForm } from '../utils/validation/tournamentValidation';
 import { logSilentError } from '../utils/errorHandler';
 import SportSelector from '../components/SportSelector';
+import { getIPBasedLocation } from '../utils/locationService';
 
 const Tournament = () => {
   const navigation = useNavigation();
@@ -125,10 +126,11 @@ const Tournament = () => {
     }
 
   const filteredTournaments = useCallback(() => {
+    const isLocationFilter = typeFilter === 'country' || typeFilter === 'nearby' || typeFilter === 'city';
     const filtered = tournaments?.filter(
       (tournament) =>
         tournament.game_id === game.id &&
-        (typeFilter === 'all' || tournament.level === typeFilter) &&
+        (isLocationFilter || typeFilter === 'all' || tournament.level === typeFilter) &&
         (statusFilter === 'all' || tournament.status_code === statusFilter)
     );
     setFilterTournaments(filtered || tournaments);
@@ -166,15 +168,48 @@ const Tournament = () => {
         };
     });
 
-    const fetchIPLocation = async () => {
-          const location = await getIPBasedLocation();
-          if (location) {
-              setCity(location.city);
-              setState(location.state);
-              setCountry(location.country);
-              await fetchTournamentByNearBy({cityName: location.city, stateName: location.state, countryName: location.country})
-          }
-    };
+    const handleNearbyFilter = async () => {
+      setIsLoadingLocation(true);
+      setError({ global: null, fields: {} });
+
+      const saved = await AsyncStorage.getItem('lastNearbyLocation');
+      const lastSavedLocation = JSON.parse(saved);
+      if (lastSavedLocation) {
+        await fetchTournamentByNearBy(lastSavedLocation);
+        setError({ global: null, fields: {} });
+      }
+
+      try {
+        const location = await getIPBasedLocation();
+
+        const cityName = location.city || '';
+        const stateName = location.state || '';
+        const countryName = location.country || '';
+
+        await AsyncStorage.setItem(
+          'lastNearbyLocation',
+          JSON.stringify({ cityName, stateName, countryName })
+        );
+        await fetchTournamentByNearBy({
+          cityName,
+          stateName,
+          countryName
+        });
+
+        setError({ global: null, fields: {} });
+
+      } catch {
+        if (!saved) {
+          setError({
+            global: 'Unable to detect location. Use Country filter.',
+            fields: {}
+          });
+          setTypeFilter('all');
+        }
+      } finally {
+        setIsLoadingLocation(false);
+      }
+  };
 
     const fetchTournamentByNearBy = async ({cityName, stateName, countryName}) => {
       try {
@@ -191,8 +226,8 @@ const Tournament = () => {
           params: params,
         });
 
-        console.log(" Nearby tournaments fetched:", res.data.data);
-        dispatch(getTournamentBySportAction(res.data.data.tournament));
+        dispatch(getTournamentBySportAction(res.data.data.tournament || []));
+        setError({ global: null, fields: {} });
       } catch (err) {
         logSilentError(err);
 
@@ -365,15 +400,19 @@ const Tournament = () => {
                 key={val}
                 style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                 onPress={() => {
-                  setTypeFilter(val);
                   setTypeFilterModal(false);
-                  if (val === 'country') {
-                    setIsCountryPicker(true)
-                  } else if(val == 'city') {
-                    setIsCityPicker(true)
-                  } else if(val === 'nearby') {
-                    fetchIPLocation()
-                  };
+                  setTypeFilter(val);
+
+                  setIsCountryPicker(false);
+                  setIsCityPicker(false);
+
+                  if (val === 'nearby') {
+                    handleNearbyFilter();
+                  } else if (val === 'country') {
+                    setIsCountryPicker(true);
+                  } else if (val === 'city') {
+                    setIsCityPicker(true);
+                  }
                 }}
               >
                 <MaterialIcons
