@@ -6,12 +6,12 @@ export const MatchesFilterBar = ({
   selectedDate,
   setIsDatePickerVisible,
   handleLocation,
-  handleLiveMatches,
   formattedDate,
   handleNextDate,
   handlePrevDate,
   isLoadingLocation = false,
   nearbyActive = false,
+  setMatchMode,
 }) => {
   return (
     <View
@@ -37,7 +37,7 @@ export const MatchesFilterBar = ({
 
         {/* DATE */}
         <Pressable
-          onPress={() => setIsDatePickerVisible(true)}
+          onPress={() => {setIsDatePickerVisible(true); setMatchMode('date')}}
           style={tailwind`flex-row items-center px-4 py-2 rounded-xl bg-slate-800`}
         >
           <AntDesign name="calendar" size={16} color="#94a3b8" />
@@ -59,7 +59,7 @@ export const MatchesFilterBar = ({
       <View style={tailwind`flex-row justify-between`}>
 
         <Pressable
-          onPress={handleLocation}
+          onPress={() => { handleLocation();}}
           disabled={isLoadingLocation}
           style={[
             tailwind`flex-1 mr-2 py-2 rounded-xl items-center flex-row justify-center`,
@@ -85,7 +85,7 @@ export const MatchesFilterBar = ({
         </Pressable>
 
         <Pressable
-          onPress={handleLiveMatches}
+          onPress={() => {setMatchMode('live')}}
           style={tailwind`flex-1 ml-2 py-2 rounded-xl bg-red-500 items-center`}
         >
           <Text style={tailwind`text-white text-sm font-medium`}>

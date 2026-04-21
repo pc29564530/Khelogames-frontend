@@ -49,7 +49,7 @@ export const renderInningScore = (scores) => {
     ));
   };
 
-export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocation, setIsDatePickerVisible}) => {
+export const emptyStateUI = ({game, selectedDate, setMatchMode, setIsDatePickerVisible}) => {
     return (
         <View style={[tailwind`flex-1 justify-center items-center p-6`, {backgroundColor: '#0f172a'}]}>
             <AntDesign name="calendar" size={64} color="#475569" />
@@ -70,7 +70,7 @@ export const emptyStateUI = ({game, selectedDate, handleLiveMatches, handleLocat
                     <Text style={tailwind`text-white font-semibold`}>Change Date</Text>
                 </Pressable>
                 <Pressable
-                    onPress={handleLiveMatches}
+                    onPress={() => setMatchMode('live')}
                     style={tailwind`bg-red-500 px-6 py-3 rounded-lg`}
                 >
                     <Text style={tailwind`text-white font-semibold`}>View Live</Text>
@@ -151,12 +151,14 @@ const toMidnight = (date) => {
 
 const Matches = () => {
     const navigation = useNavigation();
+    const [matchMode, setMatchMode] = useState("date");
     const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
     const [error, setError] = useState({global: null, fields: {}});
     const [loading, setLoading] = useState(false);
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [permissionGranted, setPermissionGranted] = useState(null);
-    const [nearbyActive, setNearbyActive] = useState(false);
     const dispatch = useDispatch();
 
     const [selectedDate, setSelectedDate] = useState(toMidnight(new Date()));
@@ -164,6 +166,7 @@ const Matches = () => {
     const game = useSelector(state => state.sportReducers.game);
     const scrollViewRef = useRef(null);
 
+    const nearbyActive = matchMode === 'nearby';
     const matches = useSelector((state) => state.matches.matches)
     const today = new Date().toISOString().split("T")[0];
 
@@ -196,14 +199,14 @@ const Matches = () => {
     });
 
     const handlePrevDate = () => {
-        setNearbyActive(false);
+        setMatchMode('date');
         const date = new Date(selectedDate)
         date.setDate(date.getDate() - 1)
         setSelectedDate(toMidnight(date))
     }
 
     const handleNextDate = () => {
-        setNearbyActive(false);
+        setMatchMode('date');
         const date = new Date(selectedDate)
         date.setDate(date.getDate() + 1)
         setSelectedDate(toMidnight(date))
@@ -213,6 +216,58 @@ const Matches = () => {
         const defaultSport = { id: 1, name: 'football', min_players: 11};
         dispatch(setGame(defaultSport));
     }, [dispatch]);
+
+    const fetchMatches = async () => {
+        if (!game) return;
+
+        setLoading(true);
+
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            let url = "";
+            let params = {};
+
+            if (matchMode === "nearby") {
+                url = `${BASE_URL}/${game.name}/get-matches-by-location`;
+
+                params = {
+                    latitude,
+                    longitude,
+                    start_timestamp: dateToRFC3339Timestamp(selectedDate),
+                };
+            }
+
+            else if (matchMode === "live") {
+                url = `${BASE_URL}/${game.name}/getLiveMatches`;
+            }
+
+            else {
+                url = `${BASE_URL}/${game.name}/getAllMatches`;
+
+                params = {
+                    start_timestamp: dateToRFC3339Timestamp(selectedDate),
+                };
+            }
+
+            const response = await axiosInstance.get(url, {
+                params,
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                }
+            });
+
+            dispatch(getMatches(response.data.data || []));
+
+        } catch (err) {
+            dispatch(getMatches([]));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMatches();
+    }, [game, selectedDate, matchMode])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -238,39 +293,6 @@ const Matches = () => {
         setSelectedDate(toMidnight(new Date()));
     }, []);
 
-    useEffect(() => {
-        const fetchMatches = async () => {
-            try {
-                setLoading(true);
-                setError({global: null, fields: {}});
-                const authToken = await AsyncStorage.getItem("AccessToken");
-                const timestamp = dateToRFC3339Timestamp(selectedDate);
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getAllMatches`, {
-                    params: {
-                        start_timestamp: timestamp
-                    },
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                if(response.data.success && response.data.data.length > 0) {
-                    dispatch(getMatches(response.data.data));
-                } else {
-                    getMatches([]);
-                }
-            } catch (err) {
-                const backendError = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: "Unable to get matches",
-                    fields: backendError,
-                })
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchMatches();
-    }, [game, selectedDate, dispatch]);
 
     const scrollRight = () => {
         scrollViewRef.current.scrollTo({x:100, animated:true})
@@ -291,78 +313,6 @@ const Matches = () => {
         }
     }
 
-    const handleLiveMatches = () => {
-        setNearbyActive(false);
-        const liveMatches = async () => {
-            try {
-                setLoading(true);
-                setError({global: null, fields: {}});
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getLiveMatches`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-
-                // Handle different response structures
-                if (response.data.success && response.data.data) {
-                    dispatch(getMatches(response.data.data));
-                } else {
-                    dispatch(getMatches([]));
-                }
-
-            } catch (err) {
-                const backendError = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: "Unable to get live matches",
-                    fields: backendError,
-                })
-                console.error("Failed to get live matches: ", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        liveMatches();
-    }
-
-    const fetchMatchesByLocation = async (lat, lng) => {
-        try {
-            setError({global: null, fields: {}});
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const timestamp = dateToRFC3339Timestamp(selectedDate);
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/get-matches-by-location`, {
-                params: {
-                    start_timestamp: timestamp,
-                    latitude: lat,
-                    longitude: lng
-                },
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (response.data.success && response.data.data) {
-                dispatch(getMatches(response.data.data));
-            } else {
-                dispatch(getMatches([]));
-            }
-            setNearbyActive(true);
-        } catch (err) {
-            const backendError = err?.response?.data?.error?.fields || {};
-            setError({
-                global: "Unable to fetch nearby matches",
-                fields: backendError,
-            })
-            console.error("Failed to get the matches by location: ", err);
-            dispatch(getMatches([]));
-            setNearbyActive(false);
-        } finally {
-            setIsLoadingLocation(false);
-            setLoading(false);
-        }
-    };
 
     const handleLocation = async () => {
         if (isLoadingLocation) return;
@@ -381,8 +331,11 @@ const Matches = () => {
         try {
             await requestLocationPermission(
                 (coords) => {
+                    setLatitude(coords.latitude);
+                    setLongitude(coords.longitude);
                     setPermissionGranted(true);
-                    fetchMatchesByLocation(coords.latitude, coords.longitude);
+                    setIsLoadingLocation(false);
+                    setMatchMode('nearby');
                 },
                 () => {
                     setPermissionGranted(false);
@@ -395,7 +348,6 @@ const Matches = () => {
                 },
             );
         } catch (err) {
-            console.error("Error while requesting location permission: ", err);
             setError({
                 global: "unable to access location. Please try again.",
                 fields: {},
@@ -529,12 +481,12 @@ const Matches = () => {
                         selectedDate={selectedDate}
                         setIsDatePickerVisible={setIsDatePickerVisible}
                         handleLocation={handleLocation}
-                        handleLiveMatches={handleLiveMatches}
                         formattedDate={formattedDate}
                         handleNextDate={handleNextDate}
                         handlePrevDate={handlePrevDate}
                         isLoadingLocation={isLoadingLocation}
                         nearbyActive={nearbyActive}
+                        setMatchMode={setMatchMode}
                     />
                 }
                 stickyHeaderIndices={[0]}
@@ -552,8 +504,7 @@ const Matches = () => {
                     return emptyStateUI({
                         game,
                         selectedDate,
-                        handleLiveMatches,
-                        handleLocation,
+                        setMatchMode,
                         setIsDatePickerVisible
                     });
                 }}

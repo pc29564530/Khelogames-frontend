@@ -215,6 +215,7 @@ const Tournament = () => {
       try {
 
         const params = {
+          event_type: typeFilter,
           city: cityName,
           state: stateName,
           country: countryName

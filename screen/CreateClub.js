@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, Pressable, TextInput, FlatList, Image, ScrollView, Platform, PermissionsAndroid, Alert, Modal, Dimensions, TouchableOpacity, ActivityIndicator} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useFocusEffect } from '@react-navigation/native';
@@ -210,26 +210,34 @@ const CreateClub = () => {
             console.error("Unable to create new team: ", err);
         }
     };
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+                <Text style={tailwind`text-xl font-bold text-white`}>
+                    Create Team
+                </Text>
+            ),
+            headerStyle: {
+                backgroundColor: '#0f172a',
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: 1,
+                borderBottomColor: '#1e293b',
+            },
+            headerTintColor: 'white',
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    style={tailwind`ml-4`}
+                >
+                    <AntDesign name="arrowleft" size={24} color="white" />
+                </Pressable>
+            ),
+        });
+    }, [navigation]);
     
-    navigation.setOptions({
-        headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Create Team</Text>
-        ),
-        headerStyle: {
-            backgroundColor: '#0f172a',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 1,
-            borderBottomColor: '#1e293b',
-        },
-        headerTintColor: 'white',
-        headerTitleAlign: 'center',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
-            </Pressable>
-        ),
-    });
 
     const handleSearchPlayer = (text) => {
         if (Array.isArray(playerProfile)) {

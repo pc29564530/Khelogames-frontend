@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions, Image, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions, Image, FlatList, ActivityIndicator, TextInput, Modal } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -12,18 +12,24 @@ import { setGames, setGame, getTeamsBySport } from '../redux/actions/actions';
 import { sportsServices } from '../services/sportsServices';
 import { logSilentError } from '../utils/errorHandler';
 import SportSelector from '../components/SportSelector';
+import { getIPBasedLocation } from '../utils/locationService';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   useAnimatedScrollHandler,
   withTiming
 } from "react-native-reanimated";
+import CountryPicker from '../components/CountryPicker';
 
 const Club = () => {
     const navigation = useNavigation();
     const scrollViewRef = useRef(null);
-    
+    const [searchQuery, setSearchQuery] = useState('');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [typeFilterModal, setTypeFilterModal] = useState(false);
+    const [filteredTeams, setFilteredTeams] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
+    const [isCountryPicker, setIsCountryPicker] = useState(false);
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [country, setCountry] = useState('');
@@ -158,6 +164,64 @@ const Club = () => {
         });
     }, [navigation]);
 
+    const fetchTeamByFilter = async ({cityName, stateName, countryName}) => {
+        try {
+
+        const params = {
+          city: cityName,
+          state: stateName,
+          country: countryName
+        };
+
+        console.log("Fetching tournaments by location:", params);
+
+        const res = await axiosInstance.get(`${BASE_URL}/${game.name}/get-team-by-location`, {
+          params: params,
+        });
+        console.log("Team: ", res.data)
+
+        // dispatch(geteamByAction(res.data.data.tournament || []));
+        setError({ global: null, fields: {} });
+      } catch (err) {
+        logSilentError(err);
+
+        setError({
+          global: 'Unable to fetch nearby tournaments',
+          fields: {},
+        });
+        console.error(" Failed to fetch tournament by location:", err.response?.data || err.message);
+      }
+    }
+
+    const fetchTeamByNearBy = async () => {
+        try {
+        const location = await getIPBasedLocation();
+
+        const cityName = location.city || '';
+        const stateName = location.state || '';
+        const countryName = location.country || '';
+        
+        await fetchTeamByFilter({
+          cityName,
+          stateName,
+          countryName
+        });
+
+        setError({ global: null, fields: {} });
+
+      } catch {
+        if (!saved) {
+          setError({
+            global: 'Unable to detect location. Use Country filter.',
+            fields: {}
+          });
+          setTypeFilter('all');
+        }
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    }
+
     const renderFilterTeams = ({ item }) => {
         return (
             <Pressable
@@ -242,6 +306,36 @@ const Club = () => {
               ]}
             >
               <SportSelector />
+              <TextInput
+                placeholder="Search teams..."
+                placeholderTextColor="#64748b"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={{
+                    backgroundColor:'#0f172a',
+                    color:'white',
+                    margin:12,
+                    padding:12,
+                    borderRadius:14
+                }}
+              />
+              {/* CATEGORY */}
+            <Pressable
+                onPress={() => setTypeFilterModal(true)}
+                style={[
+                tailwind`flex-row items-center px-4 py-2 rounded-xl mr-2`,
+                typeFilter !== "all"
+                    ? tailwind`bg-red-500`
+                    : tailwind`bg-slate-800`
+                ]}
+            >
+                <Text style={tailwind`mr-1 text-sm`}>
+                🎯
+                </Text>
+                <Text style={tailwind`text-white text-sm`}>
+                {typeFilter !== "all" ? typeFilter : "Category"}
+                </Text>
+            </Pressable>
             </Animated.View>
 
             {/* Teams List */}
@@ -263,6 +357,55 @@ const Club = () => {
                 <MaterialIcons name="add" size={24} color="white" />
                 </Pressable>
             </View>
+            {/* Type Filter Modal */}
+            <Modal transparent={true} animationType="slide" visible={typeFilterModal} onRequestClose={() => setTypeFilterModal(false)}>
+                <Pressable
+                onPress={() => setTypeFilterModal(false)}
+                style={tailwind`flex-1 justify-end bg-black/60`}
+                >
+                <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
+                    <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
+                    <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Category</Text>
+                    {['all', 'international', 'country', 'nearby'].map((val) => (
+                    <Pressable
+                        key={val}
+                        style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
+                        onPress={() => {
+                        setTypeFilterModal(false);
+                        setTypeFilter(val);
+
+                        setIsCountryPicker(false);
+
+                        if (val === 'nearby') {
+                            fetchTeamByNearBy();
+                        } else if (val === 'country') {
+                            setIsCountryPicker(true);
+                        }
+                        }}
+                    >
+                        <MaterialIcons
+                        name={val === 'international' ? 'public' : val === 'country' ? 'flag' : 'near-me'}
+                        size={20} color="#94a3b8" />
+                        <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16, textTransform: 'capitalize'}}>{val}</Text>
+                        {typeFilter === val && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
+                    </Pressable>
+                    ))}
+                </View>
+                </Pressable>
+            </Modal>
+            {isCountryPicker && (
+                <CountryPicker
+                    visible={isCountryPicker}
+                    onClose={() => setIsCountryPicker(false)}
+                    onSelectCountry={(country) => {
+                    fetchTeamByFilter({
+                        cityName: '',
+                        stateName: '',
+                        countryName: country.name,
+                    });
+                    }}
+                />
+            )}
         </View>
     );
 }

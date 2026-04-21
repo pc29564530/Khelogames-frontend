@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, Text, Pressable, TextInput, Modal, ScrollView} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import tailwind from 'twrnc';
@@ -149,26 +149,27 @@ const CreateTournament = () => {
         }
     };
 
-
-    navigation.setOptions({
-        headerTitle: () => (
-            <Text style={tailwind`text-xl font-bold text-white`}>Create Tournament</Text>
-        ),
-        headerStyle: {
-            backgroundColor: '#0f172a',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 1,
-            borderBottomColor: '#1e293b',
-        },
-        headerTintColor: 'white',
-        headerTitleAlign: 'center',
-        headerLeft: () => (
-            <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
-                <AntDesign name="arrowleft" size={24} color="white" />
-            </Pressable>
-        ),
-    });
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+                <Text style={tailwind`text-xl font-bold text-white`}>Create Tournament</Text>
+            ),
+            headerStyle: {
+                backgroundColor: '#0f172a',
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: 1,
+                borderBottomColor: '#1e293b',
+            },
+            headerTintColor: 'white',
+            headerTitleAlign: 'center',
+            headerLeft: () => (
+                <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+                    <AntDesign name="arrowleft" size={24} color="white" />
+                </Pressable>
+            ),
+        });
+    })
 
     const modifyDateTime = (newDateTime) => {
         if (!newDateTime) {
