@@ -24,7 +24,7 @@ const UserListItem = ({
         {user?.avatar_url ? (
           <Image
             style={tailwind`w-14 h-14 rounded-full bg-slate-700`}
-            source={{ uri: user.profile.avatar_url }}
+            source={{ uri: user?.avatar_url }}
           />
         ) : (
           <View style={tailwind`w-14 h-14 rounded-full bg-slate-400 items-center justify-center`}>
