@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Dimensions, Image, FlatList, ActivityIndicator, TextInput, Modal } from 'react-native';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import { View, Text, Pressable, Image, FlatList, ActivityIndicator, TextInput, Modal } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -23,21 +23,15 @@ import CountryPicker from '../components/CountryPicker';
 
 const Club = () => {
     const navigation = useNavigation();
-    const scrollViewRef = useRef(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [typeFilterModal, setTypeFilterModal] = useState(false);
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [currentRole, setCurrentRole] = useState('');
     const [isCountryPicker, setIsCountryPicker] = useState(false);
-    const [city, setCity] = useState('');
-    const [state, setState] = useState('');
-    const [country, setCountry] = useState('');
     const [error, setError] = useState({global: null, fields:{}});
     const [loading, setLoading] = useState(false);
-    const [selectedSport, setSelectedSport] = useState({ id: 1, name: 'football', min_players: 11 });
     const dispatch = useDispatch();
-    const games = useSelector(state => state.sportReducers.games);
     const game = useSelector(state => state.sportReducers.game);
     const teams = useSelector((state) => state.teams.teamsBySports);
 
@@ -49,12 +43,10 @@ const Club = () => {
         onScroll: (event) => {
             const currentY = event.contentOffset.y;
             if (currentY > scrollY.value + 5) {
-                // scrolling down
                 if (pos.value === 0) {
                     pos.value = withTiming(-FILTER_HEIGHT, { duration: 250 });
                 }
             } else if (currentY < scrollY.value - 5) {
-                // scrolling up
                 if (pos.value === -FILTER_HEIGHT) {
                     pos.value = withTiming(0, { duration: 250 });
                 }
@@ -76,7 +68,6 @@ const Club = () => {
                 dispatch(setGames(response.data));
             } catch (err) {
                 logSilentError(err);
-                console.error("Unable to fetch games data: ", err);
             }
         };
         fetchData();
@@ -94,10 +85,7 @@ const Club = () => {
         const getClubData = async () => {
             try {
                 setLoading(true);
-                setError({
-                    global: null,
-                    fields: {},
-                })
+                setError({ global: null, fields: {} });
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getTeamsBySport/${game.id}`, {
                     headers: {
@@ -105,16 +93,16 @@ const Club = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-
-                const item = response.data;
-                dispatch(getTeamsBySport(item.data));
+                const data = response.data.data || [];
+                dispatch(getTeamsBySport(data));
+                setFilteredTeams(data);
+                setSearchQuery('');
             } catch (err) {
                 logSilentError(err);
                 setError({
                     global: 'Unable to load teams. Please try again later.',
                     fields: {},
-                })
-                console.error("Unable to fetch all team: ", err);
+                });
             } finally {
                 setLoading(false);
             }
@@ -123,25 +111,7 @@ const Club = () => {
         if (game?.name) {
             getClubData();
         }
-    }, [game]);
-      
-
-    const handleAddClub = () => {
-        navigation.navigate('CreateClub');
-    }
-
-    const scrollRight = () => {
-        scrollViewRef.current.scrollTo({ x: 100, animated: true });
-    }
-
-    const handleClub = (item) => {
-        navigation.navigate('ClubPage', { teamData: item, game: game });
-    }
-
-    const handleSport = (item) => {
-        setSelectedSport(item);
-        dispatch(setGame(item));
-    }
+    }, [game, typeFilter]);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -166,60 +136,52 @@ const Club = () => {
 
     const fetchTeamByFilter = async ({cityName, stateName, countryName}) => {
         try {
-
-        const params = {
-          city: cityName,
-          state: stateName,
-          country: countryName
-        };
-
-        console.log("Fetching tournaments by location:", params);
-
-        const res = await axiosInstance.get(`${BASE_URL}/${game.name}/get-team-by-location`, {
-          params: params,
-        });
-        console.log("Team: ", res.data)
-
-        // dispatch(geteamByAction(res.data.data.tournament || []));
-        setError({ global: null, fields: {} });
-      } catch (err) {
-        logSilentError(err);
-
-        setError({
-          global: 'Unable to fetch nearby tournaments',
-          fields: {},
-        });
-        console.error(" Failed to fetch tournament by location:", err.response?.data || err.message);
-      }
+            const params = { city: cityName, state: stateName, country: countryName };
+            const res = await axiosInstance.get(`${BASE_URL}/${game.name}/get-team-by-location`, { params });
+            const data = res.data.data.team || [];
+            dispatch(getTeamsBySport(data));
+            setFilteredTeams(data);
+            setError({ global: null, fields: {} });
+        } catch (err) {
+            logSilentError(err);
+            setError({
+                global: 'Unable to fetch nearby teams',
+                fields: {},
+            });
+        }
     }
 
     const fetchTeamByNearBy = async () => {
         try {
-        const location = await getIPBasedLocation();
-
-        const cityName = location.city || '';
-        const stateName = location.state || '';
-        const countryName = location.country || '';
-        
-        await fetchTeamByFilter({
-          cityName,
-          stateName,
-          countryName
-        });
-
-        setError({ global: null, fields: {} });
-
-      } catch {
-        if (!saved) {
-          setError({
-            global: 'Unable to detect location. Use Country filter.',
-            fields: {}
-          });
-          setTypeFilter('all');
+            const location = await getIPBasedLocation();
+            await fetchTeamByFilter({
+                cityName: location.city || '',
+                stateName: location.state || '',
+                countryName: location.country || '',
+            });
+        } catch {
+            setError({
+                global: 'Unable to detect location. Use Country filter.',
+                fields: {},
+            });
+            setTypeFilter('all');
         }
-      } finally {
-        setIsLoadingLocation(false);
-      }
+    }
+
+    const handleSearchTeam = useCallback((text) => {
+        setSearchQuery(text);
+        if (!text) {
+            setFilteredTeams(teams || []);
+            return;
+        }
+        const filtered = (teams || []).filter((team) =>
+            team.name?.toLowerCase().includes(text.toLowerCase())
+        );
+        setFilteredTeams(filtered);
+    }, [teams]);
+
+    const handleClub = (item) => {
+        navigation.navigate('ClubPage', { teamData: item, game: game });
     }
 
     const renderFilterTeams = ({ item }) => {
@@ -293,7 +255,6 @@ const Club = () => {
 
     return (
         <View style={{flex: 1, backgroundColor: '#0f172a'}}>
-            {/* Sports Filter Section */}
             <Animated.View
               style={[
                 animatedSportAndFilter,
@@ -306,49 +267,59 @@ const Club = () => {
               ]}
             >
               <SportSelector />
-              <TextInput
-                placeholder="Search teams..."
-                placeholderTextColor="#64748b"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                style={{
-                    backgroundColor:'#0f172a',
-                    color:'white',
-                    margin:12,
-                    padding:12,
-                    borderRadius:14
-                }}
-              />
-              {/* CATEGORY */}
-            <Pressable
-                onPress={() => setTypeFilterModal(true)}
-                style={[
-                tailwind`flex-row items-center px-4 py-2 rounded-xl mr-2`,
-                typeFilter !== "all"
-                    ? tailwind`bg-red-500`
-                    : tailwind`bg-slate-800`
-                ]}
-            >
-                <Text style={tailwind`mr-1 text-sm`}>
-                🎯
-                </Text>
-                <Text style={tailwind`text-white text-sm`}>
-                {typeFilter !== "all" ? typeFilter : "Category"}
-                </Text>
-            </Pressable>
+              <View style={[tailwind`flex-row items-center px-4 py-3`, { gap: 8 }]}>
+                <View style={[
+                  tailwind`flex-1 flex-row items-center px-3 rounded-xl`,
+                  { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }
+                ]}>
+                  <AntDesign name="search1" size={15} color="#64748b" />
+                  <TextInput
+                    placeholder="Search teams..."
+                    placeholderTextColor="#64748b"
+                    value={searchQuery}
+                    onChangeText={handleSearchTeam}
+                    style={{ flex: 1, color: '#f1f5f9', paddingVertical: 9, paddingHorizontal: 8, fontSize: 14 }}
+                  />
+                  {searchQuery.length > 0 && (
+                    <Pressable onPress={() => handleSearchTeam('')}>
+                      <AntDesign name="closecircle" size={14} color="#64748b" />
+                    </Pressable>
+                  )}
+                </View>
+
+                <Pressable
+                  onPress={() => setTypeFilterModal(true)}
+                  style={[
+                    tailwind`flex-row items-center px-3 rounded-xl`,
+                    {
+                      paddingVertical: 10,
+                      backgroundColor: typeFilter !== 'all' ? '#ef4444' : '#1e293b',
+                      borderWidth: 1,
+                      borderColor: typeFilter !== 'all' ? 'transparent' : '#334155',
+                    }
+                  ]}
+                >
+                  <MaterialIcons name="tune" size={18} color={typeFilter !== 'all' ? '#ffffff' : '#94a3b8'} />
+                  {typeFilter !== 'all' && (
+                    <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '600', marginLeft: 4, textTransform: 'capitalize' }}>
+                      {typeFilter}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
             </Animated.View>
 
-            {/* Teams List */}
-            <FlatList
-                data={teams}
+            <Animated.FlatList
+                data={filteredTeams}
                 keyExtractor={(item, index) => item?.public_id ? item.public_id.toString() : index.toString()}
                 renderItem={renderFilterTeams}
                 contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                 ListEmptyComponent={renderEmptyState}
                 showsVerticalScrollIndicator={false}
+                onScroll={scrollHandler}
+                scrollEventThrottle={16}
             />
 
-            {/* Floating Action Button */}
             <View style={tailwind`absolute bottom-18 right-5`}>
                 <Pressable
                 style={[tailwind`p-3.5 bg-red-400 rounded-2xl`, {shadowColor: '#f87171', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6}]}
@@ -357,7 +328,7 @@ const Club = () => {
                 <MaterialIcons name="add" size={24} color="white" />
                 </Pressable>
             </View>
-            {/* Type Filter Modal */}
+
             <Modal transparent={true} animationType="slide" visible={typeFilterModal} onRequestClose={() => setTypeFilterModal(false)}>
                 <Pressable
                 onPress={() => setTypeFilterModal(false)}
@@ -371,16 +342,14 @@ const Club = () => {
                         key={val}
                         style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                         onPress={() => {
-                        setTypeFilterModal(false);
-                        setTypeFilter(val);
-
-                        setIsCountryPicker(false);
-
-                        if (val === 'nearby') {
-                            fetchTeamByNearBy();
-                        } else if (val === 'country') {
-                            setIsCountryPicker(true);
-                        }
+                            setTypeFilterModal(false);
+                            setTypeFilter(val);
+                            setIsCountryPicker(false);
+                            if (val === 'nearby') {
+                                fetchTeamByNearBy();
+                            } else if (val === 'country') {
+                                setIsCountryPicker(true);
+                            }
                         }}
                     >
                         <MaterialIcons
@@ -393,16 +362,17 @@ const Club = () => {
                 </View>
                 </Pressable>
             </Modal>
+
             {isCountryPicker && (
                 <CountryPicker
                     visible={isCountryPicker}
                     onClose={() => setIsCountryPicker(false)}
                     onSelectCountry={(country) => {
-                    fetchTeamByFilter({
-                        cityName: '',
-                        stateName: '',
-                        countryName: country.name,
-                    });
+                        fetchTeamByFilter({
+                            cityName: '',
+                            stateName: '',
+                            countryName: country.name,
+                        });
                     }}
                 />
             )}
