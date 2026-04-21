@@ -98,9 +98,9 @@ function Following() {
       <View style={tailwind`bg-slate-900`}>
         {following.length > 0 && following?.map((item, index) => (
           <UserListItem
-            key={item?.profile?.public_id || index}
+            key={item?.public_id || index}
             user={item}
-            onPress={() => handleProfile(item?.profile?.public_id)}
+            onPress={() => handleProfile(item?.public_id)}
           />
         ))}
       </View>

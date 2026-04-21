@@ -103,9 +103,9 @@ function Follower() {
       <View style={tailwind`bg-slate-900`}>
         {follower?.map((item, index) => (
           <UserListItem
-            key={item?.profile?.public_id ?? `follower-${index}`}
+            key={item?.public_id ?? `follower-${index}`}
             user={item}
-            onPress={() => handleProfile(item?.profile?.public_id)}
+            onPress={() => handleProfile(item?.public_id)}
           />
         ))}
       </View>

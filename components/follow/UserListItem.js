@@ -11,7 +11,7 @@ const UserListItem = ({
   isLoading = false
 }) => {
 
-  const avatarInitial = user?.profile?.full_name?.charAt(0)?.toUpperCase() || '?';
+  const avatarInitial = user?.full_name?.charAt(0)?.toUpperCase() || '?';
 
   return (
     <Pressable
@@ -21,7 +21,7 @@ const UserListItem = ({
       <View style={tailwind`flex-row items-center flex-1`}>
 
         {/* Avatar */}
-        {user?.profile?.avatar_url ? (
+        {user?.avatar_url ? (
           <Image
             style={tailwind`w-14 h-14 rounded-full bg-slate-700`}
             source={{ uri: user.profile.avatar_url }}
@@ -40,14 +40,14 @@ const UserListItem = ({
             style={tailwind`text-slate-100 font-semibold text-base`}
             numberOfLines={1}
           >
-            {user?.profile?.full_name || 'Unknown User'}
+            {user?.full_name || 'Unknown User'}
           </Text>
 
           <Text
             style={tailwind`text-slate-400 text-sm mt-0.5`}
             numberOfLines={1}
           >
-            @{user?.profile?.username || 'unknown'}
+            @{user?.username || 'unknown'}
           </Text>
         </View>
 

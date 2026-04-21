@@ -72,10 +72,10 @@ function Profile({route}) {
   };
 
   // Fetch follower and following counts by current profile
-  const fetchFollowerCount = async (targetPublicID) => {
+  const fetchFollowerCount = async () => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getFollowerCount/${targetPublicID}`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowerCount/${currentProfile.public_id}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -112,7 +112,7 @@ const handleReduxFollow = async () => {
 
     const response = await axiosInstance.post(
       `${BASE_URL}/create_follow/${profilePublicID}`,
-      {},
+      null,
       {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -120,19 +120,11 @@ const handleReduxFollow = async () => {
         },
       }
     );
-
-    // Update Redux state
-    if (response?.data) {
-      dispatch(setFollowUser(response.data.data));
-    } else {
-      dispatch(setFollowUser([]));
-    }
-
-    // Update follower count & isFollowing status
-    try { await checkIsFollowingFunc(); } catch {}
-    try { await fetchFollowerCount(profilePublicID || currentProfile.public_id); } catch {}
-    ToastManager.show('User followed successfully!', 'success');
+    dispatch(setFollowUser(response.data?.data || null));
+    await checkIsFollowingFunc();
+    await fetchFollowerCount();
   } catch (err) {
+    console.log("Error: ", err)
     console.error('Follow user failed:', err);
     ToastManager.show('Failed to follow user. Please try again.', 'error');
   } finally {
@@ -141,38 +133,30 @@ const handleReduxFollow = async () => {
 };
 
 const handleReduxUnFollow = async () => {
-  setLoading(true);
-  try {
-    const authToken = await AsyncStorage.getItem('AccessToken');
-
-    const response = await axiosInstance.delete(
-      `${BASE_URL}/unFollow/${profilePublicID}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    // Update Redux state
-    if (response?.data) {
-      dispatch(setUnFollowUser(response.data.data));
-    } else {
-      dispatch(setUnFollowUser([]));
+      try {
+        setLoading(true);
+        const authToken = await AsyncStorage.getItem('AccessToken');
+        const response = await axiosInstance.delete(
+          `${BASE_URL}/unFollow/${profilePublicID}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        if(!response.data ||  response.data === null ){
+          dispatch(setUnFollowUser([]));
+        } else {
+          dispatch(setUnFollowUser(response.data.data));
+          await checkIsFollowingFunc();
+          await fetchFollowerCount(); // Update follower count
+        }
+    } catch(e){
+      console.error('Unable to unfollow again:', e);
+    } finally {
+        setLoading(false);
     }
-
-    // Update follower count & isFollowing status
-    try { await checkIsFollowingFunc(); } catch {}
-    try { await fetchFollowerCount(profilePublicID || currentProfile.public_id); } catch {}
-
-    ToastManager.show('User unfollowed successfully!', 'info');
-  } catch (err) {
-    console.error('Unfollow user failed:', err);
-    ToastManager.show('Failed to unfollow user. Please try again.');
-  } finally {
-    setLoading(false);
-  }
 };
 
 

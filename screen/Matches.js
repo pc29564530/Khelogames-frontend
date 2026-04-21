@@ -37,6 +37,9 @@ const STATUS_LABELS = {
 };
 
 export const renderInningScore = (scores) => {
+    if(!scores) {
+        return null;
+    }
     return scores?.map((score, index) => (
       <View key={index} style={tailwind`flex-row ml-2`}>
         <Text style={[tailwind`ml-2 text-lg`, {color: '#e2e8f0'}]}>
