@@ -1,5 +1,5 @@
 import React ,{useState, useEffect} from 'react';
-import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native';
+import {View, Text, Pressable, ScrollView, Image, useWindowDimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,7 @@ const TournamentFootballMatch = ({ tournament, AsyncStorage, axiosInstance, BASE
     const dispatch = useDispatch();
     const matches = useSelector((state)=> state.matches.matches ) || [];
     const game = useSelector(state => state.sportReducers.game);
-    const {height: sHeight, width: sWidth} = Dimensions.get("window");
+    const {height: sHeight, width: sWidth} = useWindowDimensions();
     useFocusEffect(
         React.useCallback(() => {
                 fetchTournamentMatchs();

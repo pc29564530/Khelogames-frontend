@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions} from 'react-native';
+import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions, useWindowDimensions} from 'react-native';
 import axiosInstance from "../../screen/axios_config";
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,8 +9,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addFootballIncidents } from '../../redux/actions/actions';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SubstitutionIncidentForm = ({
     match,
@@ -74,6 +72,7 @@ const SubstitutionIncidentForm = ({
 
     const autoTime = getAutoTimeFromMatch();
 
+    const { height: SCREEN_HEIGHT } = useWindowDimensions();
     const [selectedPlayerIn, setSelectedPlayerIn] = useState(null);
     const [selectedPlayerOut, setSelectedPlayerOut] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState(autoTime.period);

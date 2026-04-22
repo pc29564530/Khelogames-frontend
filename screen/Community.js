@@ -37,6 +37,7 @@ function Community() {
   const fetchCommunityJoinedByUser = async () => {
     try {
       setLoading(true);
+      setError({ global: null, fields: {} });
       const response = await fetchCommunityJoinedByUserService();
       dispatch(getJoinedCommunity(response.data || []));
     } catch (err) {
@@ -50,6 +51,7 @@ function Community() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError({ global: null, fields: {} });
       const response = await fetchAllCommunityService();
       dispatch(getAllCommunities(response.data || []));
     } catch (err) {

@@ -2,14 +2,12 @@ import React, {useState, useRef, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../../screen/axios_config';
 import { BASE_URL } from '../../constants/ApiConstants';
-import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions} from 'react-native';
+import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions, useWindowDimensions} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useSelector } from 'react-redux';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const StandardIncidentForm = ({
     match,
@@ -74,6 +72,7 @@ const StandardIncidentForm = ({
 
     const autoTime = getAutoTimeFromMatch();
 
+    const { height: SCREEN_HEIGHT } = useWindowDimensions();
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [selectedHalf, setSelectedHalf] = useState(autoTime.period);
     const [selectedMinute, setSelectedMinute] = useState(String(autoTime.minute));

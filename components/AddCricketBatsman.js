@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
-import { Image, Pressable, Text, View, ScrollView, Dimensions } from 'react-native';
+import { Image, Pressable, Text, View, ScrollView, Dimensions, useWindowDimensions } from 'react-native';
 import tailwind from "twrnc";
 import axiosInstance from "../screen/axios_config";
 import { addBatsman, setActionRequired } from "../redux/actions/actions";
@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 
 
 export const  AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBatsman, setSelectedBatsman, error, setError, setIsBatTeamPlayerModalVisible, onSuccess }) => {
-    const { height: sHeight, width: sWidth } = Dimensions.get('window');
+    const { height: sHeight, width: sWidth } = useWindowDimensions();
     const [battingSquad, setBattingSquad] = useState([]);
     const currentInningNumber = useSelector((state) => state.cricketMatchInning.currentInningNumber);
 

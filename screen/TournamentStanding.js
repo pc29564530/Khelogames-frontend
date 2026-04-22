@@ -11,7 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
-  Dimensions
+  Dimensions,
+  useWindowDimensions
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -27,10 +28,7 @@ import { getTournamentStandings } from '../services/tournamentServices';
 import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Extrapolation, interpolate} from 'react-native-reanimated';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
-const { width: screenWidth } = Dimensions.get('window');
-
 const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsedHeader }) => {
-
   // State management
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +60,7 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
   const standings = useSelector((state) => state.tournamentsReducers.standings);
   const game = useSelector(state => state.sportReducers.game);
 
-  const { height: sHeight, width: sWidth } = Dimensions.get("window");
+  const { height: sHeight, width: sWidth } = useWindowDimensions();
 
   const dispatch = useDispatch();
 

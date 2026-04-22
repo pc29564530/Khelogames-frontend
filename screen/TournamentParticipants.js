@@ -11,6 +11,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -39,7 +40,7 @@ const AddParticipantModal = ({
   entityType,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-
+  const {width, height} = useWindowDimensions();
   // Reset search whenever modal opens or entity type changes
   useEffect(() => {
     if (visible) setSearchQuery('');
@@ -63,7 +64,7 @@ const AddParticipantModal = ({
         <View style={tailwind`flex-1 bg-black/50 justify-end`}>
           <Pressable style={tailwind`flex-1`} onPress={onClose} />
 
-          <View style={[tailwind`rounded-t-3xl p-6`, { backgroundColor: '#1e293b', maxHeight: Dimensions.get('window').height * 0.75 }]}>
+          <View style={[tailwind`rounded-t-3xl p-6`, { backgroundColor: '#1e293b', maxHeight: height * 0.75}]}>
             {/* Header */}
             <View style={tailwind`flex-row items-center justify-between mb-4`}>
               <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>

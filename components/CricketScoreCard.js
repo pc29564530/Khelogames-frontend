@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import tailwind from "twrnc";
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -45,7 +45,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
 
-    const {height: sHeight, width: sWidth} = Dimensions.get("window");
+    const {height: sHeight, width: sWidth} = useWindowDimensions();
 
     const currentScrollY = useSharedValue(0);
     // scroll handler for header animation

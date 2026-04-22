@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import {Text, View, ScrollView, Pressable, Image, Modal, Switch, Dimensions, TextInput, FlatList} from 'react-native';
+import {Text, View, ScrollView, Pressable, Image, Modal, Switch, Dimensions, TextInput, FlatList, useWindowDimensions} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BASE_URL } from '../constants/ApiConstants';
@@ -36,7 +36,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     });
     const [loading, setLoading] = useState(false);
 
-    const {height: sHeight, width: sWidth} = Dimensions.get("window");
+    const {height: sHeight, width: sWidth} = useWindowDimensions();
 
     const currentScrollY = useSharedValue(0);
     // scroll handler for header animation

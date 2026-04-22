@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native';
+import {View, Text, Pressable, ScrollView, Image, Dimensions, useWindowDimensions} from 'react-native';
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -38,7 +38,7 @@ const TournamentCricketMatch = ({tournament, AsyncStorage, axiosInstance, BASE_U
         global: null,
         fields: {},
     })
-    const {height: sHeight, width: sWidth} = Dimensions.get("window")
+    const {height: sHeight, width: sWidth} = useWindowDimensions()
 
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({

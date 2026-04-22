@@ -6,7 +6,8 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  useWindowDimensions
 } from 'react-native';
 
 import axios from 'axios';
@@ -25,20 +26,19 @@ import { setAuthenticated, setUser, setAuthProfile, setAuthProfilePublicID, setA
 
 import { storeRefreshToken, storeRefreshTokenExpiresAt } from '../utils/SecureStorage';
 import { validateAuthForm } from '../utils/validation/authValidation';
-
-const { width, height } = Dimensions.get("window");
-
-/* responsive helpers */
-
-const CARD_WIDTH = Math.min(width * 0.92, 420);
-const ICON_SIZE = Math.min(width * 0.08, 32);
-const FONT_TITLE = Math.min(width * 0.065, 26);
-const FONT_TEXT = Math.min(width * 0.04, 16);
+import { use } from 'react';
 
 const SignUp = () => {
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
+
+  /* responsive helpers */
+  const CARD_WIDTH = Math.min(width * 0.92, 420);
+  const ICON_SIZE = Math.min(width * 0.08, 32);
+  const FONT_TITLE = Math.min(width * 0.065, 26);
+  const FONT_TEXT = Math.min(width * 0.04, 16);
 
   const [formData, setFormData] = useState({
     full_name: '',

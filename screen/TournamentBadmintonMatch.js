@@ -3,7 +3,6 @@ import {View, Text, Pressable, ScrollView, Image, Dimensions} from 'react-native
 import tailwind from 'twrnc';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { getFootballMatchesService } from '../services/footballMatchServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFootballMatchScore } from '../redux/actions/actions';
 import { formatToDDMMYY, formattedTime } from '../utils/FormattedDateTime';

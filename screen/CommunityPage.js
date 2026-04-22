@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { View, Text, Dimensions, Pressable } from "react-native";
+import { View, Text, Dimensions, Pressable, useWindowDimensions } from "react-native";
 import { getJoinedCommunity, addJoinedCommunity } from '../redux/actions/actions';
 import { fetchCommunityJoinedByUserService, addUserToCommunity } from '../services/communityServices';
 import LinearGradient from "react-native-linear-gradient";
@@ -17,7 +17,6 @@ import CommunityMessage from "./CommunityMessage";
 import tailwind from "twrnc";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const { width: sWidth } = Dimensions.get("window");
 const TopTab = createMaterialTopTabNavigator();
 
 const BG_RED = '#f87171'; // red-400 — matches TournamentPage exactly
@@ -27,6 +26,7 @@ export default function CommunityPage({ route }) {
     const { item, communityPublicID } = route.params;
     const navigation = useNavigation();
     const dispatch = useDispatch();
+    const { width: sWidth } = useWindowDimensions();
     const joinedCommunity = useSelector((state) => state.joinedCommunity.joinedCommunity || []);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState({ global: null, fields: {} });

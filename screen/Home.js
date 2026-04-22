@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, Pressable,
   SafeAreaView, Image, Animated, RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -57,10 +58,12 @@ const SkeletonBlock = ({ width, height, borderRadius = 12, style }) => {
   );
 };
 
-const SkeletonHero = () => (
+const SkeletonHero = () => {
+  const { width } = useWindowDimensions();
+  return (
   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, marginTop: 12 }}>
     {[1, 2].map(i => (
-      <View key={i} style={{ width: 300, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}>
+      <View key={i} style={{ width: width * 0.78, marginHorizontal: 6, backgroundColor: '#1e293b', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#334155' }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 }}>
           <SkeletonBlock width={60} height={16} borderRadius={8} />
           <SkeletonBlock width={80} height={20} borderRadius={10} />
@@ -81,12 +84,15 @@ const SkeletonHero = () => (
       </View>
     ))}
   </ScrollView>
-);
+  );
+};
 
-const SkeletonTournaments = () => (
+const SkeletonTournaments = () => {
+  const { width } = useWindowDimensions();
+  return (
   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 16, gap: 12, marginTop: 12 }}>
     {[1, 2, 3].map(i => (
-      <View key={i} style={{ backgroundColor: '#1e293b', borderRadius: 16, padding: 16, width: 200, borderWidth: 1, borderColor: '#334155' }}>
+      <View key={i} style={{ backgroundColor: '#1e293b', borderRadius: 16, padding: 16, width: width * 0.50, borderWidth: 1, borderColor: '#334155' }}>
         <SkeletonBlock width={36} height={36} borderRadius={10} style={{ marginBottom: 10 }} />
         <SkeletonBlock width={140} height={16} borderRadius={6} style={{ marginBottom: 6 }} />
         <SkeletonBlock width={60} height={12} borderRadius={6} style={{ marginBottom: 10 }} />
@@ -94,7 +100,8 @@ const SkeletonTournaments = () => (
       </View>
     ))}
   </ScrollView>
-);
+  );
+};
 
 const SkeletonPerformers = () => (
   <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
@@ -168,6 +175,7 @@ const getMatchTime = (match) => {
 function Home() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const {width, height} = useWindowDimensions();
   const games = useSelector((state) => state.sportReducers.games);
   const game  = useSelector((state) => state.sportReducers.game);
 

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
@@ -49,7 +50,7 @@ const Members = ({ teamData, parentScrollY, headerHeight, collapsedHeader }) => 
     fields: {},
   });
 
-  const { height: sHeight, width: sWidth } = Dimensions.get("window");
+  const { height: sHeight, width: sWidth } = useWindowDimensions();
   console.log("Height: ", sHeight)
 
   const currentScrollY = useSharedValue(0);

@@ -43,6 +43,18 @@ export const addFootballScoreServices = async ({game, dispatch, item, authToken,
         dispatch(addFootballMatchScore(team1Response.data || []));
         dispatch(addFootballMatchScore(team2Response.data || []));
     } catch (err) {
+         const backendErrors = err?.response?.data?.error?.fields;
+        if(err?.response?.data?.error?.code === "FORBIDDEN") {
+            setError({
+                global: err?.response?.data?.error?.message,
+                fields: {},
+            })
+        } else {
+            setError({
+                global: "Unable to create new team",
+                fields: backendErrors,
+            });
+        }
         console.error("unable to add the football match score of team 1 and team 2 ", err);
     }
 }

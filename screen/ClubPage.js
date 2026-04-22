@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, Pressable, Dimensions, Image} from 'react-native';
+import {View, Text, Pressable, Dimensions, Image, useWindowDimensions} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
@@ -13,7 +13,7 @@ const ClubPage = ({route}) => {
     const [nameWidth, setNameWidth] = useState(0);
     const isIndividual = teamData?.type === 'individual';
 
-    const { height: sHeight, width: sWidth } = Dimensions.get('screen');
+    const { height: sHeight, width: sWidth } = useWindowDimensions();
 
     const parentScrollY = useSharedValue(0);
 

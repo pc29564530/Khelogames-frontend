@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useEffect, useState} from 'react';
-import { View, Text, Pressable, Image, Modal, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, Pressable, Image, Modal, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from '../screen/axios_config';
@@ -30,7 +30,7 @@ const ClubBadmintonMatch = ({teamData, parentScrollY, headerHeight, collapsedHea
     const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
     const tournament = useSelector((state) => state.tournamentsReducers.tournament);
     const game = useSelector((state) => state.sportReducers.game);
-    const { height: sHeight, width: sWidth } = Dimensions.get("window");
+    const { height: sHeight, width: sWidth } = useWindowDimensions();
 
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({

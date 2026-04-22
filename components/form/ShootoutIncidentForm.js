@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions} from 'react-native';
+import {View, Text, TextInput, Pressable, Image, ScrollView, Alert, ActivityIndicator, Platform, Modal, Dimensions, useWindowDimensions} from 'react-native';
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Dropdown from 'react-native-modal-dropdown';
@@ -11,8 +11,6 @@ import { useWebSocket } from '../../context/WebSocketContext';
 import { KeyboardAvoidingView } from 'native-base';
 import { validateFootballIncidentForm } from '../../utils/validation/footballIncidentValidation';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 const ShootoutIncidentForm = ({
     match,
     tournament,
@@ -23,6 +21,7 @@ const ShootoutIncidentForm = ({
     navigation
 }) => {
 
+    const { height: SCREEN_HEIGHT } = useWindowDimensions();
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [goalScore, setGoalScore] = useState(null);
     const [teamPublicID, setTeamPublicID] = useState(homeTeam?.public_id);
