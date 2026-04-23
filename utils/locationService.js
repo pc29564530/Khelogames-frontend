@@ -11,13 +11,12 @@ export const getIPBasedLocation = async () => {
   try {
     console.log("Getting IP-based location...");
 
-    const response = await fetch('http://ip-api.com/json/', {
+    const response = await fetch('https://ip-api.com/json/', {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
     });
 
     const data = await response.json();
-    console.log("IP location response:", data);
 
     if (data && data.status === 'success') {
       // Clean up region names (remove prefixes like "National Capital Territory of")
