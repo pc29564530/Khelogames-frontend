@@ -1,6 +1,7 @@
 import {View, Text, Pressable, ActivityIndicator} from 'react-native';
 import tailwind from 'twrnc';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export const MatchesFilterBar = ({
   selectedDate,
@@ -99,12 +100,47 @@ export const MatchesFilterBar = ({
 };
 
 
+const TYPE_FILTER_LABELS = {
+  all: 'Scope',
+  international: 'International',
+  country: 'By Country',
+  city: 'By City',
+  nearby: 'Nearby',
+};
+
+const TYPE_FILTER_ICONS = {
+  all: 'public',
+  international: 'public',
+  country: 'flag',
+  city: 'location-city',
+  nearby: 'near-me',
+};
+
+const STATUS_FILTER_LABELS = {
+  all: 'Status',
+  not_started: 'Upcoming',
+  in_progress: 'Live',
+  finished: 'Finished',
+};
+
+const STATUS_FILTER_ICONS = {
+  all: 'schedule',
+  not_started: 'schedule',
+  in_progress: 'fiber-manual-record',
+  finished: 'check-circle',
+};
+
 export const FilterBar = ({
   typeFilter,
   setTypeFilterModal,
   setStatusFilterModal,
   statusFilter
 }) => {
+  const typeLabel = TYPE_FILTER_LABELS[typeFilter] || 'Scope';
+  const typeIcon = TYPE_FILTER_ICONS[typeFilter] || 'public';
+  const statusLabel = STATUS_FILTER_LABELS[statusFilter] || 'Status';
+  const statusIcon = STATUS_FILTER_ICONS[statusFilter] || 'schedule';
+
   return (
     <View
       style={[
@@ -117,7 +153,7 @@ export const FilterBar = ({
       ]}
     >
 
-      {/* CATEGORY */}
+      {/* SCOPE */}
       <Pressable
         onPress={() => setTypeFilterModal(true)}
         style={[
@@ -127,11 +163,14 @@ export const FilterBar = ({
             : tailwind`bg-slate-800`
         ]}
       >
-        <Text style={tailwind`mr-1 text-sm`}>
-          🎯
-        </Text>
-        <Text style={tailwind`text-white text-sm`}>
-          {typeFilter !== "all" ? typeFilter : "Category"}
+        <MaterialIcons
+          name={typeIcon}
+          size={16}
+          color="#ffffff"
+          style={tailwind`mr-1.5`}
+        />
+        <Text style={tailwind`text-white text-sm font-medium`}>
+          {typeLabel}
         </Text>
       </Pressable>
 
@@ -145,11 +184,14 @@ export const FilterBar = ({
             : tailwind`bg-slate-800`
         ]}
       >
-        <Text style={tailwind`mr-1 text-sm`}>
-          ⏱
-        </Text>
-        <Text style={tailwind`text-white text-sm`}>
-          {statusFilter !== "all" ? statusFilter : "Status"}
+        <MaterialIcons
+          name={statusIcon}
+          size={16}
+          color={statusFilter === 'live' ? '#ffffff' : '#ffffff'}
+          style={tailwind`mr-1.5`}
+        />
+        <Text style={tailwind`text-white text-sm font-medium`}>
+          {statusLabel}
         </Text>
       </Pressable>
 

@@ -21,6 +21,20 @@ import Animated, {
 } from "react-native-reanimated";
 import CountryPicker from '../components/CountryPicker';
 
+const TYPE_FILTER_LABELS = {
+  all: 'Scope',
+  international: 'International',
+  country: 'By Country',
+  nearby: 'Nearby',
+};
+
+const TYPE_FILTER_OPTIONS = [
+  { label: 'All', value: 'all', icon: 'list' },
+  { label: 'International', value: 'international', icon: 'public' },
+  { label: 'By Country', value: 'country', icon: 'flag' },
+  { label: 'Nearby', value: 'nearby', icon: 'near-me' },
+];
+
 const Club = () => {
     const navigation = useNavigation();
     const [searchQuery, setSearchQuery] = useState('');
@@ -302,8 +316,8 @@ const Club = () => {
                 >
                   <MaterialIcons name="tune" size={18} color={typeFilter !== 'all' ? '#ffffff' : '#94a3b8'} />
                   {typeFilter !== 'all' && (
-                    <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '600', marginLeft: 4, textTransform: 'capitalize' }}>
-                      {typeFilter}
+                    <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '600', marginLeft: 4 }}>
+                      {TYPE_FILTER_LABELS[typeFilter] || 'Scope'}
                     </Text>
                   )}
                 </Pressable>
@@ -337,27 +351,25 @@ const Club = () => {
                 >
                 <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
                     <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Category</Text>
-                    {['all', 'international', 'country', 'nearby'].map((val) => (
+                    <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Scope</Text>
+                    {TYPE_FILTER_OPTIONS.map((opt) => (
                     <Pressable
-                        key={val}
+                        key={opt.value}
                         style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                         onPress={() => {
                             setTypeFilterModal(false);
-                            setTypeFilter(val);
+                            setTypeFilter(opt.value);
                             setIsCountryPicker(false);
-                            if (val === 'nearby') {
+                            if (opt.value === 'nearby') {
                                 fetchTeamByNearBy();
-                            } else if (val === 'country') {
+                            } else if (opt.value === 'country') {
                                 setIsCountryPicker(true);
                             }
                         }}
                     >
-                        <MaterialIcons
-                        name={val === 'international' ? 'public' : val === 'country' ? 'flag' : 'near-me'}
-                        size={20} color="#94a3b8" />
-                        <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16, textTransform: 'capitalize'}}>{val}</Text>
-                        {typeFilter === val && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
+                        <MaterialIcons name={opt.icon} size={20} color="#94a3b8" />
+                        <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16}}>{opt.label}</Text>
+                        {typeFilter === opt.value && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
                     </Pressable>
                     ))}
                 </View>

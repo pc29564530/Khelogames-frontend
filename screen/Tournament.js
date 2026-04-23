@@ -50,7 +50,8 @@ const Tournament = () => {
   });
   const dispatch = useDispatch();
   const tournaments = useSelector((state) => state.tournamentsReducers.tournaments);
-  const [filterTournaments, setFilterTournaments] = useState(tournaments?.tournaments || []);
+  console.log("Tournaments Line no 53: ", tournaments)
+  const [filterTournaments, setFilterTournaments] = useState(tournaments || []);
   const [isDropDown, setIsDropDown] = useState(false);
   const [loading, setLoading] = useState(false);
   const games = useSelector((state) => state.sportReducers.games);
@@ -131,7 +132,7 @@ const Tournament = () => {
       (tournament) =>
         tournament.game_id === game.id &&
         (isLocationFilter || typeFilter === 'all' || tournament.level === typeFilter) &&
-        (statusFilter === 'all' || tournament.status_code === statusFilter)
+        (statusFilter === 'all' || tournament.status === statusFilter)
     );
     setFilterTournaments(filtered || tournaments);
   }, [tournaments, game, typeFilter, statusFilter]);
@@ -242,13 +243,24 @@ const Tournament = () => {
 
   const renderFilterTournament = ({item}) => {
     // Format date from timestamp
+      console.log("Tournament: LIve: ", item.status)
         const startDate = item.start_timestamp
         ? new Date(item.start_timestamp * 1000).toLocaleDateString()
         : "TBD";
 
         // Status indicator
-        const isLive = item.status === "live";
+        const isLive = item.status === "in_progress";
         const isFinished = item.status === "finished";
+
+        const getModifyStatus = (status) => {
+          if(status === 'not_started') {
+              return 'Upcoming';
+          } else if (status === 'in_progress') {
+            return 'Live';
+          } else if (status === 'finished') {
+            return 'Finished';
+          }
+        }
 
         return (
             <Pressable
@@ -287,7 +299,7 @@ const Tournament = () => {
                                     tailwind`text-xs font-semibold capitalize`,
                                     isLive ? tailwind`text-red-400` : {color: '#94a3b8'}
                                 ]}>
-                                    {item.status === "not_started" ? "Upcoming" : item.status || "Upcoming"}
+                                    {getModifyStatus(item.status)}
                                 </Text>
                             </View>
                             <Text style={{color: '#64748b', fontSize: 12, marginTop: 4, fontWeight: '600'}}>
@@ -395,32 +407,36 @@ const Tournament = () => {
         >
           <View style={[tailwind`rounded-t-3xl pt-2 pb-8`, {backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155'}]}>
             <View style={[tailwind`w-10 h-1 rounded-full self-center mb-4`, {backgroundColor: '#475569'}]} />
-            <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Category</Text>
-            {['all', 'international', 'country', 'city', 'nearby'].map((val) => (
+            <Text style={{color: '#f1f5f9', fontSize: 16, fontWeight: '700', paddingHorizontal: 24, marginBottom: 12}}>Scope</Text>
+            {[
+              { label: 'All', value: 'all', icon: 'list' },
+              { label: 'International', value: 'international', icon: 'public' },
+              { label: 'By Country', value: 'country', icon: 'flag' },
+              { label: 'By City', value: 'city', icon: 'location-city' },
+              { label: 'Nearby', value: 'nearby', icon: 'near-me' },
+            ].map((opt) => (
               <Pressable
-                key={val}
+                key={opt.value}
                 style={[tailwind`flex-row items-center px-6 py-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
                 onPress={() => {
                   setTypeFilterModal(false);
-                  setTypeFilter(val);
+                  setTypeFilter(opt.value);
 
                   setIsCountryPicker(false);
                   setIsCityPicker(false);
 
-                  if (val === 'nearby') {
+                  if (opt.value === 'nearby') {
                     handleNearbyFilter();
-                  } else if (val === 'country') {
+                  } else if (opt.value === 'country') {
                     setIsCountryPicker(true);
-                  } else if (val === 'city') {
+                  } else if (opt.value === 'city') {
                     setIsCityPicker(true);
                   }
                 }}
               >
-                <MaterialIcons
-                  name={val === 'international' ? 'public' : val === 'country' ? 'flag' : 'near-me'}
-                  size={20} color="#94a3b8" />
-                <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16, textTransform: 'capitalize'}}>{val}</Text>
-                {typeFilter === val && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
+                <MaterialIcons name={opt.icon} size={20} color="#94a3b8" />
+                <Text style={{color: '#cbd5e1', fontSize: 16, marginLeft: 16}}>{opt.label}</Text>
+                {typeFilter === opt.value && <MaterialIcons name="check" size={20} color="#f87171" style={tailwind`ml-auto`} />}
               </Pressable>
             ))}
           </View>
@@ -439,7 +455,7 @@ const Tournament = () => {
             {[
               { label: 'All', value: 'all', icon: 'list' },
               { label: 'Upcoming', value: 'not_started', icon: 'schedule' },
-              { label: 'Live', value: 'live', icon: 'fiber-manual-record' },
+              { label: 'Live', value: 'in_progress', icon: 'fiber-manual-record' },
             ].map((opt) => (
               <Pressable
                 key={opt.value}
