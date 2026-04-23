@@ -1,58 +1,53 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState, useEffect, useLayoutEffect} from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
   TextInput,
   Image,
-  StyleSheet,
   Pressable,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Modal,
   ScrollView,
   ActivityIndicator,
   Platform,
-  Alert,
-  PermissionsAndroid
 } from 'react-native';
 import axiosInstance from './axios_config';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import RFNS from 'react-native-fs';
 import tailwind from 'twrnc';
+import { useSelector } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
-import {BASE_URL, AUTH_URL} from '../constants/ApiConstants';
-import {setEditFullName, setEditDescription, setProfileAvatar} from '../redux/actions/actions';
-import {useDispatch} from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
+import { setEditFullName, setEditDescription, setProfileAvatar } from '../redux/actions/actions';
+import { useDispatch } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { validateProfileForm } from '../utils/validation/profileValidation';
 import ToastManager from '../utils/ToastManager';
-import { handleInlineError, logSilentError } from '../utils/errorHandler';
-import { requestLocationPermission } from '../utils/locationService';
-
+import { logSilentError } from '../utils/errorHandler';
+import { requestLocationPermission, getIPBasedLocation } from '../utils/locationService';
 
 function getMediaTypeFromURL(url) {
   const fileExtensionMatch = url.match(/\.([0-9a-z]+)$/i);
   if (fileExtensionMatch) {
     const fileExtension = fileExtensionMatch[1].toLowerCase();
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
-
     if (imageExtensions.includes(fileExtension)) {
       return 'image';
     }
   }
 }
 
-const fileToBase64 = async filePath => {
+const fileToBase64 = async (filePath) => {
   try {
     const fileContent = await RFNS.readFile(filePath, 'base64');
     return fileContent;
   } catch (error) {
-    console.error('Error converting image to Base64:', error);
+    logSilentError(error);
     return null;
   }
 };
@@ -61,8 +56,6 @@ export default function EditProfile() {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [profile, setProfile] = useState();
-  const [coverUrl, setCoverUrl] = useState('');
   const [avatarType, setAvatarType] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -70,137 +63,110 @@ export default function EditProfile() {
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [getCurrentLocation, setGetCurrentLocation] = useState(null);
-  const [error, setError] = useState({
-    global: null,
-    fields: {},
-  });
+  const [error, setError] = useState({ global: null, fields: {} });
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
-
-  const navigation = useNavigation();
   const [isRolesModalVisible, setIsRolesModalVisible] = useState(false);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
+  const authUserPublicID = useSelector(state => state.profile.authUserPublicID);
 
-  // Get location based on IP when screen is focused
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <Text style={tailwind`text-xl font-bold text-white`}>Edit Profile</Text>
+      ),
+      headerStyle: {
+        backgroundColor: '#1e293b',
+        elevation: 0,
+        shadowOpacity: 0,
+      },
+      headerTintColor: '#e2e8f0',
+      headerTitleAlign: 'center',
+      headerLeft: () => (
+        <Pressable onPress={() => navigation.goBack()} style={tailwind`ml-4`}>
+          <AntDesign name="arrowleft" size={22} color="white" />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
+
   useFocusEffect(
-          React.useCallback(() => {
-              let isActive = true;
-  
-              const fetchIPLocation = async () => {
-                  const location = await getIPBasedLocation();
-                  if (isActive && location) {
-                      setCity(location.city);
-                      setState(location.state);
-                      setCountry(location.country);
-                  }
-              };
-  
-              fetchIPLocation();
-  
-              // Cleanup when screen loses focus
-              return () => {
-                  isActive = false;
-              };
-          }, [])
-      );
-  
-    const handleLocation = async () => {
-          await requestLocationPermission(
-              (coords) => {
-                  setLatitude(coords.latitude);
-                  setLongitude(coords.longitude);
-              },
-              null,
-              setIsLoadingLocation
-          );
-    };
+    React.useCallback(() => {
+      let isActive = true;
+      const fetchIPLocation = async () => {
+        try {
+          const location = await getIPBasedLocation();
+          if (isActive && location) {
+            setCity((prev) => prev || location.city || '');
+            setState((prev) => prev || location.state || '');
+            setCountry((prev) => prev || location.country || '');
+          }
+        } catch (err) {
+          logSilentError(err);
+        }
+      };
+      fetchIPLocation();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const authToken = await AsyncStorage.getItem('AccessToken');
-        const response = await axiosInstance.get(`${BASE_URL}/getRoles`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        console.log('Roles: ', response.data.data);
-        setRoles(response.data.data || []);
-      } catch (err) {
-        logSilentError(err);
-        console.error('Failed to fetch roles: ', err);
-      }
-    };
-    fetchRoles();
-  }, []);
+  const handleLocation = async () => {
+    await requestLocationPermission(
+      (coords) => {
+        setLatitude(coords.latitude);
+        setLongitude(coords.longitude);
+      },
+      null,
+      setIsLoadingLocation
+    );
+  };
 
   const uploadAvatarimage = async () => {
     try {
-      let options = {
-        noData: true,
-        mediaType: 'photo',
-        quality: 0.8,
-      };
-
+      const options = { noData: true, mediaType: 'photo', quality: 0.8 };
       const res = await launchImageLibrary(options);
-
-      if (res.didCancel) {
-        console.log('User cancelled photo picker');
-      } else if (res.error) {
-        console.log('ImagePicker Error: ', res.error);
-        Alert.alert('Error', 'Failed to select image');
-      } else {
-        const type = getMediaTypeFromURL(res.assets[0].uri);
-        if (type === 'image') {
-          const base64File = await fileToBase64(res.assets[0].uri);
-          setAvatarUrl(base64File);
-          setAvatarType(type);
-        } else {
-          Alert.alert('Error', 'Unsupported media type');
-        }
+      if (res.didCancel) return;
+      if (res.error) {
+        setError({ global: 'Failed to select image. Please try again.', fields: {} });
+        return;
       }
-    } catch (e) {
-      console.error('unable to load avatar image', e);
-      Alert.alert('Error', 'Failed to upload image');
+      const type = getMediaTypeFromURL(res.assets[0].uri);
+      if (type === 'image') {
+        const base64File = await fileToBase64(res.assets[0].uri);
+        setAvatarUrl(base64File);
+        setAvatarType(type);
+      } else {
+        setError({ global: 'Please select a valid image (JPG, PNG, GIF).', fields: {} });
+      }
+    } catch (err) {
+      setError({
+        global: "Unable to upload image",
+        fields: {},
+      })
+      console.log("Unable to upload image: ", err);
     }
   };
 
   const fetchUserProfile = async () => {
     try {
-      setLoading(true);
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const userPublicID = await AsyncStorage.getItem('UserPublicID');
-
-      const response = await axiosInstance.get(
-        `${AUTH_URL}/getProfile/${userPublicID}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
+      const response = await axiosInstance.get(`${AUTH_URL}/getProfile/${authUserPublicID}`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
         },
-      );
+      });
       const item = response.data;
-
-      setProfile(item.data);
       setFullName(item.data.full_name || '');
       setBio(item.data.bio || '');
       setAvatarUrl(item.data.avatar_url || '');
-      setCity(item.data.city || '');
-      setState(item.data.state || '');
-      setCountry(item.data.country || '');
-      setLatitude(item.data.latitude || null);
-      setLongitude(item.data.longitude || null);
     } catch (err) {
-      console.error('Unable to fetch user profile: ', err);
-    } finally {
-      setLoading(false);
+      logSilentError(err);
     }
   };
 
@@ -208,73 +174,34 @@ export default function EditProfile() {
     fetchUserProfile();
   }, []);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: 'Edit Profile',
-      headerLeft: () => (
-        <Pressable onPress={() => navigation.goBack()}>
-          <AntDesign
-            name="arrowleft"
-            size={24}
-            color="white"
-            style={tailwind`ml-4`}
-          />
-        </Pressable>
-      ),
-      headerStyle: tailwind`bg-red-500`,
-      headerTintColor: 'white',
-      headerTitleStyle: tailwind`font-bold`,
-    });
-  }, [navigation]);
-
   const handleEditProfile = async () => {
     try {
-      const formData = {
-        full_name: fullName,
-        bio,
-        city,
-        state,
-        country,
-      }
+      const formData = { full_name: fullName, bio, city, state, country };
       const validation = validateProfileForm(formData);
       if (!validation.isValid) {
-          setError({
-            global: null,
-            fields: validation.errors
-          });
-          console.error("Validation Errors: ", validation.errors);
-          return;
+        setError({ global: null, fields: validation.errors });
+        return;
       }
 
       setLoading(true);
-      setError({
-        global: null,
-        fields: {},
-      });
+      setError({ global: null, fields: {} });
       const authToken = await AsyncStorage.getItem('AccessToken');
       const data = {
         full_name: fullName,
-        bio: bio,
+        bio,
         avatar_url: avatarUrl,
-        city: city,
-        state: state,
-        country: country,
+        city,
+        state,
+        country,
         latitude: latitude?.toString(),
         longitude: longitude?.toString(),
       };
-
-      console.log("Data: ", data)
-
-      const response = await axiosInstance.put(
-        `${BASE_URL}/editProfile`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
+      const response = await axiosInstance.put(`${BASE_URL}/editProfile`, data, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
         },
-      );
+      });
 
       const item = response.data;
       dispatch(setEditFullName(item.data.full_name));
@@ -285,360 +212,378 @@ export default function EditProfile() {
       navigation.goBack();
     } catch (err) {
       const backendErrors = err?.response?.data?.error?.fields || {};
-      if (backendErrors.global) {
-        setError({
-          global: backendErrors.global,
-          fields: {},
-        });
-      } else {
-        setError({
-          global: err?.response?.data?.error?.message || "Unable to edit profile",
-          fields: backendErrors,
-        });
-      }
-      console.error('unable to update edit the profile ', err);
+      setError({
+        global: err?.response?.data?.error?.message || 'Unable to edit profile',
+        fields: backendErrors,
+      });
+      logSilentError(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNewRole = async item => {
+  const handleNewRole = async (item) => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const data = {
-        role_id: item.id,
-      };
-      const response = await axiosInstance.post(
+      await axiosInstance.post(
         `${BASE_URL}/addUserRole`,
-        data,
+        { role_id: item.id },
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       setSelectedRole(item);
       setIsRolesModalVisible(false);
     } catch (err) {
-      console.error('unable to add the new role: ', err);
+      logSilentError(err);
     }
   };
 
   return (
     <KeyboardAvoidingView
-      style={tailwind`flex-1 bg-gray-50`}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      style={{ flex: 1, backgroundColor: '#0f172a' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <ScrollView
+        style={{ flex: 1, backgroundColor: '#0f172a' }}
+        contentContainerStyle={tailwind`px-5 py-5 pb-12`}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={tailwind`pb-6`}>
-        {/* Global Error Display */}
+      >
+        {/* Global Error */}
         {error?.global && (
-          <View style={tailwind`mx-5 mt-4 mb-2 p-3 bg-red-50 border border-red-300 rounded-lg`}>
-            <Text style={tailwind`text-red-700 text-sm`}>
-              *{error?.global}
-            </Text>
+          <View
+            style={[
+              tailwind`mb-4 p-3.5 rounded-xl`,
+              { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1 },
+            ]}
+          >
+            <View style={tailwind`flex-row items-center`}>
+              <MaterialIcons name="error-outline" size={18} color="#f87171" />
+              <Text style={tailwind`text-red-400 text-sm ml-2 flex-1`}>{error.global}</Text>
+            </View>
           </View>
         )}
 
-        {/* Profile Avatar Section */}
-        <View style={tailwind`bg-white shadow-sm`}>
-          {/* Cover Background */}
-          <View style={tailwind`h-32 bg-gradient-to-r from-red-400 to-red-600`}>
-            <View
-              style={[
-                tailwind`h-full w-full`,
-                {backgroundColor: 'rgba(239, 68, 68, 0.9)'},
-              ]}
-            />
-          </View>
-
-          {/* Avatar Container */}
-          <View style={tailwind`items-center -mt-16 px-6 pb-6`}>
-            <View style={tailwind`relative`}>
+        {/* Avatar */}
+        <View
+          style={[
+            tailwind`items-center rounded-2xl p-5 mb-4`,
+            { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1 },
+          ]}
+        >
+          <Pressable onPress={uploadAvatarimage} style={tailwind`relative`}>
+            {avatarUrl ? (
               <Image
-                style={tailwind`h-32 w-32 rounded-full border-4 border-white shadow-lg bg-gray-200`}
-                source={{
-                  uri:
-                    avatarUrl ||
-                    'https://via.placeholder.com/150/CCCCCC/808080?text=Avatar',
-                }}
+                source={{ uri: avatarUrl }}
+                style={[
+                  tailwind`w-24 h-24 rounded-full`,
+                  { backgroundColor: '#334155', borderWidth: 2, borderColor: '#334155' },
+                ]}
               />
-              <Pressable
-                style={tailwind`absolute bottom-0 right-0 bg-red-500 rounded-full p-3 shadow-lg border-3 border-white`}
-                onPress={uploadAvatarimage}>
-                <FontAwesome name="camera" size={18} color="white" />
-              </Pressable>
-            </View>
-
-            <Text style={tailwind`mt-4 text-gray-500 text-sm text-center`}>
-              Tap camera icon to update photo
-            </Text>
-          </View>
-        </View>
-
-        {/* Form Section */}
-        <View style={tailwind`px-5 mt-6`}>
-          {/* Personal Information Card */}
-          <View style={tailwind`bg-white rounded-xl shadow-sm p-5 mb-4`}>
-            <View style={tailwind`flex-row items-center mb-4`}>
-              <Ionicons name="person-outline" size={22} color="#EF4444" />
-              <Text style={tailwind`ml-2 text-lg font-bold text-gray-800`}>
-                Personal Information
-              </Text>
-            </View>
-
-            <View style={tailwind`mb-4`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Full Name *
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="Enter your full name"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields?.full_name && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error?.fields?.full_name}
-                </Text>
-              )}
-            </View>
-            <View>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Bio
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base min-h-24`}
-                value={bio}
-                onChangeText={setBio}
-                placeholder="Tell us about yourself..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-              <Text style={tailwind`text-gray-400 text-xs mt-1 text-right`}>
-                {bio.length}/100 characters
-              </Text>
-              {error?.fields?.bio && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.bio}
-                </Text>
-              )}
-            </View>
-          </View>
-
-          {/* Role Selection Card */}
-          <View style={tailwind`bg-white rounded-xl shadow-sm p-5 mb-4`}>
-            <View style={tailwind`flex-row items-center mb-3`}>
-              <Ionicons name="briefcase-outline" size={22} color="#EF4444" />
-              <Text style={tailwind`ml-2 text-lg font-bold text-gray-800`}>
-                Role
-              </Text>
-            </View>
-
-            <Pressable
-              onPress={() => setIsRolesModalVisible(true)}
-              style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 flex-row justify-between items-center`}>
-              <Text
-                style={tailwind`${
-                  selectedRole ? 'text-gray-800' : 'text-gray-400'
-                } text-base`}>
-                {selectedRole ? selectedRole.name : 'Select your role'}
-              </Text>
-              <AntDesign name="right" size={16} color="#9CA3AF" />
-            </Pressable>
-          </View>
-
-          {/* Location Card */}
-          <View style={tailwind`bg-white rounded-xl shadow-sm p-5 mb-4`}>
-            <View style={tailwind`flex-row items-center mb-4`}>
-              <MaterialIcons name="location-on" size={22} color="#EF4444" />
-              <Text style={tailwind`ml-2 text-lg font-bold text-gray-800`}>
-                Location
-              </Text>
-            </View>
-
-            <Pressable
-              onPress={() => {
-                handleLocation()
-              }}
-              style={tailwind`flex-row items-center justify-center p-4 rounded-lg bg-blue-500 mb-4 shadow-sm`}
-              disabled={isLoadingLocation}>
-              {isLoadingLocation ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <MaterialIcons name="my-location" size={20} color="white" />
-                  <Text style={tailwind`text-white text-base font-semibold ml-2`}>
-                    Use Current Location
-                  </Text>
-                </>
-              )}
-            </Pressable>
-
-            <View style={tailwind`items-center mb-4`}>
-              <View style={tailwind`flex-row items-center w-full`}>
-                <View style={tailwind`flex-1 h-px bg-gray-300`} />
-                <Text style={tailwind`mx-3 text-gray-400 text-sm`}>
-                  or enter manually
-                </Text>
-                <View style={tailwind`flex-1 h-px bg-gray-300`} />
-              </View>
-            </View>
-
-            <View style={tailwind`mb-3`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                City
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={city}
-                onChangeText={setCity}
-                placeholder="Enter city"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields?.city && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.city}
-                </Text>
-              )}
-            </View>
-
-            <View style={tailwind`mb-3`}>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                State/Province
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={state}
-                onChangeText={setState}
-                placeholder="Enter state or province"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields?.state && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.state}
-                </Text>
-              )}
-            </View>
-            <View>
-              <Text style={tailwind`text-gray-700 font-semibold mb-2 text-sm`}>
-                Country
-              </Text>
-              <TextInput
-                style={tailwind`p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 text-base`}
-                value={country}
-                onChangeText={setCountry}
-                placeholder="Enter country"
-                placeholderTextColor="#9CA3AF"
-              />
-              {error?.fields?.country && (
-                <Text style={tailwind`text-red-500 text-sm mt-1`}>
-                  *{error.fields.country}
-                </Text>
-              )}
-            </View>
-            {latitude && longitude && (
+            ) : (
               <View
-                style={tailwind`mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200`}>
-                <View style={tailwind`flex-row items-center`}>
-                  <MaterialIcons name="place" size={16} color="#3B82F6" />
-                  <Text style={tailwind`ml-2 text-blue-700 text-xs font-medium`}>
-                    Coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)}
-                  </Text>
-                </View>
+                style={[
+                  tailwind`w-24 h-24 rounded-full items-center justify-center`,
+                  { backgroundColor: '#0f172a', borderWidth: 2, borderColor: '#334155' },
+                ]}
+              >
+                <FontAwesome name="user" size={40} color="#475569" />
               </View>
             )}
-          </View>
+            <View
+              style={[
+                tailwind`absolute bottom-0 right-0 rounded-full p-2`,
+                { backgroundColor: '#f87171', borderWidth: 2, borderColor: '#1e293b' },
+              ]}
+            >
+              <FontAwesome name="camera" size={12} color="white" />
+            </View>
+          </Pressable>
+          <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 10 }}>
+            Tap photo to change
+          </Text>
         </View>
 
-        {/* Role Selection Modal */}
-        <Modal
-          visible={isRolesModalVisible}
-          animationType="slide"
-          onRequestClose={() => setIsRolesModalVisible(false)}
-          transparent={true}>
-          <View
-            style={tailwind`flex-1 justify-end bg-black bg-opacity-50`}
-            onTouchEnd={() => setIsRolesModalVisible(false)}>
+        {/* Form card */}
+        <View
+          style={[
+            tailwind`rounded-2xl p-5 mb-4`,
+            { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1 },
+          ]}
+        >
+          {/* Full Name */}
+          <View style={tailwind`mb-5`}>
+            <Text style={{ color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14 }}>
+              Full Name
+            </Text>
+            <TextInput
+              style={[
+                tailwind`py-3 px-4 rounded-xl text-sm`,
+                { backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1 },
+              ]}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              placeholderTextColor="#475569"
+            />
+            {error?.fields?.full_name && (
+              <Text style={tailwind`text-red-400 text-xs mt-1.5`}>{error.fields.full_name}</Text>
+            )}
+          </View>
+
+          {/* Bio */}
+          <View style={tailwind`mb-5`}>
+            <Text style={{ color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14 }}>
+              Bio
+            </Text>
+            <TextInput
+              style={[
+                tailwind`py-3 px-4 rounded-xl text-sm`,
+                {
+                  backgroundColor: '#0f172a',
+                  color: '#f1f5f9',
+                  borderColor: '#334155',
+                  borderWidth: 1,
+                  minHeight: 96,
+                  textAlignVertical: 'top',
+                },
+              ]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Tell us about yourself..."
+              placeholderTextColor="#475569"
+              multiline
+              numberOfLines={4}
+              maxLength={100}
+            />
+            <Text style={{ color: '#64748b', fontSize: 11, textAlign: 'right', marginTop: 4 }}>
+              {bio.length}/100
+            </Text>
+            {error?.fields?.bio && (
+              <Text style={tailwind`text-red-400 text-xs mt-1.5`}>{error.fields.bio}</Text>
+            )}
+          </View>
+
+          {/* Role */}
+          <View style={tailwind`mb-5`}>
+            <Text style={{ color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14 }}>
+              Role
+            </Text>
+            <Pressable
+              onPress={() => setIsRolesModalVisible(true)}
+              style={[
+                tailwind`flex-row justify-between items-center py-3 px-4 rounded-xl`,
+                { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1 },
+              ]}
+            >
+              <Text style={{ color: selectedRole ? '#f1f5f9' : '#475569', fontSize: 14 }}>
+                {selectedRole ? selectedRole.name : 'Select your role'}
+              </Text>
+              <MaterialIcons name="keyboard-arrow-down" size={20} color="#94a3b8" />
+            </Pressable>
+          </View>
+
+          {/* Location label */}
+          <Text style={{ color: '#f1f5f9', fontWeight: '600', marginBottom: 8, fontSize: 14 }}>
+            Location
+          </Text>
+
+          {/* Use Current Location */}
+          <Pressable
+            onPress={handleLocation}
+            disabled={isLoadingLocation}
+            style={[
+              tailwind`flex-row items-center justify-center py-3 rounded-xl mb-4`,
+              { backgroundColor: isLoadingLocation ? '#475569' : '#0f172a', borderColor: '#334155', borderWidth: 1 },
+            ]}
+          >
+            {isLoadingLocation ? (
+              <ActivityIndicator color="#f87171" />
+            ) : (
+              <>
+                <MaterialIcons name="my-location" size={16} color="#f87171" />
+                <Text style={{ color: '#f1f5f9', fontSize: 14, fontWeight: '600', marginLeft: 8 }}>
+                  Use Current Location
+                </Text>
+              </>
+            )}
+          </Pressable>
+
+          {/* City + State row */}
+          <View style={tailwind`flex-row mb-5`}>
+            <View style={tailwind`flex-1 mr-2`}>
+              <TextInput
+                style={[
+                  tailwind`py-3 px-4 rounded-xl text-sm`,
+                  { backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1 },
+                ]}
+                value={city}
+                onChangeText={setCity}
+                placeholder="City"
+                placeholderTextColor="#475569"
+              />
+              {error?.fields?.city && (
+                <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.city}</Text>
+              )}
+            </View>
+            <View style={tailwind`flex-1`}>
+              <TextInput
+                style={[
+                  tailwind`py-3 px-4 rounded-xl text-sm`,
+                  { backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1 },
+                ]}
+                value={state}
+                onChangeText={setState}
+                placeholder="State"
+                placeholderTextColor="#475569"
+              />
+              {error?.fields?.state && (
+                <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.state}</Text>
+              )}
+            </View>
+          </View>
+
+          {/* Country */}
+          <View style={tailwind`mb-2`}>
+            <TextInput
+              style={[
+                tailwind`py-3 px-4 rounded-xl text-sm`,
+                { backgroundColor: '#0f172a', color: '#f1f5f9', borderColor: '#334155', borderWidth: 1 },
+              ]}
+              value={country}
+              onChangeText={setCountry}
+              placeholder="Country"
+              placeholderTextColor="#475569"
+            />
+            {error?.fields?.country && (
+              <Text style={tailwind`text-red-400 text-xs mt-1`}>{error.fields.country}</Text>
+            )}
+          </View>
+
+          {/* Coordinates */}
+          {latitude && longitude && (
             <View
-              style={tailwind`bg-white rounded-t-3xl shadow-2xl max-h-2/3`}
-              onTouchEnd={e => e.stopPropagation()}>
-              <View style={tailwind`p-5 border-b border-gray-200`}>
-                <View style={tailwind`flex-row justify-between items-center`}>
-                  <Text style={tailwind`text-xl font-bold text-gray-800`}>
+              style={[
+                tailwind`mt-3 p-3 rounded-xl flex-row items-center`,
+                { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1 },
+              ]}
+            >
+              <MaterialIcons name="place" size={14} color="#f87171" />
+              <Text style={{ color: '#94a3b8', fontSize: 12, marginLeft: 6 }}>
+                {latitude.toFixed(6)}, {longitude.toFixed(6)}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Submit */}
+        <Pressable
+          onPress={handleEditProfile}
+          disabled={loading}
+          style={[
+            tailwind`py-4 rounded-2xl items-center bg-red-400`,
+            {
+              shadowColor: '#f87171',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 8,
+              elevation: 4,
+              opacity: loading ? 0.6 : 1,
+            },
+          ]}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={tailwind`text-white text-base font-semibold`}>Save Changes</Text>
+          )}
+        </Pressable>
+
+        {/* Role Modal */}
+        {isRolesModalVisible && (
+          <Modal
+            visible={isRolesModalVisible}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setIsRolesModalVisible(false)}
+          >
+            <Pressable
+              style={tailwind`flex-1 justify-end bg-black/60`}
+              onPress={() => setIsRolesModalVisible(false)}
+            >
+              <View
+                style={[
+                  tailwind`rounded-t-3xl max-h-2/3`,
+                  { backgroundColor: '#1e293b', borderTopWidth: 1, borderColor: '#334155' },
+                ]}
+                onStartShouldSetResponder={() => true}
+              >
+                <View
+                  style={[
+                    tailwind`w-10 h-1 rounded-full self-center mt-2 mb-3`,
+                    { backgroundColor: '#475569' },
+                  ]}
+                />
+                <View
+                  style={[
+                    tailwind`px-5 pb-4 flex-row justify-between items-center`,
+                    { borderBottomWidth: 1, borderBottomColor: '#334155' },
+                  ]}
+                >
+                  <Text style={{ color: '#f1f5f9', fontSize: 18, fontWeight: '700' }}>
                     Select Your Role
                   </Text>
                   <Pressable onPress={() => setIsRolesModalVisible(false)}>
-                    <AntDesign name="close" size={24} color="#6B7280" />
+                    <AntDesign name="close" size={22} color="#94a3b8" />
                   </Pressable>
                 </View>
-              </View>
 
-              <ScrollView style={tailwind`p-5`}>
-                {roles?.map((item, i) => (
-                  <Pressable
-                    key={i}
-                    onPress={() => handleNewRole(item)}
-                    style={[
-                      tailwind`p-4 rounded-xl mb-3 shadow-sm border-2`,
-                      selectedRole?.id === item.id
-                        ? tailwind`bg-red-50 border-red-500`
-                        : tailwind`bg-white border-gray-200`,
-                    ]}>
-                    <View style={tailwind`flex-row justify-between items-center`}>
-                      <Text
+                <ScrollView style={tailwind`px-5 py-4`}>
+                  {roles?.map((item) => {
+                    const isSelected = selectedRole?.id === item.id;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        onPress={() => handleNewRole(item)}
                         style={[
-                          tailwind`text-base font-semibold`,
-                          selectedRole?.id === item.id
-                            ? tailwind`text-red-600`
-                            : tailwind`text-gray-800`,
-                        ]}>
-                        {item.name}
-                      </Text>
-                      {selectedRole?.id === item.id && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={24}
-                          color="#EF4444"
-                        />
-                      )}
-                    </View>
-                    {item.description && (
-                      <Text style={tailwind`text-gray-600 text-sm mt-1`}>
-                        {item.description}
-                      </Text>
-                    )}
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Save Button */}
-        <View style={tailwind`px-5 mt-2`}>
-          <Pressable
-            onPress={handleEditProfile}
-            disabled={isSaving}
-            style={tailwind`items-center p-4 rounded-xl bg-red-500 shadow-lg ${
-              isSaving ? 'opacity-50' : ''
-            }`}>
-            {isSaving ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <View style={tailwind`flex-row items-center`}>
-                <Ionicons name="checkmark-circle" size={22} color="white" />
-                <Text style={tailwind`text-white text-lg font-bold ml-2`}>
-                  Save Changes
-                </Text>
+                          tailwind`p-4 rounded-2xl mb-3`,
+                          {
+                            backgroundColor: isSelected ? '#f8717120' : '#0f172a',
+                            borderColor: isSelected ? '#f87171' : '#334155',
+                            borderWidth: 1,
+                          },
+                        ]}
+                      >
+                        <View style={tailwind`flex-row justify-between items-center`}>
+                          <Text
+                            style={{
+                              color: isSelected ? '#f87171' : '#f1f5f9',
+                              fontSize: 15,
+                              fontWeight: '600',
+                            }}
+                          >
+                            {item.name}
+                          </Text>
+                          {isSelected && (
+                            <Ionicons name="checkmark-circle" size={22} color="#f87171" />
+                          )}
+                        </View>
+                        {item.description && (
+                          <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 4 }}>
+                            {item.description}
+                          </Text>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
               </View>
-            )}
-          </Pressable>
-        </View>
+            </Pressable>
+          </Modal>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

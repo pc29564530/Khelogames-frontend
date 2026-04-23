@@ -176,7 +176,7 @@ export const FilterBar = ({
 
       {/* STATUS */}
       <Pressable
-        onPress={() => setStatusFilterModal(true)}
+        onPress={() => { setStatusFilterModal(true)}}
         style={[
           tailwind`flex-row items-center px-4 py-2 rounded-xl`,
           statusFilter !== "all"

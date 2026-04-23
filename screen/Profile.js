@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
-import { View, Text, ScrollView, Pressable, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -34,7 +34,6 @@ function Profile({route}) {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentRole, setCurrentRole] = useState('');
-  const [moreTabVisible, setMoreTabVisible] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({
@@ -221,9 +220,9 @@ const handleReduxUnFollow = async () => {
     }
   };
 
-  const handleLogout = () => {
-    logoutServies({ dispatch });
-  };
+  // const handleLogout = () => {
+  //   logoutServies({ dispatch });
+  // };
 
   const handleNavigation = (screen) => {
     navigation.navigate(screen);
@@ -254,13 +253,14 @@ const handleReduxUnFollow = async () => {
           </Pressable>
         )}
 
-        {/* Right Side: Follow Button OR More Menu */}
+        {/* Right Side: Settings (own profile) */}
         {authProfile.public_id === currentProfile.public_id && (
-          <View style={tailwind`flex-row items-center gap-2`}>
-            <Pressable onPress={() => setMoreTabVisible(true)} style={tailwind`items-center justify-center w-10 h-10`}>
-              <MaterialIcons name="more-vert" size={24} color="white"/>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => navigation.navigate('Settings')}
+            style={tailwind`items-center justify-center w-10 h-10`}
+          >
+            <MaterialIcons name="settings" size={22} color="white" />
+          </Pressable>
         )}
       </View>
 
@@ -352,118 +352,15 @@ const handleReduxUnFollow = async () => {
         </View>
 
         {/* Logout */}
-        {authProfile.public_id === currentProfile.public_id && (
+        {/* {authProfile.public_id === currentProfile.public_id && (
             <View style={tailwind`mx-4 mt-3 mb-8`}>
               <Pressable onPress={handleLogout} style={[tailwind`flex-row items-center justify-center py-3.5 rounded-2xl`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}>
                 <MaterialIcons name="logout" size={18} color="#f87171" />
                 <Text style={tailwind`text-red-400 text-sm font-semibold ml-2`}>Log Out</Text>
               </Pressable>
             </View>
-        )}
+        )} */}
       </ScrollView>
-      {moreTabVisible && (
-        <Modal
-          transparent
-          visible={moreTabVisible}
-          animationType="fade"
-          onRequestClose={() => setMoreTabVisible(false)}
-        >
-          <Pressable
-            style={tailwind`flex-1 bg-black/60`}
-            onPress={() => setMoreTabVisible(false)}
-          >
-            <View
-              style={[tailwind`absolute right-4 top-16 w-56 rounded-2xl overflow-hidden`, {backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1}]}
-              onStartShouldSetResponder={() => true}
-            >
-              {/* Own Profile Menu */}
-              {authProfile.public_id === currentProfile.public_id ? (
-                <>
-                  <TouchableOpacity
-                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      navigation.navigate('EditProfile', {from: "profile_menu"});
-                    }}
-                  >
-                    <MaterialIcons name="edit" size={20} color="#94a3b8" />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Edit Profile</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      navigation.navigate('Settings');
-                    }}
-                  >
-                    <MaterialIcons name="settings" size={20} color="#94a3b8" />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Settings</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4`}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      // Add share functionality
-                    }}
-                  >
-                    <MaterialIcons name="share" size={20} color="#94a3b8" />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Share Profile</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                /* Other Profile Menu */
-                <>
-                  <TouchableOpacity
-                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      handleFollowButton();
-                    }}
-                  >
-                    <MaterialIcons
-                      name={isFollowing?.is_following ? "person-remove" : "person-add"}
-                      size={20}
-                      color="#94a3b8"
-                    />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>
-                      {isFollowing?.is_following ? 'Unfollow' : 'Follow'}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      handleMessage();
-                    }}
-                  >
-                    <MaterialIcons name="message" size={20} color="#94a3b8" />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Send Message</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[tailwind`flex-row items-center py-4 px-4`, {borderBottomWidth: 1, borderColor: '#334155'}]}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                      // Add share functionality
-                    }}
-                  >
-                    <MaterialIcons name="share" size={20} color="#94a3b8" />
-                    <Text style={{color: '#f1f5f9', fontSize: 16, marginLeft: 12, fontWeight: '500'}}>Share Profile</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={tailwind`flex-row items-center py-4 px-4`}
-                    onPress={() => {
-                      setMoreTabVisible(false);
-                    }}
-                  >
-                    <MaterialIcons name="report" size={20} color="#DC2626" />
-                    <Text style={tailwind`text-red-600 text-base ml-3 font-medium`}>Report User</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </Pressable>
-      </Modal>
-      )}
     </View>
   );
 }

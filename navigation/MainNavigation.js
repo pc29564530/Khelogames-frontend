@@ -14,6 +14,8 @@ import CreateThread from '../screen/CreateThread';
 import CreateCommunity from '../screen/CreateCommunity';
 import Profile from '../screen/Profile';
 import EditProfile from '../screen/EditProfile';
+import Setting from '../screen/Setting';
+import LegalDoc from '../screen/LegalDoc';
 import ThreadComment from '../screen/ThreadComment';
 import CommunityList from '../screen/CommunityList';
 import CommunityPage from '../screen/CommunityPage';
@@ -144,7 +146,23 @@ export default function MainNavigation() {
                                 headerLeft: false
                             })}
                         />
-                        <Stack.Screen name="EditProfile" component={EditProfile} 
+                        <Stack.Screen name="EditProfile" component={EditProfile}
+                            options={() => ({
+                                headerShown: true,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+                        <Stack.Screen name="Settings" component={Setting}
+                            options={() => ({
+                                headerShown: true,
+                                headerTitle: null,
+                                headerBackTitleVisible: false,
+                                headerLeft: false
+                            })}
+                        />
+                        <Stack.Screen name="LegalDoc" component={LegalDoc}
                             options={() => ({
                                 headerShown: true,
                                 headerTitle: null,
