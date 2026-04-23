@@ -242,7 +242,7 @@ const handleReduxUnFollow = async () => {
       {/* Custom Header - With Conditional Follow Button */}
       <View style={[tailwind`flex-row items-center justify-between px-4 py-3`, {backgroundColor: '#1e293b'}]}>
         {/* Back Button */}
-        <Pressable onPress={() => navigation.goBack()} style={tailwind`items-center justify-center w-10 h-10`}>
+        <Pressable onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Trending')} style={tailwind`items-center justify-center w-10 h-10`}>
           <AntDesign name="arrowleft" size={24} color="white" />
         </Pressable>
 

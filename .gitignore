@@ -1,12 +1,10 @@
 # React Native
 node_modules/
-android/
 .expo/
 dist/
 npm-debug.*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 # Metro
 .metro-health-check*
@@ -34,6 +32,7 @@ android/app/build/
 android/app/release/
 android/app/debug/
 android/local.properties
+android-backup/
 # Removed android/gradle.properties from gitignore (needed for build config)
 
 # Gradle cache
@@ -75,6 +74,11 @@ ios/*.perspectivev3
 *.temp
 *.log
 *.orig.*
+*.hprof
+*.swp
+coverage/
+build-log.txt
+crash_log.txt
 
 # Web (if using RN-Web)
 web-build/

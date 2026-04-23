@@ -128,7 +128,9 @@ export const getGPSCoordinates = (onSuccess, onError, setIsLoading) => {
 // Returns coordinates via callback: onSuccess({ latitude, longitude })
 
 export const requestLocationPermission = async (onSuccess, onError, setIsLoading) => {
-  console.log("Platform:", Platform.OS);
+  if (Platform.OS !== "android") {
+    return true;
+  }
 
   if (Platform.OS === "android") {
     const granted = await PermissionsAndroid.request(
@@ -137,8 +139,8 @@ export const requestLocationPermission = async (onSuccess, onError, setIsLoading
         title: 'Location Permission',
         message: 'We need access to your location to get GPS coordinates.',
         buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
+        buttonNegative: 'Deny',
+        buttonPositive: 'Allow',
       }
     );
 

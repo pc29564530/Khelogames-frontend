@@ -95,7 +95,8 @@ const Club = () => {
                 });
                 const data = response.data.data || [];
                 dispatch(getTeamsBySport(data));
-                setFilteredTeams(data);
+                const item = data.filter((team) => team.type !== 'individual');
+                setFilteredTeams(item);
                 setSearchQuery('');
             } catch (err) {
                 logSilentError(err);

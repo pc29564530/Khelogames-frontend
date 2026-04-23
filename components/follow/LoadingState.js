@@ -7,7 +7,7 @@ import tailwind from 'twrnc';
 
 const LoadingState = () => {
   return (
-    <View style={tailwind`flex-1 items-center justify-center py-16`}>
+    <View style={[tailwind`flex-1 items-center justify-center py-16`, { backgroundColor: '#0f172a' }]}>
       <ActivityIndicator size="large" color="#f87171" />
     </View>
   );

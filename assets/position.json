@@ -1,12 +1,15 @@
 {
   "football": [
     { "code": "GK", "name": "Goalkeeper", "category": "GK" },
+    { "code": "DEF", "name": "Defender", "category": "DF" },
     { "code": "CB", "name": "Center Back", "category": "DF" },
     { "code": "LB", "name": "Left Back", "category": "DF" },
     { "code": "RB", "name": "Right Back", "category": "DF" },
+    { "code": "MID", "name": "Midfielder", "category": "MF" },
     { "code": "DM", "name": "Defensive Midfielder", "category": "MF" },
     { "code": "CM", "name": "Central Midfielder", "category": "MF" },
     { "code": "AM", "name": "Attacking Midfielder", "category": "MF" },
+    { "code": "FWD", "name": "Forward", "category": "FW" },
     { "code": "LW", "name": "Left Winger", "category": "FW" },
     { "code": "RW", "name": "Right Winger", "category": "FW" },
     { "code": "ST", "name": "Striker", "category": "FW" }

@@ -36,9 +36,9 @@ const TopTabTeamPage = ({teamData, game, parentScrollY, headerHeight, collapsedH
         }}
         >
             {/* Hide Squad tab for individual (player = team in badminton singles) */}
-            <TopTab.Screen name="Details">
+            {/* <TopTab.Screen name="Details">
                 {() => <TeamDetails teamData={teamData} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
-            </TopTab.Screen>  
+            </TopTab.Screen>   */}
             {!isIndividual && (
                 <TopTab.Screen name="Squad">
                     {() => <Members teamData={teamData} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />}
