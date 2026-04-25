@@ -82,25 +82,33 @@ const CreateClub = () => {
         fetchPlayerProfile();
     }, [game.id]);
 
+        // Get location based on IP when screen is focused
     useFocusEffect(
         React.useCallback(() => {
-            let isActive = true;
-
-            const fetchIPLocation = async () => {
-                const location = await getIPBasedLocation();
-                if (isActive && location) {
-                    setCity(location.city);
-                    setState(location.state);
-                    setCountry(location.country);
-                }
-            };
-
-            fetchIPLocation();
-
-            // Cleanup when screen loses focus
-            return () => {
-                isActive = false;
-            };
+        let isActive = true;
+        const fetchIPLocation = async () => {
+            try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const locationRes = await axiosInstance.get(`${BASE_URL}/geo/suggest`, {
+                headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                },
+            })
+            const location = locationRes.data.data;
+            if (isActive && location) {
+                setCity((prev) => prev || location.city || '');
+                setState((prev) => prev || location.state || '');
+                setCountry((prev) => prev || location.country || '');
+            }
+            } catch (err) {
+            logSilentError(err);
+            }
+        };
+        fetchIPLocation();
+        return () => {
+            isActive = false;
+        };
         }, [])
     );
 

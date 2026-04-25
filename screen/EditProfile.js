@@ -106,7 +106,6 @@ export default function EditProfile() {
             },
           })
           const location = locationRes.data.data;
-          console.log("Location: ", location)
           if (isActive && location) {
             setCity((prev) => prev || location.city || '');
             setState((prev) => prev || location.state || '');

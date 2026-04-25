@@ -1,25 +1,16 @@
-//Move the location service to a separate file
-
-import { PermissionsAndroid, Platform, Alert } from 'react-native';
+import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
+import axios from 'axios';
 
 // Get location based on IP address
 // Returns { city, state, country }
-// Fast and doesn't require GPS permission
-
+// Fast — no permission required
 export const getIPBasedLocation = async () => {
   try {
-    console.log("Getting IP-based location...");
-
-    const response = await fetch('https://ip-api.com/json/', {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    const data = await response.json();
+    const response = await axios.get('https://ip-api.com/json/');
+    const data = response.data; // axios: use response.data, NOT response.json()
 
     if (data && data.status === 'success') {
-      // Clean up region names (remove prefixes like "National Capital Territory of")
       let cleanedRegion = data.regionName || data.region || '';
       cleanedRegion = cleanedRegion
         .replace(/^National Capital Territory of /i, '')
@@ -27,137 +18,119 @@ export const getIPBasedLocation = async () => {
         .replace(/^State of /i, '')
         .trim();
 
-      const location = {
+      return {
         city: data.city || '',
         state: cleanedRegion,
         country: data.country || '',
       };
-
-      console.log("✓ IP Location:", location);
-      return location;
     }
-
     return null;
   } catch (err) {
-    console.error("IP location failed:", err.message);
+    console.error('IP location failed:', err.message);
     return null;
   }
 };
 
-// Get GPS coordinates with buffering for accuracy
-// Returns { latitude, longitude }
-// Requires location permission
+// Get GPS coordinates
+// Returns { latitude, longitude } via callback
 export const getGPSCoordinates = (onSuccess, onError, setIsLoading) => {
   if (setIsLoading) setIsLoading(true);
-  console.log("Getting GPS coordinates...");
 
-  let locationBuffer = [];
-
-  const handlePositionSuccess = (position) => {
-    console.log("✓ GPS Position received:", position);
-
-    if (!position || !position.coords) {
-      if (setIsLoading) setIsLoading(false);
+  const handleSuccess = (position) => {
+    if (setIsLoading) setIsLoading(false);
+    if (!position?.coords) {
       if (onError) onError(new Error('Unable to get coordinates'));
       return;
     }
-
-    const { latitude, longitude, accuracy } = position.coords;
-    console.log("Coordinates:", latitude, longitude, "Accuracy:", accuracy);
-
-    // Buffer coordinates for better accuracy (average of 3 readings)
-    locationBuffer.push({ latitude, longitude });
-    if (locationBuffer.length > 3) {
-      locationBuffer.shift();
-    }
-
-    if (locationBuffer.length >= 3) {
-      const avgLat = locationBuffer.reduce((sum, p) => sum + p.latitude, 0) / locationBuffer.length;
-      const avgLng = locationBuffer.reduce((sum, p) => sum + p.longitude, 0) / locationBuffer.length;
-      console.log("Avg coordinates:", avgLat, avgLng);
-      if (setIsLoading) setIsLoading(false);
-      if (onSuccess) onSuccess({ latitude: avgLat, longitude: avgLng });
-    } else {
-      if (setIsLoading) setIsLoading(false);
-      if (onSuccess) onSuccess({ latitude, longitude });
-    }
+    const { latitude, longitude } = position.coords;
+    if (onSuccess) onSuccess({ latitude, longitude });
   };
 
-  // First try with high accuracy
-  Geolocation.getCurrentPosition(
-    handlePositionSuccess,
-    (error) => {
-      console.error("High accuracy failed:", error);
-      console.log("Trying with lower accuracy...");
-
-      // Fallback to lower accuracy
-      Geolocation.getCurrentPosition(
-        handlePositionSuccess,
-        (finalError) => {
-          console.error("Final geolocation error:", finalError);
-          if (setIsLoading) setIsLoading(false);
-          if (onError) {
-            onError(finalError);
-          } else {
-            Alert.alert(
-              'Location Error',
-              `Unable to get location. Please ensure:\n• GPS is enabled\n• You're in an open area\n• Location services are on\n\nError: ${finalError.message}`
-            );
-          }
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 15000,
-          maximumAge: 10000,
+  const handleError = (error) => {
+    console.error('GPS error:', error);
+    // Fallback: try with lower accuracy
+    Geolocation.getCurrentPosition(
+      handleSuccess,
+      (finalError) => {
+        if (setIsLoading) setIsLoading(false);
+        if (onError) {
+          onError(finalError);
+        } else {
+          Alert.alert(
+            'Location Error',
+            'Unable to get location. Please ensure GPS is enabled and try again.'
+          );
         }
-      );
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 10000,
-      distanceFilter: 0,
-      forceRequestLocation: true,
-      showLocationDialog: true,
-    }
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  Geolocation.getCurrentPosition(
+    handleSuccess,
+    handleError,
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+    // removed: distanceFilter, forceRequestLocation, showLocationDialog
+    // those belong to react-native-geolocation-service, not @react-native-community/geolocation
   );
 };
 
-// Request location permission and get GPS coordinates
-// Returns coordinates via callback: onSuccess({ latitude, longitude })
-
+// Request location permission then get GPS coordinates
 export const requestLocationPermission = async (onSuccess, onError, setIsLoading) => {
-  if (Platform.OS !== "android") {
-    return true;
-  }
-
-  if (Platform.OS === "android") {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Location Permission',
-        message: 'We need access to your location to get GPS coordinates.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Deny',
-        buttonPositive: 'Allow',
-      }
-    );
-
-    console.log("Permission granted:", granted);
-
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      getGPSCoordinates(onSuccess, onError, setIsLoading);
-      return true;
-    } else {
-      Alert.alert(
-        'Location Permission Denied',
-        'You can still continue without precise GPS location.'
-      );
-      if (setIsLoading) setIsLoading(false);
-      return false;
-    }
-  } else if (Platform.OS === "ios") {
+  if (Platform.OS === 'ios') {
     getGPSCoordinates(onSuccess, onError, setIsLoading);
     return true;
   }
+
+  if (Platform.OS !== 'android') return false;
+
+  // Check if already granted — skip dialog if so
+  const alreadyGranted = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+  );
+
+  if (alreadyGranted) {
+    getGPSCoordinates(onSuccess, onError, setIsLoading);
+    return true;
+  }
+
+  // Request — requestMultiple takes ONE array argument
+  const results = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  ]);
+
+  const fine = results[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
+  const coarse = results[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION];
+
+  const allowed =
+    fine === PermissionsAndroid.RESULTS.GRANTED ||
+    coarse === PermissionsAndroid.RESULTS.GRANTED;
+
+  if (allowed) {
+    getGPSCoordinates(onSuccess, onError, setIsLoading);
+    return true;
+  }
+
+  // User denied — check if permanently denied (NEVER_ASK_AGAIN)
+  const permanentlyDenied =
+    fine === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ||
+    coarse === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+
+  if (setIsLoading) setIsLoading(false);
+
+  Alert.alert(
+    'Location Permission Denied',
+    permanentlyDenied
+      ? 'Location permission was permanently denied. Please enable it in Settings.'
+      : 'Location permission is required to use this feature.',
+    permanentlyDenied
+      ? [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]
+      : [{ text: 'OK' }]
+  );
+
+  return false;
 };
