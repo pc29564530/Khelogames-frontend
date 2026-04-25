@@ -98,7 +98,15 @@ export default function EditProfile() {
       let isActive = true;
       const fetchIPLocation = async () => {
         try {
-          const location = await getIPBasedLocation();
+          const authToken = await AsyncStorage.getItem("AccessToken")
+          const locationRes = await axiosInstance.get(`${BASE_URL}/geo/suggest`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            },
+          })
+          const location = locationRes.data.data;
+          console.log("Location: ", location)
           if (isActive && location) {
             setCity((prev) => prev || location.city || '');
             setState((prev) => prev || location.state || '');
