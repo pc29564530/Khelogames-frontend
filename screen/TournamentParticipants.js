@@ -210,6 +210,7 @@ const TournamentParticipants = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState('team');
   const [entities, setEntities] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -226,6 +227,22 @@ const TournamentParticipants = ({
       } catch {}
     })();
   }, []);
+
+    const fetchRequests = useCallback(async () => {
+      try {
+        const res = await axiosInstance.get(
+          `${BASE_URL}/${game.name}/get-tournament-join-requests/${tournament.public_id}`,
+        );
+        setRequests(res.data?.data ?? []);
+      } catch (err) {
+        logSilentError(err);
+      }
+    }, [tournament.public_id, game.name]);
+
+    //check tournament admin or organizer user 
+    useEffect(() => { 
+      fetchRequests();
+    }, []);
 
   const fetchParticipants = useCallback(async () => {
     try {
@@ -372,16 +389,60 @@ const TournamentParticipants = ({
       {tournament.status === "not_started" && (
           <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
               <Pressable
+                onPress={() => navigation.navigate('TournamentJoinRequests', { tournament })}
+                style={[
+                  tailwind`flex-1 mr-2 rounded-xl px-4 py-3 flex-row items-center justify-center`,
+                  { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                ]}
+              >
+                <MaterialIcons name="notifications-active" size={18} color="#f87171" />
+
+                <Text style={{ color:'#f1f5f9', fontWeight:'700', marginLeft:8, fontSize:13 }}>
+                  Requests
+                </Text>
+
+                {requests.length > 0 && (
+                  <View style={{
+                    marginLeft:8,
+                    backgroundColor:'#f87171',
+                    minWidth:20,
+                    height:20,
+                    borderRadius:10,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    paddingHorizontal:5
+                  }}>
+                    <Text style={{
+                      color:'white',
+                      fontSize:11,
+                      fontWeight:'700'
+                    }}>
+                      {requests.length}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+
+              {/* Add Team */}
+              <Pressable
                 key={'team'}
                 onPress={() => {
                   setSelectedEntityType('team');
                   setIsModalVisible(true);
                 }}
-                style={[tailwind`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-sm`, { backgroundColor: '#f87171' }]}
+                style={[
+                  tailwind`flex-1 ml-2 rounded-xl px-4 py-3 flex-row items-center justify-center`,
+                  { backgroundColor: '#f87171' }
+                ]}
               >
-                {<TeamIcon />}
-                <Text style={tailwind`text-white ml-2 font-semibold text-base`}>
-                  Add Teams
+                <MaterialIcons name="person-add" size={18} color="white" />
+                <Text style={{
+                  color:'white',
+                  fontWeight:'700',
+                  marginLeft:8,
+                  fontSize:13
+                }}>
+                  Add Team
                 </Text>
               </Pressable>
           </View>

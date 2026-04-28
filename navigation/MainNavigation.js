@@ -48,6 +48,10 @@ import EditClub from '../screen/EditClub';
 import UserThreads from '../screen/UserThreads';
 import BadmintonMatchPage from '../screen/BadmintonMatchPage';
 import { clearSecureStorage, getRefreshToken } from '../utils/SecureStorage';
+import TournamentJoinRequests from '../screen/TournamentJoinRequests';
+import RequestJoinTournament from '../screen/RequestJoinTournament';
+import TeamJoinRequests from '../screen/TeamJoinRequests';
+import RequestJoinTeam from '../screen/RequestJoinTeam';
 
 const Stack = createStackNavigator();
 
@@ -290,6 +294,14 @@ export default function MainNavigation() {
                             }}
                         />
                         <Stack.Screen name="UserThreads" component={UserThreads} />
+                        <Stack.Screen name="TournamentJoinRequests" component={TournamentJoinRequests}
+                        options={{ headerShown: true, headerTitle: 'Join Requests' }} />
+                        <Stack.Screen name="RequestJoinTournament" component={RequestJoinTournament}
+                        options={{ headerShown: true, headerTitle: 'Request to Join' }} />
+                        <Stack.Screen name="TeamJoinRequests" component={TeamJoinRequests}
+                        options={{ headerShown: true, headerTitle: 'Join Requests' }} />
+                        <Stack.Screen name="RequestJoinTeam" component={RequestJoinTeam}
+                        options={{ headerShown: true, headerTitle: 'Request to Join' }} />
 
                     </>
                 ):(
