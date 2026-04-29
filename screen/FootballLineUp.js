@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Image, Modal, Switch, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, Modal, Dimensions } from 'react-native';
 import tailwind from 'twrnc';
 import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
@@ -20,10 +20,12 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const homeTeamPublicID = match?.homeTeam?.public_id;
   const awayTeamPublicID = match?.awayTeam?.public_id;
   const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
+  const [permissions, setPermissions] = useState(null);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [currentSquad, setCurrentSquad] = useState([]);
   const [selectedSquad, setSelectedSquad] = useState([]);
+  const [activeTab, setActiveTab] = useState('player');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({
     global: null,
@@ -154,6 +156,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       setIsPlayerModalVisible(false);
       setSelectedSquad([]);
       setIsSubstituted([]);
+      setActiveTab('player');
     } catch (err) {
       const errorCode = err?.response?.data?.error?.code;
       const errorMessage = err?.response?.data?.error?.message;
@@ -242,13 +245,35 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   );
 
   const togglePlayerSelection = (itm) => {
-    setSelectedSquad((prevSquad) => [...prevSquad, itm?.public_id]);
+    const pid = itm.public_id;
+    const alreadySelected = selectedSquad.includes(pid);
+    if (alreadySelected) {
+      setSelectedSquad((prev) => prev.filter((p) => p !== pid));
+      setIsSubstituted((prev) => prev.filter((p) => p !== pid));
+    } else {
+      setSelectedSquad((prev) => [...prev, pid]);
+      if (activeTab === 'sub') {
+        setIsSubstituted((prev) => [...prev, pid]);
+      }
+    }
   };
 
+  // check permission
+  useEffect(() => {
+    const checkPermissionForScorer = async () => {
+      try {
+        const res = await axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+          params: { resource_type: 'match', resource_public_id: match.public_id },
+        });
+        setPermissions(res.data.data);
+      } catch (err) {
+        logSilentError(err);
+      }
+    };
+    checkPermissionForScorer();
+  }, []);
+
   const AddTeamPlayerButton = () => {
-    if(!authUser){
-      return null;
-    }
     return (
         <Pressable
           style={[tailwind`flex-row items-center justify-center py-3 rounded-xl`, { backgroundColor: '#f87171' }]}
@@ -312,8 +337,8 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
       </View>
 
       {/* Squad selector */}
-      {/* Check for team manager */}
-      {match.status_code === "not_started" && (
+      {/* Check for team manager and scorer */}
+      {(match.status_code === "not_started" && permissions.can_edit) (
         <AddTeamPlayerButton />
       )}
       </Animated.View>
@@ -428,9 +453,35 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
             >
               {/* Header */}
               <View style={tailwind`flex-row justify-between items-center mb-4`}>
-                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Select Players</Text>
-                <Pressable onPress={() => setIsPlayerModalVisible(false)}>
+                <Text style={[tailwind`text-xl font-bold`, { color: '#f1f5f9' }]}>Select Squad</Text>
+                <Pressable onPress={() => { setIsPlayerModalVisible(false); setActiveTab('player'); }}>
                   <AntDesign name="close" size={24} color="#94a3b8" />
+                </Pressable>
+              </View>
+
+              {/* Tabs */}
+              <View style={[tailwind`flex-row rounded-xl mb-4 p-1`, { backgroundColor: '#0f172a' }]}>
+                <Pressable
+                  onPress={() => setActiveTab('player')}
+                  style={[
+                    tailwind`flex-1 py-2 rounded-lg items-center`,
+                    activeTab === 'player' && { backgroundColor: '#f87171' },
+                  ]}
+                >
+                  <Text style={[tailwind`text-sm font-semibold`, { color: activeTab === 'player' ? '#ffffff' : '#64748b' }]}>
+                    Starting XI
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setActiveTab('sub')}
+                  style={[
+                    tailwind`flex-1 py-2 rounded-lg items-center`,
+                    activeTab === 'sub' && { backgroundColor: '#f87171' },
+                  ]}
+                >
+                  <Text style={[tailwind`text-sm font-semibold`, { color: activeTab === 'sub' ? '#ffffff' : '#64748b' }]}>
+                    Substitutes
+                  </Text>
                 </Pressable>
               </View>
 
@@ -490,24 +541,13 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                         </View>
                       </View>
 
-                      {/* Substitute Toggle */}
-                      <View style={tailwind`items-center mr-3`}>
-                        <Text style={[tailwind`text-xs mb-1`, { color: '#64748b' }]}>Sub</Text>
-                        <Switch
-                          value={isSubstituted.includes(itm.public_id)}
-                          disabled={!isSelected}
-                          onValueChange={(value) => {
-                            if (value) {
-                              setIsSubstituted((prev) =>prev.includes(itm.public_id) ? prev : [...prev, itm.public_id]);
-                            } else {
-                              setIsSubstituted((prev) => prev.filter((pid) => pid !== itm.public_id));
-                            }
-                          }}
-                          trackColor={{ false: '#334155', true: '#FCA5A5' }}
-                          thumbColor={isSubstituted.includes(itm.public_id) ? '#f87171' : '#64748b'}
-                          style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
-                        />
-                      </View>
+                      {isSelected && (
+                        <View style={[tailwind`px-2 py-0.5 rounded mr-2`, { backgroundColor: isSubstituted.includes(itm.public_id) ? '#f8717120' : '#10b98120' }]}>
+                          <Text style={[tailwind`text-xs font-semibold`, { color: isSubstituted.includes(itm.public_id) ? '#f87171' : '#10b981' }]}>
+                            {isSubstituted.includes(itm.public_id) ? 'SUB' : 'XI'}
+                          </Text>
+                        </View>
+                      )}
 
                       {/* Selection Button */}
                       <Pressable onPress={() => togglePlayerSelection(itm)}>
@@ -534,7 +574,9 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
                   ]}
                 >
                   <Text style={[tailwind`text-base font-semibold`, { color: selectedSquad.length === 0 ? '#64748b' : '#ffffff' }]}>
-                    {selectedSquad.length > 0 ? `Add ${selectedSquad.length} Player(s)` : 'Select Players'}
+                    {selectedSquad.length > 0
+                      ? `Confirm — ${selectedSquad.length - isSubstituted.length} XI · ${isSubstituted.length} Sub`
+                      : 'Select Players'}
                   </Text>
                 </Pressable>
               </View>

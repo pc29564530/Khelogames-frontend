@@ -111,6 +111,7 @@ const CricketMatchPage = ({ route }) => {
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
     const [loading, setLoading] = useState(false);
+    const [permissions, setPermissions] = useState(null);
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -336,6 +337,31 @@ const CricketMatchPage = ({ route }) => {
             setLoading(false);
         }
     }, [match]);
+
+    // Check for user permission
+    useEffect(() => {
+      const checkPermission = async () => {
+        setLoading(true);
+        try {
+          const checkPer = await axiosInstance.get(
+            `${BASE_URL}/check-user-permission`,
+            {
+              params: {
+                resource_type: "match",
+                resource_public_id: match.public_id,
+              },
+            }
+          );
+          const res = checkPer.data.data;
+          setPermissions(res);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      checkPermission();
+    }, []);
 
     useEffect(() => {
         const fetchMatch = async () => {
@@ -734,9 +760,11 @@ const CricketMatchPage = ({ route }) => {
                     <Pressable onPress={() => navigation.goBack()}>
                         <AntDesign name="arrowleft" size={26} color="white" />
                     </Pressable>
-                    <Pressable onPress={() => {setMenuVisible(true)}}>
-                        <MaterialIcon name="more-vert" size={24} color="white" />
-                    </Pressable>
+                    {permissions?.can_edit && (
+                        <Pressable onPress={() => {setMenuVisible(true)}}>
+                            <MaterialIcon name="more-vert" size={24} color="white" />
+                        </Pressable>
+                    )}
                 </View>
 
                 {/* Match Status */}
@@ -827,7 +855,7 @@ const CricketMatchPage = ({ route }) => {
                 </Animated.View>
             </Animated.View>
             <Animated.View style={[tailwind`flex-1`, contentContainerStyle]}>
-                <CricketMatchPageContent match={match} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
+                <CricketMatchPageContent match={match} permissions={permissions} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>
             </Animated.View>
 
             {/* Status Modal */}

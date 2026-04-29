@@ -27,7 +27,7 @@ import { getLeadTrailStatus } from '../screen/CricketMatchPage'
 import { validateCricketInningForm } from '../utils/validation/cricketInningValidation';
 import AddBatsmanAndBowlerSelection from '../components/AddBatsmanAndBowlerSelection';
 
-const CricketLive = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
+const CricketLive = ({match, permissions, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
     const currentInning = useSelector(state => state.cricketMatchInning.currentInning);
     const currentInningNumber = useSelector(state => state.cricketMatchInning.currentInningNumber);
@@ -492,7 +492,7 @@ useEffect(() => {
                         </View>
                     </View>
                 </View>
-                {inningStatus === "completed" ? (
+                {permissions?.can_edit &&  inningStatus === "completed" ? (
                     <InningActionModal
                         match={match}
                         currentInning={currentInning}

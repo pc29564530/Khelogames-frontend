@@ -60,7 +60,7 @@ const PenaltyShootOutIncident = ({key, item, match}) => {
     );
 }
 
-const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, collapsedHeight }) => {
+const FootballIncidents = ({tournament, item, permissions, parentScrollY, headerHeight, collapsedHeight }) => {
     const match = item;
     const dispatch = useDispatch()
     const incidents = useSelector(state => state.footballIncidents.incidents)
@@ -213,34 +213,81 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
     //   }, []);
 
     const groupIncidents = useMemo(() => {
-        if(!incidents){
-            return [];
-        }
-        const sorted = [...incidents]?.sort((a,b) => {
+        if (!incidents || incidents.length === 0) return [];
+
+        const matchStatus = match?.status_code || '';
+
+        // Sort: PERIOD_ORDER priority → incident_time desc → id desc
+        const sorted = [...incidents].sort((a, b) => {
             const periodDiff = PERIOD_ORDER.indexOf(b.periods) - PERIOD_ORDER.indexOf(a.periods);
             if (periodDiff !== 0) return periodDiff;
             const timeDiff = b.incident_time - a.incident_time;
             if (timeDiff !== 0) return timeDiff;
             return b.id - a.id;
-        })
-        const groups = {};
-        sorted.forEach((inc) => {
-            let targetPeriod = inc.periods;
-            if (inc.periods === "first_half") {
-                targetPeriod = "half_time"; // move to half time
-            } else if (inc.periods === "second_half") {
-                targetPeriod = "full_time"; // move to full time
-            }
-          if (!groups[targetPeriod]) groups[targetPeriod] = [];
-          groups[targetPeriod].push(inc);
         });
 
-        return PERIOD_ORDER.filter((p) => groups[p]).map((period) => ({
-          type: "header",
-          period,
-          data: groups[period],
+        // Bucket each incident into its display period
+        const buckets = {};
+        sorted.forEach((inc) => {
+            let bucket;
+            if (inc.periods === 'first_half') {
+                bucket = matchStatus === 'first_half' ? 'first_half' : 'half_time';
+            } else if (inc.periods === 'second_half') {
+                bucket = matchStatus === 'second_half' ? 'second_half' : 'full_time';
+            } else {
+                bucket = inc.periods;
+            }
+            if (!buckets[bucket]) buckets[bucket] = [];
+            buckets[bucket].push(inc);
+        });
+
+        // Determine section headers — most recent period at top, first_half at bottom
+        let sections = [];
+        switch (matchStatus) {
+            case 'first_half':
+                sections = ['first_half'];
+                break;
+            case 'half_time':
+                sections = ['half_time'];
+                break;
+            case 'second_half':
+                sections = ['second_half', 'half_time'];
+                break;
+            case 'full_time':
+            case 'finished':
+                sections = ['full_time', 'half_time'];
+                if (buckets['extra_half_time']) sections.unshift('extra_half_time');
+                if (buckets['penalty_shootout']) sections.unshift('penalty_shootout');
+                break;
+            case 'extra_half_time':
+                sections = ['extra_half_time', 'full_time', 'half_time'];
+                if (buckets['penalty_shootout']) sections.unshift('penalty_shootout');
+                break;
+            case 'penalty_shootout':
+                sections = ['penalty_shootout', 'extra_half_time', 'full_time', 'half_time'];
+                break;
+            default: {
+                // Infer phase from which incident periods are present
+                const hasFH = incidents.some(i => i.periods === 'first_half');
+                const hasSH = incidents.some(i => i.periods === 'second_half');
+                const hasET = incidents.some(i => i.periods === 'extra_half_time');
+                const hasPS = incidents.some(i => i.periods === 'penalty_shootout');
+
+                if (hasPS)       sections = ['penalty_shootout', 'extra_half_time', 'full_time', 'half_time'];
+                else if (hasET)  sections = ['extra_half_time', 'full_time', 'half_time'];
+                else if (hasSH)  sections = ['full_time', 'half_time'];
+                else if (hasFH)  sections = ['half_time'];
+                else             return [];
+                break;
+            }
+        }
+
+        return sections.map(period => ({
+            type: 'header',
+            period,
+            data: buckets[period] || [],
         }));
-    });
+    }, [incidents, match]);
 
     const handleIncidentModal = () => {
         setIncidentModalVisible(true);
@@ -277,22 +324,23 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
 
     return (
         <View style={[tailwind`flex-1`, { backgroundColor: '#0f172a' }]}>
+            {/* Add Incident Button */}
+            {match.status_code === "in_progress" && permissions?.can_edit && (
+                <Pressable
+                    onPress={handleIncidentModal}
+                    style={({ pressed }) => [
+                        tailwind`rounded-xl p-4 flex-row items-center justify-center m-4`,
+                        { backgroundColor: pressed ? '#dc2626' : '#f87171' },
+                    ]}
+                >
+                    <MaterialIcons name="add" size={22} color="white" />
+                    <Text style={tailwind`text-white text-base font-semibold ml-2`}>
+                        Add Incident
+                    </Text>
+                </Pressable>
+            )}
             {groupIncidents.length === 0 ? (
                <View style={[tailwind`px-4 py-4 flex-1`, { backgroundColor: '#0f172a' }]}>
-                    {/* Add Incident Button */}
-                    <Pressable
-                        onPress={handleIncidentModal}
-                        style={({ pressed }) => [
-                        tailwind`rounded-xl p-4 flex-row items-center justify-center`,
-                        { backgroundColor: pressed ? '#dc2626' : '#f87171' },
-                        ]}
-                    >
-                        <MaterialIcons name="add" size={22} color="white" />
-                        <Text style={tailwind`text-white text-base font-semibold ml-2`}>
-                            Add Incident
-                        </Text>
-                    </Pressable>
-
                     {/* Empty State */}
                     <View style={tailwind`flex-1 justify-center items-center mt-10`}>
                         <MaterialIcons name="sports-soccer" size={64} color="#475569" />
@@ -359,20 +407,6 @@ const FootballIncidents = ({tournament, item, parentScrollY, headerHeight, colla
                         paddingBottom: 100,
                         paddingHorizontal: 16
                     }}
-                    ListHeaderComponent={
-                        <Pressable
-                            onPress={() => setIncidentModalVisible(true)}
-                            style={({ pressed }) => [
-                                tailwind`rounded-xl p-3.5 flex-row items-center justify-center mb-4`,
-                                { backgroundColor: pressed ? '#dc2626' : '#f87171' },
-                            ]}
-                        >
-                            <MaterialIcons name="add" size={22} color="white" />
-                            <Text style={tailwind`text-white text-base font-semibold ml-2`}>
-                                Add Incident
-                            </Text>
-                        </Pressable>
-                    }
                 />
             )}
             {incidentModalVisible && (

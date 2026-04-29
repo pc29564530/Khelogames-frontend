@@ -179,7 +179,9 @@ const AddParticipantModal = ({
 
 const TournamentParticipants = ({
   tournament,
+  permissions,
   parentScrollY,
+  headerHeight,
   collapsedHeader,
 }) => {
   const dispatch = useDispatch();
@@ -219,14 +221,14 @@ const TournamentParticipants = ({
     fields: {},
   });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const user = await AsyncStorage.getItem('User');
-        if (user) setAuthUser(JSON.parse(user));
-      } catch {}
-    })();
-  }, []);
+    useEffect(() => {
+      (async () => {
+        try {
+          const user = await AsyncStorage.getItem('User');
+          if (user) setAuthUser(JSON.parse(user));
+        } catch {}
+      })();
+    }, []);
 
     const fetchRequests = useCallback(async () => {
       try {
@@ -386,7 +388,7 @@ const TournamentParticipants = ({
       contentContainerStyle={{ paddingBottom: 120, minHeight: screenHeight,  backgroundColor: '#0f172a' }}
     >
       {/* Action Buttons */}
-      {tournament.status === "not_started" && (
+      {tournament.status === "not_started" && permissions?.can_edit && (
           <View style={[tailwind`px-4 py-4 flex-row gap-3`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
               <Pressable
                 onPress={() => navigation.navigate('TournamentJoinRequests', { tournament })}

@@ -48,6 +48,7 @@ const FootballMatchPage = ({ route }) => {
     const [subStatus, setSubStatus] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
+    const [permissions, setPermissions] = useState(null);
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -70,6 +71,34 @@ const FootballMatchPage = ({ route }) => {
         const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), {})
         setAllStatus(combined)
     }, [])
+
+    // Check for user permission — runs once match is loaded from redux
+    useEffect(() => {
+      if (!match?.public_id) return;
+      const checkPermission = async () => {
+        try {
+          const [matchPerm, homePerm, awayPerm] = await Promise.all([
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: { resource_type: "match", resource_public_id: match.public_id },
+            }),
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: { resource_type: "team", resource_public_id: match.homeTeam?.public_id },
+            }),
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: { resource_type: "team", resource_public_id: match.awayTeam?.public_id },
+            }),
+          ]);
+          const canEdit =
+            matchPerm.data.data?.can_edit ||
+            homePerm.data.data?.can_edit ||
+            awayPerm.data.data?.can_edit;
+          setPermissions({ can_edit: canEdit });
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        }
+      };
+      checkPermission();
+    }, [match?.public_id]);
 
     const {height: sHeight, width: sWidth} = Dimensions.get('screen');
 
@@ -547,13 +576,16 @@ const FootballMatchPage = ({ route }) => {
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 />
                 {/* Header Controls */}
+               
                 <View style={tailwind`flex-row justify-between items-center px-4 py-3 mt-1`}>
                     <Pressable onPress={() => navigation.goBack()}>
                         <AntDesign name="arrowleft" size={26} color="white" />
                     </Pressable>
-                    <Pressable onPress={toggleMenu}>
-                        <MaterialIcon name="more-vert" size={24} color="white" />
-                    </Pressable>
+                    {match?.status !== "finished" && permissions?.can_edit && (
+                        <Pressable onPress={toggleMenu}>
+                            <MaterialIcon name="more-vert" size={24} color="white" />
+                        </Pressable>
+                    )}
                 </View>
 
                 {/* Match Status */}
@@ -680,6 +712,7 @@ const FootballMatchPage = ({ route }) => {
                             <FootballIncidents
                                 tournament={tournament}
                                 item={match}
+                                permissions={permissions}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}
@@ -923,7 +956,7 @@ const FootballMatchPage = ({ route }) => {
                                     <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#3b82f620' }]}>
                                         <MaterialIcon name="edit" size={18} color="#60a5fa" />
                                     </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Match Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {
@@ -935,7 +968,7 @@ const FootballMatchPage = ({ route }) => {
                                     <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#10b98120' }]}>
                                         <MaterialIcon name="update" size={18} color="#4ade80" />
                                     </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Sub Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Period Status</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => {

@@ -15,6 +15,7 @@ import axiosInstance from './axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTournamentStatus } from '../redux/actions/actions';
+import { logSilentError } from '../utils/errorHandler';
 const filePath = require('../assets/status_code.json');
 
 const TournamentPage = ({ route }) => {
@@ -27,6 +28,7 @@ const TournamentPage = ({ route }) => {
       const [statusVisible, setStatusVisible] = useState(false);
       const [searchQuery, setSearchQuery] = useState('');
       const [allStatus, setAllStatus] = useState([]);
+      const [permissions, setPermissions] = useState(null);
       const [error, setError] = useState({
         global: null,
         fields: {}
@@ -98,17 +100,42 @@ const TournamentPage = ({ route }) => {
       const checkSport = (game) => {
         switch (game.name) {
             case "badminton":
-                return <TopTabBadminton tournament={tournament} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />;
+                return <TopTabBadminton tournament={tournament} permissions={permissions} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader} />;
             case "cricket":
-                return <TopTabCricket tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
+                return <TopTabCricket tournament={tournament} permissions={permissions} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
             case "hockey":
                 return <TopTabHockey />;
             case "tennis":
                 return <TopTabBTennis />;
             default:
-                return <TopTabFootball tournament={tournament} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
+                return <TopTabFootball tournament={tournament} permissions={permissions} currentRole={currentRole} parentScrollY={parentScrollY} headerHeight={headerHeight} collapsedHeader={collapsedHeader}/>;
         }
       }
+    
+    // Check for user permission
+    useEffect(() => {
+      const checkPermission = async () => {
+        setLoading(true);
+        try {
+          const checkPer = await axiosInstance.get(
+            `${BASE_URL}/check-user-permission`,
+            {
+              params: {
+                resource_type: "tournament",
+                resource_public_id: tournament.public_id,
+              },
+            }
+          );
+          const res = checkPer.data.data;
+          setPermissions(res);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      checkPermission();
+    }, []);
 
     const handleNavigation = () => {
         if (tournament?.profile?.public_id === authProfile?.public_id) {
@@ -195,7 +222,7 @@ const TournamentPage = ({ route }) => {
             {/* Top bar: [Back] [Title] [Icons] — always visible */}
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8, height: collapsedHeader, zIndex: 10 }}>
               <Pressable
-                onPress={() => navigation.goBack()}
+                onPress={() => {navigation.goBack()}}
                 style={tailwind`p-1.5`}
                 hitSlop={12}
               >
@@ -222,13 +249,27 @@ const TournamentPage = ({ route }) => {
                 >
                   <MaterialIcons name="message" size={22} color="#e2e8f0" />
                 </Pressable>
-                  <Pressable
-                    onPress={() => setMenuVisible(true)}
-                    style={tailwind`p-1.5`}
-                    hitSlop={8}
-                  >
-                    <MaterialIcons name="settings" size={22} color="#e2e8f0" />
-                  </Pressable>
+                {permissions?.can_edit && (
+                  <>
+                    <Pressable
+                      onPress={() => navigation.navigate('RequestJoinTournament', { tournament })}
+                      style={[tailwind`flex-row items-center px-3 py-1.5 rounded-xl mr-2`, { backgroundColor: '#f87171' }]}
+                      hitSlop={8}
+                    >
+                      <MaterialIcons name="group-add" size={16} color="white" />
+                      <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
+                        Join
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setMenuVisible(true)}
+                      style={tailwind`p-1.5`}
+                      hitSlop={8}
+                    >
+                      <MaterialIcons name="settings" size={22} color="#e2e8f0" />
+                    </Pressable>
+                  </>
+                )}
               </View>
             </View>
 
@@ -306,9 +347,9 @@ const TournamentPage = ({ route }) => {
                                     <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#3b82f620' }]}>
                                         <MaterialIcons name="edit" size={18} color="#60a5fa" />
                                     </View>
-                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Main Status</Text>
+                                    <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Edit Status</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                     }}
@@ -318,8 +359,8 @@ const TournamentPage = ({ route }) => {
                                         <MaterialIcons name="share" size={18} color="#c084fc" />
                                     </View>
                                     <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Share</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
+                                </TouchableOpacity> */}
+                                {/* <TouchableOpacity
                                     onPress={() => {
                                         setMenuVisible(false);
                                         // Handle delete
@@ -330,7 +371,7 @@ const TournamentPage = ({ route }) => {
                                         <MaterialIcons name="delete" size={18} color="#f87171" />
                                     </View>
                                     <Text style={[tailwind`text-base font-medium`, { color: '#f87171' }]}>Delete Match</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate("ManageRole", {tournament: tournament})}
                                     style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
@@ -340,6 +381,7 @@ const TournamentPage = ({ route }) => {
                                     </View>
                                     <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Manage Role</Text>
                                 </TouchableOpacity>
+
                             </View>
                         </View>
                     </TouchableOpacity>

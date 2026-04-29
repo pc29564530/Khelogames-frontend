@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import CricketLive from '../screen/CricketLiveScore';
 import MediaScreen from '../screen/Media';
 
-function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedHeader}) {
+function CricketMatchPageContent({match, permissions, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -52,6 +52,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                             {() => (
                                 <CricketLive
                                     match={match}
+                                    permissions={permissions}
                                     parentScrollY={parentScrollY}
                                     headerHeight={headerHeight}
                                     collapsedHeader={collapsedHeader}
@@ -77,6 +78,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                         {() => (
                             <CricketTeamSquad
                                 match={match}
+                                permissions={permissions}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}
@@ -88,6 +90,7 @@ function CricketMatchPageContent({match, parentScrollY, headerHeight, collapsedH
                         {() => (
                             <MediaScreen
                                 item={match}
+                                permissions={permissions}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}

@@ -28,7 +28,7 @@ import { getTournamentStandings } from '../services/tournamentServices';
 import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, Extrapolation, interpolate} from 'react-native-reanimated';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
-const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsedHeader }) => {
+const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeight, collapsedHeader }) => {
   // State management
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -361,20 +361,22 @@ const TournamentStanding = ({ tournament, parentScrollY, headerHeight, collapsed
         }}
       >
         {/* Header Section */}
-        <View style={{ backgroundColor: '#0f172a', padding: 8 }}>
-          <Pressable
-            onPress={() => setIsCreateStandingVisible(true)}
-            style={[
-              tailwind`p-4 rounded-xl flex-row justify-center items-center`,
-              { backgroundColor: '#f87171' }
-            ]}
-          >
-            <MaterialIcon name="add-circle-outline" size={22} color="#fff" />
-            <Text style={tailwind`text-white text-base font-semibold ml-2`}>
-              Create Standing
-            </Text>
-          </Pressable>
-        </View>
+        {tournament.status === "not_started" && permissions?.can_edit && (
+          <View style={{ backgroundColor: '#0f172a', padding: 8 }}>
+            <Pressable
+              onPress={() => setIsCreateStandingVisible(true)}
+              style={[
+                tailwind`p-4 rounded-xl flex-row justify-center items-center`,
+                { backgroundColor: '#f87171' }
+              ]}
+            >
+              <MaterialIcon name="add-circle-outline" size={22} color="#fff" />
+              <Text style={tailwind`text-white text-base font-semibold ml-2`}>
+                Create Standing
+              </Text>
+            </Pressable>
+          </View>
+        )}
         {error?.global && standings.length === 0 && (
             <View style={[tailwind`mx-3 mb-3 p-3 rounded-xl flex-row items-center`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                 <MaterialIcon name="error-outline" size={18} color="#f87171" />

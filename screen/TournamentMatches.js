@@ -10,7 +10,7 @@ import TournamentBadmintonMatch from './TournamentBadmintonMatch';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
+const TournamentMatches = ({ tournament, permissions, currentRole, parentScrollY, headerHeight, collapsedHeight }) => {
     const entities = useSelector(state => state.tournamentEntities.tournamentEntities)
     const navigation = useNavigation();
     
@@ -60,6 +60,7 @@ const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeigh
 
     return (
         <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+            {permissions?.can_edit && (
                 <View style={{ backgroundColor: '#0f172a', padding: 16 }}>
                     <Pressable
                         onPress={() => navigation.navigate("CreateMatch", {tournament:tournament, entities:entities})}
@@ -68,7 +69,8 @@ const TournamentMatches = ({ tournament, currentRole, parentScrollY, headerHeigh
                         <Text style={{ fontSize: 17, color: '#f1f5f9', fontWeight: '600' }}>Create Match</Text>
                     </Pressable>
                 </View>
-                {tournamentMatchBySport()}
+            )}
+            {tournamentMatchBySport()}
         </View>
     );
 };

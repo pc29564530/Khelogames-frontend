@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { useAnimatedScrollHandler } from 'react-native-reanimated';
 import TournamentFootballMatch from '../components/TournamentFootballMatch';
 
-function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
+function TopTabFootball({tournament, permissions, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     const game = useSelector(state => state.sportReducers.game);
     return (
@@ -43,6 +43,7 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
                     {() => (
                         <TournamentMatches
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}
@@ -54,6 +55,7 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
                     {() => (
                         <TournamentParticipants
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}
@@ -76,6 +78,7 @@ function TopTabFootball({tournament, currentRole, parentScrollY, headerHeight, c
                     {() => (
                         <TournamentStanding
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}

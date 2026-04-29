@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, Pressable, Image,
   useWindowDimensions, Modal, TouchableOpacity,
@@ -12,12 +12,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import TopTabTeamPage from '../navigation/TopTabTeamPage';
 import LinearGradient from 'react-native-linear-gradient';
+import axiosInstance from './axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
 
 const ClubPage = ({ route }) => {
   const navigation = useNavigation();
   const { teamData, game } = route.params;
   const [nameWidth, setNameWidth] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [permissions, setPermissions] = useState(null);
+  const [loading, setLoading] = useState(false);
   const isIndividual = teamData?.type === 'individual';
 
   const { width: sWidth } = useWindowDimensions();
@@ -124,6 +128,31 @@ const ClubPage = ({ route }) => {
     return { flex: 1, marginTop: top };
   });
 
+    // Check for user permission
+    useEffect(() => {
+      const checkPermission = async () => {
+        setLoading(true);
+        try {
+          const checkPer = await axiosInstance.get(
+            `${BASE_URL}/check-user-permission`,
+            {
+              params: {
+                resource_type: "team",
+                resource_public_id: teamData.public_id,
+              },
+            }
+          );
+          const res = checkPer.data.data;
+          setPermissions(res);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      checkPermission();
+    }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
 
@@ -167,14 +196,16 @@ const ClubPage = ({ route }) => {
               </Text>
             </Pressable>
             
-            {/* Edit profile */}
-            <Pressable
-              onPress={() => navigation.navigate('EditClub', { teamData })}
-              style={tailwind`p-1.5`}
-              hitSlop={12}
-            >
-              <MaterialIcons name="edit" size={22} color="#e2e8f0" />
-            </Pressable>
+            {/* Edit Team */}
+            {permissions?.can_edit && (
+              <Pressable
+                onPress={() => navigation.navigate('EditClub', { teamData })}
+                style={tailwind`p-1.5`}
+                hitSlop={12}
+              >
+                <MaterialIcons name="edit" size={22} color="#e2e8f0" />
+              </Pressable>
+            )}
           </View>
         </View>
 

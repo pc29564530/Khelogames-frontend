@@ -26,6 +26,8 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
   const [filtered, setFiltered]         = useState([]);
   const [searchText, setSearchText]     = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [permissions, setPermissions] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // join requests
   const [requests, setRequests]     = useState([]);
@@ -87,6 +89,31 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
     };
     fetchPool();
   }, [game.id]);
+
+    // Check for user permission
+    useEffect(() => {
+      const checkPermission = async () => {
+        setLoading(true);
+        try {
+          const checkPer = await axiosInstance.get(
+            `${BASE_URL}/check-user-permission`,
+            {
+              params: {
+                resource_type: "team",
+                resource_public_id: team.public_id,
+              },
+            }
+          );
+          const res = checkPer.data.data;
+          setPermissions(res);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      checkPermission();
+    }, []);
 
   // Fetch pending join requests (owner only)
   const fetchRequests = useCallback(async () => {
@@ -196,7 +223,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
           </View>
         )}
 
-        {isOwner && (
+        {permissions?.can_edit && (
           <View style={[tailwind`px-4 py-4 flex-row gap-3 mb-2`, { backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
               {/* Pending Requests */}
               <Pressable
@@ -297,7 +324,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
                 </View>
 
                 {/* Remove — owner only */}
-                {isOwner && authProfile && team.user_id === authProfile.id && (
+                {permissions?.can_edit && (
                   <Pressable
                     hitSlop={8}
                     onPress={(e) => { e.stopPropagation(); handleRemovePlayer(item); }}
@@ -316,7 +343,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
             <Text style={{ color: '#334155', fontSize: 13, marginTop: 4 }}>
               Build your squad by adding players
             </Text>
-            {isOwner && (
+            {permissions?.can_edit && (
               <Pressable
                 onPress={() => setShowAddModal(true)}
                 style={[tailwind`mt-5 flex-row items-center px-5 py-3 rounded-xl`,

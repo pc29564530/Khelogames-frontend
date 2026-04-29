@@ -7,7 +7,7 @@ import TournamentCricketStats from '../screen/TournamentCricketStats';
 import TournamentParticipants from '../screen/TournamentParticipants';
 import TournamentStanding from '../screen/TournamentStanding';
 
-function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
+function TopTabCricket({tournament, permissions, currentRole, parentScrollY, headerHeight, collapsedHeader}) {
     const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
@@ -42,6 +42,7 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                         <TournamentMatches
                             {...props}
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}
@@ -55,6 +56,7 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                         <TournamentParticipants
                             {...props}
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}
@@ -81,6 +83,7 @@ function TopTabCricket({tournament, currentRole, parentScrollY, headerHeight, co
                         <TournamentStanding
                             {...props}
                             tournament={tournament}
+                            permissions={permissions}
                             currentRole={currentRole}
                             parentScrollY={parentScrollY}
                             headerHeight={headerHeight}
