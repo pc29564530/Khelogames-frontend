@@ -28,10 +28,11 @@ import BadmintonScoreboard from './BadmintonScoreboard'
 import BadmintonStatistics from './BadmintonStatistics';
 const filePath = require('../assets/status_code.json');
 
+const TopTab = createMaterialTopTabNavigator();
+
 const BadmintonMatchPage = ({ route }) => {
     const {wsRef, subscribe} = useWebSocket();
     const dispatch = useDispatch();
-    const TopTab = createMaterialTopTabNavigator();
     const {matchPublicID, tournament} = route.params;                                                                     
     const match = useSelector((state) => state.matches.match);
     const navigation = useNavigation();
@@ -348,12 +349,6 @@ const BadmintonMatchPage = ({ route }) => {
         navigation.navigate('ClubPage', { teamData: team, game: game });
     };
 
-    useEffect(() => {
-        if (match) {
-            setLoading(false);
-        }
-    }, [match]);
-
     const handleWebSocketMessage = useCallback((event) => {
         const rawData = event.data;
         if (!rawData) {
@@ -511,6 +506,7 @@ const BadmintonMatchPage = ({ route }) => {
             <Animated.View style={[contentContainerStyle]}>
                 <TopTab.Navigator
                     screenOptions={{
+                        lazy: true,
                         tabBarStyle: {
                             backgroundColor: '#1e293b',
                             elevation: 0,

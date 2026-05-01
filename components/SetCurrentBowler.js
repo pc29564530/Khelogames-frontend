@@ -15,6 +15,7 @@ const SetCurrentBowler = ({match, batTeam, game, dispatch, selectBowler, setSele
     const bowlingTeamPublicID = batTeam === match.homeTeam?.public_id ? match.awayTeam?.public_id : match.homeTeam?.public_id;
     const fetchBowlingSquad = async () => {
         try {
+            if (!match && !bowlingTeamPublicID) return;
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
                 params: {
@@ -63,9 +64,9 @@ const SetCurrentBowler = ({match, batTeam, game, dispatch, selectBowler, setSele
             } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
                 setError({ global: errorMessage, fields: {} });
             } else {
-                setError({ global: "Unable to update bowler bowling status", fields: {} });
+                setError({ global: "Unable to set cricket bowler", fields: {} });
             }
-            console.error("Unable to update bowler bowling status: ", err?.response?.data?.error);
+            console.log("Unable to update bowler bowling status: ", err?.response?.data?.error);
         }
     }
     return (

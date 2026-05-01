@@ -10,7 +10,7 @@ import { formattedDate, formattedTime, formatToDDMMYY, convertToISOString } from
 import { findTournamentByID, getTournamentBySport } from '../services/tournamentServices';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTournamentByIdAction, getTournamentBySportAction } from '../redux/actions/actions';
-import { renderInningScore } from '../screen/Matches';
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
 import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
 import { logSilentError } from '../utils/errorHandler';
 
@@ -49,7 +49,7 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
         try {
             setLoading(true);
             setError({ global: null, fields: {} });
-
+            if (!teamData) return;
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchesByTeam/${teamData.public_id}`, {
                 headers: {
@@ -135,9 +135,9 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
     };
 
     return (
-        <View style={tailwind`flex-1 bg-white`}>
+        <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
             <Animated.ScrollView
-                style={tailwind`flex-1 bg-gray-50`}
+                style={{ flex: 1, backgroundColor: '#0f172a' }}
                 onScroll={handlerScroll}
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
@@ -151,20 +151,26 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
                 {matches.length > 0 && (
                     <View style={tailwind`px-4 mb-3`}>
                         <Pressable
-                            style={tailwind`flex-row items-center justify-center py-3 rounded-lg bg-white border border-gray-200`}
+                            style={[
+                                tailwind`flex-row items-center justify-center py-3 rounded-lg`,
+                                { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#334155' }
+                            ]}
                             onPress={() => handleDropDown()}
                         >
-                            <MaterialIcons name="filter-list" size={20} color="#6b7280" />
-                            <Text style={tailwind`text-gray-700 font-semibold ml-2`}>Filter by Tournament</Text>
-                            <MaterialIcons name="expand-more" size={20} color="#6b7280" style={tailwind`ml-1`} />
+                            <MaterialIcons name="filter-list" size={20} color="#94a3b8" />
+                            <Text style={{ color: '#f1f5f9', fontWeight: '600', marginLeft: 8 }}>Filter by Tournament</Text>
+                            <MaterialIcons name="expand-more" size={20} color="#64748b" style={tailwind`ml-1`} />
                         </Pressable>
                         {selectedTournament && (
                             <Pressable
-                                style={tailwind`flex-row items-center justify-center py-3 rounded-lg bg-white border border-gray-200 mt-2`}
+                                style={[
+                                    tailwind`flex-row items-center justify-center py-3 rounded-lg mt-2`,
+                                    { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
+                                ]}
                                 onPress={() => handleResetFilter()}
                             >
-                                <MaterialIcons name="close" size={20} color="#6b7280" />
-                                <Text style={tailwind`text-gray-700 font-semibold ml-2`}>{selectedTournament.name}</Text>
+                                <MaterialIcons name="close" size={20} color="#94a3b8" />
+                                <Text style={[tailwind`font-semibold ml-2`, { color: '#f1f5f9' }]}>{selectedTournament.name}</Text>
                             </Pressable>
                         )}
                     </View>
@@ -239,24 +245,48 @@ const ClubCricketMatch = ({ teamData, parentScrollY, headerHeight, collapsedHead
     );
 }
 
+const CompactInningScore = ({ scores }) => {
+    if (!scores?.length) return null;
+    return (
+        <View style={tailwind`items-end`}>
+            {scores.map((score, index) => (
+                <View key={index} style={tailwind`flex-row items-center`}>
+                    <Text style={[tailwind`text-sm font-bold`, { color: '#f1f5f9' }]}>
+                        {score.score}/{score.wickets}
+                    </Text>
+                    {score.overs !== undefined && (
+                        <Text style={[tailwind`text-xs ml-1`, { color: '#94a3b8' }]}>
+                            ({convertBallToOvers(score.overs)})
+                        </Text>
+                    )}
+                </View>
+            ))}
+        </View>
+    );
+};
+
 const matchesData = (item, ind, navigation, tournament) => {
     const handleCricketMatchPage = (item) => {
         navigation.navigate("CricketMatchPage", {matchPublicID: item.public_id, tournament: tournament});
     }
 
+    const isLive = item?.status === "live";
+
     return (
         <Pressable
             key={ind}
             style={[
-                tailwind`mb-3 bg-white rounded-xl overflow-hidden`,
-                {shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2}
+                tailwind`mb-3 rounded-xl overflow-hidden`,
+                { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }
             ]}
             onPress={() => handleCricketMatchPage(item)}
-        >   
+        >
+            {/* Live accent bar */}
+            {isLive && <View style={tailwind`h-0.5 bg-red-400`} />}
 
             {/* Tournament Header */}
-            <View style={tailwind`bg-gray-50 px-4 py-2 border-b border-gray-100`}>
-                <Text style={tailwind`text-gray-600 text-xs font-semibold`} numberOfLines={1}>
+            <View style={[tailwind`px-4 py-2`, { backgroundColor: '#0f172a', borderBottomWidth: 1, borderBottomColor: '#334155' }]}>
+                <Text style={[tailwind`text-xs font-semibold`, { color: '#94a3b8' }]} numberOfLines={1}>
                     {item?.tournament?.name || 'Tournament'}
                 </Text>
             </View>
@@ -268,75 +298,61 @@ const matchesData = (item, ind, navigation, tournament) => {
                     <View style={tailwind`flex-1`}>
                         {/* Home Team */}
                         <View style={tailwind`flex-row items-center mb-3`}>
-                            <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                            <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, { backgroundColor: '#334155' }]}>
                                 {item?.homeTeam?.media_url ? (
                                     <Image
                                         source={{ uri: item.homeTeam.media_url }}
                                         style={tailwind`w-full h-full`}
                                     />
                                 ) : (
-                                    <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                    <Text style={[tailwind`font-bold text-xs`, { color: '#f87171' }]}>
                                         {item?.homeTeam?.name?.charAt(0).toUpperCase()}
                                     </Text>
                                 )}
                             </View>
-                            <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                            <Text style={[tailwind`font-semibold ml-3 flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                                 {item?.homeTeam?.name}
                             </Text>
-                            {item?.status !== "not_started" && item?.homeScore && (
-                                <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
-                                    {item.homeScore.goals}
-                                    {item.homeScore?.penalty_shootout && (
-                                        <Text style={tailwind`text-gray-500 text-md`}> ({item.homeScore.penalty_shootout})</Text>
-                                    )}
-                                </Text>
-                            )}
+                            <CompactInningScore scores={item?.homeScore} />
                         </View>
 
                         {/* Away Team */}
                         <View style={tailwind`flex-row items-center`}>
-                            <View style={tailwind`w-6 h-6 rounded-full bg-gray-100 items-center justify-center overflow-hidden`}>
+                            <View style={[tailwind`w-6 h-6 rounded-full items-center justify-center overflow-hidden`, { backgroundColor: '#334155' }]}>
                                 {item?.awayTeam?.media_url ? (
                                     <Image
                                         source={{ uri: item.awayTeam.media_url }}
                                         style={tailwind`w-full h-full`}
                                     />
                                 ) : (
-                                    <Text style={tailwind`text-red-400 font-bold text-md`}>
+                                    <Text style={[tailwind`font-bold text-xs`, { color: '#f87171' }]}>
                                         {item?.awayTeam?.name?.charAt(0).toUpperCase()}
                                     </Text>
                                 )}
                             </View>
-                            <Text style={tailwind`text-gray-900 font-semibold ml-3 flex-1`} numberOfLines={1}>
+                            <Text style={[tailwind`font-semibold ml-3 flex-1`, { color: '#f1f5f9' }]} numberOfLines={1}>
                                 {item?.awayTeam?.name}
                             </Text>
-                            {item?.status !== "not_started" && item?.awayScore && (
-                                <Text style={tailwind`text-gray-900 font-bold text-md ml-2`}>
-                                    {item.awayScore.goals}
-                                    {item.awayScore?.penalty_shootout && (
-                                        <Text style={tailwind`text-gray-500 text-sm`}> ({item.awayScore.penalty_shootout})</Text>
-                                    )}
-                                </Text>
-                            )}
+                            <CompactInningScore scores={item?.awayScore} />
                         </View>
                     </View>
-                    
+
                     {/* Vertical divider */}
-                    <View style={tailwind`w-px bg-gray-100 my-3`} />
+                    <View style={[tailwind`w-px my-3 ml-3`, { backgroundColor: '#334155' }]} />
 
                     {/* Match Info */}
                     <View style={tailwind`items-end ml-4`}>
-                        <Text style={tailwind`text-gray-600 text-xs font-semibold mb-1`}>
+                        <Text style={[tailwind`text-xs font-semibold mb-1`, { color: '#64748b' }]}>
                             {formatToDDMMYY(convertToISOString(item?.start_timestamp))}
                         </Text>
                         {item?.status !== "not_started" ? (
-                            <View style={tailwind`px-2 py-1 rounded bg-gray-100`}>
-                                <Text style={tailwind`text-xs font-semibold capitalize`}>
+                            <View style={[tailwind`px-2 py-1 rounded`, { backgroundColor: isLive ? '#f8717120' : '#334155' }]}>
+                                <Text style={[tailwind`text-xs font-semibold capitalize`, { color: isLive ? '#f87171' : '#cbd5e1' }]}>
                                     {item?.status_code || item?.status}
                                 </Text>
                             </View>
                         ) : (
-                            <Text style={tailwind`text-gray-500 text-xs`}>
+                            <Text style={[tailwind`text-xs`, { color: '#cbd5e1' }]}>
                                 {formattedTime(convertToISOString(item?.start_timestamp))}
                             </Text>
                         )}

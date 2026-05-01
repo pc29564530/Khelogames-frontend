@@ -20,7 +20,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const homeTeamPublicID = match?.homeTeam?.public_id;
   const awayTeamPublicID = match?.awayTeam?.public_id;
   const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
-  const [permissions, setPermissions] = useState(null);
+  const [permissions, setPermissions] = useState({can_edit: false});
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [isSubstituted, setIsSubstituted] = useState([]);
   const [currentSquad, setCurrentSquad] = useState([]);
@@ -37,6 +37,35 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
   const players = useSelector((state) => state.players.players);
 
   const {height: sHeight, width: sWidth} = Dimensions.get("window");
+
+    // Check for user permission
+    useEffect(() => {
+      if (!match?.public_id || currentTeamPlayer) return;
+
+      const checkPermission = async () => {
+        try {
+          const [matchRes, teamRes] = await Promise.all([
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: {
+                resource_type: "match",
+                resource_public_id: match.public_id,
+              },
+            }),
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: {
+                resource_type: "team",
+                resource_public_id: currentTeamPlayer,
+              },
+            }),
+          ]);
+          setPermissions(matchRes.data.data || teamRes.data.data);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        }
+      };
+
+      checkPermission();
+    }, [match?.public_id, currentTeamPlayer?.public_id]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -258,21 +287,6 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
     }
   };
 
-  // check permission
-  useEffect(() => {
-    const checkPermissionForScorer = async () => {
-      try {
-        const res = await axiosInstance.get(`${BASE_URL}/check-user-permission`, {
-          params: { resource_type: 'match', resource_public_id: match.public_id },
-        });
-        setPermissions(res.data.data);
-      } catch (err) {
-        logSilentError(err);
-      }
-    };
-    checkPermissionForScorer();
-  }, []);
-
   const AddTeamPlayerButton = () => {
     return (
         <Pressable
@@ -338,7 +352,7 @@ const FootballLineUp = ({ item, parentScrollY, headerHeight, collapsedHeight }) 
 
       {/* Squad selector */}
       {/* Check for team manager and scorer */}
-      {(match.status_code === "not_started" && permissions.can_edit) (
+      {match?.status_code === "not_started" && permissions?.can_edit === true && (
         <AddTeamPlayerButton />
       )}
       </Animated.View>

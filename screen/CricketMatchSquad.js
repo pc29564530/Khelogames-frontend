@@ -4,7 +4,7 @@ import {Text, View, ScrollView, Pressable, Image, Modal, Switch, Dimensions, Tex
 import tailwind from 'twrnc';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BASE_URL } from '../constants/ApiConstants';
-import axiosInstance from '../screen/axios_config';
+import axiosInstance from './axios_config';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTeamPlayers, setCricketMatchToss, setCricketMatchSquad, getCricketMatchSquad } from '../redux/actions/actions';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -13,7 +13,7 @@ import Animated, {useSharedValue, Extrapolation, interpolate, useAnimatedScrollH
 const positions = require('../assets/position.json');
 
 
-const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
+const CricketMatchSquad = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
     const dispatch = useDispatch();
      
     const players = useSelector(state => state.players.players)
@@ -22,8 +22,7 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const authProfile = useSelector(state => state.profile.authProfile)
     const game = useSelector((state) => state.sportReducers.game);
     const [selectedSquad, setSelectedSquad] = useState([]);
-    const homeTeamID = match?.homeTeam?.id;
-    const awayTeamID = match?.awayTeam?.id;
+    const [permissions, setPermissions] = useState({can_edit: false});
     const homeTeamPublicID = match?.homeTeam?.public_id;
     const awayTeamPublicID = match?.awayTeam?.public_id;
     const [currentTeamPlayer, setCurrentTeamPlayer] = useState(homeTeamPublicID);
@@ -78,6 +77,35 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     const toggleTeam = (teamPublicID) => {
         setCurrentTeamPlayer(teamPublicID)
     }
+
+    // Check for user permission
+    useEffect(() => {
+      if (!match?.public_id || currentTeamPlayer) return;
+
+      const checkPermission = async () => {
+        try {
+          const [matchRes, teamRes] = await Promise.all([
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: {
+                resource_type: "match",
+                resource_public_id: match.public_id,
+              },
+            }),
+            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+              params: {
+                resource_type: "team",
+                resource_public_id: currentTeamPlayer,
+              },
+            }),
+          ]);
+          setPermissions(matchRes.data.data || teamRes.data.data);
+        } catch (err) {
+          console.log("Unable to check permission:", err);
+        }
+      };
+
+      checkPermission();
+    }, [match?.public_id, cricketMatchSquad?.public_id]);
 
     useEffect(() => {
         const fetchPlayers = async () => {
@@ -506,4 +534,4 @@ const CricketTeamSquad = ({match, parentScrollY, headerHeight, collapsedHeader})
     )
 }
 
-export default CricketTeamSquad;
+export default CricketMatchSquad;

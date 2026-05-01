@@ -1,27 +1,21 @@
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { getProfile, logout, setFollowUser, setUnFollowUser, setAuthProfilePublicID, setCurrentProfile, setAuthUserPublicID, setAuthProfile, checkIsFollowing } from '../redux/actions/actions';
-import axiosInstance, { authAxiosInstance } from './axios_config';
+import { setFollowUser, setUnFollowUser, setCurrentProfile, checkIsFollowing } from '../redux/actions/actions';
+import axiosInstance from './axios_config';
 import tailwind from 'twrnc';
 import { BASE_URL, AUTH_URL } from '../constants/ApiConstants';
-import { logoutServies } from '../services/authServies';
-import { handleUser } from '../utils/ThreadUtils';
-import { current } from '@reduxjs/toolkit';
 import ToastManager from '../utils/ToastManager';
-import { CommentValidationFields } from '../utils/validation/commentValidation';
 
 function Profile({route}) {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { profilePublicID } = route?.params || {};
-  const authUserPublicID = useSelector(state => state.profile.authUserPublicID);
   const profilePublicIDFromStore = useSelector(state => state.profile.authProfilePublicID);
   const currentProfile = useSelector(state => state.profile.currentProfile);
   const authProfile = useSelector(state => state.profile.authProfile);
@@ -44,7 +38,7 @@ function Profile({route}) {
 
   useEffect(() => {
     setIsOwner(profilePublicID === profilePublicIDFromStore);
-  }, [profilePublicID, profile]);
+  }, [profilePublicID, profilePublicIDFromStore]);
 
   useEffect(() => {
     const roleStatus = async () => {
@@ -56,6 +50,7 @@ function Profile({route}) {
 
   const checkIsFollowingFunc = async () => {
     try {
+      if (!currentProfile?.public_id) return;
       const authToken = await AsyncStorage.getItem('AccessToken');
       const response = await axiosInstance.get(`${BASE_URL}/isFollowing/${currentProfile.public_id}`, {
         headers: {
@@ -71,10 +66,10 @@ function Profile({route}) {
   };
 
   // Fetch follower and following counts by current profile
-  const fetchFollowerCount = async () => {
+  const fetchFollowerCount = async (targetPublicID) => {
     try {
       const authToken = await AsyncStorage.getItem('AccessToken');
-      const response = await axiosInstance.get(`${BASE_URL}/getFollowerCount/${currentProfile.public_id}`, {
+      const response = await axiosInstance.get(`${BASE_URL}/getFollowerCount/${targetPublicID}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -189,8 +184,11 @@ const handleReduxUnFollow = async () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      if (!currentProfile?.public_id) return;
+
       fetchFollowerCount(currentProfile.public_id);
       fetchFollowingCount(currentProfile.public_id);
+
       if(currentProfile?.public_id !== authProfile?.public_id) {
         checkIsFollowingFunc();
       }
@@ -219,10 +217,6 @@ const handleReduxUnFollow = async () => {
       setShowMyCommunity(false);
     }
   };
-
-  // const handleLogout = () => {
-  //   logoutServies({ dispatch });
-  // };
 
   const handleNavigation = (screen) => {
     navigation.navigate(screen);

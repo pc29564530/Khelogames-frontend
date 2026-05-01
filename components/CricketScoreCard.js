@@ -28,16 +28,11 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     const bowling = useSelector((state) => state.cricketPlayerScore.bowlingScore);
     const wickets = useSelector((state) => state.cricketPlayerScore.wicketFallen);
     const [battingSquad, setBattingSquad] = useState([]);
-    const homePlayer = useSelector((state) => state.teams.homePlayer);
-    const awayPlayer = useSelector((state) => state.teams.awayPlayer);
-    const CricketTeamSquad = useSelector((state) => state.cricket)
-    const [isModalBatsmanStrikerChange, setIsModalBatsmanStrikeChange] = useState(false);
-    const [isBatsmanStrikeChange,setIsBatsmanStrikeChange] = useState(false);
     const batTeam = useSelector(state => state.cricketMatchScore.batTeam);
-    const [isYetToBatModalVisible, setIsYetToBatModalVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const cricketToss = useSelector(state => state.cricketToss.cricketToss)
     const [currentScoreCardTeam, setCurrentScoreCardTeam] = useState();
+    const [yetToBat, setYetToBat] = useState([]);
     const [selectedInning, setSelectedInning] = useState(1);
     const [error, setError] = useState({global: null, fields: {}});
     const homeTeamID = match?.homeTeam?.id;
@@ -51,6 +46,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     // scroll handler for header animation
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
+            if (!parentScrollY?.value) return;
             if(parentScrollY.value === collapsedHeader){
                 parentScrollY.value = currentScrollY.value
             } else {
@@ -74,37 +70,31 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     });
 
     useFocusEffect(
-    React.useCallback(() => {
-        if (cricketToss && cricketToss.tossWonTeam) {
-        let firstBattingTeam;
+        React.useCallback(() => {
+            if (!match && !cricketToss) return;
+            if (cricketToss && cricketToss.tossWonTeam) {
+            let firstBattingTeam;
 
-        if (cricketToss.tossDecision === "Batting") {
-            firstBattingTeam = cricketToss.tossWonTeam.public_id;
-        } else {
-            firstBattingTeam =
-            cricketToss.tossWonTeam.public_id === homeTeamPublicID
-                ? awayTeamPublicID
-                : homeTeamPublicID;
-        }
+            if (cricketToss.tossDecision === "Batting") {
+                firstBattingTeam = cricketToss.tossWonTeam.public_id;
+            } else {
+                firstBattingTeam =
+                cricketToss.tossWonTeam.public_id === homeTeamPublicID
+                    ? awayTeamPublicID
+                    : homeTeamPublicID;
+            }
 
-        setCurrentScoreCardTeam(firstBattingTeam);
-        setSelectedInning(1);
-        }
-    }, [cricketToss, homeTeamPublicID, awayTeamPublicID])
+            setCurrentScoreCardTeam(firstBattingTeam);
+            setSelectedInning(1);
+            }
+        }, [cricketToss, homeTeamPublicID, awayTeamPublicID])
     );
-
-    useEffect(() => {
-        if(match) {
-            setIsLoading(false);
-        }
-    }, [match]);
-
-    const [yetToBat, setYetToBat] = useState([]);
 
     useEffect(() => {
         const fetchBatting = async () => {
             try {
                 setIsLoading(true);
+                if (!match && !currentScoreCardTeam) return;
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const battingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getPlayerScoreFunc`, {
                     params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID===currentScoreCardTeam?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
@@ -130,6 +120,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
     useEffect(() => {
         const fetchBowling = async () => {
             try {
+                if (!match && !currentScoreCardTeam) return;
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const bowlingScore = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketBowlerFunc`, {
                     params: { match_public_id: match?.public_id.toString(), team_public_id: homeTeamPublicID!==currentScoreCardTeam?homeTeamPublicID.toString(): awayTeamPublicID.toString() },
@@ -152,13 +143,12 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
 
         useEffect(() => {
         const fetchTeamWickets = async () => {
+            if(!match.public_id) {
+                return;
+            }
             try {
                 const authToken = await AsyncStorage.getItem("AccessToken")
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets`, {
-                    params: {
-                        "match_public_id": match?.public_id.toString(),
-                        "team_public_id": currentScoreCardTeam.toString()
-                    },
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketWickets/${match?.public_id}/${currentScoreCardTeam}`, {
                     headers: {
                         'Authorization': `bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -178,6 +168,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
 
     const fetchBattingSquad = async () => {
         try {
+            if (!match && !currentScoreCardTeam) return;
             const authToken = await AsyncStorage.getItem('AccessToken');
             const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketMatchSquad`, {
                 params: {
@@ -204,7 +195,8 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
 
     useEffect(() => {
         fetchBattingSquad();
-    }, []);
+    }, [match?.public_id]);
+    
     useEffect(() => {
         const handleYetToBat = () => {
             if (!Array.isArray(battingSquad)) return;
@@ -378,7 +370,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                                                 <CricketBowlingScorecard bowling={bowling?.innings[key]} convertBallToOvers={convertBallToOvers}/>
                                             </View>
                                         ))}
-                                        {yetToBat.length > 0 && (
+                                        {match.status_code === "in_progress" && yetToBat.length > 0 && (
                                             <View style={[tailwind`rounded-lg p-4 mb-4`, {backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155'}]}>
                                                 <Text style={[tailwind`font-semibold mb-2`, {color: '#f1f5f9'}]}>Yet to bat:</Text>
                                                 <View>
@@ -390,6 +382,7 @@ const CricketScoreCard = ({match, parentScrollY, headerHeight, collapsedHeader})
                                                 </View>
                                             </View>
                                         )}
+                                        {console.log("wickets: ", wickets)}
                                         {wickets.length > 0 && (
                                             <View style={tailwind`mb-3 px-2`}>
                                                 <CricketWicketCard wickets={wickets} convertBallToOvers={convertBallToOvers}/>

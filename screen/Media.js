@@ -29,20 +29,12 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
     const {height: sHeight, width: sWidth} = Dimensions.get("window");
     const currentScrollY = useSharedValue(0);
 
-    useEffect(() => {
-        fetchHighlights();
-    }, []);
-
     const fetchHighlights = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const authToken = await AsyncStorage.getItem("AccessToken");
-
-            const response = await axiosInstance.get(`${BASE_URL}/getMatchMedia/${match.public_id}`, {
-                headers: { Authorization: `Bearer ${authToken}` }
-            });
-
-
+            if (!match) return;
+            
+            const response = await axiosInstance.get(`${BASE_URL}/getMatchMedia/${match.public_id}`);
             const item = response.data;
             if (item?.success && Array.isArray(item?.data) && item.data.length > 0) {
                 // Generate thumbnails safely
@@ -60,7 +52,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                             }
 
                             const thumb = await createThumbnail({
-                                url: highlight.media_url,
+                                url: highlight?.media_url,
                                 timeStamp: 1000,
                             });
 
@@ -69,7 +61,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                                 thumbnail: thumb.path,
                             };
                         } catch (error) {
-                            console.log("Thumbnail Error:", error);
+                            console.log("Unable to create thumbnail:", error);
                             return {
                                 ...highlight,
                                 thumbnail: null,
@@ -83,7 +75,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
         } catch (err) {
             setError({
                 global: "Unable to fetch highlights",
-                fields: err?.response?.data?.error?.fields || {},
+                fields: {},
             });
             console.log("Unable to fetch highlights: ", err);
         } finally {
@@ -91,8 +83,14 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
         }
     };
 
+    useEffect(() => {
+        if (!match) return;
+        fetchHighlights();
+    }, [match?.public_id]);
+
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
+            if (!parentScrollY?.value) return;
             if(parentScrollY.value === collapsedHeight){
                 parentScrollY.value = currentScrollY.value;
             } else {
@@ -110,12 +108,14 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
         try {
             setUploading(true);
             const authToken = await AsyncStorage.getItem("AccessToken");
+            if (!match) return;
             const data = {
+                match_public_id: match.public_id,
                 title: title.trim(),
                 description: description.trim(),
                 media_url: mediaURL
             };
-            const response = await axiosInstance.post(`${BASE_URL}/uploadMatchMedia/${match.public_id}`, data, {
+            const response = await axiosInstance.post(`${BASE_URL}/uploadMatchMedia`, data, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json',
@@ -129,16 +129,16 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
             setDescription('');
             fetchHighlights();
         } catch (err) {
-            if(err?.response?.data?.error?.code === "FORBIDDEN"){
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: 'Failed to upload highlight',
-                    fields: err?.response?.data?.error?.fields || {},
-                });
+                setError({ global: "Unable to create match media", fields: {} });
             }
             console.log("Failed to create match media: ", err);
         } finally {
@@ -148,9 +148,14 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
 
     const handleMediaSelection = async () => {
         try {
-            const {mediaURL, mediaType} = await SelectMedia(axiosInstance);
-            setMediaURL(mediaURL);
-            setMediaType(mediaType);
+            const result = await SelectMedia(axiosInstance);
+
+            if (result?.mediaUrl) {
+                setMediaURL(result.mediaUrl);
+                setMediaType(result.mediaType);
+            } else {
+                console.log("No media URL returned");
+            }
         } catch (err) {
             console.error("Error selecting media ", err);
         }
@@ -195,6 +200,18 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
         );
     };
 
+    if (loading && !match) {
+        return (
+            <View style={[tailwind`flex-1 justify-center items-center`, 
+                {backgroundColor: '#0f172a'}]}>
+                <ActivityIndicator size="large" color="#f87171" />
+                <Text style={{ color: '#94a3b8', marginTop: 8 }}>
+                    Loading match...
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <>
             <Animated.ScrollView
@@ -229,7 +246,7 @@ const MediaScreen = ({item, parentScrollY, headerHeight, collapsedHeight}) => {
                         <FlatList
                             data={highlights}
                             renderItem={renderHighlightItem}
-                            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+                            keyExtractor={(item, index) => item.public_id?.toString() || index.toString()}
                             scrollEnabled={false}
                         />
                     ) : (
@@ -395,8 +412,8 @@ const UploadModal = ({
                                 style={[
                                     tailwind`py-4 rounded-xl items-center flex-row justify-center`,
                                     (!mediaURL || !title.trim() || uploading)
-                                        ? { backgroundColor: '#334155' }
-                                        : { backgroundColor: '#f87171' },
+                                        ? { backgroundColor: '#334155' }  // disabled
+                                        : { backgroundColor: '#f87171' }  // active
                                 ]}
                                 onPress={createMatchMedia}
                                 disabled={!mediaURL || !title.trim() || uploading}

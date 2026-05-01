@@ -12,7 +12,7 @@ import {validateCricketTossForm} from '../utils/validation/cricketTossValidation
 import Animated, {useSharedValue, useAnimatedStyle, Extrapolation, interpolate, useAnimatedScrollHandler} from 'react-native-reanimated';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader}) => {
+const CricketMatchDetail = ({match, permissions, parentScrollY, headerHeight, collapsedHeader}) => {
     const dispatch = useDispatch();
     const [isTossedModalVisible, setIsTossedModalVisible] = useState(false);
     const [tossOption, setTossOption] = useState('');
@@ -58,8 +58,9 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
     const addToss = async () => {
         try {
             setLoading(true);
+            if (!match) return;
             const formData = {
-                match_public_id: match.public_id,
+                match_public_id: match?.public_id,
                 toss_decision: tossOption,
                 toss_win: teamID,
             }
@@ -107,6 +108,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
         const fetchTossData = async () => {
             try {
                 setLoading(true);
+                if (!match) return;
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getCricketToss/${match.public_id}`, {
                     headers: {
@@ -162,7 +164,7 @@ const CricketMatchDetail = ({match, parentScrollY, headerHeight, collapsedHeader
             >
                 {/* Header + Update Toss Button */}
                 {/* Check for permission */}
-                {match.status_code === 'in_progress' && (
+                {match.status_code === 'in_progress' && permissions?.can_edit === true && (
                     <View style={tailwind`mb-4`}>
                         <Pressable
                             onPress={cricketToss ? null : handleModalVisible}

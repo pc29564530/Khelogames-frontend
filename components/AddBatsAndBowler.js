@@ -5,7 +5,7 @@ import { AddCricketBowler } from "./AddCricketBowler";
 import { AddCricketBatsman } from "./AddCricketBatsman";
 import { useSelector, useDispatch } from 'react-redux';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import CricketTeamSquad from './CricketTeamSquad';
+import CricketMatchSquad from '../screen/CricketMatchSquad';
 import axiosInstance from '../screen/axios_config';
 import { BASE_URL } from '../constants/ApiConstants';
 import { getCricketMatchSqud } from '../redux/actions/actions';

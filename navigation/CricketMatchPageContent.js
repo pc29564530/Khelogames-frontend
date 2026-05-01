@@ -1,18 +1,20 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import tailwind from 'twrnc';
 import TournamentStanding from '../screen/TournamentStanding';
-import CricketTeamSquad from '../components/CricketTeamSquad';
+import CricketMatchSquad from '../screen/CricketMatchSquad';
 import CricketMatchDetails from '../screen/CricketMatchDetail';
 import CricketScoreCard from '../components/CricketScoreCard';
 import { useSelector } from 'react-redux';
 import CricketLive from '../screen/CricketLiveScore';
 import MediaScreen from '../screen/Media';
 
+const TopTab = createMaterialTopTabNavigator();
+
 function CricketMatchPageContent({match, permissions, parentScrollY, headerHeight, collapsedHeader}) {
-    const TopTab = createMaterialTopTabNavigator();
     return (
         <TopTab.Navigator
             screenOptions={{
+                lazy: true,
                 headerShown: false,
                 tabBarStyle: {
                     backgroundColor: '#1e293b',
@@ -41,6 +43,7 @@ function CricketMatchPageContent({match, permissions, parentScrollY, headerHeigh
                         {() => (
                             <CricketMatchDetails
                                 match={match}
+                                permissions={permissions}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}
@@ -74,9 +77,9 @@ function CricketMatchPageContent({match, permissions, parentScrollY, headerHeigh
                         </TopTab.Screen>
                     )}
 
-                    <TopTab.Screen name="Squad">
+                    <TopTab.Screen name="Squads">
                         {() => (
-                            <CricketTeamSquad
+                            <CricketMatchSquad
                                 match={match}
                                 permissions={permissions}
                                 parentScrollY={parentScrollY}

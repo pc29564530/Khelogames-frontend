@@ -1,10 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "../constants/ApiConstants";
 import axiosInstance from "../screen/axios_config";
-import { setCurrentInning, setCurrentInningNumber, setBatTeam, setInningStatus, setInningScore } from "../redux/actions/actions";
 
-export const addCricketScoreServices = async ({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn}) => {
-    try {
+export const addCricketScoreServices = async ({game, matchPublicID, teamPublicID, currentInningNumber}) => {
         const data = {
             match_public_id:matchPublicID,
             team_public_id: teamPublicID,
@@ -13,7 +11,7 @@ export const addCricketScoreServices = async ({game, dispatch, matchPublicID, te
             wickets: 0,
             overs: 0,
             extras: 0,
-            follow_on: followOn
+            follow_on: false,
         }
         const authToken = await AsyncStorage.getItem("AccessToken");
         const response = await axiosInstance.post(`${BASE_URL}/${game.name}/addCricketScore`, data, {
@@ -22,14 +20,7 @@ export const addCricketScoreServices = async ({game, dispatch, matchPublicID, te
                 'Content-Type': 'application/json',
             },
         });
-        const item = response.data.data;
-        dispatch(setCurrentInningNumber(item.inning.inning_number))
-        dispatch(setInningStatus("not_started", item.inning.inning_number));
-        dispatch(setBatTeam(item.team.public_id));
-        dispatch(setInningScore(item.inning || []));
-    } catch (err) {
-        console.error("unable to add the cricket score of home team and away team ", err);
-    }
+        return response.data;
 }
 
 export const matchBattingScoreBoard = async ({ matchPublicID, teamPublicID}) => {

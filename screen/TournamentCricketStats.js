@@ -14,20 +14,20 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     const [selectedTab, setSelectedTab] = useState('batting');
 
     // Batting stats
-    const [mostRuns, setMostRuns] = useState(null);
-    const [highestRuns, setHighestRuns] = useState(null);
-    const [mostSixes, setMostSixes] = useState(null);
-    const [mostFours, setMostFours] = useState(null);
-    const [mostFifties, setMostFifties] = useState(null);
-    const [mostHundreds, setMostHundreds] = useState(null);
-    const [battingAverage, setBattingAverage] = useState(null);
-    const [battingStrike, setBattingStrike] = useState(null);
+    const [mostRuns, setMostRuns] = useState([]);
+    const [highestRuns, setHighestRuns] = useState([]);
+    const [mostSixes, setMostSixes] = useState([]);
+    const [mostFours, setMostFours] = useState([]);
+    const [mostFifties, setMostFifties] = useState([]);
+    const [mostHundreds, setMostHundreds] = useState([]);
+    const [battingAverage, setBattingAverage] = useState([]);
+    const [battingStrike, setBattingStrike] = useState([]);
 
     // Bowling stats
-    const [mostWickets, setMostWickets] = useState(null);
-    const [bowlingAverage, setBowlingAverage] = useState(null);
-    const [bowlingEconomy, setBowlingEconomy] = useState(null);
-    const [fiveWicketsHaul, setFiveWicketsHaul] = useState(null);
+    const [mostWickets, setMostWickets] = useState([]);
+    const [bowlingAverage, setBowlingAverage] = useState([]);
+    const [bowlingEconomy, setBowlingEconomy] = useState([]);
+    const [fiveWicketsHaul, setFiveWicketsHaul] = useState([]);
 
     // UI states
     const [loading, setLoading] = useState(false);
@@ -46,6 +46,8 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     const currentScrollY = useSharedValue(0);
     const handlerScroll = useAnimatedScrollHandler({
         onScroll:(event) => {
+            if (!parentScrollY?.value) return;
+
             if(parentScrollY.value === collapsedHeader){
                 parentScrollY.value = currentScrollY.value
             } else {
@@ -55,44 +57,47 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
     });
 
     useEffect(() => {
+        const fetchAllStats = async () => {
+            setLoading(true);
+
+            try {
+                await Promise.all([
+                    // Batting
+                    fetchMostRunsByPlayer(),
+                    fetchHighestRunsByPlayer(),
+                    fetchMostSixes(),
+                    fetchMostFours(),
+                    fetchMostFifties(),
+                    fetchMostHundreds(),
+                    fetchBattingAverage(),
+                    fetchBattingStrike(),
+                    // Bowling
+                    fetchBowlingWickets(),
+                    fetchBowlingEconomy(),
+                    fetchBowlingAverage(),
+                    fetchBowlingFiveWicketHaul()
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchAllStats();
     }, []);
 
-    const fetchAllStats = async () => {
-        setLoading(true);
-        await Promise.all([
-            // Batting
-            fetchMostRunsByPlayer(),
-            fetchHighestRunsByPlayer(),
-            fetchMostSixes(),
-            fetchMostFours(),
-            fetchMostFifties(),
-            fetchMostHundreds(),
-            fetchBattingAverage(),
-            fetchBattingStrike(),
-            // Bowling
-            fetchBowlingWickets(),
-            fetchBowlingEconomy(),
-            fetchBowlingAverage(),
-            fetchBowlingFiveWicketHaul()
-        ]);
-        setLoading(false);
-    };
-
     const fetchStat = async (endpoint, setter, statName) => {
         try {
-            const authToken = await AsyncStorage.getItem("AccessToken");
-            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/${endpoint}/${tournament.public_id}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'content-type': 'application/json'
-                }
-            });
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/${endpoint}/${tournament.public_id}`);
             // Handle both response.data and response.data.data formats
             const data = response.data?.data || response.data || [];
             setter(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(`Failed to fetch ${statName}:`, err);
+
+            setError(prev => ({
+                ...prev,
+                global: `Failed to load ${statName}`
+            }));
+
             setter([]);
         }
     };
@@ -153,7 +158,7 @@ const TournamentCricketStats = ({tournament, currentRole, parentScrollY, headerH
                     <>
                         <FlatList
                             data={topPlayers}
-                            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+                            keyExtractor={(item, index) => index.toString()}
                             renderItem={({item, index}) => (
                                 <TournamentPlayerStatsRow
                                     player={item}

@@ -3,13 +3,15 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import Members from "../components/Members";
 import TeamMatches from "../screen/TeamMatches";
 
+const TopTab = createMaterialTopTabNavigator();
+
 const TopTabTeamPage = ({teamData, game, parentScrollY, headerHeight, collapsedHeader}) => {
-    const TopTab = createMaterialTopTabNavigator();
     const isIndividual = teamData?.type === 'individual';
     return (
         <TopTab.Navigator
             screenOptions={{
                 headerShown: false,
+                lazy: true,
                 tabBarStyle: {
                     backgroundColor: '#1e293b',
                     elevation: 0,

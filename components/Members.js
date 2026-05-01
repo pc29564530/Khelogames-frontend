@@ -35,8 +35,8 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
   // loading / error — split by context so they don't bleed into each other
   const [membersLoading, setMembersLoading] = useState(true);
   const [modalLoading, setModalLoading]     = useState(false);
-  const [error, setError]                   = useState(null);
-  const [modalError, setModalError]         = useState(null);
+  const [error, setError]                   = useState({global: null, fields: {}});
+  const [modalError, setModalError]         = useState({global: null, fields: {}});
 
   const { height: sHeight } = useWindowDimensions();
   const currentScrollY = useSharedValue(0);
@@ -58,7 +58,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
     const fetchMembers = async () => {
       try {
         setMembersLoading(true);
-        setError(null);
+        setError({global: null, fields: {}});
         const response = await axiosInstance.get(
           `${BASE_URL}/${game.name}/getTeamsMemberFunc/${team.public_id}`,
         );
@@ -150,12 +150,17 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
       }
       setSearchText('');
     } catch (err) {
-      logSilentError(err);
-      setModalError(
-        err?.response?.data?.error?.code === 'FORBIDDEN'
-          ? err.response.data.error.message
-          : 'Unable to add player. Try again.',
-      );
+      const errorCode = err?.response?.data?.error?.code;
+      const errorMessage = err?.response?.data?.error?.message;
+      const backendFields = err?.response?.data?.error?.fields;
+
+      if (backendFields && Object.keys(backendFields).length > 0) {
+          setModalError({ global: errorMessage || "Invalid input", fields: backendFields });
+      } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+          setModalError({ global: errorMessage, fields: {} });
+      } else {
+          setModalError({ global: "Unable to add new cricket batsman", fields: {} });
+      }
     } finally {
       setModalLoading(false);
     }
@@ -174,12 +179,17 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
       const updated = players.filter(p => p.id !== response.data?.id);
       dispatch(getTeamPlayers(updated));
     } catch (err) {
-      logSilentError(err);
-      setError(
-        err?.response?.data?.error?.code === 'FORBIDDEN'
-          ? err.response.data.error.message
-          : 'Unable to remove player.',
-      );
+      const errorCode = err?.response?.data?.error?.code;
+      const errorMessage = err?.response?.data?.error?.message;
+      const backendFields = err?.response?.data?.error?.fields;
+
+      if (backendFields && Object.keys(backendFields).length > 0) {
+          setError({ global: errorMessage || "Invalid input", fields: backendFields });
+      } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+          setError({ global: errorMessage, fields: {} });
+      } else {
+          setError({ global: "Unable to add new cricket batsman", fields: {} });
+      }
     }
   };
 

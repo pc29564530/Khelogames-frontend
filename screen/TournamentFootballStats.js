@@ -12,16 +12,15 @@ import Animated, {Extrapolation, useAnimatedScrollHandler, interpolate, useShare
 
 
 const TournamentFootballStats = ({tournament, currentRole, parentScrollY, headerHeight, collapsedHeader}) => {
-    const [mostGoals, setMostGoals] = useState(null);
-    const [mostYellowCards, setMostYellowCards] = useState(null);
-    const [mostRedCards, setMostRedCards] = useState(null);
+    const [mostGoals, setMostGoals] = useState([]);
+    const [mostYellowCards, setMostYellowCards] = useState([]);
+    const [mostRedCards, setMostRedCards] = useState([]);
 
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const [modalData, setModalData] = useState(null);
     const [modalTitle, setModalTitle] = useState('');
-    const [currentDate, setCurrentDate] = useState(null);
     const [modalType, setModalType] = useState('');
     const [error, setError] = useState({
         global: null,
@@ -33,103 +32,84 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
     const currentScrollY = useSharedValue(0);
 
     const handlerScroll = useAnimatedScrollHandler({
-        onScroll:(event) => {
-            if(parentScrollY.value === collapsedHeader){
-                parentScrollY.value = currentScrollY.value
+        onScroll: (event) => {
+            if (!parentScrollY) return;
+
+            if (parentScrollY.value >= collapsedHeader) {
+                parentScrollY.value = currentScrollY.value;
             } else {
-                parentScrollY.value = event.contentOffset.y
+                parentScrollY.value = event.contentOffset.y;
             }
         }
-    })
+    });
+
+    const fetchGoals = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken");
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'content-type': 'application/json'
+                }
+            })
+            setMostGoals(Array.isArray(response?.data?.data) ? response.data.data : []);
+        } catch (err) {
+            console.log("Failed to fetch most goals: ", err);
+        }
+    }
+
+    const fetchYellowCards = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.public_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'content-type': 'application/json'
+                }
+            })
+            setMostYellowCards(Array.isArray(response?.data?.data) ? response.data.data : []);
+        } catch (err) {
+            console.log("Failed to fetch yellow cards: ", err);
+        }
+    }
+
+    const fetchRedCard = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem("AccessToken")
+            const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.public_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'content-type': 'application/json'
+                }
+            })
+            setMostRedCards(Array.isArray(response?.data?.data) ? response.data.data : []);
+        } catch (err) {
+            console.log("Failed to fetch red cards: ", err);
+        }
+    }
 
     useEffect(() => {
-        const date = new Date();
-        setCurrentDate(date);
-    }, []);
+        if (!tournament?.public_id || !game?.name) return;
 
-    useEffect(() => {
-        const fetchGoals = async () => {
+        const fetchAllStats = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
-                const authToken = await AsyncStorage.getItem("AccessToken");
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerGoal/${tournament.public_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostGoals(response?.data?.data || []);
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error.fields;
-                setError({
-                    global: "Unable to get goals",
-                    fields: backendErrors,
-                })
-                console.log("Failed to fetch most goals: ", err);
+                await Promise.all([
+                    fetchGoals(),
+                    fetchYellowCards(),
+                    fetchRedCard(),
+                ]);
             } finally {
                 setLoading(false);
             }
-        }
+        };
 
-        const fetchYellowCards = async () => {
-            try {
-                setLoading(true);
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_id: tournament.id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerYellowCard/${tournament.public_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostYellowCards(response.data.data || []);
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error.fields;
-                setError({
-                    global: "Unable to get yellow cards",
-                    fields: backendErrors,
-                })
-                console.log("Failed to fetch yellow cards: ", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        const fetchRedCard = async () => {
-            try {
-                const authToken = await AsyncStorage.getItem("AccessToken")
-                const data = {
-                    tournament_public_id: tournament.public_id
-                }
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getFootballTournamentPlayerRedCard/${tournament.public_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'content-type': 'application/json'
-                    }
-                })
-                setMostRedCards(response.data.data || []);
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error.fields;
-                setError({
-                    global: "Unable to get red cards",
-                    fields: backendErrors,
-                })
-                console.error("Failed to fetch red cards: ", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchGoals();
-        fetchYellowCards();
-        fetchRedCard();
-    }, []);
+        fetchAllStats();
+    }, [tournament?.public_id, game?.name]);
 
     // Helper to render stat card
     const renderStatCard = (title, data, type) => {
-        const topPlayers = data?.length === 1 ? data?.slice(0,1) : [];
+        const topPlayers = Array.isArray(data) ? data.slice(0, 1) : [];
 
         return (
             <View style={[tailwind`rounded-xl p-4 mb-3 mx-4`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}>
@@ -139,7 +119,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                             {title}
                         </Text>
                     </View>
-                    {data && data.length > 0 && (
+                    {data && data?.length > 0 && (
                         <Pressable
                             onPress={() => {
                                 setModalData(data);
@@ -169,7 +149,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                     <>
                         <FlatList
                             data={topPlayers}
-                            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+                            keyExtractor={(item, index) => index.toString()}
                             renderItem={({item, index}) => (
                                 <TournamentPlayerStatsRow
                                     player={item}
@@ -187,7 +167,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
 
     return (
         <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
-            {error.global && (
+            {error?.global && (
                 <View style={[tailwind`mx-4 mt-3 mb-3 p-3 rounded-lg`, { backgroundColor: '#f8717115', borderWidth: 1, borderColor: '#f8717130' }]}>
                     <Text style={[tailwind`text-sm`, { color: '#fca5a5' }]}>
                         {error?.global}
@@ -202,7 +182,7 @@ const TournamentFootballStats = ({tournament, currentRole, parentScrollY, header
                 contentContainerStyle={{paddingTop: 16, paddingBottom: 100, minHeight: sHeight + 100}}
                 showsVerticalScrollIndicator={false}
             >
-                {loading && !mostGoals && !mostYellowCards && !mostRedCards ? (
+                {loading ? (
                     <View style={tailwind`py-20 items-center`}>
                         <ActivityIndicator size="large" color="#f87171" />
                         <Text style={[tailwind`mt-3`, { color: '#64748b' }]}>Loading stats...</Text>

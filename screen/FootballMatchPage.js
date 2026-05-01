@@ -48,7 +48,7 @@ const FootballMatchPage = ({ route }) => {
     const [subStatus, setSubStatus] = useState();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
-    const [permissions, setPermissions] = useState(null);
+    const [permissions, setPermissions] = useState({can_edit: false});
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -56,49 +56,80 @@ const FootballMatchPage = ({ route }) => {
     const game = useSelector((state) => state.sportReducers.game);
 
     useEffect(() => {
-        if (wsRef?.current?.readyState === WebSocket.OPEN) {
-            const payloadData = {
-                "type": "SUBSCRIBE",
-                "category": "MATCH",
-                "payload": {"match_public_id": matchPublicID}
-            }
-            wsRef.current.send(JSON.stringify(payloadData));
-        }
-    }, [matchPublicID]);
-
-    useEffect(() => {
         const statusArray = filePath.status_codes;
         const combined = statusArray.reduce((acc, curr) => ({...acc, ...curr}), {})
         setAllStatus(combined)
-    }, [])
+    }, []);
+
+    useFocusEffect(useCallback(() => {
+        const fetchMatchData = async () => {
+            setLoading(true);
+            try {
+                const authToken = await AsyncStorage.getItem('AccessToken');
+                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const item = response.data;
+                dispatch(getMatch(item.data || null));
+            } catch (err) {
+                const backendErrors = err?.response?.data?.error?.fields || {};
+                setError({
+                    global: err?.response?.data?.error?.message || "Unable to load match data. Please try again.",
+                    fields: backendErrors,
+                })
+                console.error("Failed to fetch match data: ", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMatchData();
+    }, [matchPublicID, game.name]));
 
     // Check for user permission — runs once match is loaded from redux
     useEffect(() => {
       if (!match?.public_id) return;
       const checkPermission = async () => {
         try {
-          const [matchPerm, homePerm, awayPerm] = await Promise.all([
-            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
+          const matchRes = await axiosInstance.get(`${BASE_URL}/check-user-permission`, {
               params: { resource_type: "match", resource_public_id: match.public_id },
-            }),
-            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
-              params: { resource_type: "team", resource_public_id: match.homeTeam?.public_id },
-            }),
-            axiosInstance.get(`${BASE_URL}/check-user-permission`, {
-              params: { resource_type: "team", resource_public_id: match.awayTeam?.public_id },
-            }),
-          ]);
-          const canEdit =
-            matchPerm.data.data?.can_edit ||
-            homePerm.data.data?.can_edit ||
-            awayPerm.data.data?.can_edit;
-          setPermissions({ can_edit: canEdit });
+            });
+          setPermissions(matchRes.data.data);
         } catch (err) {
           console.log("Unable to check permission:", err);
         }
       };
       checkPermission();
     }, [match?.public_id]);
+
+    useEffect(() => {
+        const socket = wsRef?.current;
+        if (!socket) return;
+
+        const sendSubscribe = () => {
+            if(socket?.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    "type": "SUBSCRIBE",
+                    "category": "MATCH",
+                    "payload": {"match_public_id": matchPublicID}
+                }));
+            }
+        };
+
+        if (socket.readyState === WebSocket.OPEN) {
+            sendSubscribe();
+        } else {
+            socket.addEventListener("open", sendSubscribe);
+        }
+
+        return () => {
+            socket.removeEventListener("open", sendSubscribe);
+        };
+    }, [matchPublicID]);
+
+    
 
     const {height: sHeight, width: sWidth} = Dimensions.get('screen');
 
@@ -252,34 +283,8 @@ const FootballMatchPage = ({ route }) => {
         };
     });
 
-    useFocusEffect(useCallback(() => {
-        const fetchMatchData = async () => {
-            setLoading(true);
-            try {
-                const authToken = await AsyncStorage.getItem('AccessToken');
-                const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                const item = response.data;
-                dispatch(getMatch(item.data || null));
-            } catch (err) {
-                const backendErrors = err?.response?.data?.error?.fields || {};
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to load match data. Please try again.",
-                    fields: backendErrors,
-                })
-                console.error("Failed to fetch match data: ", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchMatchData();
-    }, [matchPublicID, game.name, dispatch]));
-
     const handleUpdateStatus = async (itm) => {
+        setLoading(true);
         try {
             const formData = {
                 status_code: itm.type,
@@ -341,6 +346,7 @@ const FootballMatchPage = ({ route }) => {
     };
 
     const handleUpdateSubStatus = async (itm) => {
+        setLoading(true);
         try {
             const formData = {
                 sub_status: itm.type,
@@ -374,8 +380,6 @@ const FootballMatchPage = ({ route }) => {
                     'Content-Type': 'application/json',
                 },
             });
-
-            // dispatch(setMatchSubStatus(response.data.data || response.data || []));
 
             // Clear errors on success
             setError({
@@ -429,75 +433,69 @@ const FootballMatchPage = ({ route }) => {
             item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
- 
-    useEffect(() => {
-        if (match) {
-            setLoading(false);
+
+    const handleWebSocketMessage = useCallback((event) => {
+        const rawData = event.data;
+        if (!rawData) {
+            console.error("Raw data is undefined");
+            return;
         }
-    }, [match]);
 
-        const handleWebSocketMessage = useCallback((event) => {
-            const rawData = event.data;
-            if (!rawData) {
-                console.error("Raw data is undefined");
-                return;
-            }
-    
-            try {
-                const message = JSON.parse(rawData);
-                if(message.type === undefined || message.type === null){
-                    console.log("Message type is undefined ")
-                    return
-                }
-
-                switch(message.type) {
-                    case "UPDATE_FOOTBALL_SCORE":
-                        dispatch(setFootballScore(message.payload));
-                        break;
-                    case "UPDATE_MATCH_STATUS":
-                        dispatch(setMatchStatus(message.payload));
-                        break;
-                    case "UPDATE_MATCH_SUB_STATUS":
-                        console.log("sub Status: ", message.payload)
-                        dispatch(setMatchSubStatus(message.payload));
-                        break;
-                    default:
-                        console.log("Unhandled message type:", message.type);
-                }
-            } catch (err) {
-                console.error("Error parsing WebSocket message football match:", err);
-            }
-        }, [dispatch]);
-
-        const getMatchTime = useCallback((statusInfo) => {
-            const { sub_status, sub_status_updated_at } = statusInfo;
-
-            if (!sub_status_updated_at) return "";
-
-            const now = Math.floor(Date.now() / 1000);
-            const totalSeconds = now - sub_status_updated_at;
-
-            if (totalSeconds < 0) return "00:00";
-
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-
-            const format = (m, s) =>
-                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}'`;
-
-            if (sub_status === "first_half") {
-                if (minutes <= 45) return format(minutes, seconds);
-                return `45+${minutes - 45}'`;
+        try {
+            const message = JSON.parse(rawData);
+            if(message.type === undefined || message.type === null){
+                console.log("Message type is undefined ")
+                return
             }
 
-            if (sub_status === "second_half") {
-                const totalMin = 45 + minutes;
-                if (totalMin <= 90) return format(totalMin, seconds);
-                return `90+${totalMin - 90}'`;
+            switch(message.type) {
+                case "UPDATE_FOOTBALL_SCORE":
+                    dispatch(setFootballScore(message.payload));
+                    break;
+                case "UPDATE_MATCH_STATUS":
+                    dispatch(setMatchStatus(message.payload));
+                    break;
+                case "UPDATE_MATCH_SUB_STATUS":
+                    console.log("sub Status: ", message.payload)
+                    dispatch(setMatchSubStatus(message.payload));
+                    break;
+                default:
+                    console.log("Unhandled message type:", message.type);
             }
+        } catch (err) {
+            console.error("Error parsing WebSocket message football match:", err);
+        }
+    }, [dispatch]);
 
-            return "";
-        }, []);
+    const getMatchTime = useCallback((statusInfo) => {
+        const { sub_status, sub_status_updated_at } = statusInfo;
+
+        if (!sub_status_updated_at) return "";
+
+        const now = Math.floor(Date.now() / 1000);
+        const totalSeconds = now - sub_status_updated_at;
+
+        if (totalSeconds < 0) return "00:00";
+
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        const format = (m, s) =>
+            `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}'`;
+
+        if (sub_status === "first_half") {
+            if (minutes <= 45) return format(minutes, seconds);
+            return `45+${minutes - 45}'`;
+        }
+
+        if (sub_status === "second_half") {
+            const totalMin = 45 + minutes;
+            if (totalMin <= 90) return format(totalMin, seconds);
+            return `90+${totalMin - 90}'`;
+        }
+
+        return "";
+    }, []);
 
     // Derive specific fields to avoid re-running on every match object change
     const matchStatusCode = match?.status_code;
@@ -544,10 +542,11 @@ const FootballMatchPage = ({ route }) => {
 
     if (loading && !match) {
         return (
-            <View style={[tailwind`flex-1 justify-center items-center`, {backgroundColor: '#0f172a'}]}>
+            <View style={[tailwind`flex-1 justify-center items-center`, 
+                {backgroundColor: '#0f172a'}]}>
                 <ActivityIndicator size="large" color="#f87171" />
-                <Text style={[tailwind`mt-2`, {color: '#94a3b8'}]}>
-                    Loading match data...
+                <Text style={{ color: '#94a3b8', marginTop: 8 }}>
+                    Loading match...
                 </Text>
             </View>
         );
@@ -674,6 +673,7 @@ const FootballMatchPage = ({ route }) => {
             <Animated.View style={[contentContainerStyle]}>
                 <TopTab.Navigator
                     screenOptions={{
+                        lazy: true,
                         tabBarStyle: {
                             backgroundColor: '#1e293b',
                             elevation: 0,
@@ -724,6 +724,7 @@ const FootballMatchPage = ({ route }) => {
                         {() => (
                             <FootballLineUp
                                 item={match}
+                                permissions={permissions}
                                 parentScrollY={parentScrollY}
                                 headerHeight={headerHeight}
                                 collapsedHeader={collapsedHeader}

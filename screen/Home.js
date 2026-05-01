@@ -164,10 +164,6 @@ const getTeamScore = (match, side) => {
 const getMatchTime = (match) => {
   if(match.status_code === "not_started"){
     return formatToDDMMYY(convertToISOString(match.start_timestamp))
-  } else if(match.status_code !== "in_progress") {
-    if(game?.name === "cricket"){
-      if(match.sub_status) return match.sub_status;
-    }
   }
 };
 

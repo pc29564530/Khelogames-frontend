@@ -139,19 +139,18 @@ const CreateMatch = ({ route }) => {
           console.log("Match created successfully:", response.data);
           navigation.goBack();
         } catch (err) {
-          //Extract validation errors from backend response
-          const backendErrors = err?.response?.data?.error?.fields || {};
-          if(err?.response?.data?.error?.code === "FORBIDDEN"){
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+          const errorCode = err?.response?.data?.error?.code;
+          const errorMessage = err?.response?.data?.error?.message;
+          const backendFields = err?.response?.data?.error?.fields;
+
+          if (backendFields && Object.keys(backendFields).length > 0) {
+              setError({ global: errorMessage || "Invalid input", fields: backendFields });
+          } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+              setError({ global: errorMessage, fields: {} });
           } else {
-            setError({
-              global: "Unable to create match",
-              fields: backendErrors,
-            })
+              setError({ global: "Unable to create match", fields: {} });
           }
+          console.log("Unable to create match: ", err)
         } finally {
           setLoading(false);
         }

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -68,6 +68,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
 
   const handlerScroll = useAnimatedScrollHandler({
     onScroll:(event) => {
+        if (!parentScrollY?.value) return;
         if(parentScrollY.value === collapsedHeader){
             parentScrollY.value = currentScrollY.value
         } else {
@@ -85,7 +86,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
           dispatch(setGroups(response))
       }
       loadGroup();
-    }, [axiosInstance])
+    }, [])
   );
 
   useEffect(() => {
@@ -110,7 +111,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
         }
     }
     fetchTeam()
-  }, [selectedGroup])
+  }, [])
 
   useEffect(() => {
     const fetchStandings = async () => {
@@ -136,13 +137,12 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
   const getGroup = async () => {
     setLoading(true);
     try {
-      const res = fetchAllGroups();
+      const res = await fetchAllGroups();
       dispatch(setGroups(res.data))
     } catch(err) {
-      const backendErrrors = err?.response?.data?.error?.fields;
       setError({
         global: "Unable to get groups",
-        fields: backendErrrors,
+        fields: {},
       })
     } finally {
       setLoading(false);
@@ -163,23 +163,28 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
     }
   };
 
-  // Team toggle handler with validation
+    // Team toggle handler with validation
+  const maxTeams = tournament?.max_group_teams || 20;
+
   const handleTeamToggle = (participant) => {
-    if (selectedTeams?.some(t => t.id === participant.entity.id)) {
-      setSelectedTeams(selectedTeams?.filter(t => t?.id !== participant.entity.id));
-    } else {
-      if (selectedTeams.length >= 20) {
-        Alert.alert('Limit Reached', 'Maximum 20 teams can be selected at once.');
+      const exists = selectedTeams.some(t => t.id === participant.entity.id);
+
+      if (!exists && selectedTeams.length >= maxTeams) {
+        Alert.alert('Limit Reached', `Maximum ${maxTeams} teams allowed.`);
         return;
       }
-      setSelectedTeams([...selectedTeams, participant.entity]);
-    }
+
+      if (exists) {
+        setSelectedTeams(selectedTeams.filter(t => t.id !== participant.entity.id));
+      } else {
+        setSelectedTeams([...selectedTeams, participant.entity]);
+      }
   };
 
   // Bulk participant selection
   const handleBulkSelect = (selectAll = true) => {
     if (selectAll) {
-      const availableTeams = filteredTeams.slice(0, 20); // Limit to 20
+      const availableTeams = filteredTeams.slice(0, maxTeams);
       setSelectedTeams(availableTeams);
     } else {
       setSelectedTeams([]);
@@ -226,17 +231,16 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
       setIsCreateStandingVisible(false);
 
     } catch (err) {
-      const backendError = err?.response?.data?.error?.fields || {};
-      if(err?.response?.data?.error?.code === "FORBIDDEN"){
-          setModalError({
-              global: err?.response?.data?.error?.message,
-              fields: {},
-          })
+      const errorCode = err?.response?.data?.error?.code;
+      const errorMessage = err?.response?.data?.error?.message;
+      const backendFields = err?.response?.data?.error?.fields;
+
+      if (backendFields && Object.keys(backendFields).length > 0) {
+          setError({ global: errorMessage || "Invalid input", fields: backendFields });
+      } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+          setError({ global: errorMessage, fields: {} });
       } else {
-        setModalError({
-          global: 'Failed to add teams to standing. Please try again.',
-          fields: backendError,
-        });
+          setError({ global: "Unable to add teams to group", fields: {} });
       }
       console.log("Unable to add teams to group: ", err);
     } finally {
@@ -262,7 +266,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
   });
 
   // Render participant item with enhanced UI
-  const renderTeamItem = ({ item }) => {
+  const renderTeamItem = useCallback(({ item }) => {
     const isSelected = selectedTeams.some(t => t.id === item.entity.id);
     return (
       <Pressable
@@ -304,7 +308,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
         />
       </Pressable>
     );
-  };
+  }, [selectedTeams]);
 
   // Render group item
   const renderGroupItem = ({ item }) => {
@@ -626,7 +630,7 @@ const TournamentStanding = ({ tournament, permissions, parentScrollY, headerHeig
 
               {/* Team List */}
               <FlatList
-                data={filteredTeams || teams}
+                data={filteredTeams || []}
                 keyExtractor={(item) => item.entity.id.toString()}
                 renderItem={renderTeamItem}
                 style={tailwind`flex-1`}

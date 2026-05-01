@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Platform, Dimensions, ScrollView, TextInput, Modal, TouchableOpacity } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import tailwind from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { TopTabFootball } from '../navigation/TopTabFootball';
@@ -28,7 +28,7 @@ const TournamentPage = ({ route }) => {
       const [statusVisible, setStatusVisible] = useState(false);
       const [searchQuery, setSearchQuery] = useState('');
       const [allStatus, setAllStatus] = useState([]);
-      const [permissions, setPermissions] = useState(null);
+      const [permissions, setPermissions] = useState({can_edit: false});
       const [error, setError] = useState({
         global: null,
         fields: {}
@@ -117,6 +117,7 @@ const TournamentPage = ({ route }) => {
       const checkPermission = async () => {
         setLoading(true);
         try {
+          if (!tournament?.public_id) return;
           const checkPer = await axiosInstance.get(
             `${BASE_URL}/check-user-permission`,
             {
@@ -377,7 +378,7 @@ const TournamentPage = ({ route }) => {
                                     style={[tailwind`px-4 py-4 flex-row items-center`, { borderBottomWidth: 1, borderBottomColor: '#334155' }]}
                                 >
                                     <View style={[tailwind`w-9 h-9 rounded-lg items-center justify-center mr-3`, { backgroundColor: '#9333ea20' }]}>
-                                        <AntDesign name="control" size={18} color="#c084fc" />
+                                        <MaterialIcon name="admin-panel-settings" size={22} color="#60a5fa" />
                                     </View>
                                     <Text style={[tailwind`text-base font-medium`, { color: '#f1f5f9' }]}>Manage Role</Text>
                                 </TouchableOpacity>

@@ -138,17 +138,16 @@ const CreateTournament = () => {
             console.error("No tournament found in response", response.data);
             }
         } catch (err) {
-            const backendErrors = err.response?.data?.error?.fields || {};
-            if (err?.response?.data?.error?.code === "FORBIDDEN") {
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                });
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: "Unable to create tournament",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to create tournament", fields: {} });
             }
             console.error("Unable to create a new tournament", err);
         } finally {

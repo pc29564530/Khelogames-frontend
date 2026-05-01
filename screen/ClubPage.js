@@ -20,7 +20,7 @@ const ClubPage = ({ route }) => {
   const { teamData, game } = route.params;
   const [nameWidth, setNameWidth] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [permissions, setPermissions] = useState(null);
+  const [permissions, setPermissions] = useState({can_edit: false});
   const [loading, setLoading] = useState(false);
   const isIndividual = teamData?.type === 'individual';
 

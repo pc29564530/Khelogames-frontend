@@ -1,31 +1,71 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
-import {View, Text,Pressable,Modal, Alert, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions} from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
+
 import tailwind from 'twrnc';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../constants/ApiConstants';
 import axiosInstance from './axios_config';
+import { BASE_URL } from '../constants/ApiConstants';
+
 import { useSelector, useDispatch, shallowEqual } from 'react-redux';
-import { convertBallToOvers } from '../utils/ConvertBallToOvers';
-import { UpdateCricketScoreCard } from '../components/UpdateCricketScoreCard';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
+
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { setEndInning, setBatsmanScore, setBowlerScore, addBowler, getHomePlayer, getAwayPlayer, getCricketBattingScore, getCricketBowlingScore, getCurrentBatsmanScore, getcurrentBowlerScore, getCurrentBowlerScore } from '../redux/actions/actions';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+
+import { convertBallToOvers } from '../utils/ConvertBallToOvers';
+import { formattedDate } from '../utils/FormattedDateTime';
+import { validateCricketInningForm } from '../utils/validation/cricketInningValidation';
+
+import { addCricketScoreServices } from '../services/cricketMatchServices';
+import { UpdateCricketScoreCard } from '../components/UpdateCricketScoreCard';
 import AddBatsmanAndBowler from '../components/AddBatsAndBowler';
 import { CricketLiveMatchModal } from '../Modals/CricketLiveMatch';
 import { AddCricketBatsman } from '../components/AddCricketBatsman';
 import { AddCricketBowler } from '../components/AddCricketBowler';
 import SetCurrentBowler from '../components/SetCurrentBowler';
-import { formattedDate } from '../utils/FormattedDateTime';
-import { addCricketScoreServices } from '../services/cricketMatchServices';
- import { setCurrentInning, setInningStatus, setBatTeam, setCurrentInningNumber, setCurrentBatsman, setCurrentBowler, setActionRequired } from '../redux/actions/actions';
-import { renderInningScore } from './Matches';
-import Animated, {useSharedValue, useAnimatedScrollHandler, Extrapolation, interpolate, useAnimatedStyle} from 'react-native-reanimated';
-import { current } from '@reduxjs/toolkit';
-import { selectCurrentBatsmen, selectCurrentBowler } from '../redux/reducers/cricketMatchPlayerScoreReducers';
-import { getLeadTrailStatus } from '../screen/CricketMatchPage'
-import { validateCricketInningForm } from '../utils/validation/cricketInningValidation';
 import AddBatsmanAndBowlerSelection from '../components/AddBatsmanAndBowlerSelection';
+import {
+  selectCurrentBatsmen,
+  selectCurrentBowler,
+} from '../redux/reducers/cricketMatchPlayerScoreReducers';
+import {
+  setEndInning,
+  setBatsmanScore,
+  setBowlerScore,
+  addBowler,
+  getHomePlayer,
+  getAwayPlayer,
+  getCricketBattingScore,
+  getCricketBowlingScore,
+  getCurrentBatsmanScore,
+  getCurrentBowlerScore,
+
+  setInningStatus,
+  setBatTeam,
+  setCurrentBatsman,
+  setCurrentBowler,
+  setActionRequired,
+  setCurrentInningNumber,
+  setInningScore,
+} from '../redux/actions/actions';
+
+import { renderInningScore } from './Matches';
+import { getLeadTrailStatus } from '../screen/CricketMatchPage';
 
 const CricketLive = ({match, permissions, parentScrollY, headerHeight, collapsedHeader}) => {
     const navigation = useNavigation()
@@ -353,7 +393,13 @@ const CricketLive = ({match, permissions, parentScrollY, headerHeight, collapsed
                 return;
             }
             
-            await addCricketScoreServices({game, dispatch, matchPublicID, teamPublicID, currentInningNumber, followOn})
+           const res = await addCricketScoreServices({game, matchPublicID, teamPublicID, currentInningNumber})
+           if (res.success === true && res.data) {
+                dispatch(setCurrentInningNumber(item.inning.inning_number))
+                dispatch(setInningStatus("not_started", item.inning.inning_number));
+                dispatch(setBatTeam(item.team.public_id));
+                dispatch(setInningScore(item.inning));
+           }
         } catch (err) {
             const errorCode = err?.response?.data?.error?.code;
             const errorMessage = err?.response?.data?.error?.message;

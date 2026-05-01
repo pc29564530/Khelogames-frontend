@@ -47,7 +47,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState({gobal: null, fields: {}});
 
     // Sync scroll with collapsing header
     const scrollHandler = useAnimatedScrollHandler({
@@ -84,7 +84,6 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
             });
             setMessages(response.data?.data || []);
         } catch (err) {
-            setError('Unable to load announcements');
             console.error('Unable to fetch messages:', err);
         } finally {
             setLoading(false);
@@ -110,7 +109,7 @@ function CommunityMessage({ item, parentScrollY, headerHeight, collapsedHeader }
                 }
             }
         } catch (err) {
-            console.error('Unable to check admin status:', err);
+            console.log('Unable to check admin status:', err);
         }
     };
 

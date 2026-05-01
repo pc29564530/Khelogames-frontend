@@ -41,7 +41,7 @@ export const  AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBat
 
     useEffect(() => {
         fetchBattingSquad();
-    }, []);
+    }, [match?.public_id, batTeam, game.name]);
 
     const handleAddNextBatsman = async (item) => {
         try {
@@ -77,18 +77,16 @@ export const  AddCricketBatsman = ({ match, batTeam, game, dispatch, selectedBat
             }
             dispatch(setActionRequired(null))
         } catch (err) {
-            if (typeof setError === 'function') {
-                const errorCode = err?.response?.data?.error?.code;
-                const errorMessage = err?.response?.data?.error?.message;
-                const backendFields = err?.response?.data?.error?.fields;
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
 
-                if (backendFields && Object.keys(backendFields).length > 0) {
-                    setError({ global: errorMessage || "Invalid input", fields: backendFields });
-                } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
-                    setError({ global: errorMessage, fields: {} });
-                } else {
-                    setError({ global: "Unable to add new cricket batsman", fields: {} });
-                }
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
+            } else {
+                setError({ global: "Unable to add new cricket batsman", fields: {} });
             }
             console.log("Failed to add the batsman: ", err?.response?.data?.error);
         }

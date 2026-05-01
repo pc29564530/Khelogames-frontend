@@ -4,8 +4,9 @@ import CricketPlayerStats from "../components/CricketPlayerStats";
 import BadmintonPlayerStats from "../components/BadmintonPlayerStats";
 import PlayerDetails from "../screen/PlayerDetails";
 
+const TopTab = createMaterialTopTabNavigator();
+
 const TopTabPlayer = ({ player, game, parentScrollY, headerHeight, collapsedHeader }) => {
-  const TopTab = createMaterialTopTabNavigator();
 
   const renderCareerTab = () => {
     switch (player?.game_id) {
@@ -48,6 +49,7 @@ const TopTabPlayer = ({ player, game, parentScrollY, headerHeight, collapsedHead
     <TopTab.Navigator
           screenOptions={{
                 headerShown: false,
+                lazy: true,
                 tabBarStyle: {
                     backgroundColor: '#1e293b',
                     elevation: 0,

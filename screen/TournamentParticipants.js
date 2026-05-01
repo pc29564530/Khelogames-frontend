@@ -193,6 +193,7 @@ const TournamentParticipants = ({
 
   const handlerScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
+      if (!parentScrollY?.value) return;
       parentScrollY.value =
         collapsedHeader === parentScrollY
           ? currentScrollY.value
@@ -200,7 +201,6 @@ const TournamentParticipants = ({
     },
   });
 
-  const [authUser, setAuthUser] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -221,36 +221,28 @@ const TournamentParticipants = ({
     fields: {},
   });
 
-    useEffect(() => {
-      (async () => {
-        try {
-          const user = await AsyncStorage.getItem('User');
-          if (user) setAuthUser(JSON.parse(user));
-        } catch {}
-      })();
-    }, []);
-
-    const fetchRequests = useCallback(async () => {
+  const fetchRequests = useCallback(async () => {
       try {
+        if (!game?.name) return;
         const res = await axiosInstance.get(
           `${BASE_URL}/${game.name}/get-tournament-join-requests/${tournament.public_id}`,
         );
         setRequests(res.data?.data ?? []);
       } catch (err) {
-        logSilentError(err);
+        
       }
-    }, [tournament.public_id, game.name]);
+  }, [tournament.public_id, game.name]);
 
-    //check tournament admin or organizer user 
-    useEffect(() => { 
-      fetchRequests();
-    }, []);
+  //check tournament admin or organizer user 
+  useEffect(() => { 
+    fetchRequests();
+  }, []);
 
   const fetchParticipants = useCallback(async () => {
     try {
       setLoading(true);
       setParticipantsError({ global: null, fields: {} });
-
+      if (!tournament.public_id) return;
       const token = await AsyncStorage.getItem('AccessToken');
       const res = await axiosInstance.get(
         `${BASE_URL}/${game.name}/getTournamentParticipants/${tournament.public_id}`,
@@ -267,7 +259,7 @@ const TournamentParticipants = ({
     } finally {
       setLoading(false);
     }
-  }, [dispatch, game.name, tournament.public_id]);
+  }, [game?.name, tournament?.public_id]);
 
   useEffect(() => {
     fetchParticipants();
@@ -475,34 +467,34 @@ const TournamentParticipants = ({
       ) : participants.length === 0 ? (
         <View style={tailwind`px-4 py-20 items-center`}>
           <Text style={tailwind`text-6xl mb-4`}>
-            {tournament.user_id === authUser?.id ? '👥' : '🔍'}
+            {permissions.can_edit ? '👥' : '🔍'}
           </Text>
           <Text style={[tailwind`text-xl font-semibold mb-2`, { color: '#cbd5e1' }]}>
             No Participants Yet
           </Text>
           <Text style={[tailwind`text-center`, { color: '#64748b' }]}>
-            {tournament.user_id === authUser?.id
+            { permissions?.can_edit
               ? 'Add teams or players to get started'
               : 'No participants have been added to this tournament'}
           </Text>
         </View>
       ) : (
         <View style={tailwind`px-4 mt-6`}>
-          {participants.map((item) => (
+          {participants.length > 0 && participants.map((item) => (
             <Pressable
               key={item.public_id}
-              onPress={() => handleTeamPress(item.entity)}
+              onPress={() => handleTeamPress(item?.entity)}
               style={[tailwind`rounded-xl p-4 mb-3 flex-row items-center`, { backgroundColor: '#1e293b', borderWidth: 1, borderColor: '#334155' }]}
             >
               <View style={[tailwind`w-12 h-12 rounded-full items-center justify-center mr-3`, { backgroundColor: '#334155' }]}>
-                {item.entity?.media_url || item.entity?.avatar_url ? (
+                {item.entity?.media_url || item?.entity?.avatar_url ? (
                   <Image
-                    source={{ uri: item.entity.media_url || item.entity.avatar_url }}
+                    source={{ uri: item?.entity?.media_url || item?.entity?.avatar_url }}
                     style={tailwind`w-12 h-12 rounded-full`}
                   />
                 ) : (
                   <Text style={[tailwind`text-lg font-bold`, { color: '#94a3b8' }]}>
-                    {(item.entity?.name).charAt(0).toUpperCase()}
+                    {(item.entity?.name?.charAt(0) || '?').toUpperCase()}
                   </Text>
                 )}
               </View>
@@ -510,9 +502,9 @@ const TournamentParticipants = ({
                 <Text style={[tailwind`text-lg font-semibold`, { color: '#f1f5f9' }]}>
                   {item.entity?.name}
                 </Text>
-                {item.entity?.type && (
+                {item?.entity?.type && (
                   <Text style={[tailwind`text-sm capitalize mt-1`, { color: '#64748b' }]}>
-                    {item.entity.type}
+                    {item?.entity?.type}
                   </Text>
                 )}
               </View>

@@ -108,17 +108,16 @@ const EditClub = ({ route }) => {
                 navigation.goBack();
             }
         } catch (err) {
-            const backendErrors = err?.response?.data?.error?.fields || {};
-            if(err?.response?.data?.error?.code === "FORBIDDEN"){
-                setError({
-                    global: err?.response?.data?.error?.message,
-                    fields: {},
-                })
+            const errorCode = err?.response?.data?.error?.code;
+            const errorMessage = err?.response?.data?.error?.message;
+            const backendFields = err?.response?.data?.error?.fields;
+
+            if (backendFields && Object.keys(backendFields).length > 0) {
+                setError({ global: errorMessage || "Invalid input", fields: backendFields });
+            } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
+                setError({ global: errorMessage, fields: {} });
             } else {
-                setError({
-                    global: err?.response?.data?.error?.message || "Unable to update team. Please try again.",
-                    fields: backendErrors,
-                });
+                setError({ global: "Unable to update team", fields: {} });
             }
             console.error('Unable to update the team: ', err);
         }

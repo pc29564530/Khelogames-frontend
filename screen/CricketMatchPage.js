@@ -30,30 +30,30 @@ import Animated, {
 import { convertToISOString, formatToDDMMYY, formattedDate, formattedTime } from '../utils/FormattedDateTime';
 import { handleInlineError } from '../utils/errorHandler';
 
-// get lead and trail status
-export const getLeadTrailStatus = (match, batTeam) => {
-    if (!match?.homeScore?.length || !match?.awayScore?.length) return '';
-    const homeTeam = match.homeTeam;
-    const awayTeam = match.awayTeam;
-    const homeInnings = match.homeScore;
-    const awayInnings = match.awayScore;
-    const homeTotalScore = match.homeScore.map((item) => item.score).reduce((a, b) => a + b, 0);
-    const awayTotalScore = match.awayScore.map((item) => item.score).reduce((a, b) => a + b, 0);
-    if (homeInnings[0].team === batTeam) {
-        if (homeTotalScore > awayTotalScore) {
-            return `${homeTeam?.name} is leading by ${homeTotalScore - awayTotalScore} runs`;
-        } else {
-            return `${homeTeam?.name} is trailing by ${awayTotalScore - homeTotalScore} runs`;
-        }
-    } else if (awayInnings[0].team_id === batTeam) {
-        if (homeTotalScore < awayTotalScore) {
-            return `${awayTeam?.name} is leading by ${awayTotalScore - homeTotalScore} runs`;
-        } else {
-            return `${awayTeam?.name} is trailing by ${homeTotalScore - awayTotalScore} runs`;
-        }
-    }
-    return '';
-}
+// get lead and trail status for test matches
+// export const getLeadTrailStatus = (match, batTeam) => {
+//     if (!match?.homeScore?.length || !match?.awayScore?.length) return '';
+//     const homeTeam = match.homeTeam;
+//     const awayTeam = match.awayTeam;
+//     const homeInnings = match.homeScore;
+//     const awayInnings = match.awayScore;
+//     const homeTotalScore = match.homeScore.map((item) => item.score).reduce((a, b) => a + b, 0);
+//     const awayTotalScore = match.awayScore.map((item) => item.score).reduce((a, b) => a + b, 0);
+//     if (homeInnings[0].team === batTeam) {
+//         if (homeTotalScore > awayTotalScore) {
+//             return `${homeTeam?.name} is leading by ${homeTotalScore - awayTotalScore} runs`;
+//         } else {
+//             return `${homeTeam?.name} is trailing by ${awayTotalScore - homeTotalScore} runs`;
+//         }
+//     } else if (awayInnings[0].team_id === batTeam) {
+//         if (homeTotalScore < awayTotalScore) {
+//             return `${awayTeam?.name} is leading by ${awayTotalScore - homeTotalScore} runs`;
+//         } else {
+//             return `${awayTeam?.name} is trailing by ${homeTotalScore - awayTotalScore} runs`;
+//         }
+//     }
+//     return '';
+// }
 
 // Team Score Component
 const TeamScore = ({ team, score, isInning1 }) => {
@@ -110,8 +110,8 @@ const CricketMatchPage = ({ route }) => {
     const actionRequired = useSelector(state => state.cricketMatchScore.actionRequired);
     const inningStatus = useSelector(state => state.cricketMatchInning.inningStatus);
 
-    const [loading, setLoading] = useState(false);
-    const [permissions, setPermissions] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [permissions, setPermissions] = useState({can_edit: false});
     const [error, setError] = useState({
         global: null,
         fields: {},
@@ -134,30 +134,30 @@ const CricketMatchPage = ({ route }) => {
     }, [dispatch]);
 
     // SUBSCRIBE ONCE - Send initial subscription
-    useEffect(() => {
-        if (!wsRef?.current || !match?.public_id) return;
+   useEffect(() => {
+        const socket = wsRef?.current;
+        if (!socket) return;
 
         const sendSubscribe = () => {
-            try {
-                const payloadData = {
-                    type: "SUBSCRIBE",
-                    category: "MATCH",
-                    payload: { match_public_id: match.public_id }
-                };
-                wsRef.current.send(JSON.stringify(payloadData));
-            } catch (err) {
-                console.error("Failed to subscribe to chat:", err);
+            if(socket?.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    "type": "SUBSCRIBE",
+                    "category": "MATCH",
+                    "payload": {"match_public_id": matchPublicID}
+                }));
             }
         };
 
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-            // Already open — subscribe immediately
+        if (socket.readyState === WebSocket.OPEN) {
             sendSubscribe();
+        } else {
+            socket.addEventListener("open", sendSubscribe);
         }
-        
-        
-        console.log("CricketMatchPage - Subscribing to match:", matchPublicID);
-    }, [matchPublicID, wsRef]);
+
+        return () => {
+            socket.removeEventListener("open", sendSubscribe);
+        };
+    }, [matchPublicID]);
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
     const handleSearch = (text) => setSearchQuery(text);
@@ -331,17 +331,10 @@ const CricketMatchPage = ({ route }) => {
         };
     });
 
-
-    useEffect(() => {
-        if (match) {
-            setLoading(false);
-        }
-    }, [match]);
-
     // Check for user permission
     useEffect(() => {
+      if (!match?.public_id) return;
       const checkPermission = async () => {
-        setLoading(true);
         try {
           const checkPer = await axiosInstance.get(
             `${BASE_URL}/check-user-permission`,
@@ -356,16 +349,15 @@ const CricketMatchPage = ({ route }) => {
           setPermissions(res);
         } catch (err) {
           console.log("Unable to check permission:", err);
-        } finally {
-          setLoading(false);
         }
       };
       checkPermission();
-    }, []);
+    }, [match?.public_id]);
 
     useEffect(() => {
         const fetchMatch = async () => {
             try {
+                setLoading(true);
                 const authToken = await AsyncStorage.getItem('AccessToken');
                 const response = await axiosInstance.get(`${BASE_URL}/${game.name}/getMatchByMatchID/${matchPublicID}`, {
                     headers: {
@@ -374,6 +366,7 @@ const CricketMatchPage = ({ route }) => {
                     },
                 });
                 const item = response.data;
+                console.log("Match: ", item.data)
                 dispatch(getMatch(item.data || null));
             } catch (err) {
                 const backendError = err?.response?.data?.error?.fields;
@@ -671,17 +664,18 @@ const CricketMatchPage = ({ route }) => {
                 </View>
             );
         }
-        if(match.match_format === "TEST") {
-            if ((match.status_code === "in_progress" || match.status_code === "break") && match.awayScore.length >= 1 && match.homeScore.length >= 1) {
-                return (
-                    <View style={tailwind`items-center -top-4`}>
-                        <Text style={tailwind`text-white text-sm`}>
-                            {getLeadTrailStatus(match, batTeam)}
-                        </Text>
-                    </View>
-                );
-            }
-        } else if(match.match_format === "ODI") {
+        // if(match.match_format === "TEST") {
+        //     if ((match.status_code === "in_progress" || match.status_code === "break") && match.awayScore.length >= 1 && match.homeScore.length >= 1) {
+        //         return (
+        //             <View style={tailwind`items-center -top-4`}>
+        //                 <Text style={tailwind`text-white text-sm`}>
+        //                     {getLeadTrailStatus(match, batTeam)}
+        //                 </Text>
+        //             </View>
+        //         );
+        //     }
+        // }
+        if(match.match_format === "ODI") {
             if ((match.status_code === "in_progress" || match.status_code === "break") && match?.awayScore?.length > 0 && match?.homeScore?.length > 0) {
                 return (
                     <View style={tailwind`items-center -top-4`}>
@@ -710,11 +704,14 @@ const CricketMatchPage = ({ route }) => {
         return null;
     };
 
-    if (loading) {
+    if (loading && !match) {
         return (
-            <View style={tailwind`flex-1 justify-center items-center`}>
+            <View style={[tailwind`flex-1 justify-center items-center`, 
+                {backgroundColor: '#0f172a'}]}>
                 <ActivityIndicator size="large" color="#f87171" />
-                <Text>Loading...</Text>
+                <Text style={{ color: '#94a3b8', marginTop: 8 }}>
+                    Loading match...
+                </Text>
             </View>
         );
     }
@@ -884,7 +881,7 @@ const CricketMatchPage = ({ route }) => {
                                 placeholderTextColor="#94a3b8"
                             />
                             <ScrollView style={{minHeight: 20}}>
-                                {filteredStatusCodes.map((item, index) => (
+                                {filteredStatusCodes?.map((item, index) => (
                                     <Pressable
                                         key={index}
                                         onPress={() => {setStatusCode(item.type); handleUpdateMatchStatus(item)}}
