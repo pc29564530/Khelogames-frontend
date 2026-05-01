@@ -65,13 +65,13 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
         dispatch(getTeamPlayers(response.data?.data ?? []));
       } catch (err) {
         logSilentError(err);
-        setError('Unable to load squad. Pull down to refresh.');
+        setError({ global: 'Unable to load squad. Pull down to refresh.', fields: {} });
       } finally {
         setMembersLoading(false);
       }
     };
     fetchMembers();
-  }, []);
+  }, [team.public_id, game.name]);
 
   // Fetch player pool for the Add modal
   useEffect(() => {
@@ -134,7 +134,6 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
   const handleAddPlayer = async (selectedItem) => {
     try {
       setModalLoading(true);
-      setModalError(null);
       const response = await axiosInstance.post(
         `${BASE_URL}/${game.name}/addTeamMember`,
         {
@@ -159,7 +158,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
       } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
           setModalError({ global: errorMessage, fields: {} });
       } else {
-          setModalError({ global: "Unable to add new cricket batsman", fields: {} });
+          setModalError({ global: "Unable to add player", fields: {} });
       }
     } finally {
       setModalLoading(false);
@@ -176,7 +175,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
           leave_date: new Date(),
         },
       );
-      const updated = players.filter(p => p.id !== response.data?.id);
+      const updated = players.filter(p => p.public_id !== item.public_id);
       dispatch(getTeamPlayers(updated));
     } catch (err) {
       const errorCode = err?.response?.data?.error?.code;
@@ -188,7 +187,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
       } else if (errorCode && errorCode !== "INTERNAL_ERROR") {
           setError({ global: errorMessage, fields: {} });
       } else {
-          setError({ global: "Unable to add new cricket batsman", fields: {} });
+          setError({ global: "Unable to remove player", fields: {} });
       }
     }
   };
@@ -199,7 +198,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
     const lower = text.toLowerCase();
     setFiltered(
       playerPool.filter(p =>
-        p.name.toLowerCase().includes(lower) && p.game_id === game.id,
+        p.name?.toLowerCase().includes(lower) && p.game_id === game.id,
       ),
     );
   };
@@ -207,7 +206,7 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
   const closeModal = () => {
     setShowAddModal(false);
     setSearchText('');
-    setModalError(null);
+    setModalError({global: null, fields: {}})
     setFiltered(playerPool);
   };
 
@@ -223,12 +222,12 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
       >
 
         {/* Error banner */}
-        {!!error && (
+        {!!error?.global && (
           <View style={[tailwind`mx-4 mb-4 rounded-xl p-3 flex-row items-center`,
             { backgroundColor: '#2d0a0a', borderWidth: 1, borderColor: '#7f1d1d' }]}>
             <MaterialIcons name="error-outline" size={16} color="#f87171" />
             <Text style={{ color: '#fca5a5', fontSize: 13, marginLeft: 8, flex: 1 }}>
-              {error}
+              {error.global}
             </Text>
           </View>
         )}
@@ -391,10 +390,10 @@ const Members = ({ team, parentScrollY, collapsedHeader }) => {
             </View>
 
             {/* Modal error */}
-            {!!modalError && (
+            {!!modalError?.global && (
               <View style={[tailwind`mx-4 mt-3 rounded-xl p-3`,
                 { backgroundColor: '#2d0a0a', borderWidth: 1, borderColor: '#7f1d1d' }]}>
-                <Text style={{ color: '#fca5a5', fontSize: 13 }}>{modalError}</Text>
+                <Text style={{ color: '#fca5a5', fontSize: 13 }}>{modalError.global}</Text>
               </View>
             )}
 
